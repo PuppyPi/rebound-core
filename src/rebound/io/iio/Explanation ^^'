@@ -1,0 +1,2 @@
+IIO (Interface IO) is made to be *exactly* like SIO (Java Standard IO; ie, java.io.InputStream, etc.), except that it uses interfaces :>
+So, for example, the equivalent of a RandomAccessFile can implement both the equivalent of the InputStream and OutputStream! :D
