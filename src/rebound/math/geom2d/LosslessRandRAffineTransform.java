@@ -85,27 +85,27 @@ public enum LosslessRandRAffineTransform
 	@ThrowAwayValue
 	public byte[] getMatrixInRCFormCloning()
 	{
-		if (swapAxes())
-			return new byte[]{0, invertInputX() ? (byte)-1 : (byte)1, invertInputY() ? (byte)-1 : (byte)1, 0};
+		if (isAxesSwapped())
+			return new byte[]{0, isInputXInverted() ? (byte)-1 : (byte)1, isInputYInverted() ? (byte)-1 : (byte)1, 0};
 		else
-			return new byte[]{invertInputX() ? (byte)-1 : (byte)1, 0, 0, invertInputY() ? (byte)-1 : (byte)1};
+			return new byte[]{isInputXInverted() ? (byte)-1 : (byte)1, 0, 0, isInputYInverted() ? (byte)-1 : (byte)1};
 	}
 	
 	
 	
 	
-	public boolean invertInputX()
+	public boolean isInputXInverted()
 	{
 		return (ordinal() & 0b001) != 0;
 	}
 	
-	public boolean invertInputY()
+	public boolean isInputYInverted()
 	{
 		return (ordinal() & 0b010) != 0;
 	}
 	
 	
-	public boolean swapAxes()
+	public boolean isAxesSwapped()   //Java grammar B)   X'D
 	{
 		return (ordinal() & 0b100) != 0;
 	}
