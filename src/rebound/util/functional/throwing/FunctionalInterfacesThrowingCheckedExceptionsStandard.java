@@ -56,4 +56,14 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 	{
 		public Output run(Input input) throws IOException;
 	}
+	
+	
+	
+	
+	
+	
+	public static interface BinaryProcedureThrowingIOException<Input0, Input1>
+	{
+		public void f(Input0 input0, Input1 input1) throws IOException;
+	}
 }
