@@ -58,6 +58,7 @@ import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.util.collections.ArrayUtilities;
+import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.objectutil.JavaNamespace;
 
 public class ImageUtilities
@@ -1170,7 +1171,7 @@ implements JavaNamespace
 		}
 		
 		Iterator<ImageReader> readersI = ImageIO.getImageReadersBySuffix(ext);
-		Collection<ImageReader> readers = toCollection(readersI);
+		Collection<ImageReader> readers = PolymorphicCollectionUtilities.anyToCollection(readersI);
 		
 		if (readers.isEmpty())
 		{
@@ -1191,7 +1192,7 @@ implements JavaNamespace
 			if (writer == null)
 			{
 				Iterator<ImageWriter> writersI = ImageIO.getImageWritersBySuffix(ext);
-				Collection<ImageWriter> writers = toCollection(writersI);
+				Collection<ImageWriter> writers = PolymorphicCollectionUtilities.anyToCollection(writersI);
 				
 				if (writers.isEmpty())
 				{

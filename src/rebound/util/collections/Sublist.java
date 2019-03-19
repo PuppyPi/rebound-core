@@ -32,7 +32,7 @@ extends List<E>, UnderlyingInstanceAccessible<List<E>>, KnowsLengthFixedness, Tr
 	@Override
 	public default Boolean isFixedLengthNotVariableLength()
 	{
-		return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+		return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 	}
 	
 	

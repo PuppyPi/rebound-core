@@ -38,6 +38,7 @@ import rebound.io.streaming.util.implhelp.StreamImplUtilities.IndolentLongBlockW
 import rebound.io.streaming.util.implhelp.StreamImplUtilities.IndolentShortBlockWriteStream;
 import rebound.util.Primitives;
 import rebound.util.collections.CollectionUtilities;
+import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanArrayList;
@@ -735,7 +736,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -1169,7 +1170,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -1603,7 +1604,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -2037,7 +2038,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -2471,7 +2472,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -2905,7 +2906,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -3339,7 +3340,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override
@@ -3773,7 +3774,7 @@ public class ArrayBackedStreams
 		
 		protected boolean isUnderlyingDefinitelyOrPossiblyVariableLength()
 		{
-			return Primitives.isFalseOrNull(CollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
+			return Primitives.isFalseOrNull(PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying));
 		}
 		
 		@Override

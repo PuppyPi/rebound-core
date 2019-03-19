@@ -9,17 +9,13 @@ import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
-import static rebound.util.AngryReflectionUtility.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
-import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
 import java.lang.reflect.Array;
-import java.nio.Buffer;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.AbstractSet;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -34,21 +30,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
-import java.util.PriorityQueue;
 import java.util.RandomAccess;
 import java.util.Set;
-import java.util.Stack;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.WeakHashMap;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -56,13 +47,10 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
-import org.w3c.dom.NodeList;
-import rebound.annotations.hints.PerformanceSetting;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
 import rebound.annotations.semantic.reachability.LiveValue;
-import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
@@ -82,16 +70,13 @@ import rebound.exceptions.StructuredClassCastException;
 import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
-import rebound.util.BasicExceptionUtilities;
-import rebound.util.NIOBufferUtilities;
 import rebound.util.Primitives;
+import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
-import rebound.util.collections.SimpleIterator.SimpleIteratorWithRemove;
 import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
 import rebound.util.collections.maps.MapWithBoundKeyEqualityComparator;
 import rebound.util.collections.maps.MapWithBoundValueEqualityComparator;
-import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
@@ -138,16 +123,23 @@ import rebound.util.functional.SuccessfulIterationStopType;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.EqualityComparator;
 
-//TODO Refactor a BUNCH of this into BasicCollectionUtilities!!
+
+//TODO Implement the NotYetImplemented things ^^''
 
 //TODO reorderElement (in list) :>
 //TODO reorderElements (in list) :>
 
-//TODO toRichGeneralList, toNewVariableLengthMutableRichGeneralList  8>
+//Todo rename mergeLists to concat (edit: ALREADY?! REALLY XDDD''')—new todo: Resolve duplicates between Merge and (Concatenate, Union)  ^^'''
+
+
+
+
+//Todo Appensions (edit: Contatenations?):   Lightweight views of two or more [sub]lists which acts like the them merged back to back!  Can be combined with sublists and used on efficiently-backed char or boolean GeneralLists to make huge Text and Bit string manipulations SUUUUPER efficient! 8>
+
+//Todo toRichGeneralList, toNewVariableLengthMutableRichGeneralList  8>
 //Todo toNewMutableRichGeneralList :>
 
 
-//Todo Appensions (views of two or more [sub]lists which acts like the them merged back to back!  Can be combined with sublists and used on efficiently-backed char or boolean GeneralLists to make huge Text and Bit string manipulations SUUUUPER efficient! 8> )
 
 public class CollectionUtilities
 {
@@ -162,64 +154,6 @@ public class CollectionUtilities
 		if (length < 0) throw new IndexOutOfBoundsException("Negative length! D:   "+length);
 		if (start + length > underlyingLength) throw new IndexOutOfBoundsException("Range overflowed underlying thing!  Range was: ["+start+":"+length+"),  Maximum possible range was: [0:"+underlyingLength+")  ;_;");
 	}
-	
-	
-	
-	@CollectionValue
-	@PossiblySnapshotPossiblyLiveValue
-	public Object sublist(@CollectionValue Object list, int start, int length)
-	{
-		//Override :3
-		if (list instanceof SublistOverride)
-		{
-			return ((SublistOverride)list).sublist(start, length);
-		}
-		
-		//Collapse!! :D!
-		else if (list instanceof Sublist)
-		{
-			Sublist listC = (Sublist)list;
-			
-			checkRangeNonnegative(listC.size(), start, length);
-			
-			return sublist(listC.getUnderlying(), listC.getSublistStartingIndex() + start, length);
-		}
-		
-		
-		//Grandfathering ;D!
-		else if (list instanceof List)
-		{
-			//Also takes care of RichGeneralList ^w^
-			return ((List)list).subList(start, start+length);
-		}
-		else if (list instanceof CharSequence)
-		{
-			//To keep java.lang.String from copying, currently best to just use char[] and unmodifiable general-lists :P
-			return ((CharSequence)list).subSequence(start, start+length);
-		}
-		else if (list instanceof Buffer)
-		{
-			Buffer listC = (Buffer)list;
-			
-			checkRangeNonnegative(listC.remaining(), start, length);
-			
-			Buffer slice = NIOBufferUtilities.slice(listC);
-			slice.limit(listC.position() + start + length);
-			slice.position(listC.position() + start);
-			
-			return slice;
-		}
-		else if (list.getClass().isArray())
-		{
-			return sublist(toList(list), start, length);
-			//return new RichGeneralListBackedbyLiveArray(list, start, length, false);
-		}
-		else
-		{
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(list);
-		}
-	}
-	
 	
 	
 	
@@ -441,12 +375,10 @@ public class CollectionUtilities
 		return null;
 	}
 	
-	
 	public static boolean isIdentityMapConventionalDefault(Map map)
 	{
 		return Primitives.unboxNT(isIdentityMap(map), false);
 	}
-	
 	
 	public static Boolean isEquivalenceMap(Map map)
 	{
@@ -455,10 +387,9 @@ public class CollectionUtilities
 		if (map instanceof IdentityHashMap)
 			return false;
 		if (map instanceof EnumMap)
-			return true; //it's the same for enum instances ;>
+			return true; // it's the same for enum instances ;>
 		return null;
 	}
-	
 	
 	public static boolean isEquivalenceMapConventionalDefault(Map map)
 	{
@@ -466,112 +397,8 @@ public class CollectionUtilities
 	}
 	
 	
-	//<Unifying Map and List ^_^
-	public static Object getuni(Object mapOrList, Object key)
-	{
-		if (mapOrList instanceof Map)
-		{
-			return ((Map)mapOrList).get(key);
-		}
-		else if (mapOrList instanceof List)
-		{
-			int indexkey = MathUtilities.safeCastIntegerToS32(key);
-			if (indexkey < 0 || indexkey >= ((List)mapOrList).size())
-				return null; //no mapping :>
-			return ((List)mapOrList).get(indexkey);
-		}
-		else if (mapOrList.getClass().isArray())
-		{
-			int indexkey = MathUtilities.safeCastIntegerToS32(key);
-			if (indexkey < 0 || indexkey >= Array.getLength(mapOrList))
-				return null; //no mapping :>
-			return Array.get(mapOrList, indexkey);
-		}
-		else
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(mapOrList);
-	}
 	
 	
-	public static Object getunirp(Object mapOrList, Object key) throws NoSuchMappingReturnPath
-	{
-		if (mapOrList instanceof Map)
-		{
-			return getrp(((Map)mapOrList), key);
-		}
-		else if (mapOrList instanceof List)
-		{
-			int indexkey = MathUtilities.safeCastIntegerToS32(key);
-			if (indexkey < 0 || indexkey >= ((List)mapOrList).size())
-				throw NoSuchMappingReturnPath.I;
-			return ((List)mapOrList).get(indexkey);
-		}
-		else
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(mapOrList);
-	}
-	
-	
-	public static void setuni(Object mapOrList, Object key, Object value) throws IndexOutOfBoundsException
-	{
-		if (mapOrList instanceof Map)
-		{
-			((Map)mapOrList).put(key, value);
-		}
-		else if (mapOrList instanceof List)
-		{
-			int indexkey = MathUtilities.safeCastIntegerToS32(key);
-			int len = ((List)mapOrList).size();
-			if (indexkey < 0 || indexkey > len)
-				throw new IndexOutOfBoundsException(String.valueOf(indexkey));
-			if (indexkey == len)
-				((List)mapOrList).add(value);
-			else
-				((List)mapOrList).set(indexkey, value);
-		}
-		else
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(mapOrList);
-	}
-	
-	
-	//	@LiveValue
-	//	public static Set keysuni(Object mapOrList)
-	//	{
-	//		if (mapOrList instanceof Map)
-	//			return ((Map)mapOrList).keySet();
-	//		else if (mapOrList instanceof List)
-	//		{
-	//			final List list = (List)mapOrList;
-	//
-	//			return new AbstractSingleContiguousIntegerRangeHybridListAndSet()
-	//			{
-	//				@Override
-	//				public long getInclusiveLowBound()
-	//				{
-	//					return 0;
-	//				}
-	//
-	//				@Override
-	//				public long getExclusiveHighBound()
-	//				{
-	//					return list.size();
-	//				}
-	//			};
-	//		}
-	//		else
-	//			throw ExceptionUtilities.newClassCastExceptionOrNullPointerException(mapOrList);
-	//	}
-	
-	
-	public static Collection contentsuni(Object thing)
-	{
-		if (thing instanceof Map)
-			return ((Map)thing).values();
-		else if (thing instanceof Collection) //handles java.util.List :>
-			return (Collection)thing;
-		else if (thing == null)
-			return null;
-		else
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(thing);
-	}
 	
 	
 	
@@ -924,7 +751,7 @@ public class CollectionUtilities
 			return ((RuntimeReadabilityMap)map).isReadableMap();
 		else
 		{
-			if (map.getClass() == jreUnmodifiableMapClass)
+			if (map.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableMap)
 				return true;
 			
 			else if (map.getClass() == HashMap.class)
@@ -942,11 +769,11 @@ public class CollectionUtilities
 			
 			
 			//Check the views! ^_~
-			if (isTrueAndNotNull(isCollectionReadable(map.entrySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.entrySet())))
 				return true;
-			if (isTrueAndNotNull(isCollectionReadable(map.keySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.keySet())))
 				return true;
-			if (isTrueAndNotNull(isCollectionReadable(map.values())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.values())))
 				return true;
 			
 			
@@ -969,7 +796,7 @@ public class CollectionUtilities
 			return ((RuntimeWriteabilityMap)map).isWritableMap();
 		else
 		{
-			if (map.getClass() == jreUnmodifiableMapClass)
+			if (map.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableMap)
 				return true;
 			
 			else if (map.getClass() == HashMap.class)
@@ -987,11 +814,11 @@ public class CollectionUtilities
 			
 			
 			//Check the views! ^_~
-			if (isTrueAndNotNull(isCollectionReadable(map.entrySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.entrySet())))
 				return true;
-			if (isTrueAndNotNull(isCollectionReadable(map.keySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.keySet())))
 				return true;
-			if (isTrueAndNotNull(isCollectionReadable(map.values())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.values())))
 				return true;
 			
 			
@@ -1827,52 +1654,6 @@ public class CollectionUtilities
 	
 	
 	
-	/**
-	 * Unifies arrays, {@link RandomAccess}, and {@link FastRandomAccess}!   ^w^
-	 */
-	@PerformanceSetting
-	public static boolean isRandomAccessFast(Object list)
-	{
-		if (list.getClass().isArray())
-			return true;
-		else if (list instanceof RandomAccess)
-			return true;
-		else if (FastRandomAccess.is(list))
-			return true;
-		else
-			return false;
-	}
-	
-	
-	
-	
-	
-	
-	public static int indexOf(Predicate predicate, @CollectionValue Object list)
-	{
-		if (list instanceof Object[])
-		{
-			return indexOf(predicate, (Object[])list);
-		}
-		else if (list instanceof List)
-		{
-			return indexOf(predicate, (List)list);
-		}
-		else
-		{
-			int i = 0;
-			Iterator it = iterator(list);
-			while (it.hasNext())
-			{
-				Object element = it.next();
-				if (predicate.test(element))
-					return i;
-				i++;
-			}
-			return -1;
-		}
-	}
-	
 	public static <E> int indexOf(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		int length = list.length;
@@ -1911,11 +1692,6 @@ public class CollectionUtilities
 	
 	
 	
-	public static boolean contains(Predicate predicate, @CollectionValue Object list)
-	{
-		return indexOf(predicate, list) != -1;
-	}
-	
 	public static <E> boolean contains(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		return indexOf(predicate, list) != -1;
@@ -1931,29 +1707,6 @@ public class CollectionUtilities
 	
 	
 	
-	
-	public static Object findFirstRP(Predicate predicate, @CollectionValue Object list) throws NoSuchElementReturnPath
-	{
-		if (list instanceof Object[])
-		{
-			return findFirstRP(predicate, (Object[])list);
-		}
-		else if (list instanceof List)
-		{
-			return findFirstRP(predicate, (List)list);
-		}
-		else
-		{
-			Iterator it = iterator(list);
-			while (it.hasNext())
-			{
-				Object element = it.next();
-				if (predicate.test(element))
-					return element;
-			}
-			throw NoSuchElementReturnPath.I;
-		}
-	}
 	
 	public static <E> E findFirstRP(Predicate<E> predicate, @CollectionValue E[] list) throws NoSuchElementReturnPath
 	{
@@ -1997,7 +1750,7 @@ public class CollectionUtilities
 	{
 		try
 		{
-			return findFirstRP(predicate, list);
+			return PolymorphicCollectionUtilities.findFirstRP(predicate, list);
 		}
 		catch (NoSuchElementReturnPath exc)
 		{
@@ -2325,30 +2078,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static int count(Predicate predicate, @CollectionValue Object collection)
-	{
-		if (collection instanceof Object[])
-		{
-			return count(predicate, (Object[])collection);
-		}
-		else if (collection instanceof List)
-		{
-			return count(predicate, (List)collection);
-		}
-		else
-		{
-			int count = 0;
-			Iterator it = iterator(collection);
-			while (it.hasNext())
-			{
-				Object element = it.next();
-				if (predicate.test(element))
-					count++;
-			}
-			return count;
-		}
-	}
-	
 	public static <E> int count(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		int length = list.length;
@@ -2431,326 +2160,6 @@ _$$primxpconf:intsonly$$_
 	 */
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue //because you wouldn't know if writes will be propagated through or not! ><
-	public static Object toArray(final Object x, final Class componentType)
-	{
-		//		if (componentType.isPrimitive())
-		//			throw new IllegalArgumentException("Generics don't allow us to support primitive arrays; sorries ._.");
-		//		else if (componentType == Object.class)
-		//			return toObjectArray(x);
-		
-		
-		if (x == null)
-			return null;
-		
-		else if (x instanceof Object[])
-		{
-			if (componentType.isPrimitive())
-			{
-				if (!Primitives.getWrapperClassFromPrimitiveOrPassThroughWrapper(componentType).isAssignableFrom(x.getClass().getComponentType()))
-					throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-				
-				//Source is not primitive, dest is --> unboxingggg!
-				return toNewArray(x, componentType); //no better way I sees XD
-			}
-			else
-			{
-				if (x.getClass().getComponentType() == componentType)   //note: not isAssignableFrom / instanceof / etc, *exactly equals*  (because you might be making an array that you haves to stick a supertype object into, not just sametype and subtype objects!!)
-					return x;
-				else
-					return Arrays.copyOf((Object[])x, Array.getLength(x), arrayClassOf(componentType)); //no better way I sees XD
-			}
-		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			if (componentType.isPrimitive())
-			{
-				if (componentType != x.getClass().getComponentType())
-					//Todo mayyyyybe do lossless casts (eg, int->long) in futures..but even then that wouldn't be right for eg, treating them as unsigned! :P!
-					throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-				
-				return x;
-			}
-			else
-			{
-				if (!componentType.isAssignableFrom(Primitives.getWrapperClassFromPrimitiveOrPassThroughWrapper(x.getClass().getComponentType())))
-					throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-				
-				//Source is primitive, dest is not --> boxingggg!
-				return toNewArray(x, componentType); //no better way I sees XD
-			}
-		}
-		
-		/* <<<
-primxp
-		if (x instanceof _$$Primitive$$_List && componentType == _$$prim$$_.class)
-			return ((_$$Primitive$$_List)x).to_$$Prim$$_ArrayPossiblyLive();
-		 */
-		if (x instanceof BooleanList && componentType == boolean.class)
-			return ((BooleanList)x).toBooleanArrayPossiblyLive();
-		if (x instanceof ByteList && componentType == byte.class)
-			return ((ByteList)x).toByteArrayPossiblyLive();
-		if (x instanceof CharacterList && componentType == char.class)
-			return ((CharacterList)x).toCharArrayPossiblyLive();
-		if (x instanceof ShortList && componentType == short.class)
-			return ((ShortList)x).toShortArrayPossiblyLive();
-		if (x instanceof FloatList && componentType == float.class)
-			return ((FloatList)x).toFloatArrayPossiblyLive();
-		if (x instanceof IntegerList && componentType == int.class)
-			return ((IntegerList)x).toIntArrayPossiblyLive();
-		if (x instanceof DoubleList && componentType == double.class)
-			return ((DoubleList)x).toDoubleArrayPossiblyLive();
-		if (x instanceof LongList && componentType == long.class)
-			return ((LongList)x).toLongArrayPossiblyLive();
-		
-		// >>>
-		
-		
-		
-		if (TransparentContiguousArrayBackedCollection.is(x))
-		{
-			Slice underlyingArraySlice = ((TransparentContiguousArrayBackedCollection)x).getLiveContiguousArrayBackingUNSAFE();
-			Object underlyingArray = underlyingArraySlice.getUnderlying();
-			int size = underlyingArraySlice.getLength();
-			int underlyingArrayOffset = underlyingArraySlice.getOffset();
-			
-			//Check component types are compatible!
-			{
-				Class xComponentType = underlyingArray.getClass().getComponentType();
-				
-				if (!componentType.isAssignableFrom(xComponentType))  //Note!  Handles primitives like we do!  Strict equality makes true ^w^
-					throw new ClassCastException("Source elements are "+xComponentType.getCanonicalName()+" but dest elements are "+componentType.getCanonicalName()+" it's not assignable!  :P!");
-			}
-			
-			if (underlyingArrayOffset == 0 && size == Array.getLength(underlyingArray) && underlyingArray.getClass().getComponentType() == componentType)
-				return underlyingArray;
-			else
-			{
-				Object newArray = Array.newInstance(componentType, size);
-				System.arraycopy(underlyingArray, underlyingArrayOffset, newArray, 0, size);
-				return newArray;
-			}
-		}
-		
-		if (x instanceof Sublist)
-		{
-			//Note that this here would also take care of unwrapping RichGeneralListBackedbyLiveArray's, if the above didn't x3
-			Object underlying = ((Sublist)x).getUnderlying();
-			if (((Sublist)x).getSublistStartingIndex() == 0 && ((Sublist)x).size() == BasicCollectionUtilities.sizeOfCollectionlike(underlying))
-				return toArray(underlying, componentType);
-		}
-		
-		return toNewArray(x, componentType); //no better way I sees XD
-	}
-	
-	@SnapshotValue
-	@ThrowAwayValue
-	public static Object toNewArray(final Object x, final Class componentType) throws ClassCastException
-	{
-		if (componentType.isPrimitive())
-			throw new IllegalArgumentException("Generics don't allow us to support primitive arrays; sorries ._.");
-		//		else if (componentType == Object.class)
-		//			return toNewObjectArray(x);
-		
-		
-		if (x == null)
-			throw new NullPointerException();
-		
-		else if (x instanceof Object[])
-		{
-			if (!componentType.isAssignableFrom(x.getClass().getComponentType()))
-				throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-			
-			if (x.getClass().getComponentType() == componentType)
-				return ((Object[])x).clone();
-			else
-				return Arrays.copyOf((Object[])x, Array.getLength(x), arrayClassOf(componentType));
-		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			/*  Can't do because generics xP
-			if (componentType.isPrimitive())
-			{
-				if (componentType != x.getClass().getComponentType())
-					throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-				
-				return ObjectUtilities.attemptClone(x);
-			}
-			 */
-			
-			if (!componentType.isAssignableFrom(Primitives.getWrapperClassFromPrimitiveOrPassThroughWrapper(x.getClass().getComponentType())))
-				throw new ClassCastException("Trying to convert a "+x.getClass().getCanonicalName()+" into a "+componentType.getCanonicalName()+"[]");
-			
-			Object[] r = (Object[])Array.newInstance(componentType, Array.getLength(x));
-			Primitives.boxInto(x, r);
-			return r;
-		}
-		
-		/* <<<
-primxp
-		if (x instanceof _$$Primitive$$_List && componentType == _$$prim$$_.class)
-			return ((_$$Primitive$$_List)x).to_$$Prim$$_Array();
-		 */
-		if (x instanceof BooleanList && componentType == boolean.class)
-			return ((BooleanList)x).toBooleanArray();
-		if (x instanceof ByteList && componentType == byte.class)
-			return ((ByteList)x).toByteArray();
-		if (x instanceof CharacterList && componentType == char.class)
-			return ((CharacterList)x).toCharArray();
-		if (x instanceof ShortList && componentType == short.class)
-			return ((ShortList)x).toShortArray();
-		if (x instanceof FloatList && componentType == float.class)
-			return ((FloatList)x).toFloatArray();
-		if (x instanceof IntegerList && componentType == int.class)
-			return ((IntegerList)x).toIntArray();
-		if (x instanceof DoubleList && componentType == double.class)
-			return ((DoubleList)x).toDoubleArray();
-		if (x instanceof LongList && componentType == long.class)
-			return ((LongList)x).toLongArray();
-		
-		// >>>
-		
-		if (TransparentContiguousArrayBackedCollection.is(x))
-		{
-			Slice underlyingArraySlice = ((TransparentContiguousArrayBackedCollection)x).getLiveContiguousArrayBackingUNSAFE();
-			Object underlyingArray = underlyingArraySlice.getUnderlying();
-			int size = underlyingArraySlice.getLength();
-			int underlyingArrayOffset = underlyingArraySlice.getOffset();
-			
-			//Check component types are compatible!
-			{
-				Class xComponentType = underlyingArray.getClass().getComponentType();
-				
-				if (!componentType.isAssignableFrom(xComponentType))  //Note!  Handles primitives like we do!  Strict equality makes true ^w^
-					throw new ClassCastException("Source elements are "+xComponentType.getCanonicalName()+" but dest elements are "+componentType.getCanonicalName()+"; it's not assignable!  :P!");
-			}
-			
-			Object newArray = Array.newInstance(componentType, size);
-			System.arraycopy(underlyingArray, underlyingArrayOffset, newArray, 0, size);
-			return newArray;
-		}
-		
-		if (x instanceof Sublist)
-		{
-			//Note that this here would also take care of unwrapping RichGeneralListBackedbyLiveArray's, if the above didn't x3
-			Object underlying = ((Sublist)x).getUnderlying();
-			if (((Sublist)x).getSublistStartingIndex() == 0 && ((Sublist)x).size() == BasicCollectionUtilities.sizeOfCollectionlike(underlying))
-				return toNewArray(underlying, componentType);
-		}
-		
-		//		if (x instanceof RichGeneralList)
-		//		{
-		//			//Check component types are compatible!
-		//			{
-		//				Class xComponentType = ((RichGeneralList)x).getComponentType();
-		//
-		//				if (!componentType.isAssignableFrom(xComponentType))  //Note!  Handles primitives like we do!  Strict equality makes true ^w^
-		//					throw new ClassCastException("Source elements are "+xComponentType.getCanonicalName()+" but dest elements are "+componentType.getCanonicalName()+"; it's not assignable!  :P!");
-		//			}
-		//
-		//			//General implementation ^_^
-		//			int size = ((RichGeneralList)x).size();
-		//			Object array = Array.newInstance(componentType, size);
-		//			((RichGeneralList)x).copyIntoArray(0, array, 0, size);
-		//			return array;
-		//		}
-		
-		
-		
-		//SPEED Support primitive iterators/iterables toooo :3
-		/* << <
-		primxp
-		
-		if (componentType == _$$prim$$_.class)
-		{
-			//Quite possibly faster to (possibly!) run through it once and allocate the array a single time, than have to reallocate it and copy multiple times!
-			int size = collectionSize(x);
-			_$$prim$$_[] array = new _$$prim$$_[size];
-			
-			for (int i = 0; i < size; i++)
-			{
-				try
-				{
-					array[i] = xC.nextrp_$$Prim$$_();
-				}
-				catch (StopIterationReturnPath exc)
-				{
-					throw new ImpossibleException("The size check or first pass showed we had this many elements! ;; ");
-				}
-			}
-			
-			return array;
-		}
-		 */
-		
-		// >> >
-		
-		
-		
-		
-		
-		//Below here are non-general lists, ie, just reference-types   But we can still unbox them possibly! :D
-		if (componentType.isPrimitive())
-		{
-			//We're slow, but this is a slow thing anyways; ohwell :P
-			//SPEED add auto[un]boxing optimized code paths to all the reference nonscalars below!
-			Object[] objectArray = (Object[])toArray(x, Primitives.getWrapperClassFromPrimitiveOrPassThroughWrapper(componentType));  //use toArray not toNewArray since we are going to make another copy anyways! :P
-			return Primitives.unbox(objectArray);
-		}
-		
-		else if (x instanceof Collection)
-		{
-			return ((Collection)x).toArray((Object[])Array.newInstance(componentType, ((Collection)x).size()));
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toNewArray(((SimpleIterable)x).simpleIterator(), componentType);
-		}
-		else if (x instanceof Iterable)
-		{
-			List list = new ArrayList();
-			for (Object e : (Iterable)x)
-				list.add(e);
-			return list.toArray((Object[])Array.newInstance(componentType, list.size()));
-		}
-		else if (x instanceof Iterator)
-		{
-			List list = new ArrayList();
-			while (((Iterator)x).hasNext())
-				list.add(((Iterator)x).next());
-			return list.toArray((Object[])Array.newInstance(componentType, list.size()));
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			List list = new ArrayList();
-			
-			while (true)
-			{
-				try
-				{
-					list.add(((SimpleIterator)x).nextrp());
-				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-			}
-			
-			return list.toArray((Object[])Array.newInstance(componentType, list.size()));
-		}
-		else if (x instanceof Enumeration)
-		{
-			List list = new ArrayList();
-			while (((Enumeration)x).hasMoreElements())
-				list.add(((Enumeration)x).nextElement());
-			return list.toArray((Object[])Array.newInstance(componentType, list.size()));
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
 	protected static ClassCastException newComponentTypeMismatchException(Class source, Class dest)
 	{
 		return new ClassCastException("Source elements are "+source.getCanonicalName()+" but dest elements are "+dest.getCanonicalName()+"; source is not 'instanceof' dest!  D:");
@@ -2760,325 +2169,19 @@ primxp
 	
 	
 	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static Object[] toObjectArray(final Object x)
+	public static <E> List<E> asList(Iterable<E> iterable)
 	{
-		return (Object[])toArray(x, Object.class);
-		
-		
-		//if (x == null)
-		//	return null;
-		//
-		//else if (x instanceof Object[])
-		//	return (Object[])x;
-		//else
-		//	return toNewObjectArray(x); //no better way I sees XD
+		return iterable instanceof List ? (List<E>)iterable : toNewMutableVariablelengthList(iterable);
 	}
-	
-	@SnapshotValue
-	@ThrowAwayValue
-	public static Object[] toNewObjectArray(final Object x)
-	{
-		return (Object[])toNewArray(x, Object.class);
-		
-		
-		//if (x == null)
-		//	throw new NullPointerException();
-		//
-		//else if (x instanceof Object[])
-		//{
-		//	return ((Object[])x).clone();
-		//}
-		//else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		//{
-		//	return Primitives.box(x);
-		//}
-		//else if (x instanceof Collection)
-		//{
-		//	return ((Collection)x).toArray();
-		//}
-		//else if (x instanceof Iterable)
-		//{
-		//	return toCollection(x).toArray(); //no better way I sees XD
-		//}
-		//else if (x instanceof SimpleIterable)
-		//{
-		//	return toCollection(x).toArray(); //no better way I sees XD
-		//}
-		//else if (x instanceof Iterator)
-		//{
-		//	return toCollection(x).toArray(); //no better way I sees XD
-		//}
-		//else if (x instanceof Enumeration)
-		//{
-		//	return toCollection(x).toArray(); //no better way I sees XD
-		//}
-		//else if (x instanceof SimpleIterator)
-		//{
-		//	return toCollection(x).toArray(); //no better way I sees XD
-		//}
-		//
-		//else
-		//	throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	
-	/**
-	 * This produces multi-useable {@link Iterable}s, in contrast with {@link #singleUseIterable(Iterator)} and such :>
-	 * 
-	 * Note: Doesn't really need a 'toNewIterable' does it? ;>
-	 */
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static Iterable toIterable(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof Iterable) //takes care of not-optimizable Collection case, also takes care of SimpleIterable! ^wwww^
-		{
-			return (Iterable)x;
-		}
-		else if (x instanceof Object[])
-		{
-			return Arrays.asList((Object[])x);
-		}
-		else if (x.getClass().isArray() || (x instanceof Slice && ((Slice)x).getUnderlying().getClass().isArray())) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			//Avoid heavy allocationthings! :D
-			return new Iterable()
-			{
-				@Override
-				public Iterator iterator()
-				{
-					return CollectionUtilities.iterator(x);
-				}
-			};
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return new Iterable()
-			{
-				@Override
-				public Iterator iterator()
-				{
-					return CollectionUtilities.iterator(((SimpleIterable)x).simpleIterator());
-				}
-			};
-		}
-		else if (x instanceof Iterator)
-		{
-			//@SnapshotValue XP
-			return toCollection(x); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		else if (x instanceof Enumeration)
-		{
-			//@SnapshotValue XP
-			return toCollection(x); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			//@SnapshotValue XP
-			return toCollection(x); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		else if (x instanceof NodeList)
-		{
-			return toIterable(toSimpleIterable(x));
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	
-	/**
-	 * This produces multi-useable {@link SimpleIterable}s, in contrast with {@link #singleUseIterable(Iterator)} and such :>
-	 * 
-	 * Note: Doesn't really need a 'toNewSimpleIterable' does it? ;>
-	 */
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static SimpleIterable toSimpleIterable(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof SimpleIterable)
-		{
-			return (SimpleIterable)x;
-		}
-		else if (x instanceof Object[] || x instanceof Iterable || x instanceof Map || x.getClass().isArray())
-		{
-			return new SimpleIterable()
-			{
-				@Override
-				public SimpleIterator simpleIterator()
-				{
-					return CollectionUtilities.simpleIterator(x);
-				}
-			};
-		}
-		else if (x instanceof NodeList)
-		{
-			return () -> simpleIterator(x);
-		}
-		
-		//Single shot things we has to do snapshottily xP
-		else if (x instanceof Iterator)
-		{
-			//@SnapshotValue XP
-			return toSimpleIterable(toIterable(x)); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		else if (x instanceof Enumeration)
-		{
-			//@SnapshotValue XP
-			return toSimpleIterable(toIterable(x)); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			//@SnapshotValue XP
-			return toSimpleIterable(toIterable(x)); //no better way I sees XD   (for multi-use iterables, that is!)
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static Collection toCollection(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof Collection)
-		{
-			return (Collection)x;
-		}
-		else if (x instanceof Object[])
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x instanceof Iterable)
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x instanceof Iterator)
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x instanceof Enumeration)
-		{
-			return toList(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			return toList(x); //no better way I sees XD
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	@SnapshotValue
-	@ThrowAwayValue
-	public static Collection toNewVariableLengthMutableCollection(final Object x)
-	{
-		return toNewVariableLengthMutableList(x); //no better way I sees! XD!!
-	}
-	
-	
-	
-	
-	@LiveValue
-	public static List asListObjectOrPrimitive(Object array)
-	{
-		if (array instanceof Object[])
-			return Arrays.asList(array);
-		
-		
-		/* <<<
-		primxp
-		
-		else if (array instanceof _$$prim$$_[])
-			return _$$prim$$_ArrayAsList((_$$prim$$_[])array);
-		 */
-		
-		else if (array instanceof boolean[])
-			return booleanArrayAsList((boolean[])array);
-		
-		else if (array instanceof byte[])
-			return byteArrayAsList((byte[])array);
-		
-		else if (array instanceof char[])
-			return charArrayAsList((char[])array);
-		
-		else if (array instanceof short[])
-			return shortArrayAsList((short[])array);
-		
-		else if (array instanceof float[])
-			return floatArrayAsList((float[])array);
-		
-		else if (array instanceof int[])
-			return intArrayAsList((int[])array);
-		
-		else if (array instanceof double[])
-			return doubleArrayAsList((double[])array);
-		
-		else if (array instanceof long[])
-			return longArrayAsList((long[])array);
-		
-		// >>>
-		
-		
-		else
-			throw newClassCastExceptionOrNullPointerException(array);
-	}
-	
-	
-	
-	
-	
 	
 	//Importing java.util.Arrays.* conflicts with java.util.ArrayList so they can't both be imported! :[
 	//So we offer a delegate here to get around that! ^wwwww^
 	@LiveValue
 	@WritableValue
-	public static <E> List<E> asList(E[] array)
+	public static <E> List<E> asList(E[] array)  //fixed-length but writable view of the array!
 	{
 		return Arrays.asList(array);
 	}
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static <E> List<E> asList(Iterable<E> iterable)
-	{
-		return toList(iterable);
-	}
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static <E> Set<E> asSetUniqueifying(Iterable<E> iterable)
-	{
-		return toSet(iterable);
-	}
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static <E> Set<E> asSetUniqueifying(E[] array)
-	{
-		return toSet(array);
-	}
-	
-	
-	
 	@LiveValue
 	@WritableValue
 	public static <E> List<E> asListV(E... array)
@@ -3086,6 +2189,19 @@ primxp
 		return asList(array);
 	}
 	
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetUniqueifying(Iterable<E> iterable)
+	{
+		return iterable instanceof Set ? (Set<E>)iterable : toNewMutableSetUniqueifying(iterable);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetUniqueifying(E[] array)
+	{
+		return asSetUniqueifying(asList(array));
+	}
 	@PossiblySnapshotPossiblyLiveValue
 	public static <E> Set<E> asSetUniqueifyingV(E... array)
 	{
@@ -3093,882 +2209,89 @@ primxp
 	}
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static List toList(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof List)
-		{
-			return (List)x;
-		}
-		else if (x instanceof Slice)
-		{
-			Slice s = (Slice)x;
-			int o = s.getOffset();
-			return toList(s.getUnderlying()).subList(o, o+s.getLength());
-		}
-		
-		//		else if (x.getClass().isArray())
-		//		{
-		//			return new RichGeneralListBackedbyLiveArray(x);
-		//		}
-		else if (x instanceof Object[])
-		{
-			return Arrays.asList((Object[])x);
-		}
-		
-		//Old way, before Primitive Collections! :D
-		//		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		//		{
-		//			return Arrays.asList(Primitives.box(x)); //I think this is also probably faster for bulk things, at least :>   (again, given code in ArrayList constructor! :D )
-		//		}
-		
-		/* <<<
-		primxp
-		else if (x instanceof _$$prim$$_[])
-		{
-			return _$$prim$$_ArrayAsList((_$$prim$$_[])x);
-		}
-		 */
-		else if (x instanceof boolean[])
-		{
-			return booleanArrayAsList((boolean[])x);
-		}
-		else if (x instanceof byte[])
-		{
-			return byteArrayAsList((byte[])x);
-		}
-		else if (x instanceof char[])
-		{
-			return charArrayAsList((char[])x);
-		}
-		else if (x instanceof short[])
-		{
-			return shortArrayAsList((short[])x);
-		}
-		else if (x instanceof float[])
-		{
-			return floatArrayAsList((float[])x);
-		}
-		else if (x instanceof int[])
-		{
-			return intArrayAsList((int[])x);
-		}
-		else if (x instanceof double[])
-		{
-			return doubleArrayAsList((double[])x);
-		}
-		else if (x instanceof long[])
-		{
-			return longArrayAsList((long[])x);
-		}
-		
-		//>>>
-		
-		
-		
-		
-		
-		else if (x instanceof Iterable) //takes care of not-optimizable Collection case
-		{
-			return toNewVariableLengthMutableList(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toNewVariableLengthMutableList(x); //no better way I sees XD
-		}
-		else if (x instanceof Iterator)
-		{
-			return toNewVariableLengthMutableList(x); //no better way I sees XD
-		}
-		else if (x instanceof Enumeration)
-		{
-			return toNewVariableLengthMutableList(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			return toNewVariableLengthMutableList(x); //no better way I sees XD
-		}
-		
-		
-		
-		//Todo better versions? ^^'
-		else if (x instanceof String)
-			return toList(((String)x).toCharArray());
-		else if (x instanceof CharSequence)
-			return toList(((CharSequence)x).toString().toCharArray());
-		
-		
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
 	
 	
-	@SnapshotValue
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
-	public static List toNewVariableLengthMutableList(final Object x)
+	public static <E> List<E> toNewMutableVariablelengthList(Iterable<E> iterable)
 	{
-		if (x == null)
-			throw new NullPointerException();
-		
-		//		else if (x.getClass().isArray())
-		//		{
-		//			return new RichGeneralListBackedbyLiveArray(x);
-		//		}
-		else if (x instanceof Object[])
+		if (iterable instanceof Collection)
 		{
-			return new ArrayList(Arrays.asList((Object[])x)); //I think this is faster than looping (given code in ArrayList constructor! 8> ), even with extra view object asList creates! :>   (which may be stack allocated with jit awesomeness! 8> )
+			return new ArrayList<>((Collection)iterable);
 		}
-		//Old way, before Primitive Collections! :D
-		//		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		//		{
-		//			return new ArrayList(Arrays.asList(Primitives.box(x))); //I think this is also probably faster for bulk things, at least :>   (again, given code in ArrayList constructor! :D )
-		//		}
-		
-		/* <<<
-		primxp
-		else if (x instanceof _$$prim$$_[])
+		else
 		{
-			return _$$prim$$_ArrayAsMutableList((_$$prim$$_[])x);
-		}
-		 */
-		else if (x instanceof boolean[])
-		{
-			return booleanArrayAsMutableList((boolean[])x);
-		}
-		else if (x instanceof byte[])
-		{
-			return byteArrayAsMutableList((byte[])x);
-		}
-		else if (x instanceof char[])
-		{
-			return charArrayAsMutableList((char[])x);
-		}
-		else if (x instanceof short[])
-		{
-			return shortArrayAsMutableList((short[])x);
-		}
-		else if (x instanceof float[])
-		{
-			return floatArrayAsMutableList((float[])x);
-		}
-		else if (x instanceof int[])
-		{
-			return intArrayAsMutableList((int[])x);
-		}
-		else if (x instanceof double[])
-		{
-			return doubleArrayAsMutableList((double[])x);
-		}
-		else if (x instanceof long[])
-		{
-			return longArrayAsMutableList((long[])x);
-		}
-		
-		//>>>
-		
-		
-		
-		
-		else if (x instanceof Collection)
-		{
-			return new ArrayList((Collection)x); //many fast from code in new ArrayList(Collection)  :>!
-		}
-		else if (x instanceof Iterable)
-		{
-			List list = new ArrayList();
-			for (Object e : (Iterable)x)
+			List<E> list = new ArrayList<>();
+			for (E e : iterable)
 				list.add(e);
 			return list;
 		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toNewVariableLengthMutableList(((SimpleIterable)x).simpleIterator());
-		}
-		else if (x instanceof Iterator)
-		{
-			List list = new ArrayList();
-			while (((Iterator)x).hasNext())
-				list.add(((Iterator)x).next());
-			return list;
-		}
-		else if (x instanceof Enumeration)
-		{
-			List list = new ArrayList();
-			while (((Enumeration)x).hasMoreElements())
-				list.add(((Enumeration)x).nextElement());
-			return list;
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			List list = new ArrayList();
-			
-			while (true)
-			{
-				try
-				{
-					list.add(((SimpleIterator)x).nextrp());
-				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-			}
-			
-			return list;
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
 	}
 	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static Set toSet(final Object x)
-	{
-		//Todo rich/general sets :P
-		
-		if (x == null)
-			return null;
-		
-		else if (x instanceof Set)
-		{
-			return (Set)x;
-		}
-		else if (x instanceof Object[])
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x instanceof Iterable) //takes care of not-optimizable Collection case
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x instanceof Iterator)
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x instanceof Enumeration)
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			return toNewMutableSet(x); //no better way I sees XD
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	@SnapshotValue
 	@ThrowAwayValue
-	public static Set toNewMutableSet(final Object x)
+	public static <E> List<E> toNewMutableVariablelengthList(E[] array)
 	{
-		//Todo rich/general sets :P
-		
-		if (x == null)
-			throw new NullPointerException();
-		
-		else if (x instanceof Object[])
+		return toNewMutableVariablelengthList(asList(array));
+	}
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthListV(E... array)
+	{
+		return toNewMutableVariablelengthList(array);
+	}
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetUniqueifying(Iterable<E> iterable)
+	{
+		if (iterable instanceof Collection)
 		{
-			return new HashSet(Arrays.asList((Object[])x)); //new HashSet(Collection) may just add each element iteratively, but it tunes the load factor and initial capacity and such, so there ya go! :>!
+			return new HashSet<>((Collection)iterable);
 		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
+		else
 		{
-			return new HashSet(Arrays.asList(Primitives.box(x)));
-		}
-		else if (x instanceof Collection) //takes care of instanceof Set case :>
-		{
-			return new HashSet((Collection)x);
-		}
-		else if (x instanceof Iterable)
-		{
-			Set set = new HashSet();
-			for (Object e : (Iterable)x)
+			Set<E> set = new HashSet<>();
+			for (E e : iterable)
 				set.add(e);
 			return set;
 		}
-		else if (x instanceof SimpleIterable)
-		{
-			return toNewMutableSet(((SimpleIterable)x).simpleIterator());
-		}
-		else if (x instanceof Iterator)
-		{
-			Set set = new HashSet();
-			while (((Iterator)x).hasNext())
-				set.add(((Iterator)x).next());
-			return set;
-		}
-		else if (x instanceof Enumeration)
-		{
-			Set set = new HashSet();
-			while (((Enumeration)x).hasMoreElements())
-				set.add(((Enumeration)x).nextElement());
-			return set;
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			Set set = new HashSet();
-			
-			while (true)
-			{
-				try
-				{
-					set.add(((SimpleIterator)x).nextrp());
-				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-			}
-			
-			return set;
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	@ReadonlyValue
-	public static Set toNewSet(final Object x)
-	{
-		//Todo faster impls possible??
-		return toNewMutableSet(x);
-	}
-	
-	
-	
-	@LiveValue //:D!  (many fasters! :D )
-	public static Iterator iterator(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof Object[] || (x instanceof Slice && ((Slice)x).getUnderlying() instanceof Object[]))
-		{
-			//return Arrays.asList((Object[])x).iterator();
-			final Object[] array;
-			final int offset;
-			final int length;
-			{
-				if (x instanceof Object[])
-				{
-					array = (Object[]) x;
-					offset = 0;
-					length = Array.getLength(x);
-				}
-				else
-				{
-					Slice<Object[]> s = (Slice<Object[]>) x;
-					array = s.getUnderlying();
-					offset = s.getOffset();
-					length = s.getLength();
-				}
-			}
-			
-			
-			return new Iterator()
-			{
-				int cursor = 0;
-				
-				@Override
-				public boolean hasNext()
-				{
-					return this.cursor < length;
-				}
-				
-				@Override
-				public Object next()
-				{
-					if (!hasNext())
-						throw new NoSuchElementException("Has only "+length+" elements, no more! sorries! ;_;");
-					
-					Object r = array[offset+this.cursor];
-					this.cursor++;
-					return r;
-				}
-				
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
-		}
-		else if (x.getClass().isArray() || (x instanceof Slice && ((Slice)x).getUnderlying().getClass().isArray()))  //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			final Object array;
-			final int offset;
-			final int length;
-			{
-				if (x instanceof Slice)
-				{
-					Slice s = (Slice) x;
-					array = s.getUnderlying();
-					offset = s.getOffset();
-					length = s.getLength();
-				}
-				else
-				{
-					array = x;
-					offset = 0;
-					length = Array.getLength(x);
-				}
-			}
-			
-			return new Iterator()
-			{
-				int cursor = 0;
-				
-				@Override
-				public boolean hasNext()
-				{
-					return this.cursor < length;
-				}
-				
-				@Override
-				public Object next()
-				{
-					if (!hasNext())
-						throw new NoSuchElementException("Has only "+length+" elements, no more! sorries! ;_;");
-					
-					Object r = Primitives.getBoxing(array, offset+this.cursor);
-					this.cursor++;
-					return r;
-				}
-				
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
-		}
-		else if (x instanceof Iterable)
-		{
-			return ((Iterable)x).iterator();
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return iterator(((SimpleIterable)x).simpleIterator());
-		}
-		
-		else if (x instanceof NodeList)
-		{
-			return iterator(simpleIterator(x));
-		}
-		
-		else if (x instanceof Iterator)
-		{
-			return (Iterator)x;
-		}
-		else if (x instanceof Enumeration)
-		{
-			return new Iterator()
-			{
-				@Override
-				public boolean hasNext()
-				{
-					return ((Enumeration)x).hasMoreElements();
-				}
-				
-				@Override
-				public Object next()
-				{
-					return ((Enumeration)x).nextElement();
-				}
-				
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
-		}
-		else if (x instanceof SimpleIterator)
-		{
-			return new Iterator()
-			{
-				boolean hasBuffer = false;
-				Object buffer = null;
-				
-				@Override
-				public boolean hasNext()
-				{
-					try
-					{
-						this.buffer = ((SimpleIterator)x).nextrp();
-						this.hasBuffer = true;
-						return true;
-					}
-					catch (StopIterationReturnPath exc)
-					{
-						return false;
-					}
-				}
-				
-				@Override
-				public Object next()
-				{
-					if (this.hasBuffer)
-					{
-						this.hasBuffer = false;
-						return this.buffer;
-					}
-					else
-					{
-						try
-						{
-							return ((SimpleIterator)x).nextrp();
-						}
-						catch (StopIterationReturnPath exc)
-						{
-							//They should have called hasNext() first, which would have buffered an element; so we do what normal java.util.Iterators do! ;>
-							throw new NoSuchElementException();
-						}
-					}
-				}
-				
-				@Override
-				public void remove()
-				{
-					if (x instanceof SimpleIteratorWithRemove)
-						((SimpleIteratorWithRemove)x).remove();
-					else
-						throw new UnsupportedOperationException();
-				}
-			};
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	
-	
-	@LiveValue //:D!  (many fasters! :D )
-	public static Enumeration enumerator(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		//Not as speedily implemented because java.util.Enumeration is an antiquated interface xP
-		
-		else if (x instanceof Enumeration)
-		{
-			return (Enumeration)x;
-		}
-		else
-		{
-			final Iterator i = iterator(x);
-			
-			return new Enumeration()
-			{
-				@Override
-				public boolean hasMoreElements()
-				{
-					return i.hasNext();
-				}
-				
-				@Override
-				public Object nextElement()
-				{
-					return i.next();
-				}
-			};
-		}
-	}
-	
-	
-	
-	@LiveValue //:D!  (many fasters! :D )
-	public static SimpleIterator simpleIterator(final Object x)
-	{
-		if (x == null)
-			return null;
-		
-		else if (x instanceof SimpleIterator)
-		{
-			return (SimpleIterator)x;
-		}
-		else if (x instanceof SimpleIterable)
-		{
-			return ((SimpleIterable)x).simpleIterator();
-		}
-		else if (x instanceof Object[])
-		{
-			return new SimpleIterator()
-			{
-				int cursor = 0;
-				
-				@Override
-				public Object nextrp() throws StopIterationReturnPath
-				{
-					if (this.cursor >= ((Object[])x).length)
-						throw StopIterationReturnPath.I;
-					
-					Object r = ((Object[])x)[this.cursor];
-					this.cursor++;
-					return r;
-				}
-			};
-		}
-		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
-		{
-			//			return new RichGeneralListBackedbyLiveArray(x).simpleIterator();  //produces a general iterator with direct non-boxing/unboxing methods! ^_^
-			
-			final int l = Array.getLength(x);
-			
-			return new SimpleIterator()
-			{
-				int cursor = 0;
-				
-				@Override
-				public Object nextrp() throws StopIterationReturnPath
-				{
-					if (this.cursor >= l)
-						throw StopIterationReturnPath.I;
-					
-					Object r = Primitives.getBoxing(x, this.cursor);
-					this.cursor++;
-					return r;
-				}
-			};
-		}
-		
-		else if (x instanceof NodeList)
-		{
-			NodeList l = (NodeList) x;
-			
-			return new SimpleIterator()
-			{
-				int i = 0;
-				
-				@Override
-				public Object nextrp() throws StopIterationReturnPath
-				{
-					if (this.i >= l.getLength())
-						throw StopIterationReturnPath.I;
-					
-					return l.item(this.i);
-				}
-			};
-		}
-		
-		else if (x instanceof Iterable || x instanceof Iterator)
-		{
-			final Iterator i;
-			
-			if (x instanceof Iterable)
-				i = ((Iterable)x).iterator();
-			else
-				i = (Iterator)x;
-			
-			return new SimpleIterator()
-			{
-				@Override
-				public Object nextrp() throws StopIterationReturnPath
-				{
-					if (!i.hasNext())
-						throw StopIterationReturnPath.I;
-					else
-						return i.next();
-				}
-			};
-		}
-		else if (x instanceof Enumeration)
-		{
-			return new SimpleIterator()
-			{
-				@Override
-				public Object nextrp() throws StopIterationReturnPath
-				{
-					if (!((Enumeration)x).hasMoreElements())
-						throw StopIterationReturnPath.I;
-					else
-						return ((Enumeration)x).nextElement();
-				}
-			};
-		}
-		
-		else
-			throw new ClassCastException(Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static <T> T[] toArrayTyped(final Object x, final Class<T> componentType)
-	{
-		return (T[])toArray(x, componentType);
 	}
 	
 	@ThrowAwayValue
-	public static <T> T[] toNewArrayTyped(final Object x, final Class<T> componentType)
+	public static <E> Set<E> toNewMutableSetUniqueifying(E[] array)
 	{
-		return (T[])toNewArray(x, componentType);
+		return toNewMutableSetUniqueifying(asList(array));
 	}
-	
-	
-	/* <<<
-	primxp
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static _$$prim$$_[] toArray_$$Prim$$_(final Object x)
-	{
-		return (_$$prim$$_[])toArray(x, _$$prim$$_.class);
-	}
-	
 	@ThrowAwayValue
-	public static _$$prim$$_[] toNewArray_$$Prim$$_(final Object x)
+	public static <E> Set<E> toNewMutableSetUniqueifyingV(E... array)
 	{
-		return (_$$prim$$_[])toNewArray(x, _$$prim$$_.class);
-	}
-	
-	
-	
-	 */
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static boolean[] toArrayBoolean(final Object x)
-	{
-		return (boolean[])toArray(x, boolean.class);
-	}
-	
-	@ThrowAwayValue
-	public static boolean[] toNewArrayBoolean(final Object x)
-	{
-		return (boolean[])toNewArray(x, boolean.class);
+		return toNewMutableSetUniqueifying(array);
 	}
 	
 	
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	public static byte[] toArrayByte(final Object x)
-	{
-		return (byte[])toArray(x, byte.class);
-	}
-	
-	@ThrowAwayValue
-	public static byte[] toNewArrayByte(final Object x)
-	{
-		return (byte[])toNewArray(x, byte.class);
-	}
 	
 	
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	public static char[] toArrayChar(final Object x)
-	{
-		return (char[])toArray(x, char.class);
-	}
-	
-	@ThrowAwayValue
-	public static char[] toNewArrayChar(final Object x)
-	{
-		return (char[])toNewArray(x, char.class);
-	}
 	
 	
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	public static short[] toArrayShort(final Object x)
-	{
-		return (short[])toArray(x, short.class);
-	}
-	
-	@ThrowAwayValue
-	public static short[] toNewArrayShort(final Object x)
-	{
-		return (short[])toNewArray(x, short.class);
-	}
 	
 	
 	
 	
-	@PossiblySnapshotPossiblyLiveValue
-	public static float[] toArrayFloat(final Object x)
-	{
-		return (float[])toArray(x, float.class);
-	}
-	
-	@ThrowAwayValue
-	public static float[] toNewArrayFloat(final Object x)
-	{
-		return (float[])toNewArray(x, float.class);
-	}
-	
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static int[] toArrayInt(final Object x)
-	{
-		return (int[])toArray(x, int.class);
-	}
-	
-	@ThrowAwayValue
-	public static int[] toNewArrayInt(final Object x)
-	{
-		return (int[])toNewArray(x, int.class);
-	}
-	
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static double[] toArrayDouble(final Object x)
-	{
-		return (double[])toArray(x, double.class);
-	}
-	
-	@ThrowAwayValue
-	public static double[] toNewArrayDouble(final Object x)
-	{
-		return (double[])toNewArray(x, double.class);
-	}
-	
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	public static long[] toArrayLong(final Object x)
-	{
-		return (long[])toArray(x, long.class);
-	}
-	
-	@ThrowAwayValue
-	public static long[] toNewArrayLong(final Object x)
-	{
-		return (long[])toNewArray(x, long.class);
-	}
-	
-	
-	
-	
-	//>>>
 	
 	
 	
@@ -3992,19 +2315,8 @@ primxp
 	@LiveValue //:D!  (many fasters! :D )
 	public static <E> Iterable<E> singleUseIterable(final Enumeration<E> x)
 	{
-		return singleUseIterable(iterator(x));
+		return singleUseIterable(PolymorphicCollectionUtilities.anyToIterator(x));
 	}
-	
-	@LiveValue //:D!  (many fasters! :D )
-	public static Iterable singleUseIterable(final Object x)
-	{
-		return singleUseIterable(iterator(x));
-	}
-	
-	
-	
-	
-	
 	
 	@LiveValue
 	@WritableValue
@@ -4432,28 +2744,6 @@ primxp
 	
 	
 	
-	public static Iterator reversedIterator(Object list)
-	{
-		if (list instanceof Object[])
-			return reversedIterator((Object[])list);
-		else if (list instanceof ListIterator)
-			return reversedIterator((ListIterator)list);
-		else
-			return reversedIterator(toList(list));
-	}
-	
-	
-	public static SimpleIterator reversedSimpleIterator(Object list)
-	{
-		return simpleIterator(reversedIterator(list));
-	}
-	
-	
-	
-	
-	
-	
-	
 	public static void reverseListInPlace(@WritableValue List list)
 	{
 		//Todo a way not based on random access!!
@@ -4479,21 +2769,7 @@ primxp
 	
 	
 	
-	public static boolean isOmegaSet(Object x)
-	{
-		if (x instanceof StaticallyOmegaSet)
-			return true;
-		else if (x instanceof RuntimeOmegaSet)
-			return ((RuntimeOmegaSet)x).isOmegaSet();
-		else
-			return false; //we just assume! 0,0  XD
-	}
 	
-	
-	public static <E> Set<E> unmodifiableOmegaSet()
-	{
-		return ImmutableReadonlyOmegaSet.I;
-	}
 	
 	
 	
@@ -4505,19 +2781,6 @@ primxp
 	
 	
 	//Converters and viewwrappers! :D >
-	
-	
-	/**
-	 * Checks that it is a set--meaning it has no duplicates ^_^
-	 */
-	public static boolean checkSet(Object x)
-	{
-		return toSet(x).size() == BasicCollectionUtilities.sizeOfCollectionlike(x);
-	}
-	
-	
-	
-	
 	
 	
 	public static <E> void push(List<E> self, E x)
@@ -4568,46 +2831,6 @@ primxp
 	
 	
 	
-	
-	
-	
-	
-	
-	public static boolean isAll(Object listOfBooleans)
-	{
-		if (listOfBooleans instanceof boolean[])
-		{
-			for (boolean e : (boolean[])listOfBooleans)
-				if (!e)
-					return false;
-			return true;
-		}
-		else
-		{
-			for (Boolean e : (Iterable<Boolean>)singleUseIterable(listOfBooleans))
-				if (!e)
-					return false;
-			return true;
-		}
-	}
-	
-	public static boolean isAny(Object listOfBooleans)
-	{
-		if (listOfBooleans instanceof boolean[])
-		{
-			for (boolean e : (boolean[])listOfBooleans)
-				if (e)
-					return true;
-			return false;
-		}
-		else
-		{
-			for (Boolean e : (Iterable<Boolean>)singleUseIterable(listOfBooleans))
-				if (!e)
-					return true;
-			return false;
-		}
-	}
 	
 	
 	
@@ -4819,44 +3042,19 @@ primxp
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static List uniquedToList(Object x)
+	public static <E> E[] uniqueifyArray(E[] x)
 	{
-		return toList(toSet(x));
+		return (E[])PolymorphicCollectionUtilities.anyToArray(PolymorphicCollectionUtilities.anyToSet(x), x.getClass().getComponentType());
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static <E> E[] uniquedToArray(Object x, Class<E> componentType)
-	{
-		return (E[])toArray(toSet(x), componentType);
-	}
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static <E> E[] uniquedToArray(E[] x)
-	{
-		return (E[])toArray(toSet(x), x.getClass().getComponentType());
-	}
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static Object[] uniquedToObjectArray(Object x)
-	{
-		return toObjectArray(toSet(x));
-	}
-	
-	
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static List uniquedOrderPreservingList(Iterable x)
+	public static List uniqueifyListOrderPreserving(Iterable x)
 	{
 		if (x == null)
 			throw new NullPointerException();
 		
-		Set s = toSet(x);
+		Set s = PolymorphicCollectionUtilities.anyToSet(x);
 		
 		List l = new ArrayList();
 		for (Object e : x)
@@ -4868,12 +3066,12 @@ primxp
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static <E> E[] uniquedOrderPreservingArray(E[] x)
+	public static <E> E[] uniqueifyArrayOrderPreserving(E[] x)
 	{
 		if (x == null)
 			throw new NullPointerException();
 		
-		Set s = toSet(x);
+		Set s = PolymorphicCollectionUtilities.anyToSet(x);
 		
 		E[] a = (E[])Array.newInstance(x.getClass().getComponentType(), x.length);
 		int i = 0;
@@ -4897,8 +3095,10 @@ primxp
 	
 	
 	
-	
-	public static <E> void uniqPresorted(Iterable<E> input, EqualityComparator<? super E> equalityComparator)
+	/**
+	 * Analogous to the Unix command 'uniq' :>
+	 */
+	public static <E> void uniqueifyPresorted(Iterable<E> input, EqualityComparator<? super E> equalityComparator)
 	{
 		Iterator<E> i = input.iterator();
 		
@@ -4928,9 +3128,12 @@ primxp
 		}
 	}
 	
-	public static <E> void uniqPresorted(Iterable<E> input)
+	/**
+	 * Analogous to the Unix command 'uniq' :>
+	 */
+	public static <E> void uniqueifyPresorted(Iterable<E> input)
 	{
-		uniqPresorted(input, BasicObjectUtilities.getNaturalEqualityComparator());
+		uniqueifyPresorted(input, BasicObjectUtilities.getNaturalEqualityComparator());
 	}
 	
 	
@@ -4962,22 +3165,6 @@ primxp
 		for (int i = 0; i < count; i++)
 			self.add(source.get(sourceOffset+i));
 	}
-	
-	public static void addAll(Collection self, Object source)
-	{
-		if (source instanceof Iterable)
-			addAll(self, (Iterable)source);
-		else if (source instanceof Object[])
-			addAll(self, (Object[])source);
-		else
-			//SPEED basically inline it XD'
-			addAll(self, singleUseIterable(source));
-	}
-	
-	
-	
-	
-	
 	
 	public static <E> E getExtantInstance(Collection<E> collection, E possiblyEquivalentButDifferentInstance)
 	{
@@ -5166,57 +3353,7 @@ primxp
 	
 	
 	
-	//Todo rename mergeLists to concat (edit: ALREADY?! REALLY XDDD''')—new todo: Resolve duplicates between Merge and (Concatenate, Union)  ^^'''
 	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static List mergeLists(@ReadonlyValue Object... listthings)
-	{
-		if (listthings.length == 0)
-			return Collections.emptyList();
-		else if (listthings.length == 1)
-			return toList(listthings[0]);
-		else
-			return mergeListsToNew(listthings); //no better way I sees XD
-	}
-	
-	@SnapshotValue
-	@ThrowAwayValue
-	public static List mergeListsToNew(@ReadonlyValue Object... listthings)
-	{
-		List merged = new ArrayList();
-		
-		for (Object listthing : listthings)
-			addAll(merged, listthing);
-		
-		return merged;
-	}
-	
-	
-	
-	@PossiblySnapshotPossiblyLiveValue
-	@ReadonlyValue
-	public static Set mergeSets(@ReadonlyValue Object... setthings)
-	{
-		if (setthings.length == 0)
-			return Collections.emptySet();
-		else if (setthings.length == 1)
-			return toSet(setthings[0]);
-		else
-			return mergeSetsToNew(setthings); //no better way I sees XD
-	}
-	
-	@SnapshotValue
-	@ThrowAwayValue
-	public static Set mergeSetsToNew(@ReadonlyValue Object... setthings)
-	{
-		Set merged = new HashSet();
-		
-		for (Object listthing : setthings)
-			addAll(merged, listthing);
-		
-		return merged;
-	}
 	
 	
 	
@@ -5449,54 +3586,6 @@ primxp
 	
 	
 	
-	@LiveValue
-	public static Object unmodifiableList(@CollectionValue Object list)
-	{
-		if (isFalseAndNotNull(isCollectionWritable(list)))
-			//THEN DON'T DECORATE IT \o/  :D!
-			return list;
-		
-		else
-		{
-			/* <<<
-			primxp
-				if (list instanceof _$$Primitive$$_List)
-					return PrimitiveCollections.unmodifiable_$$Primitive$$_List((_$$Primitive$$_List)list);
-			 */
-			if (list instanceof BooleanList)
-				return PrimitiveCollections.unmodifiableBooleanList((BooleanList)list);
-			if (list instanceof ByteList)
-				return PrimitiveCollections.unmodifiableByteList((ByteList)list);
-			if (list instanceof CharacterList)
-				return PrimitiveCollections.unmodifiableCharacterList((CharacterList)list);
-			if (list instanceof ShortList)
-				return PrimitiveCollections.unmodifiableShortList((ShortList)list);
-			if (list instanceof FloatList)
-				return PrimitiveCollections.unmodifiableFloatList((FloatList)list);
-			if (list instanceof IntegerList)
-				return PrimitiveCollections.unmodifiableIntegerList((IntegerList)list);
-			if (list instanceof DoubleList)
-				return PrimitiveCollections.unmodifiableDoubleList((DoubleList)list);
-			if (list instanceof LongList)
-				return PrimitiveCollections.unmodifiableLongList((LongList)list);
-			
-			// >>>
-			
-			
-			
-			//Else decorate it! :D
-			
-			//			if (list instanceof RichGeneralList)
-			//				return new RichGeneralListAsUnmodifiable((RichGeneralList)list);
-			if (list instanceof List)
-				return Collections.unmodifiableList((List)list);
-			else if (list.getClass().isArray())
-				//				return new RichGeneralListBackedbyLiveArray(list, true);
-				return unmodifiableList(toList(list));
-			else
-				throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(list);
-		}
-	}
 	
 	
 	
@@ -5510,118 +3599,10 @@ primxp
 	
 	
 	
-	//We say "collection" but include Arrays, Iterables, Iterators, and Enumerations  ^_^
-	//edit: An now Maps/Dicts! :D
 	
 	
-	protected static final Class jreArrayListViewClass = Arrays.asList(new Object[0]).getClass();
-	protected static final Class jreUnmodifiableListClass = Collections.unmodifiableList(new ArrayList()).getClass();
-	protected static final Class jreUnmodifiableCollectionClass = Collections.unmodifiableCollection(new ArrayList()).getClass();
-	protected static final Class jreUnmodifiableSetClass = Collections.unmodifiableSet(new HashSet()).getClass();
-	protected static final Class jreUnmodifiableSortedSetClass = Collections.unmodifiableSortedSet(new TreeSet()).getClass();
-	protected static final Class jreUnmodifiableMapClass = Collections.unmodifiableMap(new HashMap()).getClass();
 	
-	/**
-	 * Note that {@link #isCollectionReadable(Object)} and {@link #isCollectionWritable(Object)} are completely orthogonal properties ^w^
-	 * 
-	 * + Usually in the JRE, it's safe to assume unknown-readability is yes-readable, but technically not always!
-	 */
-	@Nullable
-	public static Boolean isCollectionReadable(@Nonnull Object collectionThing)
-	{
-		if (collectionThing == null)
-			throw new NullPointerException();
-		
-		//		else if (collectionThing instanceof StaticallyReadableCollection)
-		//			return true;
-		//		else if (collectionThing instanceof StaticallyUnreadableCollection)
-		//			return false;
-		else if (collectionThing instanceof RuntimeReadabilityCollection)
-			return ((RuntimeReadabilityCollection)collectionThing).isReadableCollection();
-		else
-		{
-			if (collectionThing.getClass().isArray())
-				return true;
-			
-			else if (collectionThing.getClass() == jreUnmodifiableCollectionClass)
-				return true;
-			else if (collectionThing.getClass() == jreUnmodifiableListClass)
-				return true;
-			else if (collectionThing.getClass() == jreUnmodifiableSetClass)
-				return true;
-			else if (collectionThing.getClass() == jreUnmodifiableSortedSetClass)
-				return true;
-			else if (collectionThing.getClass() == jreArrayListViewClass)
-				return true;
-			
-			else if (collectionThing.getClass() == ArrayList.class)
-				return true;
-			else if (collectionThing.getClass() == HashSet.class)
-				return true;
-			else if (collectionThing.getClass() == LinkedList.class)
-				return true;
-			else if (collectionThing.getClass() == Vector.class)
-				return true;
-			else if (collectionThing.getClass() == Stack.class)
-				return true;
-			else if (collectionThing.getClass() == PriorityQueue.class)
-				return true;
-			
-			//TODO moreeeee grandfatheringggggg! :>
-			
-			return null;
-		}
-	}
 	
-	/**
-	 * Note that {@link #isCollectionReadable(Object)} and {@link #isCollectionWritable(Object)} are generally completely orthogonal/independent properties ^w^
-	 */
-	@Nullable
-	public static Boolean isCollectionWritable(@Nonnull Object collectionThing)
-	{
-		if (collectionThing == null)
-			throw new NullPointerException();
-		
-		//		else if (collectionThing instanceof StaticallyWriteableCollection)
-		//			return true;
-		//		else if (collectionThing instanceof StaticallyUnwriteableCollection)
-		//			return false;
-		else if (collectionThing instanceof RuntimeWriteabilityCollection)
-			return ((RuntimeWriteabilityCollection)collectionThing).isWritableCollection();
-		else
-		{
-			if (collectionThing.getClass().isArray())
-				return true;
-			
-			else if (collectionThing.getClass() == jreUnmodifiableCollectionClass)
-				return false;
-			else if (collectionThing.getClass() == jreUnmodifiableListClass)
-				return false;
-			else if (collectionThing.getClass() == jreUnmodifiableSetClass)
-				return false;
-			else if (collectionThing.getClass() == jreUnmodifiableSortedSetClass)
-				return false;
-			else if (collectionThing.getClass() == jreArrayListViewClass)
-				return true;
-			
-			else if (collectionThing.getClass() == ArrayList.class)
-				return true;
-			else if (collectionThing.getClass() == HashSet.class)
-				return true;
-			else if (collectionThing.getClass() == LinkedList.class)
-				return true;
-			else if (collectionThing.getClass() == Vector.class)
-				return true;
-			else if (collectionThing.getClass() == Stack.class)
-				return true;
-			else if (collectionThing.getClass() == PriorityQueue.class)
-				return true;
-			
-			//TODO moreeeee grandfatheringggggg! :>
-			
-			return null;
-		}
-	}
 	
 	
 	
@@ -6875,40 +4856,8 @@ primxp
 	
 	
 	
-	public static <E> List<List<E>> toList2D(Object array2d)
-	{
-		return toListMultidimensional(array2d, 2);
-	}
-	
-	
-	public static List toListMultidimensional(Object mdArray, int dimensions)
-	{
-		if (dimensions < 1)
-			throw new IllegalArgumentException();
-		else if (dimensions == 1)
-			return toList(mdArray);
-		else
-		{
-			List mdList = new ArrayList<>();
-			
-			for (Object o : singleUseIterable(mdArray))
-			{
-				mdList.add(toListMultidimensional(o, dimensions-1));
-			}
-			
-			return mdList;
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
 	/**
-	 * The inverse operation of this is {@link #mergeLists(Object...)}  ^wwww^
+	 * The inverse operation of this is {@link PolymorphicCollectionUtilities#mergeLists(Object...)}  ^wwww^
 	 * @param elements note that its length must be a multiple of the partitionSize!! \o/
 	 */
 	@ReadonlyValue
@@ -6928,7 +4877,7 @@ primxp
 			partitions[i] = elements.subList(i * partitionSize, (i + 1) * partitionSize);
 		}
 		
-		return Arrays.asList(partitions);
+		return asList(partitions);
 	}
 	
 	
@@ -7120,7 +5069,7 @@ primxp
 	@ReadonlyValue
 	public static <E> Set<E> newset(E... members)
 	{
-		return new HashSet<E>(toList(members));
+		return new HashSet<E>(PolymorphicCollectionUtilities.anyToList(members));
 	}
 	
 	@ReadonlyValue
@@ -7475,26 +5424,26 @@ primxp
 		else if (input instanceof List)
 			return mapToNewList(computor, (List<I>)input);
 		else
-			return mapToNewList(computor, (List<I>)toList(input));
+			return mapToNewList(computor, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
 	}
 	
 	@ThrowAwayValue
 	public static <I, O> List<O> mapToNewList(Mapper<I, O> computor, Iterable<? extends I> input)
 	{
-		return toNewVariableLengthMutableList(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(computor, (Iterable)input));
 	}
 	
 	@ThrowAwayValue
 	public static <I, O> Set<O> mapToNewSet(Mapper<I, O> computor, Iterable<? extends I> input)
 	{
-		return toNewMutableSet(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(computor, (Iterable)input));
 	}
 	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ThrowAwayValue
 	public static <I, O, A extends I> O[] mapToNewArray(Mapper<I, O> computor, Class<? super O> outputComponentType, A[] input)
 	{
-		return (O[])toNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
 	}
 	
 	@ThrowAwayValue
@@ -7784,26 +5733,26 @@ primxp
 		else if (input instanceof List)
 			return mapToList(computor, (List<I>)input);
 		else
-			return mapToList(computor, (List<I>)toList(input));
+			return mapToList(computor, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
 	}
 	
 	@ReadonlyValue
 	public static <I, O> List<O> mapToList(Mapper<I, O> computor, Iterable<? extends I> input)
 	{
-		return toNewVariableLengthMutableList(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(computor, (Iterable)input));
 	}
 	
 	@ReadonlyValue
 	public static <I, O> Set<O> mapToSet(Mapper<I, O> computor, Iterable<? extends I> input)
 	{
-		return toNewMutableSet(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(computor, (Iterable)input));
 	}
 	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ReadonlyValue
 	public static <I, O, A extends I> O[] mapToArray(Mapper<I, O> computor, Class<? super O> outputComponentType, A[] input)
 	{
-		return (O[])toNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
 	}
 	
 	@ReadonlyValue
@@ -8086,24 +6035,6 @@ primxp
 	
 	
 	
-	public static boolean any(Predicate predicate, @CollectionValue Object list)
-	{
-		for (Object e : singleUseIterable(list))
-			if (predicate.test(e))
-				return true;
-		return false;
-	}
-	
-	public static boolean all(Predicate predicate, @CollectionValue Object list)
-	{
-		for (Object e : singleUseIterable(list))
-			if (!predicate.test(e))
-				return false;
-		return true;
-	}
-	
-	
-	
 	public static <E> boolean any(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		for (E e : list)
@@ -8300,19 +6231,6 @@ primxp
 	
 	
 	
-	public static <E> void check(UnaryFunction<E, ? extends RuntimeException> thrower, @CollectionValue Object list)
-	{
-		Iterator<E> it = iterator(list);
-		
-		while (it.hasNext())
-		{
-			E element = it.next();
-			RuntimeException exc = thrower.f(element);
-			if (exc != null)
-				throw exc;
-		}
-	}
-	
 	public static <E> void check(UnaryFunction<E, ? extends RuntimeException> thrower, E[] list)
 	{
 		for (E element : list)
@@ -8406,7 +6324,7 @@ primxp
 	
 	
 	
-	public static void putSome(Map source, Map dest, Object... keys)
+	public static void putSomeV(Map source, Map dest, Object... keys)
 	{
 		for (Object key : keys)
 		{
@@ -8514,19 +6432,6 @@ primxp
 	
 	
 	
-	public static final EqualityComparator<Object> acyclicDeepEqv = CollectionUtilities::acyclicDeepEqv;
-	
-	public static boolean acyclicDeepEqv(Object a, Object b)
-	{
-		if (a instanceof List && b instanceof List)
-			return acyclicDeepEqvLists((List)a, (List)b);
-		else if (a instanceof Map && b instanceof Map)
-			return acyclicDeepEqvMaps((Map)a, (Map)b);
-		else
-			return BasicObjectUtilities.eq(a, b);
-	}
-	
-	
 	public static <E> boolean acyclicDeepEqvSets(Set<? extends E> a, Set<? extends E> b)
 	{
 		//TODO
@@ -8535,17 +6440,17 @@ primxp
 	
 	public static <E> boolean acyclicDeepEqvCollections(Collection<? extends E> a, Collection<? extends E> b)
 	{
-		return eqvCollections(a, b, acyclicDeepEqv);
+		return eqvCollections(a, b, PolymorphicCollectionUtilities.acyclicDeepEqv);
 	}
 	
 	public static <E> boolean acyclicDeepEqvLists(List<? extends E> a, List<? extends E> b)
 	{
-		return eqvLists(a, b, acyclicDeepEqv);
+		return eqvLists(a, b, PolymorphicCollectionUtilities.acyclicDeepEqv);
 	}
 	
 	public static <K, V> boolean acyclicDeepEqvMaps(Map<? extends K, ? extends V> a, Map<? extends K, ? extends V> b)
 	{
-		return eqvMaps(a, b, acyclicDeepEqv);
+		return eqvMaps(a, b, PolymorphicCollectionUtilities.acyclicDeepEqv);
 	}
 	
 	
@@ -8694,7 +6599,7 @@ primxp
 	@ThrowAwayValue
 	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(SimpleTable<String> table, int headerRowIndex, String... expectedHeaders) throws NonForwardInjectiveMapException
 	{
-		return getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(table, headerRowIndex, toSet(expectedHeaders));
+		return getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(table, headerRowIndex, PolymorphicCollectionUtilities.anyToSet(expectedHeaders));
 	}
 	
 	@ThrowAwayValue
@@ -9639,79 +7544,6 @@ primxp
 	
 	
 	
-	public static final Class JCFArraysWrapperClass = Arrays.asList(new Object[0]).getClass();
-	
-	/**
-	 * @return true = definitely fixed length, false = definitely variable length, null = unknown!  :>
-	 */
-	public static Boolean isFixedLengthNotVariableLength(Object x)
-	{
-		if (x instanceof KnowsLengthFixedness)
-		{
-			return ((KnowsLengthFixedness) x).isFixedLengthNotVariableLength();
-		}
-		
-		//Don't use instanceof because subclasses might change whether it's variable-length or fixed!
-		else if (x.getClass() == JCFArraysWrapperClass)
-		{
-			return true;
-		}
-		else if (x.getClass() == ArrayList.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == Vector.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == LinkedList.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == ArrayDeque.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == HashSet.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == HashMap.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == TreeSet.class)
-		{
-			return false;
-		}
-		else if (x.getClass() == TreeMap.class)
-		{
-			return false;
-		}
-		//TODO More??
-		
-		else if (x.getClass() == ArrayBlockingQueue.class)
-		{
-			return true;
-		}
-		//TODO More??
-		
-		else
-		{
-			return null;
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public static int findNextNullOrListSize(List<?> l)
 	{
 		int i = l.indexOf(null);
@@ -9781,6 +7613,25 @@ primxp
 		
 		//>>>
 		
-		return (List)unmodifiableList(asList(list.toArray()));
+		return Collections.unmodifiableList(new ArrayList<>(list));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> boolean isRandomAccessFast(List<E> list)
+	{
+		if (list instanceof RandomAccess)
+			return true;
+		else if (FastRandomAccess.is(list))
+			return true;
+		else
+			return false;
 	}
 }

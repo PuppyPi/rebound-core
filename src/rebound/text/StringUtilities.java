@@ -64,8 +64,8 @@ import rebound.util.Primitives;
 import rebound.util.ScanDirection;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.BasicCollectionUtilities;
-import rebound.util.collections.CollectionUtilities;
 import rebound.util.collections.IdentityHashSet;
+import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
@@ -5552,7 +5552,7 @@ implements JavaNamespace
 					out.append(")[");
 				}
 				
-				reprListContents(toIterable(o), c -> reprr(c, classesToDeeplyBeanilyInspect, alreadyDone), out);
+				reprListContents(PolymorphicCollectionUtilities.anyToIterable(o), c -> reprr(c, classesToDeeplyBeanilyInspect, alreadyDone), out);
 				
 				if (isArray)
 					out.append('}');
@@ -5734,11 +5734,11 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Just does {@link CollectionUtilities#toIterable(Object)} then {@link #reprListContents(Iterable)} ^w^
+	 * Just does {@link PolymorphicCollectionUtilities#anyToIterable(Object)} then {@link #reprListContents(Iterable)} ^w^
 	 */
 	public static String reprListContents(Object list)
 	{
-		return reprListContents(toIterable(list));
+		return reprListContents(PolymorphicCollectionUtilities.anyToIterable(list));
 	}
 	public static String reprListContentsSingleLine(Object list)
 	{

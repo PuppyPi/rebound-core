@@ -36,11 +36,11 @@ import rebound.exceptions.TruncationException;
 import rebound.math.MathUtilities.CastableToIntegerTrait.CastableToSmallIntegerTrait;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.collections.ArrayUtilities;
-import rebound.util.collections.CollectionUtilities;
 import rebound.util.collections.FilterAwayReturnPath;
 import rebound.util.collections.Mapper;
 import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
+import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.LongArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.objectutil.JavaNamespace;
@@ -2930,7 +2930,7 @@ implements JavaNamespace
 	{
 		Object rv = 0;
 		
-		for (Object x : CollectionUtilities.singleUseIterable(collectionOfIntegers))
+		for (Object x : PolymorphicCollectionUtilities.anyToSingleUseIterable(collectionOfIntegers))
 		{
 			rv = sumIntegers(rv, x);
 		}
@@ -2942,9 +2942,9 @@ implements JavaNamespace
 	{
 		Object rv = 0;
 		
-		for (Object row : CollectionUtilities.singleUseIterable(collectionOfCollectionsOfIntegers))
+		for (Object row : PolymorphicCollectionUtilities.anyToSingleUseIterable(collectionOfCollectionsOfIntegers))
 		{
-			Object v = CollectionUtilities.getuni(row, crossIndex);
+			Object v = PolymorphicCollectionUtilities.getuni(row, crossIndex);
 			
 			if (v == null)
 				throw new IndexOutOfBoundsException(String.valueOf(crossIndex));
@@ -2958,7 +2958,7 @@ implements JavaNamespace
 	//Trivial X3
 	public static Object rectDataSumIntegersFirstDimension(Object collectionOfCollectionsOfIntegers, int index)
 	{
-		return sumIntegersVariadic(CollectionUtilities.getuni(collectionOfCollectionsOfIntegers, index));
+		return sumIntegersVariadic(PolymorphicCollectionUtilities.getuni(collectionOfCollectionsOfIntegers, index));
 	}
 	
 	
@@ -2968,9 +2968,9 @@ implements JavaNamespace
 	{
 		long rv = 0;
 		
-		for (Object row : CollectionUtilities.singleUseIterable(collectionOfCollectionsOfIntegers))
+		for (Object row : PolymorphicCollectionUtilities.anyToSingleUseIterable(collectionOfCollectionsOfIntegers))
 		{
-			Object v = CollectionUtilities.getuni(row, crossIndex);
+			Object v = PolymorphicCollectionUtilities.getuni(row, crossIndex);
 			
 			if (v == null)
 				throw new IndexOutOfBoundsException(String.valueOf(crossIndex));

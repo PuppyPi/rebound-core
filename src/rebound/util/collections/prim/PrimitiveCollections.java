@@ -3,6 +3,7 @@ package rebound.util.collections.prim;
 import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
@@ -36,6 +37,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.ImmutableValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
+import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.ReadonlyUnsupportedOperationException;
@@ -44,12 +46,12 @@ import rebound.exceptions.StructuredClassCastException;
 import rebound.util.collections.AbstractReadonlyList;
 import rebound.util.collections.AbstractReadonlySet;
 import rebound.util.collections.ArrayUtilities;
-import rebound.util.collections.CollectionUtilities;
 import rebound.util.collections.KnowsLengthFixedness;
 import rebound.util.collections.ListWithRemoveRange;
 import rebound.util.collections.ListWithSetAll;
 import rebound.util.collections.ListWithSetSize;
 import rebound.util.collections.NiceList;
+import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.ShiftableList;
 import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
@@ -69,6 +71,70 @@ import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
 public class PrimitiveCollections
 {
+	@LiveValue
+	public static List asListObjectOrPrimitiveArray(Object array)
+	{
+		if (array instanceof Object[])
+			return Arrays.asList(array);
+		
+		
+		/* <<<
+		primxp
+		
+		else if (array instanceof _$$prim$$_[])
+			return _$$prim$$_ArrayAsList((_$$prim$$_[])array);
+		 */
+		
+		else if (array instanceof boolean[])
+			return booleanArrayAsList((boolean[])array);
+		
+		else if (array instanceof byte[])
+			return byteArrayAsList((byte[])array);
+		
+		else if (array instanceof char[])
+			return charArrayAsList((char[])array);
+		
+		else if (array instanceof short[])
+			return shortArrayAsList((short[])array);
+		
+		else if (array instanceof float[])
+			return floatArrayAsList((float[])array);
+		
+		else if (array instanceof int[])
+			return intArrayAsList((int[])array);
+		
+		else if (array instanceof double[])
+			return doubleArrayAsList((double[])array);
+		
+		else if (array instanceof long[])
+			return longArrayAsList((long[])array);
+		
+		// >>>
+		
+		
+		else
+			throw newClassCastExceptionOrNullPointerException(array);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static final int DefaultPrimitiveArrayListInitialCapacity = 16;
 	
 	
@@ -206,7 +272,7 @@ public class PrimitiveCollections
 		}
 		
 		//Todo a better fallback algorithm than this?  ^^'
-		return byteArrayToBooleanList(toArrayByte(bytes));
+		return byteArrayToBooleanList(PolymorphicCollectionUtilities.anyToArrayByte(bytes));
 	}
 	
 	
@@ -2227,7 +2293,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArray_$$Prim$$_(data));
+				int n = data.size();
+				_$$prim$$_[] a = new _$$prim$$_[n];
+				
+				int i = 0;
+				for (_$$Primitive$$_ e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -2546,7 +2628,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -4923,7 +5005,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayBoolean(data));
+				int n = data.size();
+				boolean[] a = new boolean[n];
+				
+				int i = 0;
+				for (Boolean e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -5242,7 +5340,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -7618,7 +7716,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayByte(data));
+				int n = data.size();
+				byte[] a = new byte[n];
+				
+				int i = 0;
+				for (Byte e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -7937,7 +8051,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -10313,7 +10427,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayChar(data));
+				int n = data.size();
+				char[] a = new char[n];
+				
+				int i = 0;
+				for (Character e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -10632,7 +10762,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -13008,7 +13138,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayShort(data));
+				int n = data.size();
+				short[] a = new short[n];
+				
+				int i = 0;
+				for (Short e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -13327,7 +13473,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -15703,7 +15849,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayFloat(data));
+				int n = data.size();
+				float[] a = new float[n];
+				
+				int i = 0;
+				for (Float e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -16022,7 +16184,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -18398,7 +18560,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayInt(data));
+				int n = data.size();
+				int[] a = new int[n];
+				
+				int i = 0;
+				for (Integer e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -18717,7 +18895,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -21093,7 +21271,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayDouble(data));
+				int n = data.size();
+				double[] a = new double[n];
+				
+				int i = 0;
+				for (Double e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -21412,7 +21606,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -23788,7 +23982,23 @@ primxp
 			}
 			else
 			{
-				return newLIVE(toNewArrayLong(data));
+				int n = data.size();
+				long[] a = new long[n];
+				
+				int i = 0;
+				for (Long e : data)
+				{
+					if (i >= n)
+						throw new ImpossibleException();
+					
+					a[i] = e;
+					i++;
+				}
+				
+				if (i != n)
+					throw new ImpossibleException();
+				
+				return newLIVE(a);
 			}
 		}
 		
@@ -24107,7 +24317,7 @@ primxp
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.underlying);
 		}
 		
 		@Override
@@ -24696,7 +24906,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -24924,7 +25134,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -25151,7 +25361,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -25378,7 +25588,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -25605,7 +25815,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -25832,7 +26042,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -26059,7 +26269,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -26286,7 +26496,7 @@ _$$primxpconf:noboolean$$_
 		@Override
 		public Boolean isFixedLengthNotVariableLength()
 		{
-			return CollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
+			return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 		}
 		
 		
@@ -30508,4 +30718,4 @@ implements _$$Primitive$$_List
 			
 			return b.toString();
 		}
-*/
+ */

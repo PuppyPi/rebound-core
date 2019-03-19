@@ -13,7 +13,7 @@ import java.lang.annotation.RetentionPolicy;
  * + Note that this doesn't speak to ordering (eg, List vs Set), duplicateness (eg, Set vs Collection), or anything about the component type!
  * + And it is *not* mutually exclusive with {@link MapValue}!  For example, a random access list can be thought of as a map with integer keys! ^^
  * 
- * @see rebound.util.collections.CollectionUtilities#toList(Object)
+ * @see rebound.util.collections.PolymorphicCollectionUtilities#anyToList(Object)
  * @see MapValue
  * @author Puppy Pie ^_^
  */
