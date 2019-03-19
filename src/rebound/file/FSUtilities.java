@@ -867,7 +867,7 @@ implements JavaNamespace
 	@Nonnull
 	public static String getFilenameStem(@Nonnull File file)
 	{
-		return getFilenameStem(file.getName());
+		return getFilenameStemFromBasename(file.getName());
 	}
 	
 	@Nonnull
@@ -881,13 +881,26 @@ implements JavaNamespace
 		int beginningPos = slashPos == -1 ? 0 : slashPos;
 		int endPos = dotPos != -1 && (slashPos == -1 || dotPos > slashPos) ? dotPos : path.length();
 		
-		return path.substring(beginningPos, endPos); //shortcuts to 'this' if appropriate ^_^
+		return path.substring(beginningPos, endPos);  //note: it shortcuts inside String.substring() to 'this' if appropriate ^_^
 	}
 	
 	@Nonnull
 	public static String getFilenameStem(@Nonnull String path)
 	{
 		return getFilenameStem(path, File.separatorChar);
+	}
+	
+	@Nonnull
+	public static String getFilenameStemFromBasename(@Nonnull String basename)
+	{
+		requireNonNull(basename);
+		
+		int dotPos = basename.lastIndexOf('.');
+		
+		if (dotPos == -1)
+			return basename;
+		else
+			return basename.substring(0, dotPos);
 	}
 	
 	
