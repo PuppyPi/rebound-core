@@ -1482,9 +1482,11 @@ implements JavaNamespace
 	
 	
 	/**
-	 * Note: this will delete the destination if it exists (and throw an IOException if it can't).
+	 * This tries to move source to dest (move != copy) first by renaming, then by copying and deleting source if that fails.
 	 * 
-	 * Tries to move source to dest (move != copy) first by renaming, then by deleting (dest), copying, and deleting (src).
+	 * Note: this will delete the destination if it exists (and throw an IOException if it can't).
+	 * And thus if the move fails, the source might not have been fully moved but the dest was deleted.
+	 * However, *source* will definitely not be deleted until after a completely successful move :)
 	 */
 	public static void move(File source, File dest) throws IOException
 	{
@@ -1492,9 +1494,7 @@ implements JavaNamespace
 			dest.delete();
 		
 		if (lexists(dest))
-		{
-			throw new IOException("Could not delete "+dest);
-		}
+			throw new IOException("Could not delete pre-existing destination: "+repr(dest.getAbsolutePath()));
 		
 		
 		
@@ -1506,8 +1506,14 @@ implements JavaNamespace
 		
 		if (isSymlink(source))
 		{
-			File target = readlink(source);
-			makelinkSymbolic(target, dest);
+			File content = readlink(source);
+			
+			makelinkSymbolic(content, dest);
+			
+			dest.setLastModified(source.lastModified());
+			
+			//Do this last!!  So that we don't delete source if an exception occurred!!
+			source.delete();
 		}
 		else if (source.isFile())
 		{
@@ -1536,16 +1542,24 @@ implements JavaNamespace
 				if (out != null) closeWithoutError(out);
 			}
 			
-			dest.setLastModified(source.lastModified());
+			dest.setLastModified(source.lastModified());  //Do this AFTER writing to it! XD!
 			
 			//Do this last!!  So that we don't delete source if an exception occurred!!
 			source.delete();
 		}
-		else
+		else if (source.isDirectory())
 		{
 			//TODO!!!
 			// NOTE: If we change this, remove the preemptive NYI in the UIDSFS dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
-			throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''");
+			throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+		}
+		else if (source.exists())
+		{
+			throw new NotYetImplementedException("NYI: Moving special files (eg, devices and fifos) across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+		}
+		else
+		{
+			throw new IOException("Tried to move a nonexistant file:   "+repr(source.getAbsolutePath()));
 		}
 	}
 	
@@ -1996,7 +2010,7 @@ implements JavaNamespace
 	{
 		if (lexists(pathForSymlink))
 		{
-			if (eq(readlink(pathForSymlink), immediateTarget))
+			if (isSymlink(pathForSymlink) && eq(readlink(pathForSymlink), immediateTarget))
 				return false;  //Already what we would make :>
 			else
 				throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
@@ -3338,6 +3352,40 @@ implements JavaNamespace
 		catch (IOException exc)
 		{
 			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean canFileExist(File f)
+	{
+		if (lexists(f))
+		{
+			return true;  //It already does! XD
+		}
+		else
+		{
+			try
+			{
+				f.createNewFile();
+			}
+			catch (IOException exc)
+			{
+			}
+			
+			if (lexists(f))
+			{
+				f.delete();
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 	}
 }

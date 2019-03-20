@@ -733,13 +733,13 @@ implements JavaNamespace
 	public static final UnaryFunctionIntToBoolean EscapedCharsMaximallyForPartNonPath = c -> !( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '*' || c == '_' );
 	public static final UnaryFunctionIntToBoolean EscapedCharsMaximallyForPartPath    = c -> EscapedCharsMaximallyForPartNonPath.f(c) && c != '/';
 	
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartProtocol = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartUser     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  '/' || c == '@' || c == ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPassword = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  '/' || c == '@';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartHost     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  '/' || c == ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPath     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  '?' || c == '#';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartQuery    = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c ==  '#';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartFragment = c -> c == '%' || c == '+' || c == '\n' || c == '\r';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartProtocol = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  ':';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartUser     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == '@' || c == ':';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPassword = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == '@';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartHost     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == ':';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPath     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '?' || c == '#';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartQuery    = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '#';
+	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartFragment = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0';
 	
 	
 	public static String urlescapeGeneric(@Nonnull String s, UnaryFunctionIntToBoolean shouldEscape)

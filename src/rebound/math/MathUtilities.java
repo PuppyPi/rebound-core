@@ -328,58 +328,6 @@ implements JavaNamespace
 	
 	
 	
-	/**
-	 * Convenience and array-length-safety for {@link #simplifyFraction(int[])}.
-	 */
-	public static int[] simplifyFraction(int n, int d)
-	{
-		int[] halves = new int[]{n, d};
-		simplifyFraction(halves);
-		return halves;
-	}
-	
-	/**
-	 * This simplifies a fraction to a canonical form, which:<br>
-	 * <ul>
-	 * 	<li>Is irreducible (no common factors other than 1)</li>
-	 * 	<li>Has a positive denominator (eg, 1/(-2) = (-1)/2,   -1/-2 = 1/2)</li>
-	 * 	<li>Is 0/1 for all zero-values.</li>
-	 * </ul>
-	 * Note: This works on normal signed integers of both signs
-	 * @param halves This must consist of exactly 2 integers, [0] being the Numerator, and [1] being the Denominator.  The results are overwritten in this same array.
-	 */
-	public static void simplifyFraction(int[] halves)
-	{
-		int n = halves[0];
-		int d = halves[1];
-		
-		if (d == 0)
-			//Just ignore the fact that it does not compute.
-			return;
-		
-		boolean negative = n < 0 ^ d < 0;
-		
-		n = SmallIntegerMathUtilities.safe_abs_s32(n);
-		d = SmallIntegerMathUtilities.safe_abs_s32(d);
-		
-		//GCD will intrinsically make 0/28 = 0/1
-		int gcd = SmallIntegerMathUtilities.gcd(n, d);
-		
-		n /= gcd;
-		d /= gcd;
-		
-		if (negative)
-			n = -n;
-		
-		halves[0] = n;
-		halves[1] = d;
-	}
-	
-	
-	
-	
-	
-	
 	//Note: GCD and Reduce operate on unsigned integers, unless otherwise specified
 	/**
 	 * @return The GCD that the numbers were divided by

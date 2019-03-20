@@ -96,7 +96,7 @@ implements JavaNamespace
 	
 	
 	
-	
+	public static final String[] EmptyStringArray = new String[0];
 	
 	
 	
@@ -976,7 +976,10 @@ implements JavaNamespace
 	
 	public static String[] splitlinesLeavingOffEmptyTrailingLine(String s)
 	{
-		return splitlines(removeTrailingLineBreak(s));
+		if (s.isEmpty())
+			return EmptyStringArray;
+		else
+			return splitlines(removeTrailingLineBreak(s));
 	}
 	
 	public static String removeTrailingLineBreak(String s)
