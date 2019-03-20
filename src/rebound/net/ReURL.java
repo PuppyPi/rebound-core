@@ -11,6 +11,7 @@ import rebound.exceptions.TextSyntaxException;
 
 //TODO Waittt shouuuuuuld we descape/escape the parts???
 //I like doing that because it considers '%20', '+', and ' ' to be equivalent during parsing, which, afaik, everything on the web does too X3
+//NOPE; IT TOTALLY BREAKS THE FORM-ENCODED QUERY STRING X"DDDD
 
 /**
  * Re-implementation of {@link URI} (except for URL's, specifically) because it chokes on domain names with underscores—
@@ -97,6 +98,53 @@ public class ReURL
 	{
 		return fragment;
 	}
+	
+	
+	
+	
+	
+	public ReURL withDifferentProtocol(String newProtocol)
+	{
+		return new ReURL(newProtocol, this.getUser(), this.getPassword(), this.getHost(), this.getPort(), this.getPath(), this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentUser(String newUser)
+	{
+		return new ReURL(this.getProtocol(), newUser, this.getPassword(), this.getHost(), this.getPort(), this.getPath(), this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentPassword(String newPassword)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), newPassword, this.getHost(), this.getPort(), this.getPath(), this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentHost(String newHost)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), newHost, this.getPort(), this.getPath(), this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentPort(Integer newPort)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), this.getHost(), newPort, this.getPath(), this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentPath(String newPath)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), this.getHost(), this.getPort(), newPath, this.getQuery(), this.getFragment());
+	}
+	
+	public ReURL withDifferentQuery(String newQuery)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), this.getHost(), this.getPort(), this.getPath(), newQuery, this.getFragment());
+	}
+	
+	public ReURL withDifferentFragment(String newFragment)
+	{
+		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), this.getHost(), this.getPort(), this.getPath(), this.getQuery(), newFragment);
+	}
+	
+	
+	
 	
 	
 	
