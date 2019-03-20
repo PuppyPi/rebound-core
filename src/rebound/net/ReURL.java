@@ -2,6 +2,7 @@ package rebound.net;
 
 import static java.util.Objects.*;
 import static rebound.net.NetworkUtilities.*;
+import static rebound.text.StringUtilities.*;
 import java.net.URI;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -52,6 +53,30 @@ public class ReURL
 		
 		if (!path.startsWith("/"))
 			throw new IllegalArgumentException("URL paths must start with '/'");
+		
+		
+		
+		
+		if (!isValidURLPartProtocol(protocol))
+			throw new IllegalArgumentException("Invalid protocol!: "+repr(protocol));
+		
+		if (user != null && !isValidURLPartUser(user))
+			throw new IllegalArgumentException("Invalid user!: "+repr(user));
+		
+		if (password != null && !isValidURLPartPassword(password))
+			throw new IllegalArgumentException("Invalid password!: "+repr(password));
+		
+		if (!isValidURLPartHost(host))
+			throw new IllegalArgumentException("Invalid host!: "+repr(host));
+		
+		if (!isValidURLPartPath(path))
+			throw new IllegalArgumentException("Invalid path!: "+repr(path));
+		
+		if (query != null && !isValidURLPartQuery(query))
+			throw new IllegalArgumentException("Invalid query!: "+repr(query));
+		
+		if (fragment != null && !isValidURLPartFragment(fragment))
+			throw new IllegalArgumentException("Invalid fragment!: "+repr(fragment));
 	}
 	
 	
@@ -97,6 +122,13 @@ public class ReURL
 	public String getFragment()
 	{
 		return fragment;
+	}
+	
+	
+	
+	public String getUserInfo()
+	{
+		return this.getUser() == null ? null : (this.getUser()+(this.getPassword() == null ? "" : ":"+this.getPassword()));
 	}
 	
 	
@@ -313,19 +345,14 @@ public class ReURL
 		
 		
 		
-		@Nonnull String _protocol = url.substring(0, a);
-		@Nullable String _user = c == -1 ? null : url.substring(a+3, b == -1 ? c : b);
-		@Nullable String _password = b == -1 ? null : url.substring(b+1, c);   //b != -1  ⇒  c != -1
-		@Nonnull String _host = c == -1 ? url.substring(a+3, d == -1 ? e : d) : url.substring(c+1, d == -1 ? e : d);
+		@Nonnull String protocol = url.substring(0, a);
+		@Nullable String user = c == -1 ? null : url.substring(a+3, b == -1 ? c : b);
+		@Nullable String password = b == -1 ? null : url.substring(b+1, c);   //b != -1  ⇒  c != -1
+		@Nonnull String host = c == -1 ? url.substring(a+3, d == -1 ? e : d) : url.substring(c+1, d == -1 ? e : d);
 		@Nullable String _port = d == -1 ? null : url.substring(d+1, e);
-		@Nonnull String _path = url.substring(e, f == -1 ? (g == -1 ? url.length() : g) : f);  //note (e) instead of (e+1) to keep the leading slash in the path :>
-		@Nullable String _query = f == -1 ? null : url.substring(f+1, g == -1 ? url.length() : g);
-		@Nullable String _fragment = g == -1 ? null : url.substring(g+1, url.length());
-		
-		@Nonnull String protocol = urldescape(_protocol);
-		@Nullable String user = _user == null ? null : urldescape(_user);
-		@Nullable String password = _password == null ? null : urldescape(_password);
-		@Nonnull String host = urldescape(_host);
+		@Nonnull String path = url.substring(e, f == -1 ? (g == -1 ? url.length() : g) : f);  //note (e) instead of (e+1) to keep the leading slash in the path :>
+		@Nullable String query = f == -1 ? null : url.substring(f+1, g == -1 ? url.length() : g);
+		@Nullable String fragment = g == -1 ? null : url.substring(g+1, url.length());
 		
 		@Nullable Integer port;
 		try
@@ -337,13 +364,14 @@ public class ReURL
 			throw TextSyntaxException.inst("Invalid port: "+_port, exc);
 		}
 		
-		@Nonnull String path = urldescape(_path);
-		@Nullable String query = _query == null ? null : urldescape(_query);
-		@Nullable String fragment = _fragment == null ? null : urldescape(_fragment);
-		
-		
-		
-		return new ReURL(protocol, user, password, host, port, path, query, fragment);
+		try
+		{
+			return new ReURL(protocol, user, password, host, port, path, query, fragment);
+		}
+		catch (IllegalArgumentException exc)
+		{
+			throw TextSyntaxException.inst(exc);
+		}
 	}
 	
 	
@@ -351,27 +379,27 @@ public class ReURL
 	
 	
 	
-	public String serializeMinimalEscaping()
+	public String serialize()
 	{
 		StringBuilder b = new StringBuilder();
 		
-		b.append(urlescapeMinimallyPartProtocol(protocol));
+		b.append(protocol);
 		b.append("://");
 		
 		if (user != null)
 		{
-			b.append(urlescapeMinimallyPartUser(user));
+			b.append(user);
 			
 			if (password != null)
 			{
 				b.append(':');
-				b.append(urlescapeMinimallyPartPassword(password));
+				b.append(password);
 			}
 			
 			b.append('@');
 		}
 		
-		b.append(urlescapeMinimallyPartHost(host));
+		b.append(host);
 		
 		if (port != null)
 		{
@@ -379,71 +407,27 @@ public class ReURL
 			b.append(port);  //Base 10 integer; doesn't need to be escaped :>
 		}
 		
-		b.append(urlescapeMinimallyPartPath(path));  //contains the leading slash :3
+		b.append(path);  //contains the leading slash :3
 		
 		if (query != null)
 		{
 			b.append('?');
-			b.append(urlescapeMinimallyPartQuery(query));
+			b.append(query);
 		}
 		
 		if (fragment != null)
 		{
 			b.append('#');
-			b.append(urlescapeMinimallyPartFragment(fragment));
+			b.append(fragment);
 		}
 		
 		return b.toString();
 	}
 	
-	
-	
-	
-	public String serializeMaximalEscaping()
+	public String serializeToASCII()
 	{
-		StringBuilder b = new StringBuilder();
-		
-		b.append(urlescapeMaximallyPartNonPath(protocol));
-		b.append("://");
-		
-		if (user != null)
-		{
-			b.append(urlescapeMaximallyPartNonPath(user));
-			
-			if (password != null)
-			{
-				b.append(':');
-				b.append(urlescapeMaximallyPartNonPath(password));
-			}
-			
-			b.append('@');
-		}
-		
-		b.append(urlescapeMaximallyPartNonPath(host));
-		
-		if (port != null)
-		{
-			b.append(':');
-			b.append(port);  //Base 10 :>
-		}
-		
-		b.append(urlescapeFullyPartPath(path));  //contains the leading slash :3
-		
-		if (query != null)
-		{
-			b.append('?');
-			b.append(urlescapeMaximallyPartNonPath(query));
-		}
-		
-		if (fragment != null)
-		{
-			b.append('#');
-			b.append(urlescapeMaximallyPartNonPath(fragment));
-		}
-		
-		return b.toString();
+		return urlescapeJustUnicodesAndControls(this.serialize());
 	}
-	
 	
 	
 	
@@ -452,6 +436,6 @@ public class ReURL
 	@Override
 	public String toString()
 	{
-		return serializeMinimalEscaping();
+		return serialize();
 	}
 }

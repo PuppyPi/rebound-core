@@ -6,6 +6,7 @@ package rebound.net;
 
 import static rebound.bits.Unsigned.*;
 import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.ArrayUtilities.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -707,6 +708,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static String urlFormEscape(@Nonnull String s)
+	{
+		return _urlFormEscape_JRE(s);
+	}
+	
+	public static String _urlFormEscape_JRE(@Nonnull String s)
+	{
+		try
+		{
+			return URLEncoder.encode(s, "UTF-8");
+		}
+		catch (UnsupportedEncodingException exc)
+		{
+			throw new ImpossibleException();
+		}
+	}
+	
+	//Good for testing :>
+	public static String _urlFormEscape_Rebound(@Nonnull String s)
+	{
+		return urlescapeGeneric(s, EscapedCharsFormEncoding);
+	}
 	
 	
 	
@@ -717,29 +740,10 @@ implements JavaNamespace
 	
 	
 	
-	/*
-	 * Protocol    :
-	 * User        /@:
-	 * Password    /@
-	 * Host        /:
-	 * Port        /
-	 * Path        ?#
-	 * Query       #
-	 * Fragment    
-	 * 
-	 * + '%', '+', '\n', '\r' are always escaped X3
-	 */
 	
-	public static final UnaryFunctionIntToBoolean EscapedCharsMaximallyForPartNonPath = c -> !( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '*' || c == '_' );
-	public static final UnaryFunctionIntToBoolean EscapedCharsMaximallyForPartPath    = c -> EscapedCharsMaximallyForPartNonPath.f(c) && c != '/';
 	
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartProtocol = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartUser     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == '@' || c == ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPassword = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == '@';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartHost     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '/' || c == ':';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartPath     = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '?' || c == '#';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartQuery    = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0' || c ==  '#';
-	public static final UnaryFunctionIntToBoolean EscapedCharsMinimallyForPartFragment = c -> c == '%' || c == '+' || c == '\n' || c == '\r' || c == '\0';
+	public static final UnaryFunctionIntToBoolean EscapedCharsFormEncoding = c -> !( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '*' || c == '_' );
+	public static final UnaryFunctionIntToBoolean EscapedCharsJustUnicodesAndControls = c -> c <= ' ' || c >= 127;
 	
 	
 	public static String urlescapeGeneric(@Nonnull String s, UnaryFunctionIntToBoolean shouldEscape)
@@ -793,85 +797,86 @@ implements JavaNamespace
 	
 	
 	
-	public static String urlescapeMinimallyPartProtocol(@Nonnull String s)
+	/**
+	 * This is compatible for use with an already-escaped URL/URI :>
+	 */
+	public static String urlescapeJustUnicodesAndControls(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartProtocol);
+		return urlescapeGeneric(s, EscapedCharsJustUnicodesAndControls);
 	}
 	
-	public static String urlescapeMinimallyPartUser(@Nonnull String s)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * Protocol    :
+	 * User        /@:
+	 * Password    /@
+	 * Host        /:
+	 * Port        /
+	 * Path        ?#
+	 * Query       #
+	 * Fragment    
+	 * 
+	 * + '%', '+', '\n', '\r' are always escaped X3
+	 */
+	
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartProtocol = c -> c <= ' ' || c ==  ':';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartUser     = c -> c <= ' ' || c ==  '/' || c == '@' || c == ':';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartPassword = c -> c <= ' ' || c ==  '/' || c == '@';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartHost     = c -> c <= ' ' || c ==  '/' || c == ':';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartPath     = c -> c <= ' ' || c ==  '?' || c == '#';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartQuery    = c -> c <= ' ' || c ==  '#';
+	public static final UnaryFunctionIntToBoolean InvalidCharsMinimallyForPartFragment = c -> c <= ' ';
+	
+	
+	
+	
+	public static boolean isValidURLPartProtocol(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartUser);
+		return !forAny(InvalidCharsMinimallyForPartProtocol, toCodePointArray(s));
 	}
 	
-	public static String urlescapeMinimallyPartPassword(@Nonnull String s)
+	public static boolean isValidURLPartUser(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartPassword);
+		return !forAny(InvalidCharsMinimallyForPartUser, toCodePointArray(s));
 	}
 	
-	public static String urlescapeMinimallyPartHost(@Nonnull String s)
+	public static boolean isValidURLPartPassword(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartHost);
+		return !forAny(InvalidCharsMinimallyForPartPassword, toCodePointArray(s));
+	}
+	
+	public static boolean isValidURLPartHost(@Nonnull String s)
+	{
+		return !forAny(InvalidCharsMinimallyForPartHost, toCodePointArray(s));
 	}
 	
 	//Port is an integers and thus doesn't need to be escaped XD
 	
-	public static String urlescapeMinimallyPartPath(@Nonnull String s)
+	public static boolean isValidURLPartPath(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartPath);
+		return !forAny(InvalidCharsMinimallyForPartPath, toCodePointArray(s));
 	}
 	
-	public static String urlescapeMinimallyPartQuery(@Nonnull String s)
+	public static boolean isValidURLPartQuery(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartQuery);
+		return !forAny(InvalidCharsMinimallyForPartQuery, toCodePointArray(s));
 	}
 	
-	public static String urlescapeMinimallyPartFragment(@Nonnull String s)
+	public static boolean isValidURLPartFragment(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsMinimallyForPartFragment);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public static String urlescapeMaximallyPartNonPath(@Nonnull String s)
-	{
-		return _urlescapeMaximallyPartNonPath_Rebound(s);
-	}
-	
-	public static String _urlescapeMaximallyPartNonPath_Rebound(@Nonnull String s)
-	{
-		try
-		{
-			return URLEncoder.encode(s, "UTF-8");
-		}
-		catch (UnsupportedEncodingException exc)
-		{
-			throw new ImpossibleException(exc);
-		}
-	}
-	
-	public static String _urlescapeMaximallyPartNonPath_JRE(@Nonnull String s)
-	{
-		try
-		{
-			return URLEncoder.encode(s, "UTF-8");
-		}
-		catch (UnsupportedEncodingException exc)
-		{
-			throw new ImpossibleException(exc);
-		}
-	}
-	
-	/**
-	 * Just like {@link #urlescapeMaximallyPartNonPath(String)} except leaves '/' characters :>
-	 */
-	public static String urlescapeFullyPartPath(@Nonnull String s)
-	{
-		return urlescapeGeneric(s, EscapedCharsMaximallyForPartPath);
+		return !forAny(InvalidCharsMinimallyForPartFragment, toCodePointArray(s));
 	}
 }
