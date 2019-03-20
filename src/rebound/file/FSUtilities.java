@@ -1900,6 +1900,8 @@ implements JavaNamespace
 	 */
 	public static boolean isSpecialFile(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1914,6 +1916,8 @@ implements JavaNamespace
 	 */
 	public static boolean isNormalFile(File f)
 	{
+		requireNonNull(f);
+		
 		return f.isFile();
 	}
 	
@@ -1925,6 +1929,8 @@ implements JavaNamespace
 	 */
 	public static boolean isSpecialOrNormalFile(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1939,6 +1945,8 @@ implements JavaNamespace
 	//<Symlinks
 	public static boolean isSymlink(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1947,6 +1955,8 @@ implements JavaNamespace
 	
 	public static boolean lexists(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1956,6 +1966,8 @@ implements JavaNamespace
 	
 	public static boolean isBrokenSymlink(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1965,6 +1977,8 @@ implements JavaNamespace
 	
 	public static boolean isExtantSymlink(File f)
 	{
+		requireNonNull(f);
+		
 		if (f instanceof NonExistantFile)
 			return false;
 		
@@ -1976,6 +1990,8 @@ implements JavaNamespace
 	
 	public static File readlinkRE(File f) throws WrappedThrowableRuntimeException
 	{
+		requireNonNull(f);
+		
 		try
 		{
 			return readlink(f);
@@ -1988,6 +2004,8 @@ implements JavaNamespace
 	
 	public static File readlink(File f) throws IOException
 	{
+		requireNonNull(f);
+		
 		return Files.readSymbolicLink(f.toPath()).toFile();
 	}
 	
@@ -1997,6 +2015,9 @@ implements JavaNamespace
 	 */
 	public static void makelinkSymbolic(File immediateTarget, File pathForSymlink) throws IOException
 	{
+		requireNonNull(immediateTarget);
+		requireNonNull(pathForSymlink);
+		
 		if (lexists(pathForSymlink))
 			throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
 		
@@ -2008,6 +2029,9 @@ implements JavaNamespace
 	 */
 	public static boolean makelinkSymbolicIfNotAlready(File immediateTarget, File pathForSymlink) throws IOException
 	{
+		requireNonNull(immediateTarget);
+		requireNonNull(pathForSymlink);
+		
 		if (lexists(pathForSymlink))
 		{
 			if (isSymlink(pathForSymlink) && eq(readlink(pathForSymlink), immediateTarget))
@@ -2023,16 +2047,23 @@ implements JavaNamespace
 	
 	public static void remakelinkSymbolic(File immediateTarget, File pathForSymlink) throws IOException
 	{
+		requireNonNull(immediateTarget);
+		requireNonNull(pathForSymlink);
+		
 		File oldTarget = null;
 		
 		if (isSymlink(pathForSymlink))
 		{
 			oldTarget = readlink(pathForSymlink);
 			pathForSymlink.delete();
+			
+			if (lexists(pathForSymlink))
+				throw new IOException("Destination already exists and we couldn't get rid of it!  ("+repr(pathForSymlink.getAbsolutePath())+")");
 		}
-		
-		if (lexists(pathForSymlink))
-			throw new IOException("Destination already exists and we couldn't get rid of it!  ("+repr(pathForSymlink.getAbsolutePath())+")");
+		else if (lexists(pathForSymlink))
+		{
+			throw new IOException("Destination already exists but isn't a symlink!  ("+repr(pathForSymlink.getAbsolutePath())+")");
+		}
 		
 		
 		

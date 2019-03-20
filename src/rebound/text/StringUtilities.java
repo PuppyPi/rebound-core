@@ -1007,6 +1007,29 @@ implements JavaNamespace
 	}
 	
 	
+	public static String joinlinesIncludingTrailingNewline(String[] lines)
+	{
+		StringBuilder buff = new StringBuilder();
+		for (String line : lines)
+		{
+			buff.append(line);
+			buff.append('\n');
+		}
+		return buff.toString();
+	}
+	
+	public static String joinlinesIncludingTrailingNewline(Iterable<String> lines)
+	{
+		StringBuilder buff = new StringBuilder();
+		for (String line : lines)
+		{
+			buff.append(line);
+			buff.append('\n');
+		}
+		return buff.toString();
+	}
+	
+	
 	
 	
 	
