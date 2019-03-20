@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.StopIterationReturnPath;
 
@@ -73,7 +73,7 @@ public interface SimpleIterator<E>
 	
 	
 	
-	@SignalInterface //todo make trait predicate based :P
+	@SignalType //todo make trait predicate based :P
 	public static interface SimpleIteratorWithRemove
 	{
 		public void remove();

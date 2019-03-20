@@ -24,10 +24,10 @@ import java.lang.annotation.Target;
  * + The method is usually named "is", but that's not necessary with this annotation ^_~
  * + No more than one method per class/interface must be tagged with this :P
  * 
- * + If you're working in Java 8, <b>*all uses of {@link FunctionalityInterface#traitPredicate()} should use this instead!!*</b>
+ * + If you're working in Java 8, <b>*all uses of {@link FunctionalityType#traitPredicate()} should use this instead!!*</b>
  * 
  * 
- * @see FunctionalityInterface
+ * @see FunctionalityType
  * @author Puppy Pie ^_^
  */
 @Documented

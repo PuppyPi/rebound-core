@@ -24,12 +24,12 @@ import java.lang.annotation.Target;
  * 		A much more flexible solution is a trait system which uses boolean methods to test for traits (and if the interface defining the trait method isn't supported, then it is synonymous with <code>false</code>! ^_^ )
  * 		Eg, {@link java.io.InputStream#markSupported()}  ^_^
  * 
- * @see FunctionalityInterface
+ * @see FunctionalityType
  * @author Puppy Pie ^_^
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface SignalInterface
+public @interface SignalType
 {
 }

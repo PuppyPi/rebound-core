@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
@@ -5432,7 +5432,7 @@ implements JavaNamespace
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface Reprable
 	{
 		//Guess what language I stole *this* from! XDDD

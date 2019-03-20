@@ -11,12 +11,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * The opposite of {@link SignalInterface}, for being explicits! ^,^
+ * The opposite of {@link SignalType}, for being explicits! ^,^
  * 
  * Ie, implementing this interface or not implementing it conveys no information,
  * (the information it would represent often (but not always!) will be conveyed through a method, like {@link java.io.InputStream#markSupported()} ;> )
  * 
- * Using {@link FunctionalityInterface}s helps generic implementations to implement
+ * Using {@link FunctionalityType}s helps generic implementations to implement
  * tons of interfaces, such as decorators or wrappers or etc., whose actual
  * supporting of a given thing depends on the object they're delegating to!
  * 
@@ -25,9 +25,9 @@ import java.lang.annotation.Target;
  * + Note that {@link #traitPredicate()} and {@link #equivalentBehavior()} should never both be given!
  * 
  * + Update: We've added {@link StaticTraitPredicate} now that Java 8 supports static methods in interfaces! :D!!
- * 		So..:  If you're working in Java 8, <b>*all uses of {@link FunctionalityInterface#traitPredicate()} should use {@link StaticTraitPredicate} instead!!*</b>  :D!
+ * 		So..:  If you're working in Java 8, <b>*all uses of {@link FunctionalityType#traitPredicate()} should use {@link StaticTraitPredicate} instead!!*</b>  :D!
  * 
- * @see SignalInterface
+ * @see SignalType
  * @see TraitPredicate
  * @see StaticTraitPredicate
  * @author Puppy Pie ^_^
@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface FunctionalityInterface
+public @interface FunctionalityType
 {
 	/**
 	 * An expression for how to tell if the interface is *really* implemented ;>

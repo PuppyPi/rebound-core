@@ -1,11 +1,11 @@
 package rebound.util.collections;
 
-import rebound.annotations.semantic.FunctionalityInterface;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 import rebound.exceptions.ImpossibleException;
 
-@FunctionalityInterface
+@FunctionalityType
 public interface TransparentContiguousArrayBackedCollection<A>
 {
 	/**

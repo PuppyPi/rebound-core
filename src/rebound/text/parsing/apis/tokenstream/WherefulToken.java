@@ -1,6 +1,6 @@
 package rebound.text.parsing.apis.tokenstream;
 
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.text.StringUtilities;
 
 /**
@@ -9,7 +9,7 @@ import rebound.text.StringUtilities;
  * 
  * + Note: {@link #toString()} MUST delegate to {@link #getMaskedSource()}!!  So that things like {@link StringUtilities#concatList(Iterable)} will work!!
  */
-@SignalInterface
+@SignalType
 public interface WherefulToken
 extends Tokenlike
 {

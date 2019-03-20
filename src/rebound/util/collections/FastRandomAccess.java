@@ -1,16 +1,16 @@
 package rebound.util.collections;
 
 import java.util.RandomAccess;
-import rebound.annotations.semantic.FunctionalityInterface;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.FunctionalityType;
+import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 
 /**
- * Analogous to {@link RandomAccess}, but a {@link FunctionalityInterface} not a {@link SignalInterface}!  ^_~
+ * Analogous to {@link RandomAccess}, but a {@link FunctionalityType} not a {@link SignalType}!  ^_~
  * @author Puppy Pie ^_^
  */
-@FunctionalityInterface
+@FunctionalityType
 public interface FastRandomAccess
 {
 	//<<< tp FastRandomAccess

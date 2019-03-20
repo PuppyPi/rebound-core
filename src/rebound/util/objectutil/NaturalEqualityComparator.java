@@ -1,7 +1,7 @@
 package rebound.util.objectutil;
 
 import java.util.Objects;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
 /**
  * Interfaces for inspecting and rearranging/reimplementing/optimizing predicate trees! :D
@@ -10,7 +10,7 @@ import rebound.annotations.semantic.SignalInterface;
  * 
  * @author Puppy Pie ^_^
  */
-@SignalInterface
+@SignalType
 public enum NaturalEqualityComparator
 implements EqualityComparator
 {

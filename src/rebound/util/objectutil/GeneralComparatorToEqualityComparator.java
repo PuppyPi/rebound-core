@@ -1,9 +1,9 @@
 package rebound.util.objectutil;
 
 import java.util.Comparator;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
-@SignalInterface
+@SignalType
 public interface GeneralComparatorToEqualityComparator<T>
 extends EqualityComparator<T>
 {

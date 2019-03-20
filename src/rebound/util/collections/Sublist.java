@@ -2,11 +2,11 @@ package rebound.util.collections;
 
 import java.util.List;
 import rebound.annotations.hints.ImplementationTransparency;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.temporal.ConstantReturnValue;
 import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
-@SignalInterface
+@SignalType
 public interface Sublist<E>
 extends List<E>, UnderlyingInstanceAccessible<List<E>>, KnowsLengthFixedness, TransparentContiguousArrayBackedCollection
 {

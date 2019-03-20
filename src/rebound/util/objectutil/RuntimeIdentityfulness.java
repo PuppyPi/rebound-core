@@ -1,10 +1,10 @@
 package rebound.util.objectutil;
 
-import rebound.annotations.semantic.FunctionalityInterface;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 
-@FunctionalityInterface
+@FunctionalityType
 public interface RuntimeIdentityfulness
 {
 	@TraitPredicate

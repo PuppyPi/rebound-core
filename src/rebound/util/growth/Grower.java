@@ -7,7 +7,7 @@ package rebound.util.growth;
 import java.util.ArrayList;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.temporal.monotonicity.MonotonicValueIntegerSequence;
 
 //TODO More standard algorithms than just LogisticLinearGrower (eg, LinearGrower, ExponentialGrower, LinearExponentialGrower (oldsize*r + k), HardThresholdLogisticLinearGrower, etc. :> )
@@ -54,7 +54,7 @@ public interface Grower
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface GrowerComputationallyReduced
 	extends Grower
 	{
@@ -69,7 +69,7 @@ public interface Grower
 	}
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface GrowerComputationallyUnreducedPurelyRecursive
 	extends Grower
 	{

@@ -1,8 +1,8 @@
 package rebound.util.collections;
 
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
-@SignalInterface
+@SignalType
 public interface ListWithRemoveRange
 {
 	public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException;

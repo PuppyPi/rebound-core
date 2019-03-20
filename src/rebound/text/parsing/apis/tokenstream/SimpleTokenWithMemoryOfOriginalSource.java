@@ -1,13 +1,13 @@
 package rebound.text.parsing.apis.tokenstream;
 
-import rebound.annotations.semantic.FunctionalityInterface;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 
 /**
  * Note that the {@link #getOriginalSource()}es of a stream of these tokens MUST ALL BE *REFERENCE*-IDENTICAL!! 0,0
  */
-@FunctionalityInterface
+@FunctionalityType
 public interface SimpleTokenWithMemoryOfOriginalSource
 extends WherefulToken
 {

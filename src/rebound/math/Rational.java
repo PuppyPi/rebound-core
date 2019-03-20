@@ -3,7 +3,7 @@ package rebound.math;
 import static rebound.math.MathUtilities.*;
 import java.math.BigInteger;
 import javax.annotation.Nonnegative;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.exceptions.OverflowException;
 
 /**
@@ -11,7 +11,7 @@ import rebound.exceptions.OverflowException;
  * 
  * @author RP
  */
-@SignalInterface
+@SignalType
 public interface Rational<IntegerType>
 extends Comparable
 {

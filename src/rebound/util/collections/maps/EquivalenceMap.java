@@ -5,13 +5,13 @@
 package rebound.util.collections.maps;
 
 import java.util.Map;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
 /**
  * @see IdentityMap
  * @author RProgrammer
  */
-@SignalInterface
+@SignalType
 public interface EquivalenceMap<K, V>
 extends Map<K, V>
 {

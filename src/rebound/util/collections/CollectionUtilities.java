@@ -2019,7 +2019,7 @@ _$$primxpconf:intsonly$$_
 		int[] a = new int[count];
 		
 		for (int i = 0; i < count; i++)
-			a[i] = first + i;
+			a[i] = (int)(first + i);
 		
 		return a;
 	}
@@ -2044,7 +2044,7 @@ _$$primxpconf:intsonly$$_
 		long[] a = new long[count];
 		
 		for (int i = 0; i < count; i++)
-			a[i] = first + i;
+			a[i] = (long)(first + i);
 		
 		return a;
 	}
@@ -2950,35 +2950,6 @@ _$$primxpconf:intsonly$$_
 		
 		return false;
 	}
-	
-	
-	
-	
-	
-	public static <I> boolean forAll(Predicate<? super I> predicate, I[] inputs)
-	{
-		for (I i : inputs)
-		{
-			if (!predicate.test(i))
-				return false;
-		}
-		
-		return true;
-	}
-	
-	public static <I> boolean forAny(Predicate<? super I> predicate, I[] inputs)
-	{
-		for (I i : inputs)
-		{
-			if (predicate.test(i))
-				return true;
-		}
-		
-		return false;
-	}
-	
-	
-	
 	
 	
 	

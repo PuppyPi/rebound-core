@@ -2,9 +2,9 @@ package rebound.util.collections;
 
 import java.util.List;
 import rebound.annotations.hints.ImplementationTransparency;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
-@SignalInterface
+@SignalType
 public interface ListWithSetAll<E>
 {
 	/**

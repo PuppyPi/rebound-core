@@ -1,12 +1,12 @@
 package rebound.util.collections;
 
 import java.util.List;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
 /*
  * Note! There exist things which expect this to NOT extend java.util.List!!!
  */
-@SignalInterface
+@SignalType
 public interface ListWithReorder
 {
 	public int size();  //Required by default impl. of moveToEnd()!

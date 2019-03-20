@@ -4,7 +4,7 @@ import static java.util.Objects.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.nio.ByteBuffer;
 import javax.annotation.Nonnull;
-import rebound.annotations.semantic.FunctionalityInterface;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 import rebound.bits.Bytes;
@@ -105,7 +105,7 @@ extends PubliclyCloneable<I>
 	/**
 	 * This is the preferred one if we don't have to deal with AWT, since it can support all backings in a unified way--even direct/C-heap memory for interop with native code!!! :DDD
 	 */
-	@FunctionalityInterface
+	@FunctionalityType
 	public static interface AccessibleInterleavedRasterImageByteBuffer<I extends AccessibleInterleavedRasterImageByteBuffer<I>>
 	extends AccessibleInterleavedRasterImage<I>
 	{
@@ -200,7 +200,7 @@ extends PubliclyCloneable<I>
 	
 	
 	
-	@FunctionalityInterface
+	@FunctionalityType
 	public static interface AccessibleInterleavedRasterImageArray<I extends AccessibleInterleavedRasterImageArray<I>>
 	extends AccessibleInterleavedRasterImage<I>
 	{
@@ -270,7 +270,7 @@ extends PubliclyCloneable<I>
 		
 		
 		
-		@FunctionalityInterface
+		@FunctionalityType
 		public static interface AccessibleInterleavedRasterImageArrayByte<I extends AccessibleInterleavedRasterImageArrayByte<I>>
 		extends AccessibleInterleavedRasterImageArray<I>
 		{
@@ -368,7 +368,7 @@ extends PubliclyCloneable<I>
 		
 		
 		
-		@FunctionalityInterface
+		@FunctionalityType
 		public static interface AccessibleInterleavedRasterImageArrayShort<I extends AccessibleInterleavedRasterImageArrayShort<I>>
 		extends AccessibleInterleavedRasterImageArray<I>
 		{
@@ -453,7 +453,7 @@ extends PubliclyCloneable<I>
 		
 		
 		
-		@FunctionalityInterface
+		@FunctionalityType
 		public static interface AccessibleInterleavedRasterImageArrayInt<I extends AccessibleInterleavedRasterImageArrayInt<I>>
 		extends AccessibleInterleavedRasterImageArray<I>
 		{

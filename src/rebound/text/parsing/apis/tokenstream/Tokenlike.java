@@ -2,9 +2,9 @@ package rebound.text.parsing.apis.tokenstream;
 
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
-@SignalInterface
+@SignalType
 public interface Tokenlike
 {
 	/**

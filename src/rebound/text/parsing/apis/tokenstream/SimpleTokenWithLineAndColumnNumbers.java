@@ -1,12 +1,12 @@
 package rebound.text.parsing.apis.tokenstream;
 
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
-import rebound.annotations.semantic.FunctionalityInterface;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 import rebound.text.StringUtilities;
 
-@FunctionalityInterface
+@FunctionalityType
 public interface SimpleTokenWithLineAndColumnNumbers
 extends WherefulToken
 {

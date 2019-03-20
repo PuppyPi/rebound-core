@@ -28,7 +28,7 @@ import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser;
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.LiveValue;
@@ -164,7 +164,7 @@ public class PrimitiveCollections
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface PrimitiveCollection<T>
 	extends Collection<T>
 	{
@@ -175,7 +175,7 @@ public class PrimitiveCollections
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface BooleanListWithByteListConversion  //Todo move these into NonuniformMethodsForBooleanList ^^'
 	extends BooleanList
 	{
@@ -3190,7 +3190,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface BooleanCollection
 	extends PrimitiveCollection<Boolean>, SimpleBooleanIterable
 	{
@@ -3606,7 +3606,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface BooleanListRO
 	{
 		public boolean getBoolean(int index);
@@ -3681,7 +3681,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface BooleanListRWFixed
 	extends BooleanListRO
 	{
@@ -3690,7 +3690,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface BooleanList
 	extends NiceList<Boolean>, BooleanListRO, BooleanListRWFixed, ListWithRemoveRange, DefaultToArraysBooleanCollection, PubliclyCloneable, ListWithSetSize<Boolean>, ListWithSetAll, NonuniformMethodsForBooleanList
 	{
@@ -5909,7 +5909,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ByteCollection
 	extends PrimitiveCollection<Byte>, SimpleByteIterable
 	{
@@ -6325,7 +6325,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ByteListRO
 	{
 		public byte getByte(int index);
@@ -6400,7 +6400,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ByteListRWFixed
 	extends ByteListRO
 	{
@@ -6409,7 +6409,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ByteList
 	extends NiceList<Byte>, ByteListRO, ByteListRWFixed, ListWithRemoveRange, DefaultToArraysByteCollection, PubliclyCloneable, ListWithSetSize<Byte>, ListWithSetAll, NonuniformMethodsForByteList
 	{
@@ -8628,7 +8628,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface CharacterCollection
 	extends PrimitiveCollection<Character>, SimpleCharacterIterable
 	{
@@ -9044,7 +9044,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface CharacterListRO
 	{
 		public char getChar(int index);
@@ -9119,7 +9119,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface CharacterListRWFixed
 	extends CharacterListRO
 	{
@@ -9128,7 +9128,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface CharacterList
 	extends NiceList<Character>, CharacterListRO, CharacterListRWFixed, ListWithRemoveRange, DefaultToArraysCharacterCollection, PubliclyCloneable, ListWithSetSize<Character>, ListWithSetAll, NonuniformMethodsForCharacterList
 	{
@@ -11347,7 +11347,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ShortCollection
 	extends PrimitiveCollection<Short>, SimpleShortIterable
 	{
@@ -11763,7 +11763,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ShortListRO
 	{
 		public short getShort(int index);
@@ -11838,7 +11838,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ShortListRWFixed
 	extends ShortListRO
 	{
@@ -11847,7 +11847,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface ShortList
 	extends NiceList<Short>, ShortListRO, ShortListRWFixed, ListWithRemoveRange, DefaultToArraysShortCollection, PubliclyCloneable, ListWithSetSize<Short>, ListWithSetAll, NonuniformMethodsForShortList
 	{
@@ -14066,7 +14066,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface FloatCollection
 	extends PrimitiveCollection<Float>, SimpleFloatIterable
 	{
@@ -14482,7 +14482,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface FloatListRO
 	{
 		public float getFloat(int index);
@@ -14557,7 +14557,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface FloatListRWFixed
 	extends FloatListRO
 	{
@@ -14566,7 +14566,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface FloatList
 	extends NiceList<Float>, FloatListRO, FloatListRWFixed, ListWithRemoveRange, DefaultToArraysFloatCollection, PubliclyCloneable, ListWithSetSize<Float>, ListWithSetAll, NonuniformMethodsForFloatList
 	{
@@ -16785,7 +16785,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface IntegerCollection
 	extends PrimitiveCollection<Integer>, SimpleIntegerIterable
 	{
@@ -17201,7 +17201,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface IntegerListRO
 	{
 		public int getInt(int index);
@@ -17276,7 +17276,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface IntegerListRWFixed
 	extends IntegerListRO
 	{
@@ -17285,7 +17285,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface IntegerList
 	extends NiceList<Integer>, IntegerListRO, IntegerListRWFixed, ListWithRemoveRange, DefaultToArraysIntegerCollection, PubliclyCloneable, ListWithSetSize<Integer>, ListWithSetAll, NonuniformMethodsForIntegerList
 	{
@@ -19504,7 +19504,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface DoubleCollection
 	extends PrimitiveCollection<Double>, SimpleDoubleIterable
 	{
@@ -19920,7 +19920,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface DoubleListRO
 	{
 		public double getDouble(int index);
@@ -19995,7 +19995,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface DoubleListRWFixed
 	extends DoubleListRO
 	{
@@ -20004,7 +20004,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface DoubleList
 	extends NiceList<Double>, DoubleListRO, DoubleListRWFixed, ListWithRemoveRange, DefaultToArraysDoubleCollection, PubliclyCloneable, ListWithSetSize<Double>, ListWithSetAll, NonuniformMethodsForDoubleList
 	{
@@ -22223,7 +22223,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface LongCollection
 	extends PrimitiveCollection<Long>, SimpleLongIterable
 	{
@@ -22639,7 +22639,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface LongListRO
 	{
 		public long getLong(int index);
@@ -22714,7 +22714,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface LongListRWFixed
 	extends LongListRO
 	{
@@ -22723,7 +22723,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface LongList
 	extends NiceList<Long>, LongListRO, LongListRWFixed, ListWithRemoveRange, DefaultToArraysLongCollection, PubliclyCloneable, ListWithSetSize<Long>, ListWithSetAll, NonuniformMethodsForLongList
 	{
@@ -27239,7 +27239,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface ByteIntervalCollection
 	extends ByteCollection
 	{
@@ -27651,7 +27651,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface CharacterIntervalCollection
 	extends CharacterCollection
 	{
@@ -28063,7 +28063,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface ShortIntervalCollection
 	extends ShortCollection
 	{
@@ -28475,7 +28475,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface IntegerIntervalCollection
 	extends IntegerCollection
 	{
@@ -28887,7 +28887,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface LongIntervalCollection
 	extends LongCollection
 	{

@@ -4,7 +4,7 @@
  */
 package rebound.util.objectutil;
 
-import rebound.annotations.semantic.SignalInterface;
+import rebound.annotations.semantic.SignalType;
 
 /**
  * The use of this interface is for things which could stand to use less memory if resources become scarce.
@@ -23,7 +23,7 @@ import rebound.annotations.semantic.SignalInterface;
  * 
  * @author RProgrammer
  */
-@SignalInterface
+@SignalType
 public interface Trimmable
 {
 	public static enum TrimmableTrimRV

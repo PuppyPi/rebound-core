@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -12115,7 +12116,7 @@ primxp
 				throw new IllegalArgumentException();
 			
 			if (has.get(zValue))
-				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+(value));
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
 			else
 				has.set(zValue);
 		}
@@ -12139,7 +12140,7 @@ primxp
 					throw new IllegalArgumentException();
 				
 				if (hasA.get(zValue))
-					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+(value));
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((long)value));
 				else
 					hasA.set(zValue);
 			}
@@ -12156,7 +12157,7 @@ primxp
 					throw new IllegalArgumentException();
 				
 				if (hasB.get(zValue))
-					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+(value));
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((long)value));
 				else
 					hasB.set(zValue);
 			}
@@ -13160,12 +13161,12 @@ primxp
 	public static void fillRangeByLength(@WritableValue int[] array, int offset, int inclusiveStart, int length, int step)
 	{
 		for (int i = 0; i < length; i++)
-			array[offset+i] = inclusiveStart + (step * i);
+			array[offset+i] = (int)(inclusiveStart + (step * i));
 	}
 	
 	public static void fillRangeByLength(@WritableValue int[] array, int offset, int inclusiveStart, int length)
 	{
-		fillRangeByLength(array, offset, inclusiveStart, length, 1);
+		fillRangeByLength(array, offset, inclusiveStart, length, (int)1);
 	}
 	
 	@ThrowAwayValue
@@ -13179,7 +13180,7 @@ primxp
 	@ThrowAwayValue
 	public static int[] rangeByLength(int inclusiveStart, int length)
 	{
-		return rangeByLength(inclusiveStart, length, 1);
+		return rangeByLength(inclusiveStart, length, (int)1);
 	}
 	
 	
@@ -13192,7 +13193,7 @@ primxp
 	
 	public static int[] range(int exclusiveEnd)
 	{
-		return range(0, exclusiveEnd);
+		return range((int)0, exclusiveEnd);
 	}
 	
 	
@@ -13202,12 +13203,12 @@ primxp
 	public static void fillRangeByLength(@WritableValue float[] array, int offset, float inclusiveStart, int length, float step)
 	{
 		for (int i = 0; i < length; i++)
-			array[offset+i] = inclusiveStart + (step * i);
+			array[offset+i] = (float)(inclusiveStart + (step * i));
 	}
 	
 	public static void fillRangeByLength(@WritableValue float[] array, int offset, float inclusiveStart, int length)
 	{
-		fillRangeByLength(array, offset, inclusiveStart, length, 1);
+		fillRangeByLength(array, offset, inclusiveStart, length, (float)1);
 	}
 	
 	@ThrowAwayValue
@@ -13221,7 +13222,7 @@ primxp
 	@ThrowAwayValue
 	public static float[] rangeByLength(float inclusiveStart, int length)
 	{
-		return rangeByLength(inclusiveStart, length, 1);
+		return rangeByLength(inclusiveStart, length, (float)1);
 	}
 	
 	
@@ -13234,7 +13235,7 @@ primxp
 	
 	public static float[] range(float exclusiveEnd)
 	{
-		return range(0, exclusiveEnd);
+		return range((float)0, exclusiveEnd);
 	}
 	
 	
@@ -13244,12 +13245,12 @@ primxp
 	public static void fillRangeByLength(@WritableValue double[] array, int offset, double inclusiveStart, int length, double step)
 	{
 		for (int i = 0; i < length; i++)
-			array[offset+i] = inclusiveStart + (step * i);
+			array[offset+i] = (double)(inclusiveStart + (step * i));
 	}
 	
 	public static void fillRangeByLength(@WritableValue double[] array, int offset, double inclusiveStart, int length)
 	{
-		fillRangeByLength(array, offset, inclusiveStart, length, 1);
+		fillRangeByLength(array, offset, inclusiveStart, length, (double)1);
 	}
 	
 	@ThrowAwayValue
@@ -13263,7 +13264,7 @@ primxp
 	@ThrowAwayValue
 	public static double[] rangeByLength(double inclusiveStart, int length)
 	{
-		return rangeByLength(inclusiveStart, length, 1);
+		return rangeByLength(inclusiveStart, length, (double)1);
 	}
 	
 	
@@ -13276,7 +13277,7 @@ primxp
 	
 	public static double[] range(double exclusiveEnd)
 	{
-		return range(0, exclusiveEnd);
+		return range((double)0, exclusiveEnd);
 	}
 	
 	
@@ -13286,12 +13287,12 @@ primxp
 	public static void fillRangeByLength(@WritableValue long[] array, int offset, long inclusiveStart, int length, long step)
 	{
 		for (int i = 0; i < length; i++)
-			array[offset+i] = inclusiveStart + (step * i);
+			array[offset+i] = (long)(inclusiveStart + (step * i));
 	}
 	
 	public static void fillRangeByLength(@WritableValue long[] array, int offset, long inclusiveStart, int length)
 	{
-		fillRangeByLength(array, offset, inclusiveStart, length, 1);
+		fillRangeByLength(array, offset, inclusiveStart, length, (long)1);
 	}
 	
 	@ThrowAwayValue
@@ -13305,7 +13306,7 @@ primxp
 	@ThrowAwayValue
 	public static long[] rangeByLength(long inclusiveStart, int length)
 	{
-		return rangeByLength(inclusiveStart, length, 1);
+		return rangeByLength(inclusiveStart, length, (long)1);
 	}
 	
 	
@@ -13318,7 +13319,7 @@ primxp
 	
 	public static long[] range(long exclusiveEnd)
 	{
-		return range(0, exclusiveEnd);
+		return range((long)0, exclusiveEnd);
 	}
 	
 	
@@ -14482,7 +14483,7 @@ primxp
 		int n = input.length;
 		byte[] output = new byte[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (byte)input[i];
 		return output;
 	}
 	
@@ -14562,7 +14563,7 @@ primxp
 		int n = input.length;
 		char[] output = new char[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (char)input[i];
 		return output;
 	}
 	
@@ -14622,7 +14623,7 @@ primxp
 		int n = input.length;
 		short[] output = new short[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (short)input[i];
 		return output;
 	}
 	
@@ -14642,7 +14643,7 @@ primxp
 		int n = input.length;
 		short[] output = new short[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (short)input[i];
 		return output;
 	}
 	
@@ -14692,7 +14693,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14702,7 +14703,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14712,7 +14713,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14722,7 +14723,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14732,7 +14733,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14752,7 +14753,7 @@ primxp
 		int n = input.length;
 		float[] output = new float[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (float)input[i];
 		return output;
 	}
 	
@@ -14762,7 +14763,7 @@ primxp
 		int n = input.length;
 		int[] output = new int[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (int)input[i];
 		return output;
 	}
 	
@@ -14772,7 +14773,7 @@ primxp
 		int n = input.length;
 		int[] output = new int[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (int)input[i];
 		return output;
 	}
 	
@@ -14782,7 +14783,7 @@ primxp
 		int n = input.length;
 		int[] output = new int[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (int)input[i];
 		return output;
 	}
 	
@@ -14802,7 +14803,7 @@ primxp
 		int n = input.length;
 		int[] output = new int[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (int)input[i];
 		return output;
 	}
 	
@@ -14832,7 +14833,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14842,7 +14843,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14852,7 +14853,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14862,7 +14863,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14872,7 +14873,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14882,7 +14883,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14892,7 +14893,7 @@ primxp
 		int n = input.length;
 		double[] output = new double[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (double)input[i];
 		return output;
 	}
 	
@@ -14902,7 +14903,7 @@ primxp
 		int n = input.length;
 		long[] output = new long[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (long)input[i];
 		return output;
 	}
 	
@@ -14912,7 +14913,7 @@ primxp
 		int n = input.length;
 		long[] output = new long[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (long)input[i];
 		return output;
 	}
 	
@@ -14922,7 +14923,7 @@ primxp
 		int n = input.length;
 		long[] output = new long[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (long)input[i];
 		return output;
 	}
 	
@@ -14942,7 +14943,7 @@ primxp
 		int n = input.length;
 		long[] output = new long[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (long)input[i];
 		return output;
 	}
 	
@@ -14962,7 +14963,7 @@ primxp
 		int n = input.length;
 		long[] output = new long[n];
 		for (int i = 0; i < n; i++)
-			output[i] = input[i];
+			output[i] = (long)input[i];
 		return output;
 	}
 	
@@ -17771,4 +17772,660 @@ primxp
 		
 		return equalsWithinTolerances(a.getUnderlying(), a.getOffset(), b.getUnderlying(), b.getOffset(), length, absoluteTolerance, relativeTolerance);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <I> boolean forAll(Predicate<? super I> predicate, I[] inputs)
+	{
+		for (I v : inputs)
+		{
+			if (!predicate.test(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static <I> boolean forAny(Predicate<? super I> predicate, I[] inputs)
+	{
+		for (I v : inputs)
+		{
+			if (predicate.test(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+	primxp
+	
+	public static boolean forAll(UnaryFunction_$$Prim$$_ToBoolean predicate, _$$prim$$_[] inputs)
+	{
+		for (_$$prim$$_ v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunction_$$Prim$$_ToBoolean predicate, _$$prim$$_[] inputs)
+	{
+		for (_$$prim$$_ v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunction_$$Prim$$_ToBoolean predicate, _$$prim$$_[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			_$$prim$$_ v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunction_$$Prim$$_ToBoolean predicate, _$$prim$$_[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			_$$prim$$_ v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunction_$$Prim$$_ToBoolean predicate, Slice<_$$prim$$_[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunction_$$Prim$$_ToBoolean predicate, Slice<_$$prim$$_[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	 */
+	
+	public static boolean forAll(UnaryFunctionBooleanToBoolean predicate, boolean[] inputs)
+	{
+		for (boolean v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionBooleanToBoolean predicate, boolean[] inputs)
+	{
+		for (boolean v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionBooleanToBoolean predicate, boolean[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			boolean v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionBooleanToBoolean predicate, boolean[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			boolean v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionBooleanToBoolean predicate, Slice<boolean[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionBooleanToBoolean predicate, Slice<boolean[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionByteToBoolean predicate, byte[] inputs)
+	{
+		for (byte v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionByteToBoolean predicate, byte[] inputs)
+	{
+		for (byte v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionByteToBoolean predicate, byte[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			byte v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionByteToBoolean predicate, byte[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			byte v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionByteToBoolean predicate, Slice<byte[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionByteToBoolean predicate, Slice<byte[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionCharToBoolean predicate, char[] inputs)
+	{
+		for (char v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionCharToBoolean predicate, char[] inputs)
+	{
+		for (char v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionCharToBoolean predicate, char[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			char v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionCharToBoolean predicate, char[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			char v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionCharToBoolean predicate, Slice<char[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionCharToBoolean predicate, Slice<char[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionShortToBoolean predicate, short[] inputs)
+	{
+		for (short v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionShortToBoolean predicate, short[] inputs)
+	{
+		for (short v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionShortToBoolean predicate, short[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			short v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionShortToBoolean predicate, short[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			short v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionShortToBoolean predicate, Slice<short[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionShortToBoolean predicate, Slice<short[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionFloatToBoolean predicate, float[] inputs)
+	{
+		for (float v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionFloatToBoolean predicate, float[] inputs)
+	{
+		for (float v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionFloatToBoolean predicate, float[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			float v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionFloatToBoolean predicate, float[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			float v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionFloatToBoolean predicate, Slice<float[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionFloatToBoolean predicate, Slice<float[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionIntToBoolean predicate, int[] inputs)
+	{
+		for (int v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionIntToBoolean predicate, int[] inputs)
+	{
+		for (int v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionIntToBoolean predicate, int[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			int v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionIntToBoolean predicate, int[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			int v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionIntToBoolean predicate, Slice<int[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionIntToBoolean predicate, Slice<int[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionDoubleToBoolean predicate, double[] inputs)
+	{
+		for (double v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionDoubleToBoolean predicate, double[] inputs)
+	{
+		for (double v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionDoubleToBoolean predicate, double[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			double v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionDoubleToBoolean predicate, double[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			double v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionDoubleToBoolean predicate, Slice<double[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionDoubleToBoolean predicate, Slice<double[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean forAll(UnaryFunctionLongToBoolean predicate, long[] inputs)
+	{
+		for (long v : inputs)
+		{
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionLongToBoolean predicate, long[] inputs)
+	{
+		for (long v : inputs)
+		{
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionLongToBoolean predicate, long[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			long v = inputs[offset+i];
+			if (!predicate.f(v))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean forAny(UnaryFunctionLongToBoolean predicate, long[] inputs, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+		{
+			long v = inputs[offset+i];
+			if (predicate.f(v))
+				return true;
+		}
+		
+		return false;
+	}
+	
+	
+	
+	public static boolean forAll(UnaryFunctionLongToBoolean predicate, Slice<long[]> inputs)
+	{
+		return forAll(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	public static boolean forAny(UnaryFunctionLongToBoolean predicate, Slice<long[]> inputs)
+	{
+		return forAny(predicate, inputs.getUnderlying(), inputs.getOffset(), inputs.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	// >>>
 }
