@@ -5219,6 +5219,46 @@ implements JavaNamespace
 	
 	
 	
+	
+	public static void addTwoBEHexChars(int c, Appendable out)
+	{
+		try
+		{
+			out.append(uppercaseGeneralAsciiDigitFor((c & 0x00F0) >> 4));
+			out.append(uppercaseGeneralAsciiDigitFor((c & 0x000F)));
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void addTwoBEHexCharsCA(int c, char[] ca, int offset)
+	{
+		ca[offset+2] = uppercaseGeneralAsciiDigitFor((c & 0x00F0) >> 4);
+		ca[offset+3] = uppercaseGeneralAsciiDigitFor((c & 0x000F));
+	}
+	
+	public static char[] twoBEHexCharsCA(int c)
+	{
+		char[] ca = new char[2];
+		addTwoBEHexCharsCA(c, ca, 0);
+		return ca;
+	}
+	
+	public static String twoBEHexCharsS(int c)
+	{
+		return new String(twoBEHexCharsCA(c));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static String unicodeHexEscape(int ucs4CharacterCodePoint)
 	{
 		if (ucs4CharacterCodePoint > 0xFFFF)
@@ -5259,7 +5299,7 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean isAsciiCharacter(char c)
+	public static boolean is7bitAsciiCharacter(char c)
 	{
 		return c <= 127;
 	}
@@ -5272,7 +5312,7 @@ implements JavaNamespace
 		for (int i = 0; i < original.length(); i++)
 		{
 			c = original.charAt(i);
-			if (c == '\\' || (escapeDoubleQuotes && c == '"') || (escapeSingleQuotes && c == '\'') || c == '\t' || GENERALLY_PRINTABLE_NONNEWLINE_CHARS_INVERSE.f(c) || (escapeNonAscii && !isAsciiCharacter(c)))
+			if (c == '\\' || (escapeDoubleQuotes && c == '"') || (escapeSingleQuotes && c == '\'') || c == '\t' || GENERALLY_PRINTABLE_NONNEWLINE_CHARS_INVERSE.f(c) || (escapeNonAscii && !is7bitAsciiCharacter(c)))
 			{
 				buffer.append(javaEscape(c));
 			}
@@ -6248,7 +6288,8 @@ implements JavaNamespace
 	}
 	
 	
-	public static int[] toCodePointArray(String unicodeString)
+	@Nonnull
+	public static int[] toCodePointArray(@Nonnull String unicodeString)
 	{
 		//why can't there just be an int[] String.toCodepointArray()??  There's a new String(int[], ...)!!  X'D
 		

@@ -2,6 +2,7 @@ package rebound.io;
 
 import static rebound.io.BasicIOUtilities.*;
 import static rebound.text.StringUtilities.*;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,6 +26,7 @@ import rebound.file.FSUtilities;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
+import rebound.util.functional.FunctionalInterfaces.UnaryProcedure;
 
 public class FSIOUtilities
 {
@@ -429,5 +431,29 @@ public class FSIOUtilities
 	{
 		FileChannel fc = FSUtilities.openReadwriteNIO(file);
 		return fc.map(MapMode.READ_WRITE, offset, length);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void doOnLines(File f, UnaryProcedure<String> process) throws IOException
+	{
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f))))
+		{
+			while (true)
+			{
+				String line = in.readLine();
+				if (line == null)
+					break;
+				
+				process.f(line);
+			}
+		}
 	}
 }

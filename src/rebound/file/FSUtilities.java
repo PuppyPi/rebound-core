@@ -3029,38 +3029,51 @@ implements JavaNamespace
 		 */
 		
 		File temporary = getUniqueFileOrNull(dest.getParentFile(), dest.getName(), ".tmp");
-		if (!temporary.canWrite())
-			temporary = File.createTempFile(dest.getName(), ".tmp");
-		if (!temporary.canWrite())
-			logBug();
 		
-		if (lexists(temporary))
-			logBug();
+		if (!lexists(temporary))
+			temporary.createNewFile();
+		
+		if (!temporary.canWrite())
+		{
+			temporary = File.createTempFile(dest.getName(), ".tmp");
+			
+			if (!temporary.canWrite())
+				logBug();
+		}
+		
 		
 		try (OutputStream out = new FileOutputStream(temporary))
 		{
 			write.write(out);
 		}
 		
+		
 		//We won't reach this part if writing failed!
 		
-		if (!lexists(dest))
+		//Transfer it into the final location! :D
 		{
-			if (temporary.renameTo(dest))
-				return;
-		}
-		
-		try (OutputStream out = new FileOutputStream(dest))
-		{
-			try (InputStream in = new FileInputStream(temporary))
+			if (dest.isFile() && !isSymlink(dest))
+				dest.delete();
+			
+			if (!lexists(dest))
 			{
-				JRECompatIOUtilities.pump(in, out);
+				if (temporary.renameTo(dest))
+					return;
 			}
+			
+			try (OutputStream out = new FileOutputStream(dest))
+			{
+				try (InputStream in = new FileInputStream(temporary))
+				{
+					JRECompatIOUtilities.pump(in, out);
+				}
+			}
+			
+			
+			//We won't reach this part if transfer failed!
+			
+			temporary.delete();
 		}
-		
-		//We won't reach this part if transfer failed!
-		
-		temporary.delete();
 	}
 	
 	

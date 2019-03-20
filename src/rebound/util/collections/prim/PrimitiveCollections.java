@@ -972,8 +972,16 @@ primxp
 	
 	@SignalInterface
 	public static interface _$$Primitive$$_List
-	extends _$$Primitive$$_Collection, NiceList<_$$Primitive$$_>, _$$Primitive$$_ListRO, _$$Primitive$$_ListRWFixed, ListWithRemoveRange, DefaultToArrays_$$Primitive$$_Collection, PubliclyCloneable, ListWithSetSize<_$$Primitive$$_>, ListWithSetAll, NonuniformMethodsFor_$$Primitive$$_List
+	extends NiceList<_$$Primitive$$_>, _$$Primitive$$_ListRO, _$$Primitive$$_ListRWFixed, ListWithRemoveRange, DefaultToArrays_$$Primitive$$_Collection, PubliclyCloneable, ListWithSetSize<_$$Primitive$$_>, ListWithSetAll, NonuniformMethodsFor_$$Primitive$$_List
 	{
+		@Override
+		public default Iterator<_$$Primitive$$_> iterator()
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.iterator();
+		}
+		
+		
+		
 		public void insert_$$Prim$$_(int index, _$$prim$$_ value);
 		
 		
@@ -3684,8 +3692,16 @@ primxp
 	
 	@SignalInterface
 	public static interface BooleanList
-	extends BooleanCollection, NiceList<Boolean>, BooleanListRO, BooleanListRWFixed, ListWithRemoveRange, DefaultToArraysBooleanCollection, PubliclyCloneable, ListWithSetSize<Boolean>, ListWithSetAll, NonuniformMethodsForBooleanList
+	extends NiceList<Boolean>, BooleanListRO, BooleanListRWFixed, ListWithRemoveRange, DefaultToArraysBooleanCollection, PubliclyCloneable, ListWithSetSize<Boolean>, ListWithSetAll, NonuniformMethodsForBooleanList
 	{
+		@Override
+		public default Iterator<Boolean> iterator()
+		{
+			return DefaultToArraysBooleanCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertBoolean(int index, boolean value);
 		
 		
@@ -6395,8 +6411,16 @@ primxp
 	
 	@SignalInterface
 	public static interface ByteList
-	extends ByteCollection, NiceList<Byte>, ByteListRO, ByteListRWFixed, ListWithRemoveRange, DefaultToArraysByteCollection, PubliclyCloneable, ListWithSetSize<Byte>, ListWithSetAll, NonuniformMethodsForByteList
+	extends NiceList<Byte>, ByteListRO, ByteListRWFixed, ListWithRemoveRange, DefaultToArraysByteCollection, PubliclyCloneable, ListWithSetSize<Byte>, ListWithSetAll, NonuniformMethodsForByteList
 	{
+		@Override
+		public default Iterator<Byte> iterator()
+		{
+			return DefaultToArraysByteCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertByte(int index, byte value);
 		
 		
@@ -9106,8 +9130,16 @@ primxp
 	
 	@SignalInterface
 	public static interface CharacterList
-	extends CharacterCollection, NiceList<Character>, CharacterListRO, CharacterListRWFixed, ListWithRemoveRange, DefaultToArraysCharacterCollection, PubliclyCloneable, ListWithSetSize<Character>, ListWithSetAll, NonuniformMethodsForCharacterList
+	extends NiceList<Character>, CharacterListRO, CharacterListRWFixed, ListWithRemoveRange, DefaultToArraysCharacterCollection, PubliclyCloneable, ListWithSetSize<Character>, ListWithSetAll, NonuniformMethodsForCharacterList
 	{
+		@Override
+		public default Iterator<Character> iterator()
+		{
+			return DefaultToArraysCharacterCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertChar(int index, char value);
 		
 		
@@ -11817,8 +11849,16 @@ primxp
 	
 	@SignalInterface
 	public static interface ShortList
-	extends ShortCollection, NiceList<Short>, ShortListRO, ShortListRWFixed, ListWithRemoveRange, DefaultToArraysShortCollection, PubliclyCloneable, ListWithSetSize<Short>, ListWithSetAll, NonuniformMethodsForShortList
+	extends NiceList<Short>, ShortListRO, ShortListRWFixed, ListWithRemoveRange, DefaultToArraysShortCollection, PubliclyCloneable, ListWithSetSize<Short>, ListWithSetAll, NonuniformMethodsForShortList
 	{
+		@Override
+		public default Iterator<Short> iterator()
+		{
+			return DefaultToArraysShortCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertShort(int index, short value);
 		
 		
@@ -14528,8 +14568,16 @@ primxp
 	
 	@SignalInterface
 	public static interface FloatList
-	extends FloatCollection, NiceList<Float>, FloatListRO, FloatListRWFixed, ListWithRemoveRange, DefaultToArraysFloatCollection, PubliclyCloneable, ListWithSetSize<Float>, ListWithSetAll, NonuniformMethodsForFloatList
+	extends NiceList<Float>, FloatListRO, FloatListRWFixed, ListWithRemoveRange, DefaultToArraysFloatCollection, PubliclyCloneable, ListWithSetSize<Float>, ListWithSetAll, NonuniformMethodsForFloatList
 	{
+		@Override
+		public default Iterator<Float> iterator()
+		{
+			return DefaultToArraysFloatCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertFloat(int index, float value);
 		
 		
@@ -17239,8 +17287,16 @@ primxp
 	
 	@SignalInterface
 	public static interface IntegerList
-	extends IntegerCollection, NiceList<Integer>, IntegerListRO, IntegerListRWFixed, ListWithRemoveRange, DefaultToArraysIntegerCollection, PubliclyCloneable, ListWithSetSize<Integer>, ListWithSetAll, NonuniformMethodsForIntegerList
+	extends NiceList<Integer>, IntegerListRO, IntegerListRWFixed, ListWithRemoveRange, DefaultToArraysIntegerCollection, PubliclyCloneable, ListWithSetSize<Integer>, ListWithSetAll, NonuniformMethodsForIntegerList
 	{
+		@Override
+		public default Iterator<Integer> iterator()
+		{
+			return DefaultToArraysIntegerCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertInt(int index, int value);
 		
 		
@@ -19950,8 +20006,16 @@ primxp
 	
 	@SignalInterface
 	public static interface DoubleList
-	extends DoubleCollection, NiceList<Double>, DoubleListRO, DoubleListRWFixed, ListWithRemoveRange, DefaultToArraysDoubleCollection, PubliclyCloneable, ListWithSetSize<Double>, ListWithSetAll, NonuniformMethodsForDoubleList
+	extends NiceList<Double>, DoubleListRO, DoubleListRWFixed, ListWithRemoveRange, DefaultToArraysDoubleCollection, PubliclyCloneable, ListWithSetSize<Double>, ListWithSetAll, NonuniformMethodsForDoubleList
 	{
+		@Override
+		public default Iterator<Double> iterator()
+		{
+			return DefaultToArraysDoubleCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertDouble(int index, double value);
 		
 		
@@ -22661,8 +22725,16 @@ primxp
 	
 	@SignalInterface
 	public static interface LongList
-	extends LongCollection, NiceList<Long>, LongListRO, LongListRWFixed, ListWithRemoveRange, DefaultToArraysLongCollection, PubliclyCloneable, ListWithSetSize<Long>, ListWithSetAll, NonuniformMethodsForLongList
+	extends NiceList<Long>, LongListRO, LongListRWFixed, ListWithRemoveRange, DefaultToArraysLongCollection, PubliclyCloneable, ListWithSetSize<Long>, ListWithSetAll, NonuniformMethodsForLongList
 	{
+		@Override
+		public default Iterator<Long> iterator()
+		{
+			return DefaultToArraysLongCollection.super.iterator();
+		}
+		
+		
+		
 		public void insertLong(int index, long value);
 		
 		
