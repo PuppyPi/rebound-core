@@ -8,6 +8,7 @@ import static rebound.util.classhacking.ClasshackingUtilities.*;
 import java.awt.Window;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.FileStore;
 import rebound.exceptions.UnreachableCodeException;
 import rebound.util.AngryReflectionUtility;
 import rebound.util.classhacking.ClasshackingUtilities;
@@ -113,6 +114,14 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	//<Unix/Posix things ;D
+	
 	//<X11 things  >;)
 	/**
 	 * Gets the X11 window id from an AWT window.  ;D
@@ -135,4 +144,10 @@ implements JavaNamespace
 		return (Long)horriblyGetOtherwiseInaccessibleFieldValueYouAreCertainExistsAndEverything("sun.awt.X11.XBaseWindow", "window", windowPeer);
 	}
 	//X11 things>
+	
+	
+	//See ClasshackingSunUnixFileStore for getting mount points, both getting all mount points on the current system and getting the mount point given a pathname :D     (both of those are handled via FileStore in the standard NIO api :> )
+	
+	
+	//Unix/Posix things ;D >
 }
