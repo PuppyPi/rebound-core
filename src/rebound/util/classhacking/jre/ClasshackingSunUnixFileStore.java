@@ -48,9 +48,14 @@ public class ClasshackingSunUnixFileStore
 	
 	
 	
+	public boolean isSupportedFileStore(FileStore fileStore)
+	{
+		return class_UnixFileStore.isInstance(fileStore);
+	}
+	
 	public String getFileStoreMountPoint(FileStore fileStore)
 	{
-		if (class_UnixFileStore.isInstance(fileStore))
+		if (isSupportedFileStore(fileStore))
 		{
 			Object mountEntry;
 			try
