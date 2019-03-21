@@ -3355,13 +3355,34 @@ implements JavaNamespace
 	
 	
 	
-	public static void ensureDirThrow(File d) throws IOException
+	
+	
+	public static void ensureDirLeafThrowing(File d) throws IOException
+	{
+		if (!d.isDirectory())
+		{
+			d.mkdir();
+			if (!d.isDirectory())
+				throw new IOException("Couldn't create dir: "+repr(d.getAbsolutePath()));
+		}
+	}
+	
+	public static void ensureDirsWholePathThrowing(File d) throws IOException
 	{
 		if (!d.isDirectory())
 		{
 			d.mkdirs();
 			if (!d.isDirectory())
 				throw new IOException("Couldn't create dir: "+repr(d.getAbsolutePath()));
+		}
+	}
+	
+	
+	public static void ensureRenameThrowing(File oldPath, File newPath) throws IOException
+	{
+		if (!oldPath.renameTo(newPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(oldPath.getAbsolutePath()));
 		}
 	}
 	
