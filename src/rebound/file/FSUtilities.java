@@ -2277,7 +2277,7 @@ implements JavaNamespace
 				if (files == null)
 					throw new WrappedThrowableRuntimeException(new IOException("Listing directory failed for: "+repr(dir.getAbsolutePath())));
 				
-				for (File f : files)
+				for (File f : sorted(files))
 				{
 					if (!done.contains(realpath(f)))
 					{
