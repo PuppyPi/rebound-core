@@ -470,7 +470,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface _$$Primitive$$_Collection
 	extends PrimitiveCollection<_$$Primitive$$_>, Simple_$$Primitive$$_Iterable
 	{
@@ -886,7 +886,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface _$$Primitive$$_ListRO
 	{
 		public _$$prim$$_ get_$$Prim$$_(int index);
@@ -961,7 +961,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface _$$Primitive$$_ListRWFixed
 	extends _$$Primitive$$_ListRO
 	{
@@ -970,7 +970,7 @@ primxp
 	
 	
 	
-	@SignalInterface
+	@SignalType
 	public static interface _$$Primitive$$_List
 	extends NiceList<_$$Primitive$$_>, _$$Primitive$$_ListRO, _$$Primitive$$_ListRWFixed, ListWithRemoveRange, DefaultToArrays_$$Primitive$$_Collection, PubliclyCloneable, ListWithSetSize<_$$Primitive$$_>, ListWithSetAll, NonuniformMethodsFor_$$Primitive$$_List
 	{
@@ -1529,6 +1529,23 @@ primxp
 			for (int i = 0; i < n; i++)
 				ArrayUtilities.setReference((Slice)array, i, this.get(i));
 		}
+		
+		
+		
+		
+		
+		
+		
+		public default boolean endsWith(List<_$$Primitive$$_> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<_$$Primitive$$_> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
 		
 		
 		
@@ -4255,6 +4272,23 @@ primxp
 		
 		
 		
+		
+		public default boolean endsWith(List<Boolean> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Boolean> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
+		
+		
+		
+		
+		
+		
 		//Narrow the return types of these :3
 		
 		@Override
@@ -6968,6 +7002,23 @@ primxp
 			for (int i = 0; i < n; i++)
 				ArrayUtilities.setReference((Slice)array, i, this.get(i));
 		}
+		
+		
+		
+		
+		
+		
+		
+		public default boolean endsWith(List<Byte> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Byte> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
 		
 		
 		
@@ -9693,6 +9744,23 @@ primxp
 		
 		
 		
+		
+		public default boolean endsWith(List<Character> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Character> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
+		
+		
+		
+		
+		
+		
 		//Narrow the return types of these :3
 		
 		@Override
@@ -12406,6 +12474,23 @@ primxp
 			for (int i = 0; i < n; i++)
 				ArrayUtilities.setReference((Slice)array, i, this.get(i));
 		}
+		
+		
+		
+		
+		
+		
+		
+		public default boolean endsWith(List<Short> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Short> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
 		
 		
 		
@@ -15131,6 +15216,23 @@ primxp
 		
 		
 		
+		
+		public default boolean endsWith(List<Float> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Float> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
+		
+		
+		
+		
+		
+		
 		//Narrow the return types of these :3
 		
 		@Override
@@ -17844,6 +17946,23 @@ primxp
 			for (int i = 0; i < n; i++)
 				ArrayUtilities.setReference((Slice)array, i, this.get(i));
 		}
+		
+		
+		
+		
+		
+		
+		
+		public default boolean endsWith(List<Integer> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Integer> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
 		
 		
 		
@@ -20569,6 +20688,23 @@ primxp
 		
 		
 		
+		
+		public default boolean endsWith(List<Double> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Double> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
+		
+		
+		
+		
+		
+		
 		//Narrow the return types of these :3
 		
 		@Override
@@ -23282,6 +23418,23 @@ primxp
 			for (int i = 0; i < n; i++)
 				ArrayUtilities.setReference((Slice)array, i, this.get(i));
 		}
+		
+		
+		
+		
+		
+		
+		
+		public default boolean endsWith(List<Long> suffixCandidate)
+		{
+			return this.size() >= suffixCandidate.size() && this.subListToEnd(suffixCandidate.size()).equivalent(suffixCandidate);
+		}
+		
+		public default boolean startsWith(List<Long> prefixCandidate)
+		{
+			return this.size() >= prefixCandidate.size() && this.subListFromBeginning(prefixCandidate.size()).equivalent(prefixCandidate);
+		}
+		
 		
 		
 		
@@ -26826,7 +26979,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	// Todo: Recognition in bulk operations!  Eg, containsAll()! ^^'''
-	@SignalInterface
+	@SignalType
 	public static interface _$$Primitive$$_IntervalCollection
 	extends _$$Primitive$$_Collection
 	{
