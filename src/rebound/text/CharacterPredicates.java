@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import rebound.text.StringUtilities.TransparentArraySharingCharSequence;
 import rebound.util.collections.ArrayUtilities;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionCharToBoolean;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 
 public class CharacterPredicates
 {

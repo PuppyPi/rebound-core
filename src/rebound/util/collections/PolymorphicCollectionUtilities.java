@@ -57,7 +57,7 @@ import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunction;
+import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.EqualityComparator;
 

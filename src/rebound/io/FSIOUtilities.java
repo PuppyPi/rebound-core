@@ -26,7 +26,7 @@ import rebound.file.FSUtilities;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
-import rebound.util.functional.FunctionalInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 
 public class FSIOUtilities
 {

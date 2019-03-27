@@ -15,7 +15,7 @@ import rebound.util.collections.ArrayListWithIdentity;
 import rebound.util.collections.HashSetWithIdentity;
 import rebound.util.collections.SimpleTable;
 import rebound.util.collections.maps.HashMapWithIdentity;
-import rebound.util.functional.FunctionalInterfaces.BinaryProcedure;
+import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
 import rebound.util.objectutil.JavaNamespace;
 
 public class StandardExternalizationFormats

@@ -21,7 +21,7 @@ import rebound.bits.BitUtilities;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.hci.graphics2d.DirectImageUtilities;
 import rebound.hci.graphics2d.DirectImageUtilities.TransparentBufferedImage;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToInt;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 
 public class ReboundAccessibleRasterImagesAndJRESystems
 {

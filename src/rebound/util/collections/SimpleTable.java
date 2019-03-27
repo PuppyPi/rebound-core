@@ -13,8 +13,8 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NonrectangularException;
 import rebound.exceptions.NotYetImplementedException;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunction;
-import rebound.util.functional.FunctionalInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryFunction;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.Copyable;
 
 // ^wwwwwwwwwww^

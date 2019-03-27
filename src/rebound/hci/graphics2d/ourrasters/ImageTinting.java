@@ -7,7 +7,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImage.AccessibleInterleavedRasterImageArray.AccessibleInterleavedRasterImageArrayInt;
 import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImageBackingAllocationType.ArrayAccessibleInterleavedRasterImageBackingAllocationType.ArrayIntAccessibleInterleavedRasterImageBackingAllocationType;
 import rebound.math.SmallIntegerMathUtilities;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToInt;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 import from.java.awt.ColorHSVRGBConversionCode;
 
 public class ImageTinting

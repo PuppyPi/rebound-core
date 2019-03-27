@@ -32,7 +32,7 @@ import rebound.exceptions.TextSyntaxCheckedException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.text.StringUtilities;
 import rebound.util.BasicExceptionUtilities;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToBoolean;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.objectutil.JavaNamespace;
 
 public class NetworkUtilities

@@ -13,7 +13,7 @@ import rebound.util.objectutil.JavaNamespace;
 //			+ Less necessary with Java 8 lambdas :>
 
 @AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse
-public class FunctionalInterfaces
+public class FunctionInterfaces
 implements JavaNamespace
 {
 	//public static final Runnable NullaryProcedureNoop = () -> {};

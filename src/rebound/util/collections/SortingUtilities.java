@@ -12,7 +12,7 @@ import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToObject;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.objectutil.JavaNamespace;
 
 public class SortingUtilities

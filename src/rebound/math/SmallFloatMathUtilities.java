@@ -14,9 +14,9 @@ import rebound.exceptions.OutOfDomainArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.TruncationException;
 import rebound.util.Primitives;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToDouble;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToFloat;
-import rebound.util.functional.FunctionalInterfaces.UnaryFunctionIntToLong;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToDouble;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToFloat;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToLong;
 
 public class SmallFloatMathUtilities
 {

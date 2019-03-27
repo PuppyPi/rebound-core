@@ -63,8 +63,8 @@ import rebound.text.StringUtilities.WhatToDoWithEmpties;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.container.ContainerInterfaces.IntegerContainer;
 import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
-import rebound.util.functional.FunctionalInterfaces.BinaryProcedure;
-import rebound.util.functional.FunctionalInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.JavaNamespace;
 
 /**
@@ -438,7 +438,7 @@ implements JavaNamespace
 		
 		
 		f = rtrim(f, separator);
-		f = ltrimstr(f, "./");
+		f = ltrimstr(f, "."+separator);
 		
 		if (eq(f, "."))
 			return "";
@@ -719,7 +719,7 @@ implements JavaNamespace
 		}
 		else
 		{
-			String baseplussep = base+separator;
+			String baseplussep = isNormalizedRootPath(base, separator) ? base : base+separator;
 			
 			if (f.startsWith(baseplussep))
 				return f.substring(baseplussep.length());
@@ -727,6 +727,12 @@ implements JavaNamespace
 				return null;
 		}
 	}
+	
+	public static boolean isNormalizedRootPath(String path, char sep)
+	{
+		return path.length() == 1 && path.charAt(0) == sep;
+	}
+	
 	
 	
 	public static String dirnamePosix(String path)
@@ -3382,7 +3388,7 @@ implements JavaNamespace
 	{
 		if (!oldPath.renameTo(newPath))
 		{
-			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(oldPath.getAbsolutePath()));
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath()));
 		}
 	}
 	

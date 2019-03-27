@@ -11,7 +11,7 @@ import java.util.ServiceConfigurationError;
 import rebound.exceptions.ImpossibleException;
 import rebound.text.StringUtilities;
 import rebound.util.AngryReflectionUtility;
-import rebound.util.functional.FunctionalInterfaces.NullaryFunction;
+import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.res.ResourceUtilities;
 
