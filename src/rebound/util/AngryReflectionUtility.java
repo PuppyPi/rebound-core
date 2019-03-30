@@ -5,7 +5,6 @@
 package rebound.util;
 
 import static java.util.Objects.*;
-import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;

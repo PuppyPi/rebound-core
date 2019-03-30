@@ -20,6 +20,7 @@ import rebound.util.classhacking.ClasshackingUtilities;
 import rebound.util.classhacking.HackedClassOrMemberUnavailableException;
 import rebound.util.objectutil.JavaNamespace;
 import sun.misc.Cleaner;
+import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
 /*
@@ -310,7 +311,7 @@ implements JavaNamespace
 			@Override
 			public void run()
 			{
-				HorribleHackeyUtilities_SunJDK_Hardlinked.getTheUnsafe().freeMemory(address);
+				((Unsafe)ClasshackingSunUnsafe.getTheUnsafe()).freeMemory(address);  //FIXME THIS IS NOT GOOD; THEY CHANGED THE FQN AFTER JAVA 8!!
 			}
 		};
 	}
