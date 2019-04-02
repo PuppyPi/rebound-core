@@ -222,7 +222,7 @@ implements JavaNamespace
 	
 	public static SimpleTable readExternalTableToNewDefault(ObjectInput in) throws IOException, ClassNotFoundException
 	{
-		SimpleTable table = newtableBlank();
+		SimpleTable table = newtableBlankMutable();
 		readExternalTable(table, in);
 		return table;
 	}

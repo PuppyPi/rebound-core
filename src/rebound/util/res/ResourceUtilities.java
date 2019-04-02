@@ -5,6 +5,7 @@
 package rebound.util.res;
 
 import static rebound.io.BasicIOUtilities.*;
+import static rebound.io.JRECompatIOUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.awt.image.BufferedImage;
@@ -36,17 +37,16 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+import rebound.exceptions.BinarySyntaxIOException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.ResourceLoadException;
 import rebound.exceptions.ResourceNotFoundException;
-import rebound.exceptions.UnreachableCodeException;
 import rebound.exceptions.UnsupportedOptionException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
 import rebound.io.FSIOUtilities;
 import rebound.io.JRECompatIOUtilities;
 import rebound.io.TextIOUtilities;
-import rebound.util.ExceptionUtilities;
 import rebound.util.FlushableCache;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
@@ -1160,7 +1160,7 @@ implements JavaNamespace
 	
 	
 	
-	public static ZipEntry[] readAllZipEntriesFromZipfile(URL url) throws IOException
+	public static ZipEntry[] readAllZipEntriesFromZipfile(URL url, boolean jmod) throws IOException
 	{
 		InputStream in;
 		try
@@ -1174,7 +1174,7 @@ implements JavaNamespace
 		
 		try
 		{
-			return readAllZipEntriesFromZipfile(in);
+			return readAllZipEntriesFromZipfile(in, jmod);
 		}
 		finally
 		{
@@ -1183,50 +1183,33 @@ implements JavaNamespace
 	}
 	
 	
-	public static ZipEntry[] readAllZipEntriesFromZipfile(InputStream in) throws IOException
+	public static ZipEntry[] readAllZipEntriesFromZipfile(InputStream in, boolean jmod) throws IOException
 	{
-		ZipInputStream jardecoder;
-		{
-			try
-			{
-				jardecoder = new ZipInputStream(in);
-			}
-			catch (Throwable t)
-			{
-				try
-				{
-					in.close();
-				}
-				catch (Throwable t2)
-				{
-					t.addSuppressed(t2);
-				}
-				
-				ExceptionUtilities.throwGeneralThrowableAttemptingUnverifiedThrow(t);
-				throw new UnreachableCodeException();
-			}
-		}
-		
-		
-		
-		
 		List<ZipEntry> entries = new ArrayList<>();
 		
-		try
+		if (jmod)
+		{
+			byte[] magic = new byte[4];
+			readFully(in, magic);
+			
+			if (magic[0] != 'J')
+				throw BinarySyntaxIOException.inst("Bag JMOD magic");
+			
+			if (magic[1] != 'M')
+				throw BinarySyntaxIOException.inst("Bag JMOD magic");
+		}
+		
+		try (ZipInputStream zipDecoder = new ZipInputStream(in))
 		{
 			while (true)
 			{
-				ZipEntry e = jardecoder.getNextEntry();
+				ZipEntry e = zipDecoder.getNextEntry();
 				
 				if (e == null)
 					break;
 				
 				entries.add(e);
 			}
-		}
-		finally
-		{
-			jardecoder.close();
 		}
 		
 		return entries.toArray(new ZipEntry[entries.size()]);
@@ -1246,7 +1229,7 @@ implements JavaNamespace
 	/**
 	 * Nicely globally cached for quickly (after the first run!) scanning through zip files we expect not to change under our noses!  (*cough* jar files on the classpath *cough*  xD )
 	 */
-	public static synchronized List<ZipEntry> getStaticZipEntries(URI zipfileURI)
+	public static synchronized List<ZipEntry> getStaticZipEntries(URI zipfileURI, boolean jmod)
 	{
 		List<ZipEntry> entries = staticDecodedZips.get(zipfileURI);
 		
@@ -1265,7 +1248,7 @@ implements JavaNamespace
 			ZipEntry[] a;
 			try
 			{
-				a = readAllZipEntriesFromZipfile(url);
+				a = readAllZipEntriesFromZipfile(url, jmod);
 			}
 			catch (IOException exc)
 			{
@@ -1329,7 +1312,7 @@ implements JavaNamespace
 				}
 				
 				
-				for (ZipEntry e : getStaticZipEntries(jarfileURI))
+				for (ZipEntry e : getStaticZipEntries(jarfileURI, jarfileURI.getPath().endsWith(".jmod")))
 				{
 					String n = rtrim(e.getName(), '/');
 					
@@ -1344,6 +1327,12 @@ implements JavaNamespace
 				}
 				
 				throw new IllegalArgumentException("The given entry "+repr(entryInJarfile)+" was not explicitly found as an entry (or implied as a parent directory of other entries) in the jarfile "+repr(jarfileURI.toString())+"     (perhaps the jar file needs to be created with actual entries for the directories?? ie, the opposite of 'zip --no-dir-entries')");
+			}
+			else if (url.getProtocol().equalsIgnoreCase("jrt"))
+			{
+				// https://openjdk.java.net/jeps/220
+				
+				return false;  //Right!?
 			}
 			else
 			{

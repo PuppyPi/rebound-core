@@ -3241,6 +3241,12 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
+	
+	public static <E> Set<E> union(Set<E> a, Set<E> b) //OR (14)
+	{
+		return unionV(a, b);
+	}
+	
 	public static <E> Set<E> unionV(Collection<E>... sets) //OR (14)
 	{
 		Set<E> output = new HashSet<>();
@@ -3251,7 +3257,7 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
-	public static <E> Set<E> union(Iterable<? extends Collection<E>> sets) //OR (14)
+	public static <E> Set<E> unionMany(Iterable<? extends Collection<E>> sets) //OR (14)
 	{
 		Set<E> output = new HashSet<>();
 		
@@ -3260,6 +3266,7 @@ _$$primxpconf:intsonly$$_
 		
 		return output;
 	}
+	
 	
 	public static <E> Set<E> setdiff(Set<E> minuend, Set<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD
 	{
@@ -4970,8 +4977,8 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	//Todo does it need to be writable!??
-	public static Map newmapA(Object[] keysAndValues)
+	@ThrowAwayValue
+	public static Map newmapMutableA(Object[] keysAndValues)
 	{
 		if ((keysAndValues.length % 2) != 0)
 			throw new IllegalArgumentException();
@@ -4992,7 +4999,8 @@ _$$primxpconf:intsonly$$_
 		return m;
 	}
 	
-	public static Map newmapInverseA(Object[] valuesAndKeys)
+	@ThrowAwayValue
+	public static Map newmapInverseMutableA(Object[] valuesAndKeys)
 	{
 		if ((valuesAndKeys.length % 2) != 0)
 			throw new IllegalArgumentException();
@@ -5014,45 +5022,102 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	@ReadonlyValue
+	public static Map newmapInverseA(Object[] valuesAndKeys)
+	{
+		return newmapInverseMutableA(valuesAndKeys);
+	}
+	
+	@ReadonlyValue
+	public static Map newmapA(Object[] keysAndValues)
+	{
+		return newmapMutable(keysAndValues);
+	}
+	
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static Map newmapMutable(Object... keysAndValues)
+	{
+		return newmapMutableA(keysAndValues);
+	}
+	
+	@ThrowAwayValue
+	public static Map newmapInverseMutable(Object... valuesAndKeys)
+	{
+		return newmapInverseMutableA(valuesAndKeys);
+	}
+	
+	
+	@ReadonlyValue
 	public static Map newmap(Object... keysAndValues)
 	{
 		return newmapA(keysAndValues);
 	}
 	
+	@ReadonlyValue
 	public static Map newmapInverse(Object... valuesAndKeys)
 	{
 		return newmapInverseA(valuesAndKeys);
 	}
 	
 	
-	public static <K, V> Map<K, V> concrete(Set<K> keys, UnaryFunction<K, V> mapping)
-	{
-		Map<K, V> m = new HashMap<>();
-		
-		for (K key : keys)
-			m.put(key, mapping.f(key));
-		
-		return m;
-	}
+	
 	
 	
 	
 	@ReadonlyValue
 	public static <E> Set<E> newset(E... members)
 	{
-		return new HashSet<E>(PolymorphicCollectionUtilities.anyToList(members));
+		return newsetMutable(members);
 	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> newsetMutable(E... members)
+	{
+		return new HashSet<E>(asList(members));
+	}
+	
+	
+	
+	
+	
 	
 	@ReadonlyValue
 	public static <E> List<E> newlist(E... members)
 	{
-		return Arrays.asList(members);
+		return asList(members);
 	}
+	
+	@ThrowAwayValue
+	public static <E> List<E> newlistMutable(E... members)
+	{
+		return new ArrayList<>(asList(members));
+	}
+	
+	@ThrowAwayValue
+	@Deprecated
+	public static <E> List<E> newlistUnspecifiedWritability(E... members)
+	{
+		return newlistMutable(members);
+	}
+	
+	
+	
 	
 	
 	
 	@ReadonlyValue
 	public static <E> SimpleTable<E> newtable(int width, E... contents)
+	{
+		return newtableMutable(width, contents);
+	}
+	
+	@ReadonlyValue
+	public static <E> SimpleTable<E> newtableMutable(int width, E... contents)
 	{
 		if (contents.length % width != 0)
 			throw new IllegalArgumentException();
@@ -5060,7 +5125,7 @@ _$$primxpconf:intsonly$$_
 		int height = contents.length / width;
 		
 		
-		SimpleTable<E> t = newtableBlank(width, height);
+		SimpleTable<E> t = newtableBlankMutable(width, height);
 		
 		for (int r = 0; r < height; r++)
 		{
@@ -5082,24 +5147,41 @@ _$$primxpconf:intsonly$$_
 	public static <E> SimpleTable<E> emptyTable()
 	{
 		//Todo make an immutable empty subclass xD ^^'''
-		return newtableBlank();
+		return newtableBlankMutable();
 	}
 	
 	
 	@ThrowAwayValue
-	public static <E> SimpleTable<E> newtableBlank()
+	public static <E> SimpleTable<E> newtableBlankMutable()
 	{
-		return newtableBlank(0, 0);
+		return newtableBlankMutable(0, 0);
 	}
 	
 	@ThrowAwayValue
-	public static <E> SimpleTable<E> newtableBlank(int width, int height)
+	public static <E> SimpleTable<E> newtableBlankMutable(int width, int height)
 	{
 		return new NestedListsSimpleTable<E>(width, height);
 	}
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <K, V> Map<K, V> concreteMap(Set<K> keys, UnaryFunction<K, V> mapping)
+	{
+		Map<K, V> m = new HashMap<>();
+		
+		for (K key : keys)
+			m.put(key, mapping.f(key));
+		
+		return m;
+	}
 	
 	
 	
@@ -7034,17 +7116,17 @@ _$$primxpconf:intsonly$$_
 		int h = rows.size();
 		
 		if (h == 0)
-			return newtableBlank();
+			return newtableBlankMutable();
 		
 		int largestRowSize = greatestMap(List::size, rows);
 		
 		if (largestRowSize == 0)
-			return newtableBlank();
+			return newtableBlankMutable();
 		
 		
 		int w = largestRowSize;
 		
-		SimpleTable<E> table = newtableBlank(w, h);
+		SimpleTable<E> table = newtableBlankMutable(w, h);
 		
 		
 		for (int r = 0; r < h; r++)
@@ -7143,7 +7225,7 @@ _$$primxpconf:intsonly$$_
 		int wi = input.getNumberOfColumns();
 		int hi = input.getNumberOfRows();
 		
-		SimpleTable<E> output = newtableBlank(hi, wi);
+		SimpleTable<E> output = newtableBlankMutable(hi, wi);
 		
 		for (int yi = 0; yi < hi; yi++)
 		{
@@ -7181,7 +7263,7 @@ _$$primxpconf:intsonly$$_
 		
 		
 		
-		SimpleTable<E> output = newtableBlank(numberOfRepeatedColumnsAtStart + numberOfRepeatedRowsAtStart + 1, wd*hd);
+		SimpleTable<E> output = newtableBlankMutable(numberOfRepeatedColumnsAtStart + numberOfRepeatedRowsAtStart + 1, wd*hd);
 		
 		int i = 0;
 		for (int yd = 0; yd < hd; yd++)

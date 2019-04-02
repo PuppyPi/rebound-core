@@ -112,6 +112,26 @@ implements JavaNamespace
 		return pump(in, out, 4096);
 	}
 	
+	public static long pumpThenCloseBoth(InputStream in, OutputStream out) throws IOException
+	{
+		try
+		{
+			return pump(in, out);
+		}
+		finally
+		{
+			try
+			{
+				in.close();
+			}
+			finally
+			{
+				out.close();
+			}
+		}
+	}
+	
+	
 	
 	public static long pumpFixed(InputStream in, OutputStream out, long length, int bufferSize) throws IOException
 	{

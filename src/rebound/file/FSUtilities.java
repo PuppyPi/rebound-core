@@ -1556,7 +1556,7 @@ implements JavaNamespace
 		else if (source.isDirectory())
 		{
 			//TODO!!!
-			// NOTE: If we change this, remove the preemptive NYI in the UIDSFS dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
+			// NOTE: If we change this, remove the preemptive NYI in the UIDSFS-Complete dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
 			throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
 		}
 		else if (source.exists())

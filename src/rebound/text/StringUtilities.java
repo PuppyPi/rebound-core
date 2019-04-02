@@ -7207,6 +7207,14 @@ primxp
 		return line.substring(0, i);
 	}
 	
+	public static String getIndentationFromFirstLine(String s)
+	{
+		int i = findFirstIndex(c -> !Character.isWhitespace(c) || c == '\n' || c == '\r', s);
+		return s.substring(0, i);
+	}
+	
+	
+	
 	public static String removeCommonLeadingIndentationAndSurroundingBlankLines(String s)
 	{
 		s = rtrim(s);
