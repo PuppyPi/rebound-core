@@ -6568,17 +6568,19 @@ _$$primxpconf:intsonly$$_
 	
 	public static <K, V> Map<V, K> inverseMapOP(Map<K, V> map) throws NonForwardInjectiveMapException
 	{
-		Map<V, K> inverse = new HashMap<>();
+//		Map<V, K> inverse = new HashMap<>();
+//		
+//		for (Entry<K, V> e : map.entrySet())
+//		{
+//			if (inverse.containsKey(e.getValue()))
+//				throw new NonForwardInjectiveMapException();
+//			else
+//				inverse.put(e.getValue(), e.getKey());
+//		}
+//		
+//		return inverse;
 		
-		for (Entry<K, V> e : map.entrySet())
-		{
-			if (inverse.containsKey(e.getValue()))
-				throw new NonForwardInjectiveMapException();
-			else
-				inverse.put(e.getValue(), e.getKey());
-		}
-		
-		return inverse;
+		return inverseMapOP(map.keySet(), map::get);
 	}
 	
 	
@@ -6599,6 +6601,35 @@ _$$primxpconf:intsonly$$_
 		
 		return inverse;
 	}
+	
+	
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Map<K, V> inputMap)
+	{
+		return inverseMapGeneralOP(inputMap.keySet(), inputMap::get);
+	}
+	
+	@ThrowAwayValue
+	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Iterable<K> keys, UnaryFunction<K, V> mapper)
+	{
+		Map<V, Set<K>> inverse = new HashMap<>();
+		
+		for (K element : keys)
+		{
+			getOrCreate(inverse, mapper.f(element), HashSet::new).add(element);
+		}
+		
+		return inverse;
+	}
+	
+	
+	
+	
 	
 	
 	
@@ -7207,22 +7238,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	
-	
-	
-	
-	public static <K, V> Map<K, Set<V>> toMapByPropertyValues(Iterable<V> elements, UnaryFunction<V, K> getPropertyValue)
-	{
-		Map<K, Set<V>> map = new HashMap<>();
-		
-		for (V element : elements)
-		{
-			getOrCreate(map, getPropertyValue.f(element), HashSet::new).add(element);
-		}
-		
-		return map;
-	}
 	
 	
 	
