@@ -4,6 +4,7 @@
  */
 package rebound.util.collections;
 
+import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.math.MathUtilities.*;
@@ -3189,21 +3190,19 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static Set intersection(Set... sets) //AND (8)
+	public static <E> Set<E> intersection(Set<E>... sets) //AND (2:8), 3:128, 4:32768, ...
 	{
 		if (sets.length == 0)
-			return new HashSet();
+			return new HashSet<E>();
 		
 		else if (sets.length == 1)
-			return new HashSet(sets[0]);
+			return new HashSet<E>(sets[0]);
 		
 		else
 		{
-			Set output = new HashSet();
+			Set<E> output = new HashSet<E>();
 			
-			Set firstSet = sets[0];
-			
-			for (Object e : firstSet)
+			for (E e : sets[0])
 			{
 				boolean all = true;
 				{
@@ -3214,6 +3213,39 @@ _$$primxpconf:intsonly$$_
 				}
 				
 				if (all)
+				{
+					output.add(e);
+				}
+			}
+			
+			return output;
+		}
+	}
+	
+	
+	public static <E> Set<E> anysection(Set<E>... sets) //AND (2:8), 3:200, 4:65256, ...
+	{
+		if (sets.length == 0)
+			return emptySet();
+		
+		else if (sets.length == 1)
+			return emptySet();
+		
+		else
+		{
+			Set<E> output = new HashSet<E>();
+			
+			for (E e : sets[0])
+			{
+				boolean anyOthers = false;
+				{
+					for (int setIndex = 1; !anyOthers && setIndex < sets.length; setIndex++)
+					{
+						anyOthers |= sets[setIndex].contains(e);
+					}
+				}
+				
+				if (!anyOthers)
 				{
 					output.add(e);
 				}
@@ -3268,7 +3300,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static <E> Set<E> setdiff(Set<E> minuend, Set<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD
+	public static <E> Set<E> setdiff(Set<E> minuend, Set<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD      ¬(a ⇒ b)  XD
 	{
 		Set output = new HashSet();
 		
