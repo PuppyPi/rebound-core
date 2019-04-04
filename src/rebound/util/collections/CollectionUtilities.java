@@ -327,41 +327,6 @@ public class CollectionUtilities
 	
 	
 	
-	//TODO deduplicate with newmap? X'D
-	/**
-	 * convenience for {@link #makeMap(Map, Object...)}.
-	 * @return a HashMap
-	 */
-	public static Map makeMap(Object... pairs)
-	{
-		HashMap map = new HashMap();
-		makeMap(map, pairs);
-		return map;
-	}
-	
-	
-	/**
-	 * Takes a sequence of {key0, value0, key1, value1, key2, value2, ...} and add them to the map.
-	 */
-	public static void makeMap(Map map, Object... pairs)
-	{
-		if (pairs == null)
-			throw new NullPointerException();
-		
-		if (pairs.length % 2 != 0)
-			throw new IllegalArgumentException("Key-value pairs array must have an even number of elements!");
-		
-		for (int i = 0; i < pairs.length; i += 2)
-		{
-			Object key = pairs[i+0];
-			Object value = pairs[i+1];
-			
-			map.put(key, value);
-		}
-	}
-	
-	
-	
 	
 	
 	
