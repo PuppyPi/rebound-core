@@ -13,11 +13,6 @@ extends RuntimeException
 	{
 	}
 	
-	public SyntaxException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-	
 	public SyntaxException(String message)
 	{
 		super(message);
@@ -28,8 +23,8 @@ extends RuntimeException
 		super(cause);
 	}
 	
-	protected SyntaxException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+	public SyntaxException(String message, Throwable cause)
 	{
-		super(message, cause, enableSuppression, writableStackTrace);
+		super(message, cause);
 	}
 }

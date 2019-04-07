@@ -20,11 +20,6 @@ extends IOException
 	{
 	}
 	
-	public SyntaxIOException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-	
 	public SyntaxIOException(String message)
 	{
 		super(message);
@@ -33,6 +28,11 @@ extends IOException
 	public SyntaxIOException(Throwable cause)
 	{
 		super(cause);
+	}
+	
+	public SyntaxIOException(String message, Throwable cause)
+	{
+		super(message, cause);
 	}
 	
 	

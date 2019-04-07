@@ -7,7 +7,7 @@ package rebound.exceptions;
 /**
  * @author sean
  */
-public class VersionNotSupportedRuntimeException
+public class NumericVersionNotSupportedRuntimeException
 extends RuntimeException
 {
 	private static final long serialVersionUID = 1L;
@@ -15,35 +15,35 @@ extends RuntimeException
 	protected double unsupported = 0.0;
 	protected double maxsupported = 0.0;
 	
-	public VersionNotSupportedRuntimeException()
+	public NumericVersionNotSupportedRuntimeException()
 	{
 		super();
 		this.unsupported = Double.NaN;
 		this.maxsupported = Double.NaN;
 	}
 	
-	public VersionNotSupportedRuntimeException(double offending, double max)
+	public NumericVersionNotSupportedRuntimeException(double offending, double max)
 	{
 		super("Version "+offending+" not supported; only up to "+max+" is supported.");
 		this.unsupported = offending;
 		this.maxsupported = max;
 	}
 	
-	public VersionNotSupportedRuntimeException(String message, double offending, double max)
+	public NumericVersionNotSupportedRuntimeException(String message, double offending, double max)
 	{
 		super(message);
 		this.unsupported = offending;
 		this.maxsupported = max;
 	}
 	
-	public VersionNotSupportedRuntimeException(String message, Throwable cause, double offending, double max)
+	public NumericVersionNotSupportedRuntimeException(String message, Throwable cause, double offending, double max)
 	{
 		super(message, cause);
 		this.unsupported = offending;
 		this.maxsupported = max;
 	}
 	
-	public VersionNotSupportedRuntimeException(Throwable cause, double offending, double max)
+	public NumericVersionNotSupportedRuntimeException(Throwable cause, double offending, double max)
 	{
 		super(cause);
 		this.unsupported = offending;

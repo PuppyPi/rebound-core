@@ -13,11 +13,6 @@ extends Exception
 	{
 	}
 	
-	public SyntaxCheckedException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-	
 	public SyntaxCheckedException(String message)
 	{
 		super(message);
@@ -28,9 +23,9 @@ extends Exception
 		super(cause);
 	}
 	
-	protected SyntaxCheckedException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace)
+	public SyntaxCheckedException(String message, Throwable cause)
 	{
-		super(message, cause, enableSuppression, writableStackTrace);
+		super(message, cause);
 	}
 	
 	
