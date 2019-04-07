@@ -3200,17 +3200,17 @@ _$$primxpconf:intsonly$$_
 		{
 			Set<E> output = new HashSet<E>();
 			
-			for (E e : sets[0])
+			for (E e : unionV(sets))
 			{
-				boolean anyOthers = false;
+				int n = 0;
 				{
-					for (int setIndex = 1; !anyOthers && setIndex < sets.length; setIndex++)
+					for (int setIndex = 0; n < 2 && setIndex < sets.length; setIndex++)
 					{
-						anyOthers |= sets[setIndex].contains(e);
+						n += sets[setIndex].contains(e) ? 1 : 0;
 					}
 				}
 				
-				if (!anyOthers)
+				if (n >= 2)
 				{
 					output.add(e);
 				}
@@ -4905,13 +4905,13 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * Note: if the function returns null, then the entry will be skipped!  So this combines map and filter in one! :D
 	 */
-	public static <Ki, Vi, Ko, Vo> Map<Ko, Vo> mapdict(UnaryFunction<Entry<Ki, Vi>, Entry<Ko, Vo>> function, Map<Ki, Vi> input)
+	public static <Ki, Vi, Ko, Vo> Map<Ko, Vo> mapdict(UnaryFunction<Entry<Ki, Vi>, Entry<Ko, Vo>> function, Map<Ki, Vi> input) throws NonReverseInjectiveMapException
 	{
 		return maptodict(function, input.entrySet());
 	}
 	
 	
-	public static <I, Ko, Vo> Map<Ko, Vo> maptodict(UnaryFunction<I, Entry<Ko, Vo>> function, Iterable<I> input)
+	public static <I, Ko, Vo> Map<Ko, Vo> maptodict(UnaryFunction<I, Entry<Ko, Vo>> function, Iterable<I> input) throws NonReverseInjectiveMapException
 	{
 		Map<Ko, Vo> output = new HashMap<>();
 		
@@ -4924,7 +4924,7 @@ _$$primxpconf:intsonly$$_
 				Ko key = eOut.getKey();
 				
 				if (output.containsKey(key))
-					throw new NonForwardInjectiveMapException("Conflict!  Multiple entries mapping to the key: "+repr(key));
+					throw new NonReverseInjectiveMapException("Conflict!  Multiple entries mapping to the key: "+repr(key));
 				
 				output.put(key, eOut.getValue());
 			}
@@ -4945,7 +4945,7 @@ _$$primxpconf:intsonly$$_
 			K key = eIn.getKey();
 			
 			if (output.containsKey(key))
-				throw new NonForwardInjectiveMapException();
+				throw new NonReverseInjectiveMapException("This means the *original* map already existed in corrupt non-reverse-injective state!");
 			
 			output.put(key, vOut);
 		}
@@ -6533,17 +6533,17 @@ _$$primxpconf:intsonly$$_
 	
 	public static <K, V> Map<V, K> inverseMapOP(Map<K, V> map) throws NonForwardInjectiveMapException
 	{
-//		Map<V, K> inverse = new HashMap<>();
-//		
-//		for (Entry<K, V> e : map.entrySet())
-//		{
-//			if (inverse.containsKey(e.getValue()))
-//				throw new NonForwardInjectiveMapException();
-//			else
-//				inverse.put(e.getValue(), e.getKey());
-//		}
-//		
-//		return inverse;
+		//		Map<V, K> inverse = new HashMap<>();
+		//		
+		//		for (Entry<K, V> e : map.entrySet())
+		//		{
+		//			if (inverse.containsKey(e.getValue()))
+		//				throw new NonForwardInjectiveMapException();
+		//			else
+		//				inverse.put(e.getValue(), e.getKey());
+		//		}
+		//		
+		//		return inverse;
 		
 		return inverseMapOP(map.keySet(), map::get);
 	}
@@ -7698,5 +7698,22 @@ _$$primxpconf:intsonly$$_
 			return true;
 		else
 			return false;
+	}
+	
+	
+	
+	public static <E> List<E> subListToEnd(List<E> list, int start)
+	{
+		return list.subList(start, list.size());
+	}
+	
+	public static <E> List<E> subListFromBeginning(List<E> list, int pastEndAkaSize)
+	{
+		return list.subList(0, pastEndAkaSize);
+	}
+	
+	public static <E> List<E> subListBySubSize(List<E> list, int start, int subListSize)
+	{
+		return list.subList(start, start + subListSize);
 	}
 }

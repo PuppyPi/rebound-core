@@ -4,6 +4,7 @@
  */
 package rebound.text;
 
+import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.CharacterPredicates.*;
@@ -23,6 +24,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.MalformedInputException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -42,6 +44,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.bits.DataEncodingUtilities;
+import rebound.bits.Endianness;
 import rebound.bits.Unsigned;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NonSingletonException;
@@ -2999,6 +3002,18 @@ implements JavaNamespace
 	public static byte[] encodeTextToByteArrayReporting(CharSequence s, Charset encoding) throws CharacterCodingException
 	{
 		return encodeTextToByteArray(s, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
+	}
+	
+	public static byte[] encodeTextToByteArrayReportingRE(CharSequence s, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return encodeTextToByteArray(s, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
 	}
 	
 	
@@ -7250,5 +7265,30 @@ primxp
 		}
 		
 		return b.toString();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Charset getExplicitEndiannessEncodingIfNeeded(Charset encoding)
+	{
+		return getExplicitEndiannessEncodingIfNeeded(encoding, Endianness.nativeByteEndianness());
+	}
+	
+	public static Charset getExplicitEndiannessEncodingIfNeeded(Charset encoding, Endianness endianness)
+	{
+		requireNonNull(encoding);
+		requireNonNull(endianness);
+		
+		if (eq(encoding, StandardCharsets.UTF_16))
+			return endianness == Endianness.Little ? StandardCharsets.UTF_16LE : StandardCharsets.UTF_16BE;
+		
+		//Todo others??
+		
+		return encoding;
 	}
 }

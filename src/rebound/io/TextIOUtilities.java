@@ -1,5 +1,7 @@
 package rebound.io;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.CharArrayWriter;
 import java.io.EOFException;
 import java.io.IOException;
@@ -14,7 +16,6 @@ import rebound.io.ucs4.UCS4Writer;
 
 public class TextIOUtilities
 {
-	
 	public static String readAllText(InputStream in, String encoding) throws IOException
 	{
 		if (encoding == null)
@@ -337,4 +338,17 @@ public class TextIOUtilities
 		}
 	}
 	
+	
+	
+	
+	
+	public static BufferedReader ensureBufferedReader(Reader in)
+	{
+		return in instanceof BufferedReader ? (BufferedReader)in : new BufferedReader(in);
+	}
+	
+	public static BufferedWriter ensureBufferedWriter(Writer in)
+	{
+		return in instanceof BufferedWriter ? (BufferedWriter)in : new BufferedWriter(in);
+	}
 }

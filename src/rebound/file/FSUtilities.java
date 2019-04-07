@@ -64,6 +64,7 @@ import rebound.util.collections.ArrayUtilities;
 import rebound.util.container.ContainerInterfaces.IntegerContainer;
 import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
 import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -1475,6 +1476,13 @@ implements JavaNamespace
 		boolean success = deleteAndCheck(f);
 		if (!success)
 			throw new UncheckedIOException(new IOException("Could not delete file: "+f.getAbsolutePath()));
+	}
+	
+	public static void deleteMandatoryIfExists(File f) throws UncheckedIOException
+	{
+		if (!lexists(f))
+			return;
+		deleteMandatory(f);
 	}
 	
 	public static void delete_rMandatory(File f, boolean tryAll) throws UncheckedIOException
@@ -3444,6 +3452,72 @@ implements JavaNamespace
 			{
 				return false;
 			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param nameMaker 'f' will become whatever this gives for 0 and the rest will be shifted up :>
+	 */
+	public static void shiftFile(File f, UnaryFunctionIntToObject<String> nameMaker)
+	{
+		File d = f.getParentFile();
+		
+		int pastLast;
+		{
+			int i = 0;
+			while (lexists(new File(d, nameMaker.f(i))))
+				i++;
+			pastLast = i;
+		}
+		
+		for (int i = pastLast-1; i >= 0; i++)
+		{
+			String currentName = nameMaker.f(i);
+			String nextName = nameMaker.f(i+1);
+			
+			File current = new File(d, currentName);
+			File next = new File(d, nextName);
+			
+			renameMandatoryRE(current, next);
+		}
+		
+		String nextName = nameMaker.f(0);
+		File next = new File(d, nextName);
+		renameMandatoryRE(f, next);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void renameMandatory(File file, File newPath) throws IOException
+	{
+		if (lexists(newPath))
+			throw new IOException("Destination already exists!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+		
+		if (!file.renameTo(newPath))
+			throw new IOException("Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+	}
+	
+	public static void renameMandatoryRE(File file, File newPath) throws RuntimeException
+	{
+		try
+		{
+			renameMandatory(file, newPath);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
 		}
 	}
 }
