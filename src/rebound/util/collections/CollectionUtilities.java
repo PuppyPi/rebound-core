@@ -4905,19 +4905,27 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * Note: if the function returns null, then the entry will be skipped!  So this combines map and filter in one! :D
 	 */
-	public static <Ki, Vi, Ko, Vo> Map<Ko, Vo> mapdict(UnaryFunction<Entry<Ki, Vi>, Entry<Ko, Vo>> function, Map<Ki, Vi> input) throws NonReverseInjectiveMapException
+	public static <Ki, Vi, Ko, Vo> Map<Ko, Vo> mapdict(Mapper<Entry<Ki, Vi>, Entry<Ko, Vo>> function, Map<Ki, Vi> input) throws NonReverseInjectiveMapException
 	{
 		return maptodict(function, input.entrySet());
 	}
 	
 	
-	public static <I, Ko, Vo> Map<Ko, Vo> maptodict(UnaryFunction<I, Entry<Ko, Vo>> function, Iterable<I> input) throws NonReverseInjectiveMapException
+	public static <I, Ko, Vo> Map<Ko, Vo> maptodict(Mapper<I, Entry<Ko, Vo>> function, Iterable<I> input) throws NonReverseInjectiveMapException
 	{
 		Map<Ko, Vo> output = new HashMap<>();
 		
 		for (I in : input)
 		{
-			Entry<Ko, Vo> eOut = function.f(in);
+			Entry<Ko, Vo> eOut;
+			try
+			{
+				eOut = function.f(in);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
 			
 			if (eOut != null)
 			{
@@ -4933,14 +4941,27 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
+	public static <K, V> Map<K, V> maptodictSameKeys(Mapper<K, V> function, Iterable<K> input) throws NonReverseInjectiveMapException
+	{
+		return maptodict(k -> new SimpleEntry<K, V>(k, function.f(k)), input);
+	}
 	
-	public static <K, Vi, Vo> Map<K, Vo> mapdictvalues(UnaryFunction<Vi, Vo> function, Map<K, Vi> input)
+	
+	public static <K, Vi, Vo> Map<K, Vo> mapdictvalues(Mapper<Vi, Vo> function, Map<K, Vi> input)
 	{
 		Map<K, Vo> output = new HashMap<>();
 		
 		for (Entry<K, Vi> eIn : input.entrySet())
 		{
-			Vo vOut = function.f(eIn.getValue());
+			Vo vOut;
+			try
+			{
+				vOut = function.f(eIn.getValue());
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
 			
 			K key = eIn.getKey();
 			
@@ -6584,9 +6605,37 @@ _$$primxpconf:intsonly$$_
 	{
 		Map<V, Set<K>> inverse = new HashMap<>();
 		
-		for (K element : keys)
+		for (K key : keys)
 		{
-			getOrCreate(inverse, mapper.f(element), HashSet::new).add(element);
+			getOrCreate(inverse, mapper.f(key), HashSet::new).add(key);
+		}
+		
+		return inverse;
+	}
+	
+	
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Map<K, Set<V>> inputMap)
+	{
+		return inverseGeneralMapGeneralOP(inputMap.keySet(), inputMap::get);
+	}
+	
+	@ThrowAwayValue
+	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Iterable<K> keys, UnaryFunction<K, Set<V>> mapper)
+	{
+		Map<V, Set<K>> inverse = new HashMap<>();
+		
+		for (K key : keys)
+		{
+			for (V value : mapper.f(key))
+			{
+				getOrCreate(inverse, value, HashSet::new).add(key);
+			}
 		}
 		
 		return inverse;

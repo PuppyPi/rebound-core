@@ -41,6 +41,7 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
@@ -3518,6 +3519,46 @@ implements JavaNamespace
 		catch (IOException exc)
 		{
 			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+
+	/**
+	 * @param symlinks map from basenames of the symlinks to their targets :>
+	 */
+	public static void repopulateDirectoryWithSymlinksDeletingAllExtantSymlinksButFailingIfAnythingElseInside(File dir, Map<String, File> symlinks) throws IOException
+	{
+		//Check first :>
+		for (File c : dir.listFiles())
+		{
+			if (!isSymlink(c))
+			{
+				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+			}
+		}
+		
+		//Then actually do it! :D
+		for (File c : dir.listFiles())
+		{
+			if (!isSymlink(c))  //But it doesn't hurt to re-check in case their computer (namely filesystem I/O) is being really slow XD'
+			{
+				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+			}
+			else
+			{
+				c.delete();
+			}
+		}
+		
+		
+		for (Entry<String, File> e : symlinks.entrySet())
+		{
+			if (doesPathContainStandardUpwardTraversalMetaElement(e.getKey()))
+				throw new IllegalArgumentException(e.getKey());
+			
+			File pathForSymlink = new File(dir, e.getKey());
+			File immediateTarget = e.getValue();
+			
+			makelinkSymbolic(immediateTarget, pathForSymlink);
 		}
 	}
 }
