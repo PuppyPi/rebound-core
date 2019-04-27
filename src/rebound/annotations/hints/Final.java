@@ -19,6 +19,6 @@ import java.lang.annotation.Target;
 @Documented  //important for this one! XD
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+public @interface Final
 {
 }

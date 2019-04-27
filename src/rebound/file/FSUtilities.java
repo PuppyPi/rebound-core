@@ -361,7 +361,6 @@ implements JavaNamespace
 		public long getFreeSpace()
 		{
 			return 0;
-			
 		}
 		
 		@Override
@@ -1603,19 +1602,22 @@ implements JavaNamespace
 			{
 				if (first)
 				{
-					number = 0;
+					number = random.nextInt();
 					first = false;
 				}
 				else
 				{
-					if (randTries > 256)
+					if (randTries > 1024)
 					{
 						if (addTries > 2048)
 							//I give up!
 							return null;
 						
+						if (addTries == 0)
+							counter = random.nextInt();  //start off with something random X3
+						
 						number = counter;
-						counter++;
+						counter++;  //overflow intended here!!
 						addTries++;
 					}
 					else
@@ -3323,6 +3325,8 @@ implements JavaNamespace
 	
 	/**
 	 * Escapes forward slashes completely, using an escape syntax based on the backslash which normally needn't be used :3
+	 * 
+	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
 	 */
 	public static String fsescape(String s)
 	{
@@ -3331,6 +3335,8 @@ implements JavaNamespace
 	
 	/**
 	 * (De!)Escapes forward slashes completely, using an escape syntax based on the backslash which normally needn't be used :3
+	 * 
+	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
 	 */
 	public static String fsdescape(String s)
 	{
@@ -3374,27 +3380,55 @@ implements JavaNamespace
 	
 	public static void ensureDirLeafThrowing(File d) throws IOException
 	{
-		if (!d.isDirectory())
+		if (d.isDirectory())
+			return;
+		else if (lexists(d))
+			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+		else
 		{
 			d.mkdir();
-			if (!d.isDirectory())
-				throw new IOException("Couldn't create dir: "+repr(d.getAbsolutePath()));
+			
+			if (d.isDirectory())
+				return;
+			else if (lexists(d))
+				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
 		}
 	}
 	
 	public static void ensureDirsWholePathThrowing(File d) throws IOException
 	{
-		if (!d.isDirectory())
+		if (d.isDirectory())
+			return;
+		else if (lexists(d))
+			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+		else
 		{
 			d.mkdirs();
-			if (!d.isDirectory())
-				throw new IOException("Couldn't create dir: "+repr(d.getAbsolutePath()));
+			
+			if (d.isDirectory())
+				return;
+			else if (lexists(d))
+				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
 		}
 	}
 	
 	
 	public static void ensureRenameThrowing(File oldPath, File newPath) throws IOException
 	{
+		if (!lexists(oldPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the source didn't exist!");
+		}
+		
+		if (lexists(newPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the destination already existed!");
+		}
+		
 		if (!oldPath.renameTo(newPath))
 		{
 			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath()));
@@ -3402,6 +3436,24 @@ implements JavaNamespace
 	}
 	
 	
+	public static void ensureEmptyFileThrowing(File f) throws IOException
+	{
+		if (f.isFile() && f.length() == 0)
+			return;
+		else if (lexists(f))
+			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+		else
+		{
+			f.createNewFile();
+			
+			if (f.isFile() && f.length() == 0)
+				return;
+			else if (lexists(f))
+				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
+		}
+	}
 	
 	
 	
@@ -3521,34 +3573,13 @@ implements JavaNamespace
 			throw new WrappedThrowableRuntimeException(exc);
 		}
 	}
-
+	
 	/**
 	 * @param symlinks map from basenames of the symlinks to their targets :>
 	 */
 	public static void repopulateDirectoryWithSymlinksDeletingAllExtantSymlinksButFailingIfAnythingElseInside(File dir, Map<String, File> symlinks) throws IOException
 	{
-		//Check first :>
-		for (File c : dir.listFiles())
-		{
-			if (!isSymlink(c))
-			{
-				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
-			}
-		}
-		
-		//Then actually do it! :D
-		for (File c : dir.listFiles())
-		{
-			if (!isSymlink(c))  //But it doesn't hurt to re-check in case their computer (namely filesystem I/O) is being really slow XD'
-			{
-				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
-			}
-			else
-			{
-				c.delete();
-			}
-		}
-		
+		clearDirectoryOfSymlinks(dir);
 		
 		for (Entry<String, File> e : symlinks.entrySet())
 		{
@@ -3559,6 +3590,40 @@ implements JavaNamespace
 			File immediateTarget = e.getValue();
 			
 			makelinkSymbolic(immediateTarget, pathForSymlink);
+		}
+	}
+	
+	
+	
+	public static void clearDirectoryOfSymlinks(File dir) throws IOException
+	{
+		clearDirectoryOfMatchingEmpties(dir, f -> isSymlink(f));
+	}
+	
+	
+	
+	public static void clearDirectoryOfMatchingEmpties(File dir, Predicate<File> pattern) throws IOException
+	{
+		//Check first :>
+		for (File c : dir.listFiles())
+		{
+			if (!pattern.test(c))
+			{
+				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+			}
+		}
+		
+		//Then actually do it! :D
+		for (File c : dir.listFiles())
+		{
+			if (!pattern.test(c))  //But it doesn't hurt to re-check in case their computer (namely filesystem I/O) is being really slow XD'
+			{
+				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+			}
+			else
+			{
+				c.delete();
+			}
 		}
 	}
 }

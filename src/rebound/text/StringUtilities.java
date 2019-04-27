@@ -1117,6 +1117,31 @@ implements JavaNamespace
 		return i == -1 ? null : new String[]{s.substring(0, i), s.substring(i+1)};
 	}
 	
+	@Nonnull
+	public static String[] splitonce(String s, char del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? new String[]{s} : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	
+	
+	
+	
+	@Nonnull
+	public static String splitonceReturnPrecedingOrWhole(String s, char del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? s : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String splitonceReturnSucceedingOrNull(String s, char del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? null : s.substring(i+1);
+	}
+	
 	
 	
 	
@@ -7290,5 +7315,25 @@ primxp
 		//Todo others??
 		
 		return encoding;
+	}
+	
+	
+	
+	
+	public static boolean containsZeroChar(String s)
+	{
+		int n = s.length();
+		for (int i = 0; i < n; i++)
+			if (s.charAt(i) == '\u0000')
+				return true;
+		return false;
+	}
+	
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static List<String> clipSurroundingEmptyLinesOPC(List<String> lines)
+	{
+		return filterMiddleToList(l -> !l.trim().isEmpty(), lines);
 	}
 }

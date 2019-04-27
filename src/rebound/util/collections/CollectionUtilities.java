@@ -104,6 +104,8 @@ import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortInterval
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.container.ContainerInterfaces.BooleanContainer;
+import rebound.util.container.SimpleContainers.SimpleBooleanContainer;
 import rebound.util.functional.CollectionFunctionalIterable;
 import rebound.util.functional.ContinueSignal;
 import rebound.util.functional.FunctionInterfaces.BinaryFunction;
@@ -2726,6 +2728,14 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	//TODO use a view of the list instead!! :D
+	public static <E> List<E> reversed(@WritableValue List<E> list)
+	{
+		List<E> copylist = new ArrayList<>(list);
+		reverseListInPlace(copylist);
+		return copylist;
+	}
+	
 	
 	
 	
@@ -3364,29 +3374,12 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
 	public static <E> boolean removeEqC(Collection<E> collection, E element, EqualityComparator<E> equalityComparator)
 	{
 		if (collection instanceof CollectionWithInvocationProvideableEqualityComparators)
 			return ((CollectionWithInvocationProvideableEqualityComparators)collection).remove(element, equalityComparator);
 		else
-		{
-			Iterator<E> i = collection.iterator();
-			
-			E e = null;
-			while (i.hasNext())
-			{
-				e = i.next();
-				
-				if (equalityComparator.equals(e, element))
-				{
-					i.remove();
-					return true;
-				}
-			}
-			
-			return false;
-		}
+			return removeMatching(e -> equalityComparator.equals(element), collection);
 	}
 	
 	public static <E> boolean containsEqC(Collection<E> collection, E element, EqualityComparator<E> equalityComparator)
@@ -5842,8 +5835,15 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
 	@ReadonlyValue
 	protected static <E> Collection<E> filterToCollection(Predicate<? super E> filter, Iterable<E> input, boolean setOutput)
+	{
+		return filterToMutableCollection(filter, input, setOutput);
+	}
+	
+	@ThrowAwayValue
+	protected static <E> Collection<E> filterToMutableCollection(Predicate<? super E> filter, Iterable<E> input, boolean setOutput)
 	{
 		if (input == null)
 			return null;
@@ -5858,6 +5858,7 @@ _$$primxpconf:intsonly$$_
 		
 		return newlist;
 	}
+	
 	
 	@ReadonlyValue
 	public static <E> Collection<E> filterToCollection(Predicate<? super E> filter, Iterable<E> input)
@@ -5894,6 +5895,19 @@ _$$primxpconf:intsonly$$_
 			return input;
 		else
 			return (Set<E>)filterToCollection(filter, (Iterable<E>)input, true);
+	}
+	
+	
+	@ThrowAwayValue
+	public static <E> List<E> filterToMutableList(Predicate<? super E> filter, List<E> input)
+	{
+		return (List<E>)filterToMutableCollection(filter, (Iterable<E>)input, false);
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> filterToMutableSet(Predicate<? super E> filter, Set<E> input)
+	{
+		return (Set<E>)filterToMutableCollection(filter, (Iterable<E>)input, true);
 	}
 	
 	
@@ -5989,20 +6003,204 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@ReadonlyValue
+	public static <E> List<E> filterMiddleToList(Predicate<? super E> filter, List<E> input)
+	{
+		Interval i = filterMiddleToInterval(filter, input);
+		return input.subList(i.getOffset(), i.getOffset()+i.getLength());
+	}
+	
+	@ReadonlyValue
+	public static <E> Interval filterMiddleToInterval(Predicate<? super E> filter, List<E> input)
+	{
+		int n = input.size();
+		
+		int start;
+		{
+			int i = 0;
+			
+			while (i < n)
+			{
+				if (filter.test(input.get(i)))
+					break;
+				
+				i++;
+			}
+			
+			start = i;
+		}
+		
+		
+		if (start == n)
+			return new Interval(0, n);
+		
+		
+		int end;
+		{
+			int i = n - 1;
+			
+			while (i >= 0)
+			{
+				if (filter.test(input.get(i)))
+					break;
+				
+				i--;
+			}
+			
+			end = i + 1;
+		}
+		
+		
+		return new Interval(start, end-start);
+	}
 	
 	
 	
 	
 	
 	
+	/**
+	 * @return if we did anything—if we altered it in any way
+	 */
+	public static <E> boolean mapListInPlace(Mapper<E, E> mapper, List<E> list)
+	{
+		boolean didAnything = false;
+		
+		//iterating backwards lets us not worry about incrementing or not (i++ only if e is not filtered away), and can be far more efficient for the most common list implementation (ArrayList and related) when removing large numbers of elements :3
+		
+		if (isRandomAccessFast(list))
+		{
+			int n = list.size();
+			
+			for (int i = n - 1; i >= 0; i--)
+			{
+				E in = list.get(i);
+				
+				try
+				{
+					E out = mapper.f(in);
+					
+					if (out != in)
+					{
+						list.set(i, out);
+						didAnything = true;
+					}
+				}
+				catch (FilterAwayReturnPath exc)
+				{
+					list.remove(i);
+					didAnything = true;
+				}
+			}
+		}
+		else
+		{
+			ListIterator<E> li = list.listIterator(list.size());
+			
+			while (li.hasPrevious())
+			{
+				E in = li.previous();
+				
+				try
+				{
+					E out = mapper.f(in);
+					
+					if (out != in)
+					{
+						li.set(out);
+						didAnything = true;
+					}
+				}
+				catch (FilterAwayReturnPath exc)
+				{
+					li.remove();
+					didAnything = true;
+				}
+			}
+		}
+		
+		return didAnything;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @return if we did anything—if we altered it in any way
+	 */
+	public static <E> boolean filterInPlace(Predicate<E> predicate, Iterable<E> iterable)
+	{
+		if (iterable instanceof List)
+		{
+			return mapListInPlace(e ->
+			{
+				if (predicate.test(e))
+					return e;
+				else
+					throw FilterAwayReturnPath.I;
+				
+			}, (List<E>)iterable);
+		}
+		else
+		{
+			Iterator<E> i = iterable.iterator();
+			
+			E e = null;
+			while (i.hasNext())
+			{
+				e = i.next();
+				
+				if (!predicate.test(e))
+				{
+					i.remove();
+					return true;
+				}
+			}
+			
+			return false;
+		}
+	}
+	
+	/**
+	 * @return if we did anything—if we altered it in any way
+	 */
+	public static <E> boolean removeMatching(Predicate<E> predicate, Iterable<E> iterable)
+	{
+		return filterInPlace(predicate.negate(), iterable);
+	}
 	
 	
 	
 	
 	
 	
+	//Todo
+	//	public static <K, V> boolean mapDictInPlace(Mapper<Entry<K, V>, Entry<K, V>> mapper, Map<K, V> dict)
+	//	{
+	//		
+	//	}
 	
-	
+	/**
+	 * @return if we did anything—if we altered it in any way
+	 */
+	public static <K, V> boolean filterDictInPlace(Predicate<Entry<K, V>> predicate, @WritableValue Map<K, V> dict)
+	{
+		boolean didAnything = false;
+		
+		for (Object k : dict.keySet().toArray())
+		{
+			K key = (K) k;
+			
+			if (!predicate.test(new SimpleEntry<>(key, dict.get(key))))
+			{
+				dict.remove(key);
+				didAnything = true;
+			}
+		}
+		
+		return didAnything;
+	}
 	
 	
 	
@@ -7764,5 +7962,125 @@ _$$primxpconf:intsonly$$_
 	public static <E> List<E> subListBySubSize(List<E> list, int start, int subListSize)
 	{
 		return list.subList(start, start + subListSize);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <I> boolean reduceBoolean(BinaryFunction<I, I, Boolean> f, Iterable<I> inputs, boolean and)
+	{
+		return reduceBoolean(f, SimpleIterable.simpleIterable(inputs), and);
+	}
+	
+	public static <I> boolean reduceBoolean(BinaryFunction<I, I, Boolean> f, SimpleIterable<I> inputs, boolean and)
+	{
+		return reduceBoolean(f, inputs.simpleIterator(), and);
+	}
+	
+	public static <I> boolean reduceBoolean(BinaryFunction<I, I, Boolean> f, SimpleIterator<I> inputs, boolean and)
+	{
+		I first;
+		try
+		{
+			first = inputs.nextrp();
+		}
+		catch (StopIterationReturnPath exc1)
+		{
+			return and;
+		}
+		
+		while (true)
+		{
+			I next;
+			try
+			{
+				next = inputs.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			if (!f.f(first, next))
+				return !and;
+		}
+		
+		return and;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <I> boolean reduceAnding(BinaryFunction<I, I, Boolean> f, Iterable<I> inputs)
+	{
+		return reduceBoolean(f, inputs, true);
+	}
+	
+	public static <I> boolean reduceAnding(BinaryFunction<I, I, Boolean> f, SimpleIterable<I> inputs)
+	{
+		return reduceBoolean(f, inputs, true);
+	}
+	
+	public static <I> boolean reduceAnding(BinaryFunction<I, I, Boolean> f, SimpleIterator<I> inputs)
+	{
+		return reduceBoolean(f, inputs, true);
+	}
+	
+	
+	
+	public static <I> boolean reduceOrring(BinaryFunction<I, I, Boolean> f, Iterable<I> inputs)
+	{
+		return reduceBoolean(f, inputs, false);
+	}
+	
+	public static <I> boolean reduceOrring(BinaryFunction<I, I, Boolean> f, SimpleIterable<I> inputs)
+	{
+		return reduceBoolean(f, inputs, false);
+	}
+	
+	public static <I> boolean reduceOrring(BinaryFunction<I, I, Boolean> f, SimpleIterator<I> inputs)
+	{
+		return reduceBoolean(f, inputs, false);
+	}
+	
+	
+	
+	
+	
+	
+	public static <E> Set<E> getAllWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction)
+	{
+		Set<E> set = new HashSet<>();
+		observerUsingFunction.f(set::add);
+		return set;
+	}
+	
+	public static <E> boolean hasAnyWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction)
+	{
+		BooleanContainer hasAny_C = new SimpleBooleanContainer(false);
+		observerUsingFunction.f(e -> hasAny_C.set(true));
+		return hasAny_C.get();
+	}
+	
+	public static <E> boolean hasAtLeastOneMatchingWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction, Predicate<E> predicate)
+	{
+		BooleanContainer hasMatching_C = new SimpleBooleanContainer(false);
+		observerUsingFunction.f(e -> { if (predicate.test(e)) hasMatching_C.set(true); });
+		return hasMatching_C.get();
 	}
 }

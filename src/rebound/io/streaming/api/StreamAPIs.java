@@ -3,7 +3,7 @@ package rebound.io.streaming.api;
 import java.io.EOFException;
 import java.io.IOException;
 import javax.annotation.Nonnegative;
-import rebound.annotations.hints.FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations;
+import rebound.annotations.hints.Final;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.util.collections.Slice;
 
@@ -75,7 +75,7 @@ public class StreamAPIs
 		public int read(D[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(D[] buffer) throws IOException, ClosedStreamException
 		{
@@ -83,7 +83,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<D[]> buffer) throws IOException, ClosedStreamException
@@ -109,7 +109,7 @@ public class StreamAPIs
 		public int write(D[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(D[] buffer) throws IOException, ClosedStreamException
 		{
@@ -117,7 +117,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<D[]> buffer) throws IOException, ClosedStreamException
@@ -309,7 +309,7 @@ public class StreamAPIs
 		public int read(boolean[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(boolean[] buffer) throws IOException, ClosedStreamException
 		{
@@ -317,7 +317,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<boolean[]> buffer) throws IOException, ClosedStreamException
@@ -338,7 +338,7 @@ public class StreamAPIs
 		public int write(boolean[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(boolean[] buffer) throws IOException, ClosedStreamException
 		{
@@ -346,7 +346,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<boolean[]> buffer) throws IOException, ClosedStreamException
@@ -417,7 +417,7 @@ public class StreamAPIs
 		public int read(byte[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(byte[] buffer) throws IOException, ClosedStreamException
 		{
@@ -425,7 +425,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<byte[]> buffer) throws IOException, ClosedStreamException
@@ -446,7 +446,7 @@ public class StreamAPIs
 		public int write(byte[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(byte[] buffer) throws IOException, ClosedStreamException
 		{
@@ -454,7 +454,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<byte[]> buffer) throws IOException, ClosedStreamException
@@ -525,7 +525,7 @@ public class StreamAPIs
 		public int read(char[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(char[] buffer) throws IOException, ClosedStreamException
 		{
@@ -533,7 +533,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<char[]> buffer) throws IOException, ClosedStreamException
@@ -554,7 +554,7 @@ public class StreamAPIs
 		public int write(char[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(char[] buffer) throws IOException, ClosedStreamException
 		{
@@ -562,7 +562,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<char[]> buffer) throws IOException, ClosedStreamException
@@ -633,7 +633,7 @@ public class StreamAPIs
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(short[] buffer) throws IOException, ClosedStreamException
 		{
@@ -641,7 +641,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<short[]> buffer) throws IOException, ClosedStreamException
@@ -662,7 +662,7 @@ public class StreamAPIs
 		public int write(short[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(short[] buffer) throws IOException, ClosedStreamException
 		{
@@ -670,7 +670,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<short[]> buffer) throws IOException, ClosedStreamException
@@ -741,7 +741,7 @@ public class StreamAPIs
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(float[] buffer) throws IOException, ClosedStreamException
 		{
@@ -749,7 +749,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<float[]> buffer) throws IOException, ClosedStreamException
@@ -770,7 +770,7 @@ public class StreamAPIs
 		public int write(float[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(float[] buffer) throws IOException, ClosedStreamException
 		{
@@ -778,7 +778,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<float[]> buffer) throws IOException, ClosedStreamException
@@ -849,7 +849,7 @@ public class StreamAPIs
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(int[] buffer) throws IOException, ClosedStreamException
 		{
@@ -857,7 +857,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<int[]> buffer) throws IOException, ClosedStreamException
@@ -878,7 +878,7 @@ public class StreamAPIs
 		public int write(int[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(int[] buffer) throws IOException, ClosedStreamException
 		{
@@ -886,7 +886,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<int[]> buffer) throws IOException, ClosedStreamException
@@ -957,7 +957,7 @@ public class StreamAPIs
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(double[] buffer) throws IOException, ClosedStreamException
 		{
@@ -965,7 +965,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<double[]> buffer) throws IOException, ClosedStreamException
@@ -986,7 +986,7 @@ public class StreamAPIs
 		public int write(double[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(double[] buffer) throws IOException, ClosedStreamException
 		{
@@ -994,7 +994,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<double[]> buffer) throws IOException, ClosedStreamException
@@ -1065,7 +1065,7 @@ public class StreamAPIs
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int read(long[] buffer) throws IOException, ClosedStreamException
 		{
@@ -1073,7 +1073,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int read(Slice<long[]> buffer) throws IOException, ClosedStreamException
@@ -1094,7 +1094,7 @@ public class StreamAPIs
 		public int write(long[] buffer, int offset, int length) throws IOException, ClosedStreamException;
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		public default int write(long[] buffer) throws IOException, ClosedStreamException
 		{
@@ -1102,7 +1102,7 @@ public class StreamAPIs
 		}
 		
 		
-		@FinalButForDeserializationOrUnofficialInitializerOrInterfaceLimitations
+		@Final
 		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
 		@Override
 		public default int write(Slice<long[]> buffer) throws IOException, ClosedStreamException

@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import rebound.io.ucs4.UCS4ArrayWriter;
@@ -263,7 +264,9 @@ public class TextIOUtilities
 	
 	public static String readAllToString(Reader in) throws IOException
 	{
-		return new String(readAll(in));
+		StringWriter buff = new StringWriter();
+		pump(in, buff);
+		return buff.toString();
 	}
 	
 	public static char[] readAll(Reader in) throws IOException
