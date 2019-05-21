@@ -12,6 +12,7 @@ import static rebound.io.JRECompatIOUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
+import static rebound.util.objectutil.ObjectUtilities.*;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
@@ -1959,6 +1960,71 @@ implements JavaNamespace
 	
 	
 	
+	
+	//<Hardlinks! :D
+	public static boolean samefile(File a, File b)
+	{
+		try
+		{
+			return Files.isSameFile(a.toPath(), b.toPath());
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void makelinkHard(File immediateTarget, File pathForHardlink) throws IOException
+	{
+		if (!immediateTarget.isFile())
+			throw new IOException();
+		
+		if (lexists(pathForHardlink))
+			throw new IOException();
+		
+		//executeCheckingExitCode("ln", immediateTarget.getAbsolutePath(), pathForHardlink.getAbsolutePath());
+		Files.createLink(pathForHardlink.toPath(), immediateTarget.toPath());
+	}
+	
+	public static void makelinkHardOrCopy(File immediateTarget, File pathForHardlink) throws IOException
+	{
+		if (!immediateTarget.isFile())
+			throw new IOException();
+		
+		if (lexists(pathForHardlink))
+			throw new IOException();
+		
+		if (!pathForHardlink.getParentFile().isDirectory())
+			throw new IOException();
+		
+		//		try
+		//		{
+		//			executeCheckingExitCode("ln", immediateTarget.getAbsolutePath(), pathForHardlink.getAbsolutePath());
+		//		}
+		//		catch (IOException exc)
+		//		{
+		//			if (pathForHardlink.isFile())
+		//				throw exc;
+		//			else
+		//			{
+		//				copy(immediateTarget, pathForHardlink);
+		//			}
+		//		}
+		
+		if (arePathsOnSameFileStore(immediateTarget, pathForHardlink.getParentFile()))
+		{
+			Files.createLink(pathForHardlink.toPath(), immediateTarget.toPath());
+		}
+		else
+		{
+			copy(immediateTarget, pathForHardlink);
+		}
+	}
+	//Hardlinks!>
+	
+	
+	
+	
 	//<Symlinks
 	public static boolean isSymlink(File f)
 	{
@@ -2105,7 +2171,6 @@ implements JavaNamespace
 			}
 		}
 	}
-	
 	
 	
 	
@@ -2574,57 +2639,6 @@ implements JavaNamespace
 		}
 	}
 	
-	public static File getCanonicalFileRE(File f) throws WrappedThrowableRuntimeException
-	{
-		try
-		{
-			return f.getCanonicalFile();
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
-	
-	public static String getCanonicalPathRE(File f) throws WrappedThrowableRuntimeException
-	{
-		try
-		{
-			return f.getCanonicalPath();
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
-	
-	
-	
-	public static File getCanonicalFileRE(String f) throws WrappedThrowableRuntimeException
-	{
-		try
-		{
-			return new File(f).getCanonicalFile();
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
-	
-	public static String getCanonicalPathRE(String f) throws WrappedThrowableRuntimeException
-	{
-		try
-		{
-			return new File(f).getCanonicalPath();
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
-	
-	
 	public static Set<File> getCanonicalSetPathnames(Iterable<File> files)
 	{
 		HashSet<File> canonicalSet = new HashSet<File>();
@@ -2650,7 +2664,7 @@ implements JavaNamespace
 	
 	public static Set<File> getAbsoluteSetPathnames(File... files)
 	{
-		return getCanonicalSetPathnames(Arrays.asList(files));
+		return getAbsoluteSetPathnames(Arrays.asList(files));
 	}
 	
 	
@@ -3579,7 +3593,15 @@ implements JavaNamespace
 	 */
 	public static void repopulateDirectoryWithSymlinksDeletingAllExtantSymlinksButFailingIfAnythingElseInside(File dir, Map<String, File> symlinks) throws IOException
 	{
-		clearDirectoryOfSymlinks(dir);
+		if (lexists(dir))
+		{
+			ensureDirsWholePathThrowing(dir);
+			clearDirectoryOfSymlinks(dir);
+		}
+		else
+		{
+			ensureDirsWholePathThrowing(dir);
+		}
 		
 		for (Entry<String, File> e : symlinks.entrySet())
 		{

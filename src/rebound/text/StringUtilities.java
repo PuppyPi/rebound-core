@@ -68,6 +68,8 @@ import rebound.util.ScanDirection;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.BasicCollectionUtilities;
 import rebound.util.collections.IdentityHashSet;
+import rebound.util.collections.PairOrdered;
+import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
@@ -1125,6 +1127,21 @@ implements JavaNamespace
 	}
 	
 	
+	@Nullable
+	public static String[] splitonceOrNull(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? null : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	@Nonnull
+	public static String[] splitonce(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? new String[]{s} : new String[]{s.substring(0, i), s.substring(i+del.length())};
+	}
+	
+	
 	
 	
 	
@@ -1140,6 +1157,22 @@ implements JavaNamespace
 	{
 		int i = s.indexOf(del);
 		return i == -1 ? null : s.substring(i+1);
+	}
+	
+	
+	
+	@Nonnull
+	public static String splitonceReturnPrecedingOrWhole(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? s : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String splitonceReturnSucceedingOrNull(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? null : s.substring(i+del.length());
 	}
 	
 	
@@ -2264,6 +2297,27 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	@Nullable
+	public static String ltrimstrOrNull(String str, String trimmand)
+	{
+		if (str.startsWith(trimmand))
+			return str.substring(trimmand.length());
+		else
+			return null;
+	}
+	
+	@Nullable
+	public static String rtrimstrOrNull(String str, String trimmand)
+	{
+		if (str.endsWith(trimmand))
+			return str.substring(0, str.length() - trimmand.length());
+		else
+			return null;
+	}
 	
 	
 	
@@ -6724,6 +6778,42 @@ primxp
 	
 	
 	
+	public static String removeWhitespace(String s)
+	{
+		return replaceWhitespace(s, "");
+	}
+	
+	public static String replaceWhitespace(String s, String replacement)
+	{
+		return replaceCharsWithStringsByPattern(s, WHITESPACE_PATTERN, replacement);
+	}
+	
+	public static String replaceCharsWithStringsByPattern(String s, UnaryFunctionCharToBoolean charPattern, String replacement)
+	{
+		StringBuilder b = new StringBuilder();
+		
+		int n = s.length();
+		for (int i = 0; i < n; i++)
+		{
+			char c = s.charAt(i);
+			
+			if (charPattern.f(c))
+			{
+				b.append(replacement);
+			}
+			else
+			{
+				b.append(c);
+			}
+		}
+		
+		return b.toString();
+	}
+	
+	
+	
+	
+	
 	
 	
 	
@@ -6970,20 +7060,30 @@ primxp
 	
 	public static String toTwoDigitStringWithLeadingZeroPad(int v)
 	{
+		boolean negative = v < 0;
+		
 		if (v < 10)
-			return "0" + v;
-		else
-			return Integer.toString(v);
+			return negative ? ("-0" + -v) : ("0" + v);
+			else
+				return Integer.toString(v);
 	}
 	
 	public static String toThreeDigitStringWithLeadingZeroPad(int v)
 	{
+		boolean negative = v < 0;
+		
 		if (v < 10)
-			return "00" + v;
-		else if (v < 100)
-			return "0" + v;
-		else
-			return Integer.toString(v);
+			return negative ? ("-00" + -v) : ("00" + v);
+			else if (v < 100)
+				return negative ? ("-0" + -v) : ("0" + v);
+				else
+					return Integer.toString(v);
+	}
+	
+	
+	public static String zeroPad(int v, int minDigits)
+	{
+		return zeroPad(Integer.toString(v), minDigits);
 	}
 	
 	
@@ -6995,6 +7095,26 @@ primxp
 	
 	
 	
+	
+	public static String zpad2(int v)
+	{
+		return toTwoDigitStringWithLeadingZeroPad(v);
+	}
+	
+	public static String zpad3(int v)
+	{
+		return toThreeDigitStringWithLeadingZeroPad(v);
+	}
+	
+	public static String zpad(int v, int minDigits)
+	{
+		return zeroPad(v, minDigits);
+	}
+	
+	public static String zpad(String s, int minDigits)
+	{
+		return zeroPad(s, minDigits);
+	}
 	
 	
 	
@@ -7335,5 +7455,84 @@ primxp
 	public static List<String> clipSurroundingEmptyLinesOPC(List<String> lines)
 	{
 		return filterMiddleToList(l -> !l.trim().isEmpty(), lines);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Nullable
+	public static PairOrdered<String, Integer> parseTrailingNonnegativeIntegerOrReturnNull(String s)
+	{
+		int beforeStart = rindexOf(s, c -> c < '0' || c > '9');
+		
+		if (beforeStart == s.length()-1)
+		{
+			return null;
+		}
+		else
+		{
+			int start = beforeStart + 1;  //-1 plays a special use here ;D
+			
+			String pre = s.substring(0, start);
+			String post = s.substring(start);
+			
+			int i;
+			try
+			{
+				i = Integer.parseInt(post);
+			}
+			catch (NumberFormatException exc)
+			{
+				throw new ImpossibleException(exc);
+			}
+			
+			return new PairOrderedImmutable<String, Integer>(pre, i);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void appendln(Appendable a, String s) throws IOException
+	{
+		a.append(s);
+		a.append('\n');
+	}
+	
+	public static void appendln(StringBuilder a, String s)
+	{
+		a.append(s);
+		a.append('\n');
+	}
+	
+	public static void appendln(StringBuffer a, String s)
+	{
+		a.append(s);
+		a.append('\n');
+	}
+	
+	
+	
+	public static void appendln(Appendable a) throws IOException
+	{
+		a.append('\n');
+	}
+	
+	public static void appendln(StringBuilder a)
+	{
+		a.append('\n');
+	}
+	
+	public static void appendln(StringBuffer a)
+	{
+		a.append('\n');
 	}
 }

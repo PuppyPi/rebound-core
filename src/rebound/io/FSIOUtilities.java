@@ -1,6 +1,8 @@
 package rebound.io;
 
 import static rebound.io.BasicIOUtilities.*;
+import static rebound.io.JRECompatIOUtilities.*;
+import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import javax.annotation.Nonnull;
 import rebound.exceptions.OverflowException;
+import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
@@ -454,6 +457,88 @@ public class FSIOUtilities
 				
 				process.f(line);
 			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean fileeq(File a, File b) throws IOException
+	{
+		return filecmp(a, b) == 0;
+	}
+	
+	public static int filecmp(File a, File b) throws IOException
+	{
+		int c = cmp(a.length(), b.length());
+		if (c != 0)
+			return c;
+		
+		try (InputStream inA = new FileInputStream(a))
+		{
+			try (InputStream inB = new FileInputStream(b))
+			{
+				return streamcmp(inA, inB);
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Nonnull
+	public static String readAllTextRE(File file, String encoding)
+	{
+		try
+		{
+			return readAllText(file, encoding);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	@Nonnull
+	public static String readAllTextRE(File file, Charset encoding)
+	{
+		try
+		{
+			return readAllText(file, encoding);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	@Nonnull
+	public static String readAllTextRE(File file)
+	{
+		try
+		{
+			return readAllText(file);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
 		}
 	}
 }

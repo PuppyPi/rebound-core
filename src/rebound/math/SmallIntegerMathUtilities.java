@@ -111,63 +111,6 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	public static long greatest(long a, long b, long c, long d)
-	{
-		if (d < a && d < b && d < c)
-			return SmallIntegerMathUtilities.greatest(a, b, c);
-		else if (c < a && c < b && c < d)
-			return SmallIntegerMathUtilities.greatest(a, b, d);
-		else if (b < a && b < c && b < d)
-			return SmallIntegerMathUtilities.greatest(a, c, d);
-		else if (a < b && a < c && a < d)
-			return SmallIntegerMathUtilities.greatest(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static long least(long a, long b, long c, long d)
-	{
-		if (d > a && d > b && d > c)
-			return SmallIntegerMathUtilities.least(a, b, c);
-		else if (c > a && c > b && c > d)
-			return SmallIntegerMathUtilities.least(a, b, d);
-		else if (b > a && b > c && b > d)
-			return SmallIntegerMathUtilities.least(a, c, d);
-		else if (a > b && a > c && a > d)
-			return SmallIntegerMathUtilities.least(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static long greatest(long a, long b, long c)
-	{
-		if (c < a && c < b)
-			return SmallIntegerMathUtilities.greatest(a, b);
-		else if (b < a && b < c)
-			return SmallIntegerMathUtilities.greatest(a, c);
-		else if (a < b && a < c)
-			return SmallIntegerMathUtilities.greatest(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static long least(long a, long b, long c)
-	{
-		if (c > a && c > b)
-			return SmallIntegerMathUtilities.least(a, b);
-		else if (b > a && b > c)
-			return SmallIntegerMathUtilities.least(a, c);
-		else if (a > b && a > c)
-			return SmallIntegerMathUtilities.least(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static int least(int a, int b)
-	{
-		return b < a ? b : a;
-	}
-	
 	public static byte checkNotZeroForDivide(byte x)
 	{
 		if (x == 0)
@@ -1417,58 +1360,6 @@ public class SmallIntegerMathUtilities
 		return b > a ? b : a;
 	}
 	
-	public static byte least(byte a, byte b, byte c)
-	{
-		if (c > a && c > b)
-			return least(a, b);
-		else if (b > a && b > c)
-			return least(a, c);
-		else if (a > b && a > c)
-			return least(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static byte greatest(byte a, byte b, byte c)
-	{
-		if (c < a && c < b)
-			return greatest(a, b);
-		else if (b < a && b < c)
-			return greatest(a, c);
-		else if (a < b && a < c)
-			return greatest(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static byte least(byte a, byte b, byte c, byte d)
-	{
-		if (d > a && d > b && d > c)
-			return least(a, b, c);
-		else if (c > a && c > b && c > d)
-			return least(a, b, d);
-		else if (b > a && b > c && b > d)
-			return least(a, c, d);
-		else if (a > b && a > c && a > d)
-			return least(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static byte greatest(byte a, byte b, byte c, byte d)
-	{
-		if (d < a && d < b && d < c)
-			return greatest(a, b, c);
-		else if (c < a && c < b && c < d)
-			return greatest(a, b, d);
-		else if (b < a && b < c && b < d)
-			return greatest(a, c, d);
-		else if (a < b && a < c && a < d)
-			return greatest(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
 	public static char least(char a, char b)
 	{
 		return b < a ? b : a;
@@ -1477,58 +1368,6 @@ public class SmallIntegerMathUtilities
 	public static char greatest(char a, char b)
 	{
 		return b > a ? b : a;
-	}
-	
-	public static char least(char a, char b, char c)
-	{
-		if (c > a && c > b)
-			return least(a, b);
-		else if (b > a && b > c)
-			return least(a, c);
-		else if (a > b && a > c)
-			return least(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static char greatest(char a, char b, char c)
-	{
-		if (c < a && c < b)
-			return greatest(a, b);
-		else if (b < a && b < c)
-			return greatest(a, c);
-		else if (a < b && a < c)
-			return greatest(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static char least(char a, char b, char c, char d)
-	{
-		if (d > a && d > b && d > c)
-			return least(a, b, c);
-		else if (c > a && c > b && c > d)
-			return least(a, b, d);
-		else if (b > a && b > c && b > d)
-			return least(a, c, d);
-		else if (a > b && a > c && a > d)
-			return least(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static char greatest(char a, char b, char c, char d)
-	{
-		if (d < a && d < b && d < c)
-			return greatest(a, b, c);
-		else if (c < a && c < b && c < d)
-			return greatest(a, b, d);
-		else if (b < a && b < c && b < d)
-			return greatest(a, c, d);
-		else if (a < b && a < c && a < d)
-			return greatest(b, c, d);
-		else
-			throw new AssertionError();
 	}
 	
 	public static short least(short a, short b)
@@ -1541,113 +1380,14 @@ public class SmallIntegerMathUtilities
 		return b > a ? b : a;
 	}
 	
-	public static short least(short a, short b, short c)
-	{
-		if (c > a && c > b)
-			return least(a, b);
-		else if (b > a && b > c)
-			return least(a, c);
-		else if (a > b && a > c)
-			return least(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static short greatest(short a, short b, short c)
-	{
-		if (c < a && c < b)
-			return greatest(a, b);
-		else if (b < a && b < c)
-			return greatest(a, c);
-		else if (a < b && a < c)
-			return greatest(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static short least(short a, short b, short c, short d)
-	{
-		if (d > a && d > b && d > c)
-			return least(a, b, c);
-		else if (c > a && c > b && c > d)
-			return least(a, b, d);
-		else if (b > a && b > c && b > d)
-			return least(a, c, d);
-		else if (a > b && a > c && a > d)
-			return least(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static short greatest(short a, short b, short c, short d)
-	{
-		if (d < a && d < b && d < c)
-			return greatest(a, b, c);
-		else if (c < a && c < b && c < d)
-			return greatest(a, b, d);
-		else if (b < a && b < c && b < d)
-			return greatest(a, c, d);
-		else if (a < b && a < c && a < d)
-			return greatest(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
 	public static int greatest(int a, int b)
 	{
 		return b > a ? b : a;
 	}
 	
-	public static int least(int a, int b, int c)
+	public static int least(int a, int b)
 	{
-		if (c > a && c > b)
-			return least(a, b);
-		else if (b > a && b > c)
-			return least(a, c);
-		else if (a > b && a > c)
-			return least(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static int greatest(int a, int b, int c)
-	{
-		if (c < a && c < b)
-			return greatest(a, b);
-		else if (b < a && b < c)
-			return greatest(a, c);
-		else if (a < b && a < c)
-			return greatest(b, c);
-		else
-			throw new AssertionError();
-	}
-	
-	public static int least(int a, int b, int c, int d)
-	{
-		if (d > a && d > b && d > c)
-			return least(a, b, c);
-		else if (c > a && c > b && c > d)
-			return least(a, b, d);
-		else if (b > a && b > c && b > d)
-			return least(a, c, d);
-		else if (a > b && a > c && a > d)
-			return least(b, c, d);
-		else
-			throw new AssertionError();
-	}
-	
-	public static int greatest(int a, int b, int c, int d)
-	{
-		if (d < a && d < b && d < c)
-			return greatest(a, b, c);
-		else if (c < a && c < b && c < d)
-			return greatest(a, b, d);
-		else if (b < a && b < c && b < d)
-			return greatest(a, c, d);
-		else if (a < b && a < c && a < d)
-			return greatest(b, c, d);
-		else
-			throw new AssertionError();
+		return b < a ? b : a;
 	}
 	
 	public static long least(long a, long b)
@@ -1659,6 +1399,291 @@ public class SmallIntegerMathUtilities
 	{
 		return b > a ? b : a;
 	}
+	
+	
+	
+	
+	
+	
+	//These *have* to be >=/<= not >/< other wise imagine if the input was oh, I dunno (4, 6, 6)
+	
+	public static byte least(byte a, byte b, byte c)
+	{
+		if (c >= a && c >= b)
+			return least(a, b);
+		else if (b >= a && b >= c)
+			return least(a, c);
+		else if (a >= b && a >= c)
+			return least(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static byte greatest(byte a, byte b, byte c)
+	{
+		if (c <= a && c <= b)
+			return greatest(a, b);
+		else if (b <= a && b <= c)
+			return greatest(a, c);
+		else if (a <= b && a <= c)
+			return greatest(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static byte least(byte a, byte b, byte c, byte d)
+	{
+		if (d >= a && d >= b && d >= c)
+			return least(a, b, c);
+		else if (c >= a && c >= b && c >= d)
+			return least(a, b, d);
+		else if (b >= a && b >= c && b >= d)
+			return least(a, c, d);
+		else if (a >= b && a >= c && a >= d)
+			return least(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static byte greatest(byte a, byte b, byte c, byte d)
+	{
+		if (d <= a && d <= b && d <= c)
+			return greatest(a, b, c);
+		else if (c <= a && c <= b && c <= d)
+			return greatest(a, b, d);
+		else if (b <= a && b <= c && b <= d)
+			return greatest(a, c, d);
+		else if (a <= b && a <= c && a <= d)
+			return greatest(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static short least(short a, short b, short c)
+	{
+		if (c >= a && c >= b)
+			return least(a, b);
+		else if (b >= a && b >= c)
+			return least(a, c);
+		else if (a >= b && a >= c)
+			return least(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static short greatest(short a, short b, short c)
+	{
+		if (c <= a && c <= b)
+			return greatest(a, b);
+		else if (b <= a && b <= c)
+			return greatest(a, c);
+		else if (a <= b && a <= c)
+			return greatest(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static short least(short a, short b, short c, short d)
+	{
+		if (d >= a && d >= b && d >= c)
+			return least(a, b, c);
+		else if (c >= a && c >= b && c >= d)
+			return least(a, b, d);
+		else if (b >= a && b >= c && b >= d)
+			return least(a, c, d);
+		else if (a >= b && a >= c && a >= d)
+			return least(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static short greatest(short a, short b, short c, short d)
+	{
+		if (d <= a && d <= b && d <= c)
+			return greatest(a, b, c);
+		else if (c <= a && c <= b && c <= d)
+			return greatest(a, b, d);
+		else if (b <= a && b <= c && b <= d)
+			return greatest(a, c, d);
+		else if (a <= b && a <= c && a <= d)
+			return greatest(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static char least(char a, char b, char c)
+	{
+		if (c >= a && c >= b)
+			return least(a, b);
+		else if (b >= a && b >= c)
+			return least(a, c);
+		else if (a >= b && a >= c)
+			return least(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static char greatest(char a, char b, char c)
+	{
+		if (c <= a && c <= b)
+			return greatest(a, b);
+		else if (b <= a && b <= c)
+			return greatest(a, c);
+		else if (a <= b && a <= c)
+			return greatest(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static char least(char a, char b, char c, char d)
+	{
+		if (d >= a && d >= b && d >= c)
+			return least(a, b, c);
+		else if (c >= a && c >= b && c >= d)
+			return least(a, b, d);
+		else if (b >= a && b >= c && b >= d)
+			return least(a, c, d);
+		else if (a >= b && a >= c && a >= d)
+			return least(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static char greatest(char a, char b, char c, char d)
+	{
+		if (d <= a && d <= b && d <= c)
+			return greatest(a, b, c);
+		else if (c <= a && c <= b && c <= d)
+			return greatest(a, b, d);
+		else if (b <= a && b <= c && b <= d)
+			return greatest(a, c, d);
+		else if (a <= b && a <= c && a <= d)
+			return greatest(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static int least(int a, int b, int c)
+	{
+		if (c >= a && c >= b)
+			return least(a, b);
+		else if (b >= a && b >= c)
+			return least(a, c);
+		else if (a >= b && a >= c)
+			return least(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static int greatest(int a, int b, int c)
+	{
+		if (c <= a && c <= b)
+			return greatest(a, b);
+		else if (b <= a && b <= c)
+			return greatest(a, c);
+		else if (a <= b && a <= c)
+			return greatest(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static int least(int a, int b, int c, int d)
+	{
+		if (d >= a && d >= b && d >= c)
+			return least(a, b, c);
+		else if (c >= a && c >= b && c >= d)
+			return least(a, b, d);
+		else if (b >= a && b >= c && b >= d)
+			return least(a, c, d);
+		else if (a >= b && a >= c && a >= d)
+			return least(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static int greatest(int a, int b, int c, int d)
+	{
+		if (d <= a && d <= b && d <= c)
+			return greatest(a, b, c);
+		else if (c <= a && c <= b && c <= d)
+			return greatest(a, b, d);
+		else if (b <= a && b <= c && b <= d)
+			return greatest(a, c, d);
+		else if (a <= b && a <= c && a <= d)
+			return greatest(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static long greatest(long a, long b, long c, long d)
+	{
+		if (d <= a && d <= b && d <= c)
+			return SmallIntegerMathUtilities.greatest(a, b, c);
+		else if (c <= a && c <= b && c <= d)
+			return SmallIntegerMathUtilities.greatest(a, b, d);
+		else if (b <= a && b <= c && b <= d)
+			return SmallIntegerMathUtilities.greatest(a, c, d);
+		else if (a <= b && a <= c && a <= d)
+			return SmallIntegerMathUtilities.greatest(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static long least(long a, long b, long c, long d)
+	{
+		if (d >= a && d >= b && d >= c)
+			return SmallIntegerMathUtilities.least(a, b, c);
+		else if (c >= a && c >= b && c >= d)
+			return SmallIntegerMathUtilities.least(a, b, d);
+		else if (b >= a && b >= c && b >= d)
+			return SmallIntegerMathUtilities.least(a, c, d);
+		else if (a >= b && a >= c && a >= d)
+			return SmallIntegerMathUtilities.least(b, c, d);
+		else
+			throw new AssertionError();
+	}
+	
+	public static long greatest(long a, long b, long c)
+	{
+		if (c <= a && c <= b)
+			return SmallIntegerMathUtilities.greatest(a, b);
+		else if (b <= a && b <= c)
+			return SmallIntegerMathUtilities.greatest(a, c);
+		else if (a <= b && a <= c)
+			return SmallIntegerMathUtilities.greatest(b, c);
+		else
+			throw new AssertionError();
+	}
+	
+	public static long least(long a, long b, long c)
+	{
+		if (c >= a && c >= b)
+			return SmallIntegerMathUtilities.least(a, b);
+		else if (b >= a && b >= c)
+			return SmallIntegerMathUtilities.least(a, c);
+		else if (a >= b && a >= c)
+			return SmallIntegerMathUtilities.least(b, c);
+		else
+			throw new AssertionError(a+","+b+","+c);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static long ceilingDivision(long numerator, long divisor)
 	{

@@ -3226,4 +3226,292 @@ implements JavaNamespace
 		else
 			return least(-diff, modularBase + diff);  //diff will be negative here :33
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO Test theseeeeeeee! :D
+	
+	
+	
+	
+	public static final ArithmeticIntegerInterval EmptyInterval = new ArithmeticIntegerInterval(0, 0);
+	
+	public static ArithmeticIntegerInterval emptyInterval()
+	{
+		return EmptyInterval;
+	}
+	
+	
+	public static ArithmeticIntegerInterval singletonInterval(long v)
+	{
+		return intervalByPointAndSize(v, 1);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByPoints(long lowInclusive, long highExclusive)
+	{
+		return new ArithmeticIntegerInterval(lowInclusive, highExclusive - lowInclusive);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByPointAndSize(long lowInclusive, long size)
+	{
+		return new ArithmeticIntegerInterval(lowInclusive, size);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByPointsOrEmptyIfReversed(long lowInclusive, long highExclusive)
+	{
+		return intervalByPointAndSizeOrEmptyIfReversed(lowInclusive, highExclusive - lowInclusive);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByPointAndSizeOrEmptyIfReversed(long lowInclusive, long size)
+	{
+		if (size < 0)
+			return emptyInterval();
+		else
+			return intervalByPointAndSize(lowInclusive, size);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByIntervalExplicitBounds(ArithmeticIntegerInterval low, boolean lowInclusive, ArithmeticIntegerInterval high, boolean highInclusive)
+	{
+		long l = lowInclusive ? low.getStart() : low.getPastEnd();
+		long h = highInclusive ? high.getPastEnd() : high.getStart();
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByExplicitBounds(long low, boolean lowInclusive, long high, boolean highInclusive)
+	{
+		//return intervalByIntervalExplicitBounds(intervalByPointAndSize(low, 1), lowInclusive, intervalByPointAndSize(high, 1), highInclusive);
+		long l = lowInclusive ? low : low+1;
+		long h = highInclusive ? high+1 : high;
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	
+	
+	
+	public static ArithmeticIntegerInterval intervalAdd(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return intervalByPoints(al + bl, ah + bh);
+	}
+	
+	public static ArithmeticIntegerInterval intervalSubtract(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return intervalByPoints(al - bh, ah - bl);
+	}
+	
+	public static ArithmeticIntegerInterval intervalNegate(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		
+		return intervalByPoints(-ah, -al);
+	}
+	
+	public static ArithmeticIntegerInterval intervalMultiply(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long c0 = al*bl;
+		long c1 = ah*bl;
+		long c2 = al*bh;
+		long c3 = ah*bh;
+		
+		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
+	}
+	
+	//This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b get close to and then include zero!)
+	//	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	//	{
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		long bl = b.getStart();
+	//		long bh = b.getPastEnd();
+	//		
+	//		long c0 = al/bl;
+	//		long c1 = ah/bl;
+	//		long c2 = al/bh;
+	//		long c3 = ah/bh;
+	//		
+	//		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
+	//	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound intervals!)
+	 */
+	public static ArithmeticIntegerInterval intervalUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		//Check :>
+		{
+			long l = greatest(al, bl);
+			long h = least(ah, bh);
+			
+			if (l > h)
+				throw new IllegalArgumentException("Tried to union disjoint intervals: "+a+" ∪ "+b);
+		}
+		
+		long l = least(al, bl);
+		long h = greatest(ah, bh);
+		
+		return intervalByPoints(l, h);
+	}
+	
+	
+	/**
+	 * The lowest of the low to the highest of the high..including any space between the intervals even if that wasn't actually in either interval (which is what makes this different from {@link #intervalUnion(ArithmeticIntegerInterval, ArithmeticIntegerInterval)})
+	 */
+	public static ArithmeticIntegerInterval intervalBoundsUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long l = least(al, bl);
+		long h = greatest(ah, bh);
+		
+		return intervalByPoints(l, h);
+	}
+	
+	
+	/**
+	 * @return an {@link #emptyInterval() empty interval} if they don't overlap (including if they just barely touch!)
+	 */
+	public static ArithmeticIntegerInterval intervalIntersection(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long l = greatest(al, bl);
+		long h = least(ah, bh);
+		
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	
+	
+	public static long intervalMidpointFloor(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.floorDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointCeiling(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.ceilingDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointNearzero(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return (ah - al) / 2;
+	}
+	
+	public static long intervalMidpointAwayzero(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.awayfromzeroDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointRounding(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.roundingIntegerDivision(ah - al, 2);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @return null if super doesn't completely enclose sub!
+	 */
+	public static ArithmeticIntegerInterval intervalIntersectionOfSubset(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		return intervalIsSubsetOrEqual(superCandidate, subCandidate) ? subCandidate : null;
+	}
+	
+	
+	public static boolean intervalIsSubsetOrEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		ArithmeticIntegerInterval a = superCandidate;
+		ArithmeticIntegerInterval b = subCandidate;
+		
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return al <= bl && ah >= bh;
+	}
+	
+	public static boolean intervalIsSubsetNotEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		return intervalIsSubsetOrEqual(superCandidate, subCandidate) && !eq(superCandidate, subCandidate);
+	}
+	
+	
+	/**
+	 * @return null if one doesn't completely enclose the other!
+	 */
+	public static ArithmeticIntegerInterval intervalIntersectionOfSubsetSymmetric(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		ArithmeticIntegerInterval r = intervalIntersectionOfSubset(a, b);
+		return r != null ? r : intervalIntersectionOfSubset(b, a);
+	}
 }

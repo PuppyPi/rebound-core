@@ -5,6 +5,7 @@
 package rebound.io;
 
 import static java.util.Objects.*;
+import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import java.io.BufferedInputStream;
@@ -19,6 +20,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import rebound.exceptions.ImpossibleException;
 import rebound.io.iio.InputByteStream;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.util.collections.ArrayUtilities;
@@ -698,6 +700,30 @@ implements JavaNamespace
 	
 	
 	
+	public static int read1viaReadBlock(InputStream in, byte[] buf1) throws EOFException, IOException
+	{
+		return read1viaReadBlock(in, buf1, 0);
+	}
+	
+	public static int read1viaReadBlock(InputStream in, byte[] buf1, int offset) throws EOFException, IOException
+	{
+		while (true)
+		{
+			int r = in.read(buf1, offset, 1);
+			
+			if (r == -1)
+				return -1;
+			else if (r == 1)
+				return upcast(buf1[offset]);
+			else if (r == 0)
+				continue;
+			else
+				throw new ImpossibleException("an InputStream implementation's read(byte[], int, int) method returned more bytes (+r+) than were requested! (1)");
+		}
+	}
+	
+	
+	
 	
 	
 	
@@ -709,5 +735,69 @@ implements JavaNamespace
 	public static int readSlice(InputStream in, Slice<byte[]> data) throws IOException
 	{
 		return in.read(data.getUnderlying(), data.getOffset(), data.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean streameq(InputStream a, InputStream b) throws IOException
+	{
+		return streamcmp(a, b) == 0;
+	}
+	
+	public static int streamcmp(InputStream a, InputStream b) throws IOException
+	{
+		//// yay JIT compiling! :D ////
+		BufferedInputStream ab = ensureBufferedInputStream(a);
+		BufferedInputStream bb = ensureBufferedInputStream(b);
+		///////////////////////////////
+		
+		while (true)
+		{
+			int ac = ab.read();
+			int bc = bb.read();
+			
+			if (ac < 0)
+			{
+				if (bc < 0)
+				{
+					return 0;
+				}
+				else
+				{
+					return -1;
+				}
+			}
+			else
+			{
+				if (bc < 0)
+				{
+					return 1;
+				}
+				else
+				{
+					if (ac == bc)
+					{
+						//continue;
+					}
+					else if (ac < bc)
+					{
+						return -1;
+					}
+					else //if (ac > bc)
+					{
+						return 1;
+					}
+				}
+			}
+		}
 	}
 }

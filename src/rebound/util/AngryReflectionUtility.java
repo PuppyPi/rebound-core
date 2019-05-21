@@ -1788,4 +1788,42 @@ implements JavaNamespace
 		member.setAccessible(true);
 		return member;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Type getListGenericParameterTypeOrNull(Type t)
+	{
+		if (t == List.class)
+			return Object.class;
+		else if (t instanceof ParameterizedType && ((ParameterizedType)t).getRawType() == List.class)
+			return ((ParameterizedType)t).getActualTypeArguments()[0];
+		else
+			return null;
+	}
+	
+	public static Type getMapKeysGenericParameterTypeOrNull(Type t)
+	{
+		if (t == Map.class)
+			return Object.class;
+		else if (t instanceof ParameterizedType && ((ParameterizedType)t).getRawType() == Map.class)
+			return ((ParameterizedType)t).getActualTypeArguments()[0];
+		else
+			return null;
+	}
+	
+	public static Type getMapValuesGenericParameterTypeOrNull(Type t)
+	{
+		if (t == Map.class)
+			return Object.class;
+		else if (t instanceof ParameterizedType && ((ParameterizedType)t).getRawType() == Map.class)
+			return ((ParameterizedType)t).getActualTypeArguments()[1];
+		else
+			return null;
+	}
 }

@@ -208,12 +208,20 @@ public class CollectionUtilities
 			
 			//Only check containsKey if necessary!  ;D
 			if (v != null)
+			{
 				return v;
+			}
 			else
+			{
 				if (map.containsKey(key))
+				{
 					return null;
+				}
 				else
+				{
 					throw NoSuchMappingReturnPath.I;
+				}
+			}
 		}
 	}
 	
@@ -828,6 +836,56 @@ public class CollectionUtilities
 	}
 	
 	
+	@Nonnull
+	public static <E> List<E> emptyListIfNull(@Nullable List<E> o)
+	{
+		return o == null ? emptyList() : o;
+	}
+	
+	@Nonnull
+	public static <E> Set<E> emptySetIfNull(@Nullable Set<E> o)
+	{
+		return o == null ? emptySet() : o;
+	}
+	
+	@Nonnull
+	public static <E> Collection<E> emptyCollectionIfNull(@Nullable Collection<E> o)
+	{
+		return o == null ? emptyCollection() : o;
+	}
+	
+	@Nonnull
+	public static <E> Iterable<E> emptyIterableIfNull(@Nullable Iterable<E> o)
+	{
+		return o == null ? emptyIterable() : o;
+	}
+	
+	
+	@Nonnull
+	public static <K, V> Map<K, V> emptyMapIfNull(@Nullable Map<K, V> o)
+	{
+		return o == null ? emptyMap() : o;
+	}
+	
+	
+	
+	
+	
+	public static <E> Collection<E> emptyCollection()
+	{
+		return emptySet();  //why not? X3
+	}
+	
+	public static <E> Set<E> singletonSet(E e)
+	{
+		return singleton(e);
+	}
+	
+	
+	
+	
+	
+	
 	public static <K, V> void defaultPutAll(Map<K, V> self, Map<? extends K, ? extends V> m)
 	{
 		for (Entry<? extends K, ? extends V> e : m.entrySet())
@@ -962,12 +1020,12 @@ public class CollectionUtilities
 	
 	
 	@ThrowAwayValue
-	public static <E> List<E> concatenateListsOP(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b)
+	public static <E> List<E> concatenateListsOP(@ReadonlyValue Iterable<E> a, @ReadonlyValue Iterable<E> b)
 	{
-		List<E> l = new ArrayList<>(a.size() + b.size());
+		List<E> l = a instanceof Collection && b instanceof Collection ? new ArrayList<>(((Collection)a).size() + ((Collection)a).size()) : new ArrayList<>();
 		
-		l.addAll(a);
-		l.addAll(b);
+		addAll(l, a);
+		addAll(l, b);
 		
 		return l;
 	}
@@ -975,14 +1033,118 @@ public class CollectionUtilities
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue
-	public static <E> List<E> concatenateListsOPC(@ReadonlyValue List<? extends E> a, @ReadonlyValue List<? extends E> b)
+	public static <E> List<E> concatenateListsOPC(@ReadonlyValue Iterable<E> a, @ReadonlyValue Iterable<E> b)
 	{
-		if (a.isEmpty())
-			return (List)b;
-		else if (b.isEmpty())
+		if (a instanceof List && b instanceof Collection && ((Collection)b).isEmpty())
 			return (List)a;
+		else if (b instanceof List && a instanceof Collection && ((Collection)a).isEmpty())
+			return (List)b;
 		else
-			return concatenateListsOP((List)a, (List)b);
+			return concatenateListsOP(a, b);
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
+	public static <E> List<E> concatenateManyListsOPC_V(@ReadonlyValue Iterable<E>... lists)
+	{
+		int n = lists.length;
+		
+		if (n == 0)
+		{
+			return emptyList();
+		}
+		else if (n == 1)
+		{
+			return toList(lists[0]);
+		}
+		else if (n == 2)
+		{
+			return concatenateListsOPC(lists[0], lists[1]);
+		}
+		else
+		{
+			boolean hasInfo = true;
+			int totalSize = 0;
+			boolean hasMultipleNonEmpties = false;
+			Iterable<E> nonEmpty = null;
+			{
+				for (Iterable<E> input : lists)
+				{
+					if (input instanceof Collection)
+					{
+						Collection in = (Collection) input;
+						
+						int size = in.size();
+						
+						if (size == 0)
+						{
+							//No worries :3
+						}
+						else
+						{
+							totalSize += size;
+							
+							if (nonEmpty == null)
+							{
+								nonEmpty = input;
+							}
+							else
+							{
+								if (!hasMultipleNonEmpties)
+									hasMultipleNonEmpties = true;
+							}
+						}
+					}
+					else
+					{
+						hasInfo = false;
+						break;
+					}
+				}
+			}
+			
+			
+			if (hasInfo)
+			{
+				if (nonEmpty == null)
+				{
+					if (totalSize != 0) throw new AssertionError();
+					
+					return emptyList();
+				}
+				else
+				{
+					if (!hasMultipleNonEmpties)
+					{
+						return toList(nonEmpty);
+					}
+				}
+			}
+			
+			
+			List<E> l = hasInfo ? new ArrayList<>(totalSize) : new ArrayList<>();
+			
+			for (Iterable<E> in : lists)
+				addAll(l, in);
+			
+			return l;
+		}
+	}
+	
+	public static <E> List<E> toList(Iterable<E> i)
+	{
+		if (i instanceof List)
+			return (List<E>)i;
+		else if (i instanceof Collection)
+			return new ArrayList<>((Collection<E>)i);
+		else
+		{
+			List<E> l = new ArrayList<>();
+			for (E e : i)
+				l.add(e);
+			return l;
+		}
 	}
 	
 	
@@ -3249,27 +3411,36 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static <E> Set<E> union(Set<E> a, Set<E> b) //OR (14)
+	@ReadonlyValue
+	public static <K, V> Map<K, V> unionMaps(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b)
+	{
+		Map<K, V> r = new HashMap<>(a.size() + b.size());
+		r.putAll(a);
+		r.putAll(b);
+		return r;
+	}
+	
+	public static <E> Set<E> union(Iterable<E> a, Iterable<E> b) //OR (14)
 	{
 		return unionV(a, b);
 	}
 	
-	public static <E> Set<E> unionV(Collection<E>... sets) //OR (14)
+	public static <E> Set<E> unionV(Iterable<E>... sets) //OR (14)
 	{
 		Set<E> output = new HashSet<>();
 		
-		for (Collection<E> c : sets)
-			output.addAll(c);
+		for (Iterable<E> c : sets)
+			addAll(output, c);
 		
 		return output;
 	}
 	
-	public static <E> Set<E> unionMany(Iterable<? extends Collection<E>> sets) //OR (14)
+	public static <E> Set<E> unionMany(Iterable<? extends Iterable<E>> sets) //OR (14)
 	{
 		Set<E> output = new HashSet<>();
 		
-		for (Collection<E> c : sets)
-			output.addAll(c);
+		for (Iterable<E> c : sets)
+			addAll(output, c);
 		
 		return output;
 	}
@@ -5100,13 +5271,13 @@ _$$primxpconf:intsonly$$_
 	@ReadonlyValue
 	public static <E> List<E> newlist(E... members)
 	{
-		return asList(members);
+		return members.length == 0 ? emptyList() : (members.length == 1 ? singletonList(members[0]) : asList(members));
 	}
 	
 	@ThrowAwayValue
 	public static <E> List<E> newlistMutable(E... members)
 	{
-		return new ArrayList<>(asList(members));
+		return new ArrayList<>(newlist(members));
 	}
 	
 	@ThrowAwayValue
@@ -6883,14 +7054,19 @@ _$$primxpconf:intsonly$$_
 	@ThrowAwayValue
 	public static <I,O> Map<O, Integer> getColumnHeadersToIndexesMap(SimpleTable<I> table, int headerRowIndex, Mapper<I, O> columnHeaderMapperAndFilter) throws NonForwardInjectiveMapException
 	{
+		return getColumnHeadersToIndexesMap(table.rowToList(headerRowIndex), columnHeaderMapperAndFilter);
+	}
+	
+	
+	
+	@ThrowAwayValue
+	public static <I,O> Map<O, Integer> getColumnHeadersToIndexesMap(List<I> tableHeaders, Mapper<I, O> columnHeaderMapperAndFilter) throws NonForwardInjectiveMapException
+	{
 		Map<O, Integer> headersToIndexes = new HashMap<>();
 		
-		int nc = table.getNumberOfColumns();
-		
-		for (int columnIndex = 0; columnIndex < nc; columnIndex++)
+		int columnIndex = 0;
+		for (I header : tableHeaders)
 		{
-			I header = table.getCellContents(columnIndex, headerRowIndex);
-			
 			try
 			{
 				O mappedHeader = columnHeaderMapperAndFilter == null ? (O)header : columnHeaderMapperAndFilter.f(header);
@@ -6902,6 +7078,8 @@ _$$primxpconf:intsonly$$_
 			catch (FilterAwayReturnPath exc)
 			{
 			}
+			
+			columnIndex++;
 		}
 		
 		return headersToIndexes;
@@ -6910,9 +7088,9 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ThrowAwayValue
-	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasing(SimpleTable<String> table, int headerRowIndex) throws NonForwardInjectiveMapException
+	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasing(List<String> tableHeaders) throws NonForwardInjectiveMapException
 	{
-		return CollectionUtilities.getColumnHeadersToIndexesMap(table, headerRowIndex, h ->
+		return CollectionUtilities.getColumnHeadersToIndexesMap(tableHeaders, h ->
 		{
 			h = h.trim();
 			
@@ -6925,15 +7103,15 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ThrowAwayValue
-	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(SimpleTable<String> table, int headerRowIndex, String... expectedHeaders) throws NonForwardInjectiveMapException
+	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(List<String> tableHeaders, String... expectedHeaders) throws NonForwardInjectiveMapException
 	{
-		return getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(table, headerRowIndex, PolymorphicCollectionUtilities.anyToSet(expectedHeaders));
+		return getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(tableHeaders, PolymorphicCollectionUtilities.anyToSet(expectedHeaders));
 	}
 	
 	@ThrowAwayValue
-	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(SimpleTable<String> table, int headerRowIndex, Set<String> expectedHeaders) throws NonForwardInjectiveMapException
+	public static Map<String, Integer> getColumnHeadersToIndexesMapStringsDefaultLowercasingValidatingExactCaseInsensitively(List<String> tableHeaders, Set<String> expectedHeaders) throws NonForwardInjectiveMapException
 	{
-		Map<String, Integer> h = getColumnHeadersToIndexesMapStringsDefaultLowercasing(table, headerRowIndex);
+		Map<String, Integer> h = getColumnHeadersToIndexesMapStringsDefaultLowercasing(tableHeaders);
 		
 		Set<String> expectedHeadersLowercased = mapToNewSet(String::toLowerCase, expectedHeaders);
 		
@@ -8082,5 +8260,24 @@ _$$primxpconf:intsonly$$_
 		BooleanContainer hasMatching_C = new SimpleBooleanContainer(false);
 		observerUsingFunction.f(e -> { if (predicate.test(e)) hasMatching_C.set(true); });
 		return hasMatching_C.get();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> void setInListGrowingWithNullsIfNecessary(List<E> list, int index, E element)
+	{
+		if (index >= list.size())
+			setListSizeGrowing(list, index+1, null);
+		
+		list.set(index, element);
 	}
 }
