@@ -53,6 +53,9 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
+import rebound.annotations.semantic.simpledata.NonnullElements;
+import rebound.annotations.semantic.simpledata.NonnullKeys;
+import rebound.annotations.semantic.simpledata.NonnullValues;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.GenericDatastructuresFormatException;
@@ -2208,6 +2211,21 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	public static <E> int countEq(E candidate, @CollectionValue E[] list)
+	{
+		return count(x -> eq(candidate, x), list);
+	}
+	
+	public static <E> int countEq(E candidate, @CollectionValue Iterable list)
+	{
+		return count(x -> eq(candidate, x), list);
+	}
+	
+	
+	
+	
+	
+	
 	public static <E> int count(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		int length = list.length;
@@ -2218,33 +2236,32 @@ _$$primxpconf:intsonly$$_
 		return count;
 	}
 	
-	public static <E> int count(Predicate<E> predicate, @CollectionValue List<E> list)
-	{
-		if (isRandomAccessFast(list))
-		{
-			int length = list.size();
-			int count = 0;
-			for (int i = 0; i < length; i++)
-				if (predicate.test(list.get(i)))
-					count++;
-			return count;
-		}
-		else
-		{
-			int count = 0;
-			for (E element : list)
-			{
-				if (predicate.test(element))
-					count++;
-			}
-			return count;
-		}
-	}
-	
-	public static <E> int count(Predicate<E> predicate, @CollectionValue Collection<E> collection)
+	public static <E> int count(Predicate<E> predicate, @CollectionValue Iterable<E> collection)
 	{
 		if (collection instanceof List)
-			return count(predicate, (List)collection);
+		{
+			List<E> list = (List<E>) collection;
+			
+			if (isRandomAccessFast(list))
+			{
+				int length = list.size();
+				int count = 0;
+				for (int i = 0; i < length; i++)
+					if (predicate.test(list.get(i)))
+						count++;
+				return count;
+			}
+			else
+			{
+				int count = 0;
+				for (E element : list)
+				{
+					if (predicate.test(element))
+						count++;
+				}
+				return count;
+			}
+		}
 		else
 		{
 			int count = 0;
@@ -4032,6 +4049,59 @@ _$$primxpconf:intsonly$$_
 			else
 			{
 				break;
+			}
+		}
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Using {@link Collection#equals} even of two members of the same <code>runtime type</code> might require other things like say ordering if they are {@link List}s.
+	 * This does proper multi-set equivalence.  Ie, order doesn't matter just like {@link Set}s, the only difference from {@link Set}s being that duplicate elements can be contained :3
+	 * (You can think of sets as restricted multi-sets, and multi-set-equivalence is comparing the *count integer* not the *is-member/contains boolean* for each element, and sets just merely ever contain 0 or 1 of each element :3 )
+	 */
+	public static <E> boolean multiSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b)
+	{
+		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, (x, y) -> eq(x, y));
+	}
+	
+	public static <E> boolean multiSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
+	{
+		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, eq);
+	}
+	
+	public static <E> boolean defaultMultiSetsEquivalent_SmallNaive(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
+	{
+		if (a == b) return true;
+		if (a == null || b == null) return false;
+		
+		int as = a.size();
+		int bs = b.size();
+		
+		if (as != bs)
+			return false;
+		
+		if (as == 0)
+		{
+			assert bs == 0;
+			
+			return true;
+		}
+		
+		for (E e : a)
+		{
+			int ca = count(x -> eq.equals(x, e), a);
+			int cb = count(x -> eq.equals(x, e), b);
+			
+			if (ca != cb)
+			{
+				return false;
 			}
 		}
 		
@@ -8248,6 +8318,13 @@ _$$primxpconf:intsonly$$_
 		return set;
 	}
 	
+	public static <E> Collection<E> getAllMultiSetWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction)
+	{
+		Collection<E> set = new ArrayList<>();
+		observerUsingFunction.f(set::add);
+		return set;
+	}
+	
 	public static <E> boolean hasAnyWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction)
 	{
 		BooleanContainer hasAny_C = new SimpleBooleanContainer(false);
@@ -8279,5 +8356,29 @@ _$$primxpconf:intsonly$$_
 			setListSizeGrowing(list, index+1, null);
 		
 		list.set(index, element);
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void requireNonNullElements(@NonnullElements Iterable collection)
+	{
+		for (Object k : collection)
+			requireNonNull(k);
+	}
+	
+	public static void requireNonNullKeys(@NonnullKeys Map map)
+	{
+		for (Object k : map.keySet())
+			requireNonNull(k);
+	}
+	
+	public static void requireNonNullValues(@NonnullValues Map map)
+	{
+		for (Object k : map.values())
+			requireNonNull(k);
 	}
 }

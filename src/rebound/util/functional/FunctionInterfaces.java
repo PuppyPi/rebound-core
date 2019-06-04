@@ -47,35 +47,114 @@ implements JavaNamespace
 	
 	
 	
-	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse
-	public static interface UnaryProcedure<Input>
+	
+	
+	
+	
+	/* <<<
+	primxp
+
+	public static interface _$$Prim$$_EqualityComparator
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedure.class, "f");
-		public void f(Input input);
-		
-		//public static UnaryProcedure<?> Noop = (input) -> {};
+		public boolean _$$prim$$_sEqual(_$$prim$$_ a, _$$prim$$_ b);
+	}
+
+	public static interface _$$Prim$$_Comparator
+	{
+		public int compare_$$Prim$$_s(_$$prim$$_ a, _$$prim$$_ b);
 	}
 	
-	public static interface BinaryProcedure<Input0, Input1>
+	 */
+	
+	public static interface BooleanEqualityComparator
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedure.class, "f");
-		public void f(Input0 input0, Input1 input1);
-		
-		//public static BinaryProcedure<?, ?> Noop = (input0, input1) -> {};
+		public boolean booleansEqual(boolean a, boolean b);
 	}
 	
-	public static interface TrinaryProcedure<Input0, Input1, Input2>
+	public static interface BooleanComparator
 	{
-		public void f(Input0 input0, Input1 input1, Input2 input2);
+		public int compareBooleans(boolean a, boolean b);
 	}
 	
 	
+	public static interface ByteEqualityComparator
+	{
+		public boolean bytesEqual(byte a, byte b);
+	}
+	
+	public static interface ByteComparator
+	{
+		public int compareBytes(byte a, byte b);
+	}
 	
 	
+	public static interface CharEqualityComparator
+	{
+		public boolean charsEqual(char a, char b);
+	}
+	
+	public static interface CharComparator
+	{
+		public int compareChars(char a, char b);
+	}
 	
 	
+	public static interface ShortEqualityComparator
+	{
+		public boolean shortsEqual(short a, short b);
+	}
+	
+	public static interface ShortComparator
+	{
+		public int compareShorts(short a, short b);
+	}
 	
 	
+	public static interface FloatEqualityComparator
+	{
+		public boolean floatsEqual(float a, float b);
+	}
+	
+	public static interface FloatComparator
+	{
+		public int compareFloats(float a, float b);
+	}
+	
+	
+	public static interface IntEqualityComparator
+	{
+		public boolean intsEqual(int a, int b);
+	}
+	
+	public static interface IntComparator
+	{
+		public int compareInts(int a, int b);
+	}
+	
+	
+	public static interface DoubleEqualityComparator
+	{
+		public boolean doublesEqual(double a, double b);
+	}
+	
+	public static interface DoubleComparator
+	{
+		public int compareDoubles(double a, double b);
+	}
+	
+	
+	public static interface LongEqualityComparator
+	{
+		public boolean longsEqual(long a, long b);
+	}
+	
+	public static interface LongComparator
+	{
+		public int compareLongs(long a, long b);
+	}
+	
+	
+	//>>>
 	
 	
 	
@@ -221,16 +300,16 @@ def genObjectProcedure(arity, arityName=Default, p=p):
 
 genFunctions(0);	#9
 genFunctions(1);	#81
-genFunctions(2);	#729
+#genFunctions(2);	#729
 
 #[--genProcedures(0);	#1--]			just use java.lang.Runnable! ^_~
 genProcedures(1);	#9
 genProcedures(2);	#81
-genProcedures(3);	#729
+#genProcedures(3);	#729
 
 #Note: 254 is the maximum number of input parameters to a Java function, apparently! ^w^''
-for arity in range(3, 16): genObjectFunction(arity);
-for arity in range(4, 16): genObjectProcedure(arity);
+for arity in range(2, 16): genObjectFunction(arity);
+for arity in range(3, 16): genObjectProcedure(arity);
 
 					#1664 total!
 	 */
@@ -241,8 +320,8 @@ for arity in range(4, 16): genObjectProcedure(arity);
 		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NullaryFunctionToBoolean.class, "f");
 		public boolean f();
 		
-		////public static final NullaryFunctionToBoolean AlwaysFalse = () -> false;
-		////public static final NullaryFunctionToBoolean AlwaysTrue = () -> true;
+		//public static final NullaryFunctionToBoolean AlwaysFalse = () -> false;
+		//public static final NullaryFunctionToBoolean AlwaysTrue = () -> true;
 	}
 	
 	
@@ -252,7 +331,7 @@ for arity in range(4, 16): genObjectProcedure(arity);
 		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NullaryFunctionToByte.class, "f");
 		public byte f();
 		
-		////public static final NullaryFunctionToByte AlwaysZero = () -> ((byte)0);
+		//public static final NullaryFunctionToByte AlwaysZero = () -> ((byte)0);
 	}
 	
 	
@@ -262,7 +341,7 @@ for arity in range(4, 16): genObjectProcedure(arity);
 		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NullaryFunctionToChar.class, "f");
 		public char f();
 		
-		////public static final NullaryFunctionToChar AlwaysZero = () -> ((char)0);
+		//public static final NullaryFunctionToChar AlwaysZero = () -> ((char)0);
 	}
 	
 	
@@ -272,7 +351,7 @@ for arity in range(4, 16): genObjectProcedure(arity);
 		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NullaryFunctionToShort.class, "f");
 		public short f();
 		
-		////public static final NullaryFunctionToShort AlwaysZero = () -> ((short)0);
+		//public static final NullaryFunctionToShort AlwaysZero = () -> ((short)0);
 	}
 	
 	
@@ -411,6 +490,17 @@ for arity in range(4, 16): genObjectProcedure(arity);
 		
 		//public static final UnaryFunctionLongToBoolean AlwaysFalse = (input) -> false;
 		//public static final UnaryFunctionLongToBoolean AlwaysTrue = (input) -> true;
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryFunctionObjectToBoolean<Input>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryFunctionObjectToBoolean.class, "f");
+		public boolean f(Input input);
+		
+		//public static final UnaryFunctionObjectToBoolean<?> AlwaysFalse = (input) -> false;
+		//public static final UnaryFunctionObjectToBoolean<?> AlwaysTrue = (input) -> true;
 	}
 	
 	
@@ -1125,7 +1215,6 @@ for arity in range(4, 16): genObjectProcedure(arity);
 	
 	
 	@FunctionalInterface
-	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse
 	public static interface UnaryFunction<Input, Output>
 	{
 		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryFunction.class, "f");
@@ -1135,6 +1224,904 @@ for arity in range(4, 16): genObjectProcedure(arity);
 	}
 	
 	
+	@FunctionalInterface
+	public static interface UnaryProcedureBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureBoolean.class, "f");
+		public void f(boolean input);
+		
+		//public static final UnaryProcedureBoolean Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureByte.class, "f");
+		public void f(byte input);
+		
+		//public static final UnaryProcedureByte Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureChar.class, "f");
+		public void f(char input);
+		
+		//public static final UnaryProcedureChar Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureShort.class, "f");
+		public void f(short input);
+		
+		//public static final UnaryProcedureShort Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureFloat.class, "f");
+		public void f(float input);
+		
+		//public static final UnaryProcedureFloat Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureInt.class, "f");
+		public void f(int input);
+		
+		//public static final UnaryProcedureInt Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureDouble.class, "f");
+		public void f(double input);
+		
+		//public static final UnaryProcedureDouble Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureLong.class, "f");
+		public void f(long input);
+		
+		//public static final UnaryProcedureLong Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedure<Input>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedure.class, "f");
+		public void f(Input input);
+		
+		//public static final UnaryProcedure<?> Noop = (input) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanBoolean.class, "f");
+		public void f(boolean input0, boolean input1);
+		
+		//public static final BinaryProcedureBooleanBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteBoolean.class, "f");
+		public void f(byte input0, boolean input1);
+		
+		//public static final BinaryProcedureByteBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharBoolean.class, "f");
+		public void f(char input0, boolean input1);
+		
+		//public static final BinaryProcedureCharBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortBoolean.class, "f");
+		public void f(short input0, boolean input1);
+		
+		//public static final BinaryProcedureShortBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatBoolean.class, "f");
+		public void f(float input0, boolean input1);
+		
+		//public static final BinaryProcedureFloatBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntBoolean.class, "f");
+		public void f(int input0, boolean input1);
+		
+		//public static final BinaryProcedureIntBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleBoolean.class, "f");
+		public void f(double input0, boolean input1);
+		
+		//public static final BinaryProcedureDoubleBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongBoolean
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongBoolean.class, "f");
+		public void f(long input0, boolean input1);
+		
+		//public static final BinaryProcedureLongBoolean Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectBoolean<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectBoolean.class, "f");
+		public void f(Input0 input0, boolean input1);
+		
+		//public static final BinaryProcedureObjectBoolean<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanByte.class, "f");
+		public void f(boolean input0, byte input1);
+		
+		//public static final BinaryProcedureBooleanByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteByte.class, "f");
+		public void f(byte input0, byte input1);
+		
+		//public static final BinaryProcedureByteByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharByte.class, "f");
+		public void f(char input0, byte input1);
+		
+		//public static final BinaryProcedureCharByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortByte.class, "f");
+		public void f(short input0, byte input1);
+		
+		//public static final BinaryProcedureShortByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatByte.class, "f");
+		public void f(float input0, byte input1);
+		
+		//public static final BinaryProcedureFloatByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntByte.class, "f");
+		public void f(int input0, byte input1);
+		
+		//public static final BinaryProcedureIntByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleByte.class, "f");
+		public void f(double input0, byte input1);
+		
+		//public static final BinaryProcedureDoubleByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongByte
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongByte.class, "f");
+		public void f(long input0, byte input1);
+		
+		//public static final BinaryProcedureLongByte Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectByte<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectByte.class, "f");
+		public void f(Input0 input0, byte input1);
+		
+		//public static final BinaryProcedureObjectByte<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanChar.class, "f");
+		public void f(boolean input0, char input1);
+		
+		//public static final BinaryProcedureBooleanChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteChar.class, "f");
+		public void f(byte input0, char input1);
+		
+		//public static final BinaryProcedureByteChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharChar.class, "f");
+		public void f(char input0, char input1);
+		
+		//public static final BinaryProcedureCharChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortChar.class, "f");
+		public void f(short input0, char input1);
+		
+		//public static final BinaryProcedureShortChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatChar.class, "f");
+		public void f(float input0, char input1);
+		
+		//public static final BinaryProcedureFloatChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntChar.class, "f");
+		public void f(int input0, char input1);
+		
+		//public static final BinaryProcedureIntChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleChar.class, "f");
+		public void f(double input0, char input1);
+		
+		//public static final BinaryProcedureDoubleChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongChar
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongChar.class, "f");
+		public void f(long input0, char input1);
+		
+		//public static final BinaryProcedureLongChar Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectChar<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectChar.class, "f");
+		public void f(Input0 input0, char input1);
+		
+		//public static final BinaryProcedureObjectChar<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanShort.class, "f");
+		public void f(boolean input0, short input1);
+		
+		//public static final BinaryProcedureBooleanShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteShort.class, "f");
+		public void f(byte input0, short input1);
+		
+		//public static final BinaryProcedureByteShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharShort.class, "f");
+		public void f(char input0, short input1);
+		
+		//public static final BinaryProcedureCharShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortShort.class, "f");
+		public void f(short input0, short input1);
+		
+		//public static final BinaryProcedureShortShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatShort.class, "f");
+		public void f(float input0, short input1);
+		
+		//public static final BinaryProcedureFloatShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntShort.class, "f");
+		public void f(int input0, short input1);
+		
+		//public static final BinaryProcedureIntShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleShort.class, "f");
+		public void f(double input0, short input1);
+		
+		//public static final BinaryProcedureDoubleShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongShort
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongShort.class, "f");
+		public void f(long input0, short input1);
+		
+		//public static final BinaryProcedureLongShort Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectShort<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectShort.class, "f");
+		public void f(Input0 input0, short input1);
+		
+		//public static final BinaryProcedureObjectShort<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanFloat.class, "f");
+		public void f(boolean input0, float input1);
+		
+		//public static final BinaryProcedureBooleanFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteFloat.class, "f");
+		public void f(byte input0, float input1);
+		
+		//public static final BinaryProcedureByteFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharFloat.class, "f");
+		public void f(char input0, float input1);
+		
+		//public static final BinaryProcedureCharFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortFloat.class, "f");
+		public void f(short input0, float input1);
+		
+		//public static final BinaryProcedureShortFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatFloat.class, "f");
+		public void f(float input0, float input1);
+		
+		//public static final BinaryProcedureFloatFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntFloat.class, "f");
+		public void f(int input0, float input1);
+		
+		//public static final BinaryProcedureIntFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleFloat.class, "f");
+		public void f(double input0, float input1);
+		
+		//public static final BinaryProcedureDoubleFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongFloat
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongFloat.class, "f");
+		public void f(long input0, float input1);
+		
+		//public static final BinaryProcedureLongFloat Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectFloat<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectFloat.class, "f");
+		public void f(Input0 input0, float input1);
+		
+		//public static final BinaryProcedureObjectFloat<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanInt.class, "f");
+		public void f(boolean input0, int input1);
+		
+		//public static final BinaryProcedureBooleanInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteInt.class, "f");
+		public void f(byte input0, int input1);
+		
+		//public static final BinaryProcedureByteInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharInt.class, "f");
+		public void f(char input0, int input1);
+		
+		//public static final BinaryProcedureCharInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortInt.class, "f");
+		public void f(short input0, int input1);
+		
+		//public static final BinaryProcedureShortInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatInt.class, "f");
+		public void f(float input0, int input1);
+		
+		//public static final BinaryProcedureFloatInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntInt.class, "f");
+		public void f(int input0, int input1);
+		
+		//public static final BinaryProcedureIntInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleInt.class, "f");
+		public void f(double input0, int input1);
+		
+		//public static final BinaryProcedureDoubleInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongInt
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongInt.class, "f");
+		public void f(long input0, int input1);
+		
+		//public static final BinaryProcedureLongInt Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectInt<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectInt.class, "f");
+		public void f(Input0 input0, int input1);
+		
+		//public static final BinaryProcedureObjectInt<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanDouble.class, "f");
+		public void f(boolean input0, double input1);
+		
+		//public static final BinaryProcedureBooleanDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteDouble.class, "f");
+		public void f(byte input0, double input1);
+		
+		//public static final BinaryProcedureByteDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharDouble.class, "f");
+		public void f(char input0, double input1);
+		
+		//public static final BinaryProcedureCharDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortDouble.class, "f");
+		public void f(short input0, double input1);
+		
+		//public static final BinaryProcedureShortDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatDouble.class, "f");
+		public void f(float input0, double input1);
+		
+		//public static final BinaryProcedureFloatDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntDouble.class, "f");
+		public void f(int input0, double input1);
+		
+		//public static final BinaryProcedureIntDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleDouble.class, "f");
+		public void f(double input0, double input1);
+		
+		//public static final BinaryProcedureDoubleDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongDouble
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongDouble.class, "f");
+		public void f(long input0, double input1);
+		
+		//public static final BinaryProcedureLongDouble Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectDouble<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectDouble.class, "f");
+		public void f(Input0 input0, double input1);
+		
+		//public static final BinaryProcedureObjectDouble<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanLong.class, "f");
+		public void f(boolean input0, long input1);
+		
+		//public static final BinaryProcedureBooleanLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteLong.class, "f");
+		public void f(byte input0, long input1);
+		
+		//public static final BinaryProcedureByteLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharLong.class, "f");
+		public void f(char input0, long input1);
+		
+		//public static final BinaryProcedureCharLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortLong.class, "f");
+		public void f(short input0, long input1);
+		
+		//public static final BinaryProcedureShortLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatLong.class, "f");
+		public void f(float input0, long input1);
+		
+		//public static final BinaryProcedureFloatLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntLong.class, "f");
+		public void f(int input0, long input1);
+		
+		//public static final BinaryProcedureIntLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleLong.class, "f");
+		public void f(double input0, long input1);
+		
+		//public static final BinaryProcedureDoubleLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongLong
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongLong.class, "f");
+		public void f(long input0, long input1);
+		
+		//public static final BinaryProcedureLongLong Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureObjectLong<Input0>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectLong.class, "f");
+		public void f(Input0 input0, long input1);
+		
+		//public static final BinaryProcedureObjectLong<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureBooleanObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanObject.class, "f");
+		public void f(boolean input0, Input1 input1);
+		
+		//public static final BinaryProcedureBooleanObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureByteObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteObject.class, "f");
+		public void f(byte input0, Input1 input1);
+		
+		//public static final BinaryProcedureByteObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureCharObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharObject.class, "f");
+		public void f(char input0, Input1 input1);
+		
+		//public static final BinaryProcedureCharObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureShortObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortObject.class, "f");
+		public void f(short input0, Input1 input1);
+		
+		//public static final BinaryProcedureShortObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureFloatObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatObject.class, "f");
+		public void f(float input0, Input1 input1);
+		
+		//public static final BinaryProcedureFloatObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureIntObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntObject.class, "f");
+		public void f(int input0, Input1 input1);
+		
+		//public static final BinaryProcedureIntObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureDoubleObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleObject.class, "f");
+		public void f(double input0, Input1 input1);
+		
+		//public static final BinaryProcedureDoubleObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedureLongObject<Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongObject.class, "f");
+		public void f(long input0, Input1 input1);
+		
+		//public static final BinaryProcedureLongObject<?> Noop = (input0, input1) -> {};
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryProcedure<Input0, Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1);
+		
+		//public static final BinaryProcedure<?, ?> Noop = (input0, input1) -> {};
+	}
 	
 	
 	@FunctionalInterface
@@ -1148,740 +2135,266 @@ for arity in range(4, 16): genObjectProcedure(arity);
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureBoolean
+	public static interface TrinaryFunction<Input0, Input1, Input2, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureBoolean.class, "f");
-		public void f(boolean input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(TrinaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2);
 		
-		//public static UnaryProcedureBoolean Noop = (input) -> {};
+		//public static final TrinaryFunction<?, ?, ?, ?> AlwaysNull = (input0, input1, input2) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureByte
+	public static interface QuaternaryFunction<Input0, Input1, Input2, Input3, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureByte.class, "f");
-		public void f(byte input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(QuaternaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3);
 		
-		//public static UnaryProcedureByte Noop = (input) -> {};
+		//public static final QuaternaryFunction<?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureChar
+	public static interface QuinaryFunction<Input0, Input1, Input2, Input3, Input4, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureChar.class, "f");
-		public void f(char input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(QuinaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4);
 		
-		//public static UnaryProcedureChar Noop = (input) -> {};
+		//public static final QuinaryFunction<?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureShort
+	public static interface SenaryFunction<Input0, Input1, Input2, Input3, Input4, Input5, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureShort.class, "f");
-		public void f(short input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(SenaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5);
 		
-		//public static UnaryProcedureShort Noop = (input) -> {};
+		//public static final SenaryFunction<?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureFloat
+	public static interface SeptenaryFunction<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureFloat.class, "f");
-		public void f(float input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(SeptenaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6);
 		
-		//public static UnaryProcedureFloat Noop = (input) -> {};
+		//public static final SeptenaryFunction<?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureInt
+	public static interface OctaryFunction<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureInt.class, "f");
-		public void f(int input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(OctaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7);
 		
-		//public static UnaryProcedureInt Noop = (input) -> {};
+		//public static final OctaryFunction<?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureDouble
+	public static interface NonaryFunction<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureDouble.class, "f");
-		public void f(double input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NonaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8);
 		
-		//public static UnaryProcedureDouble Noop = (input) -> {};
+		//public static final NonaryFunction<?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface UnaryProcedureLong
+	public static interface DecaryFunction<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(UnaryProcedureLong.class, "f");
-		public void f(long input);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(DecaryFunction.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9);
 		
-		//public static UnaryProcedureLong Noop = (input) -> {};
+		//public static final DecaryFunction<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureBooleanBoolean
+	public static interface Arity11Function<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanBoolean.class, "f");
-		public void f(boolean input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity11Function.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10);
 		
-		//public static BinaryProcedureBooleanBoolean Noop = (input0, input1) -> {};
+		//public static final Arity11Function<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureByteBoolean
+	public static interface Arity12Function<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteBoolean.class, "f");
-		public void f(byte input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity12Function.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11);
 		
-		//public static BinaryProcedureByteBoolean Noop = (input0, input1) -> {};
+		//public static final Arity12Function<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureCharBoolean
+	public static interface Arity13Function<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharBoolean.class, "f");
-		public void f(char input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity13Function.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12);
 		
-		//public static BinaryProcedureCharBoolean Noop = (input0, input1) -> {};
+		//public static final Arity13Function<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureShortBoolean
+	public static interface Arity14Function<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12, Input13, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortBoolean.class, "f");
-		public void f(short input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity14Function.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12, Input13 input13);
 		
-		//public static BinaryProcedureShortBoolean Noop = (input0, input1) -> {};
+		//public static final Arity14Function<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12, input13) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureFloatBoolean
+	public static interface Arity15Function<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12, Input13, Input14, Output>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatBoolean.class, "f");
-		public void f(float input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity15Function.class, "f");
+		public Output f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12, Input13 input13, Input14 input14);
 		
-		//public static BinaryProcedureFloatBoolean Noop = (input0, input1) -> {};
+		//public static final Arity15Function<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> AlwaysNull = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12, input13, input14) -> null;
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureIntBoolean
+	public static interface TrinaryProcedure<Input0, Input1, Input2>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntBoolean.class, "f");
-		public void f(int input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(TrinaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2);
 		
-		//public static BinaryProcedureIntBoolean Noop = (input0, input1) -> {};
+		//public static final TrinaryProcedure<?, ?, ?> Noop = (input0, input1, input2) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureDoubleBoolean
+	public static interface QuaternaryProcedure<Input0, Input1, Input2, Input3>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleBoolean.class, "f");
-		public void f(double input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(QuaternaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3);
 		
-		//public static BinaryProcedureDoubleBoolean Noop = (input0, input1) -> {};
+		//public static final QuaternaryProcedure<?, ?, ?, ?> Noop = (input0, input1, input2, input3) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureLongBoolean
+	public static interface QuinaryProcedure<Input0, Input1, Input2, Input3, Input4>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongBoolean.class, "f");
-		public void f(long input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(QuinaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4);
 		
-		//public static BinaryProcedureLongBoolean Noop = (input0, input1) -> {};
+		//public static final QuinaryProcedure<?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureObjectBoolean<Input0>
+	public static interface SenaryProcedure<Input0, Input1, Input2, Input3, Input4, Input5>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectBoolean.class, "f");
-		public void f(Input0 input0, boolean input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(SenaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5);
 		
-		//public static BinaryProcedureObjectBoolean<?> Noop = (input0, input1) -> {};
+		//public static final SenaryProcedure<?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureBooleanByte
+	public static interface SeptenaryProcedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanByte.class, "f");
-		public void f(boolean input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(SeptenaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6);
 		
-		//public static BinaryProcedureBooleanByte Noop = (input0, input1) -> {};
+		//public static final SeptenaryProcedure<?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureByteByte
+	public static interface OctaryProcedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteByte.class, "f");
-		public void f(byte input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(OctaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7);
 		
-		//public static BinaryProcedureByteByte Noop = (input0, input1) -> {};
+		//public static final OctaryProcedure<?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureCharByte
+	public static interface NonaryProcedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharByte.class, "f");
-		public void f(char input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(NonaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8);
 		
-		//public static BinaryProcedureCharByte Noop = (input0, input1) -> {};
+		//public static final NonaryProcedure<?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureShortByte
+	public static interface DecaryProcedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortByte.class, "f");
-		public void f(short input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(DecaryProcedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9);
 		
-		//public static BinaryProcedureShortByte Noop = (input0, input1) -> {};
+		//public static final DecaryProcedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureFloatByte
+	public static interface Arity11Procedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatByte.class, "f");
-		public void f(float input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity11Procedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10);
 		
-		//public static BinaryProcedureFloatByte Noop = (input0, input1) -> {};
+		//public static final Arity11Procedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureIntByte
+	public static interface Arity12Procedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntByte.class, "f");
-		public void f(int input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity12Procedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11);
 		
-		//public static BinaryProcedureIntByte Noop = (input0, input1) -> {};
+		//public static final Arity12Procedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureDoubleByte
+	public static interface Arity13Procedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleByte.class, "f");
-		public void f(double input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity13Procedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12);
 		
-		//public static BinaryProcedureDoubleByte Noop = (input0, input1) -> {};
+		//public static final Arity13Procedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureLongByte
+	public static interface Arity14Procedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12, Input13>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongByte.class, "f");
-		public void f(long input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity14Procedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12, Input13 input13);
 		
-		//public static BinaryProcedureLongByte Noop = (input0, input1) -> {};
+		//public static final Arity14Procedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12, input13) -> {};
 	}
 	
 	
 	@FunctionalInterface
-	public static interface BinaryProcedureObjectByte<Input0>
+	public static interface Arity15Procedure<Input0, Input1, Input2, Input3, Input4, Input5, Input6, Input7, Input8, Input9, Input10, Input11, Input12, Input13, Input14>
 	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectByte.class, "f");
-		public void f(Input0 input0, byte input1);
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(Arity15Procedure.class, "f");
+		public void f(Input0 input0, Input1 input1, Input2 input2, Input3 input3, Input4 input4, Input5 input5, Input6 input6, Input7 input7, Input8 input8, Input9 input9, Input10 input10, Input11 input11, Input12 input12, Input13 input13, Input14 input14);
 		
-		//public static BinaryProcedureObjectByte<?> Noop = (input0, input1) -> {};
+		//public static final Arity15Procedure<?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?> Noop = (input0, input1, input2, input3, input4, input5, input6, input7, input8, input9, input10, input11, input12, input13, input14) -> {};
 	}
 	
 	
-	@FunctionalInterface
-	public static interface BinaryProcedureBooleanChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanChar.class, "f");
-		public void f(boolean input0, char input1);
-		
-		//public static BinaryProcedureBooleanChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureByteChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteChar.class, "f");
-		public void f(byte input0, char input1);
-		
-		//public static BinaryProcedureByteChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureCharChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharChar.class, "f");
-		public void f(char input0, char input1);
-		
-		//public static BinaryProcedureCharChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureShortChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortChar.class, "f");
-		public void f(short input0, char input1);
-		
-		//public static BinaryProcedureShortChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureFloatChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatChar.class, "f");
-		public void f(float input0, char input1);
-		
-		//public static BinaryProcedureFloatChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureIntChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntChar.class, "f");
-		public void f(int input0, char input1);
-		
-		//public static BinaryProcedureIntChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureDoubleChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleChar.class, "f");
-		public void f(double input0, char input1);
-		
-		//public static BinaryProcedureDoubleChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongChar
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongChar.class, "f");
-		public void f(long input0, char input1);
-		
-		//public static BinaryProcedureLongChar Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureObjectChar<Input0>
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectChar.class, "f");
-		public void f(Input0 input0, char input1);
-		
-		//public static BinaryProcedureObjectChar<?> Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureBooleanShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanShort.class, "f");
-		public void f(boolean input0, short input1);
-		
-		//public static BinaryProcedureBooleanShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureByteShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteShort.class, "f");
-		public void f(byte input0, short input1);
-		
-		//public static BinaryProcedureByteShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureCharShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharShort.class, "f");
-		public void f(char input0, short input1);
-		
-		//public static BinaryProcedureCharShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureShortShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortShort.class, "f");
-		public void f(short input0, short input1);
-		
-		//public static BinaryProcedureShortShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureFloatShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatShort.class, "f");
-		public void f(float input0, short input1);
-		
-		//public static BinaryProcedureFloatShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureIntShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntShort.class, "f");
-		public void f(int input0, short input1);
-		
-		//public static BinaryProcedureIntShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureDoubleShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleShort.class, "f");
-		public void f(double input0, short input1);
-		
-		//public static BinaryProcedureDoubleShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongShort
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongShort.class, "f");
-		public void f(long input0, short input1);
-		
-		//public static BinaryProcedureLongShort Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureObjectShort<Input0>
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectShort.class, "f");
-		public void f(Input0 input0, short input1);
-		
-		//public static BinaryProcedureObjectShort<?> Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureBooleanFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanFloat.class, "f");
-		public void f(boolean input0, float input1);
-		
-		//public static BinaryProcedureBooleanFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureByteFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteFloat.class, "f");
-		public void f(byte input0, float input1);
-		
-		//public static BinaryProcedureByteFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureCharFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharFloat.class, "f");
-		public void f(char input0, float input1);
-		
-		//public static BinaryProcedureCharFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureShortFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortFloat.class, "f");
-		public void f(short input0, float input1);
-		
-		//public static BinaryProcedureShortFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureFloatFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatFloat.class, "f");
-		public void f(float input0, float input1);
-		
-		//public static BinaryProcedureFloatFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureIntFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntFloat.class, "f");
-		public void f(int input0, float input1);
-		
-		//public static BinaryProcedureIntFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureDoubleFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleFloat.class, "f");
-		public void f(double input0, float input1);
-		
-		//public static BinaryProcedureDoubleFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongFloat
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongFloat.class, "f");
-		public void f(long input0, float input1);
-		
-		//public static BinaryProcedureLongFloat Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureObjectFloat<Input0>
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectFloat.class, "f");
-		public void f(Input0 input0, float input1);
-		
-		//public static BinaryProcedureObjectFloat<?> Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureBooleanInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanInt.class, "f");
-		public void f(boolean input0, int input1);
-		
-		//public static BinaryProcedureBooleanInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureByteInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteInt.class, "f");
-		public void f(byte input0, int input1);
-		
-		//public static BinaryProcedureByteInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureCharInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharInt.class, "f");
-		public void f(char input0, int input1);
-		
-		//public static BinaryProcedureCharInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureShortInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortInt.class, "f");
-		public void f(short input0, int input1);
-		
-		//public static BinaryProcedureShortInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureFloatInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatInt.class, "f");
-		public void f(float input0, int input1);
-		
-		//public static BinaryProcedureFloatInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureIntInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntInt.class, "f");
-		public void f(int input0, int input1);
-		
-		//public static BinaryProcedureIntInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureDoubleInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleInt.class, "f");
-		public void f(double input0, int input1);
-		
-		//public static BinaryProcedureDoubleInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongInt
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongInt.class, "f");
-		public void f(long input0, int input1);
-		
-		//public static BinaryProcedureLongInt Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureObjectInt<Input0>
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectInt.class, "f");
-		public void f(Input0 input0, int input1);
-		
-		//public static BinaryProcedureObjectInt<?> Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureBooleanDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureBooleanDouble.class, "f");
-		public void f(boolean input0, double input1);
-		
-		//public static BinaryProcedureBooleanDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureByteDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureByteDouble.class, "f");
-		public void f(byte input0, double input1);
-		
-		//public static BinaryProcedureByteDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureCharDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureCharDouble.class, "f");
-		public void f(char input0, double input1);
-		
-		//public static BinaryProcedureCharDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureShortDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureShortDouble.class, "f");
-		public void f(short input0, double input1);
-		
-		//public static BinaryProcedureShortDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureFloatDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureFloatDouble.class, "f");
-		public void f(float input0, double input1);
-		
-		//public static BinaryProcedureFloatDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureIntDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureIntDouble.class, "f");
-		public void f(int input0, double input1);
-		
-		//public static BinaryProcedureIntDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureDoubleDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureDoubleDouble.class, "f");
-		public void f(double input0, double input1);
-		
-		//public static BinaryProcedureDoubleDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongDouble
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongDouble.class, "f");
-		public void f(long input0, double input1);
-		
-		//public static BinaryProcedureLongDouble Noop = (input0, input1) -> {};
-	}
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureObjectDouble<Input0>
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureObjectDouble.class, "f");
-		public void f(Input0 input0, double input1);
-		
-		//public static BinaryProcedureObjectDouble<?> Noop = (input0, input1) -> {};
-	}
 	//>>>
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	@FunctionalInterface
-	public static interface BinaryProcedureLongLong
-	{
-		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryProcedureLongLong.class, "f");
-		public void f(long input0, long input1);
-		
-		//public static BinaryProcedureLongLong Noop = (input0, input1) -> {};
-	}
 }
 
 

@@ -6,6 +6,7 @@ package rebound.util;
 
 import static rebound.bits.BitUtilities.*;
 import static rebound.bits.Unsigned.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -435,6 +436,101 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * With primitives, "==" is overloaded in Java and actually refers to several dozen operations depending on type.
+	 * With primitive wrappers, .equals() does *not*!
+	 * So this is a replacement that does :>
+	 */
+	public static boolean numeqPrimitiveWrappers(Object a, Object b)
+	{
+		a = normalizeIfIntegerPrimitive(a);
+		b = normalizeIfIntegerPrimitive(b);
+		
+		if (a instanceof Long)
+		{
+			long aa = (Long)a;
+			
+			if (b instanceof Long)
+			{
+				long bb = (Long)b;
+				return aa == bb;
+			}
+			else if (b instanceof Double)
+			{
+				double bb = (Double)b;
+				return aa == bb;
+			}
+			else if (b instanceof Float)
+			{
+				float bb = (Float)b;
+				return aa == bb;
+			}
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(b);
+			}
+		}
+		else if (a instanceof Double)
+		{
+			double aa = (Double)a;
+			
+			if (b instanceof Long)
+			{
+				long bb = (Long)b;
+				return aa == bb;
+			}
+			else if (b instanceof Double)
+			{
+				double bb = (Double)b;
+				return aa == bb;
+			}
+			else if (b instanceof Float)
+			{
+				float bb = (Float)b;
+				return aa == bb;
+			}
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(b);
+			}
+		}
+		else if (a instanceof Float)
+		{
+			float aa = (Float)a;
+			
+			if (b instanceof Long)
+			{
+				long bb = (Long)b;
+				return aa == bb;
+			}
+			else if (b instanceof Double)
+			{
+				double bb = (Double)b;
+				return aa == bb;
+			}
+			else if (b instanceof Float)
+			{
+				float bb = (Float)b;
+				return aa == bb;
+			}
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(b);
+			}
+		}
+		else
+		{
+			throw newClassCastExceptionOrNullPointerException(b);
+		}
+	}
 	
 	
 	
@@ -2654,6 +2750,16 @@ implements JavaNamespace
 			return ((Number)input).longValue();
 		if (input instanceof Float)
 			return ((Float)input).doubleValue();
+		return input;
+	}
+	
+	@Nonnull
+	public static Object normalizeIfIntegerPrimitive(@Nonnull Object input)
+	{
+		if (input == null)
+			throw new NullPointerException();
+		if (input instanceof Integer || input instanceof Short || input instanceof Character || input instanceof Byte)
+			return ((Number)input).longValue();
 		return input;
 	}
 	

@@ -628,7 +628,7 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Gets a file's path relative to a given ancestor such that {@link #joinPaths(Object...) join}(<code>base</code>, <i>returnValue</i>) == <code>f</code>.
+	 * Gets a file's path relative to a given ancestor such that {@link #joinPathsStrict(Object...) join}(<code>base</code>, <i>returnValue</i>) == <code>f</code>.
 	 * similar to relpath(), contrast with abspath() ({@link File#getAbsolutePath()}) ^_^
 	 * Except that the base is specified explicitly, rather than the Current Working Directory of the process :>
 	 * Also, since this is the case (being system context independent), cwd-relative and absolute pathnames can't be mixed and matched! (sorries ._. )
@@ -1094,17 +1094,162 @@ implements JavaNamespace
 	
 	
 	
-	//TODO Unit tests
+	
+	
+	//TODO Unit tests for isLegalNonspecialPathElement's
+	
+	public static boolean isLegalNonspecialPathElement(String n)
+	{
+		//Todo include extra unnecessarily-illegal chars that windows requires (if we're running on windows!)
+		return isLegalNonspecialPathElementPosixlike(n, File.separatorChar);
+	}
+	
+	public static boolean isLegalNonspecialPathElementPosix(String n)
+	{
+		return isLegalNonspecialPathElementPosixlike(n, '/');
+	}
+	
+	public static boolean isLegalNonspecialPathElementPosixlike(String n, char sep)
+	{
+		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
+			return false;
+		
+		n = rtrim(n, sep);  // "somedir/" is okay
+		
+		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
+			return false;
+		
+		if (n.indexOf(sep) != -1)
+			return false;
+		
+		return true;
+	}
+	
+	
+	public static boolean isLegalNonspecialPathStartElement(String n)
+	{
+		//Todo include extra unnecessarily-illegal chars that windows requires (if we're running on windows!)
+		if (isLegalNonspecialPathElementPosixlike(n, File.separatorChar))
+			return true;
+		
+		//Todo do this right X'3
+		if (new File(n).isAbsolute())
+			return true;
+		
+		return false;
+	}
+	
+	public static boolean isLegalNonspecialPathStartElementPosix(String n)
+	{
+		return isLegalNonspecialPathElementPosixlike(n, '/');
+	}
+	
+	public static boolean isLegalNonspecialPathStartElementPosixlike(String n, char sep)
+	{
+		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
+			return false;
+		
+		n = trim(n, sep);  // "somedir/" is okay and "/somedir" is okay for a start-element! (hence the trim() not rtrim()!)
+		
+		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
+			return false;
+		
+		if (n.indexOf(sep) != -1)
+			return false;
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO Unit tests for joinPaths..()
+	
+	//	/**
+	//	 * Please use either {@link #joinPathsStrict(Object...)} or {@link #joinPathsLenient(Object...)} instead :3
+	//	 */
+	//	@Deprecated
+	//	public static File joinPaths(Object... pathElements)
+	//	{
+	//		return joinPathsLenient(pathElements);
+	//	}
+	
+	
+	/**
+	 * Strict means "../somedir", empty elements, and etc. aren't allowed, and only the first element is allowed to be a {@link File}, the rest must be {@link String}s.
+	 * And a leading "/" is only allowed on the first element.
+	 * 
+	 * @see #isLegalNonspecialPathElement(String)
+	 */
+	public static File joinPathsStrict(Object... pathElements)
+	{
+		return joinPathsC(true, asList(pathElements));
+	}
+	
+	/**
+	 * Lenient means "../somedir", empty elements, and etc. *are* allowed!
+	 */
+	public static File joinPathsLenient(Object... pathElements)
+	{
+		return joinPathsC(false, asList(pathElements));
+	}
+	
+	
+	public static File joinPathsStrictC(Iterable<?> pathElements)
+	{
+		return joinPathsC(true, pathElements);
+	}
+	
+	public static File joinPathsLenientC(Iterable<?> pathElements)
+	{
+		return joinPathsC(false, pathElements);
+	}
+	
+	
+	
+	
 	/**
 	 * Joins path elements together adding {@link File#separatorChar} 's as needed.
 	 * @param pathElements is an array of <code>File</code>s and <code>String</code>s
 	 */
-	public static File joinPaths(Object... pathElements)
+	public static File joinPathsC(boolean strict, Iterable<?> pathElements)
 	{
 		File f = null;
 		
+		boolean first = true;
 		for (Object e : pathElements)
 		{
+			if (strict)
+			{
+				if (e instanceof File)
+				{
+					if (!first)
+						throw new IllegalArgumentException("Only the first element may be a File in strict mode.");
+				}
+				else
+				{
+					String n = (String)e;
+					
+					if (first)
+					{
+						if (!isLegalNonspecialPathStartElement(n))
+							throw new IllegalArgumentException("Illegal first path element in strict mode: "+repr(n));
+					}
+					else
+					{
+						if (!isLegalNonspecialPathElement(n))
+							throw new IllegalArgumentException("Illegal non-first path element in strict mode: "+repr(n));
+					}
+				}
+			}
+			
+			
 			if (e == null || (e instanceof String && ((String)e).isEmpty()))
 				continue;
 			
@@ -1116,39 +1261,33 @@ implements JavaNamespace
 			{
 				f = e instanceof File ? new File(f, ((File)e).getName()) : new File(f, (String)e);
 			}
+			
+			first = false;
 		}
 		
 		return f == null ? new File("") : f;
 	}
 	
-	public static File joinPathsI(Iterable<?> pathElements)
-	{
-		File f = null;
-		
-		for (Object e : pathElements)
-		{
-			if (e == null || (e instanceof String && ((String)e).isEmpty()))
-				continue;
-			
-			if (f == null)
-			{
-				f = e instanceof File ? (File)e : new File((String)e);
-			}
-			else
-			{
-				f = e instanceof File ? new File(f, ((File)e).getName()) : new File(f, (String)e);
-			}
-		}
-		
-		return f == null ? new File("") : f;
-	}
+	
+	
+	
 	
 	
 	/**
 	 * Joins path elements together adding and removing extraneous '/'s as needed.
 	 * This is hard-coded to use the posix path name syntax, and so is suitable for URL's, etc.
 	 */
-	public static String joinPathsPosix(String... pathElements)
+	public static String joinPathsPosixStrict(String... pathElements)
+	{
+		return joinPathsPosix(true, pathElements);
+	}
+	
+	public static String joinPathsPosixLenient(String... pathElements)
+	{
+		return joinPathsPosix(false, pathElements);
+	}
+	
+	public static String joinPathsPosix(boolean strict, String... pathElements)
 	{
 		StringBuilder b = new StringBuilder();
 		
@@ -1168,30 +1307,49 @@ implements JavaNamespace
 		//			}
 		//		}
 		
-		boolean first = true;
-		for (String p : pathElements)
+		boolean firstForStrictCheck = true;
+		boolean firstNonRoot = true;
+		for (String n : pathElements)
 		{
-			boolean root = first && !p.isEmpty() && forAll('/', p);
+			if (strict)
+			{
+				if (firstForStrictCheck)
+				{
+					if (!isLegalNonspecialPathStartElement(n))
+						throw new IllegalArgumentException("Illegal first path element in strict mode: "+repr(n));
+					
+					firstForStrictCheck = false;
+				}
+				else
+				{
+					if (!isLegalNonspecialPathElement(n))
+						throw new IllegalArgumentException("Illegal non-first path element in strict mode: "+repr(n));
+				}
+			}
+			
+			
+			boolean root = firstNonRoot && !n.isEmpty() && forAll('/', n);
+			
 			
 			if (root)  //The root directory! :D
 			{
-				p = "/";
+				n = "/";
 			}
 			else
 			{
-				p = trim(p, '/');
+				n = trim(n, '/');
 				
-				p = ltrimstr(p, "./");
+				n = ltrimstr(n, "./");
 			}
 			
 			
-			if (!p.isEmpty() && !p.equals("."))
+			if (!n.isEmpty() && !n.equals("."))
 			{
-				if (first)
+				if (firstNonRoot)
 				{
 					if (!root)
 					{
-						first = false;
+						firstNonRoot = false;
 					}
 				}
 				else
@@ -1199,7 +1357,7 @@ implements JavaNamespace
 					b.append('/');
 				}
 				
-				b.append(p);
+				b.append(n);
 			}
 		}
 		
@@ -3631,7 +3789,7 @@ implements JavaNamespace
 		{
 			if (!pattern.test(c))
 			{
-				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+				throw new IOException("Directory has non-matching file in it!!: "+repr(c.getAbsolutePath()));
 			}
 		}
 		
@@ -3640,12 +3798,21 @@ implements JavaNamespace
 		{
 			if (!pattern.test(c))  //But it doesn't hurt to re-check in case their computer (namely filesystem I/O) is being really slow XD'
 			{
-				throw new IOException("Directory has non-symlink in it!!: "+repr(c.getAbsolutePath()));
+				throw new IOException("Directory has non-matching file in it!!: "+repr(c.getAbsolutePath()));
 			}
 			else
 			{
 				c.delete();
 			}
+		}
+	}
+	
+	public static void deleteMatching(File dir, Predicate<File> pattern) throws IOException
+	{
+		for (File c : dir.listFiles())
+		{
+			if (pattern.test(c))
+				deleteMandatory(c);
 		}
 	}
 }

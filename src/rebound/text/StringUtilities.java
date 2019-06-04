@@ -76,6 +76,7 @@ import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.functional.FunctionInterfaces.CharEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
@@ -1152,6 +1153,13 @@ implements JavaNamespace
 		return i == -1 ? s : s.substring(0, i);
 	}
 	
+	@Nonnull
+	public static String splitonceReturnPrecedingOrNull(String s, char del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? null : s.substring(0, i);
+	}
+	
 	@Nullable
 	public static String splitonceReturnSucceedingOrNull(String s, char del)
 	{
@@ -1166,6 +1174,13 @@ implements JavaNamespace
 	{
 		int i = s.indexOf(del);
 		return i == -1 ? s : s.substring(0, i);
+	}
+	
+	@Nonnull
+	public static String splitonceReturnPrecedingOrNull(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? null : s.substring(0, i);
 	}
 	
 	@Nullable
@@ -2569,7 +2584,7 @@ implements JavaNamespace
 	
 	
 	
-	
+	//TODO deduplicate with joinlines() ???
 	public static String concatLines(String... lines)
 	{
 		return joinStrings(lines, '\n');
@@ -2586,6 +2601,8 @@ implements JavaNamespace
 		//		return rv.toString();
 	}
 	
+	
+	//TODO deduplicate with joinlines() ???
 	public static String concatLines(Iterable<String> lines)
 	{
 		return joinStrings(lines, '\n');
@@ -7534,5 +7551,146 @@ primxp
 	public static void appendln(StringBuffer a)
 	{
 		a.append('\n');
+	}
+	
+	
+	
+	
+	
+	public static String trimIfNotNull(String s)
+	{
+		return s == null ? null : s.trim();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * Copied from java.lang.String from (OpenJDK 8, checkout 2019-01-08 16 z) and modified for use with public String API rather than char[]s  (which was meant to be fed with direct privileged access to the internal char[] of Strings)
+	 */
+	public static int indexOf(String source, int sourceOffset, int sourceCount, String target, int targetOffset, int targetCount, int fromIndex)
+	{
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		char first = target.charAt(targetOffset);
+		int max = sourceOffset + (sourceCount - targetCount);
+		
+		for (int i = sourceOffset + fromIndex; i <= max; i++)
+		{
+			/* Look for first character. */
+			if (source.charAt(i) != first)
+			{
+				while (++i <= max && source.charAt(i) != first);
+			}
+			
+			/* Found first character, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = targetOffset + 1; j < end && source.charAt(j) == target.charAt(k); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i - sourceOffset;
+				}
+			}
+		}
+		return -1;
+	}
+	
+	
+	
+	public static int indexOf(String source, int sourceOffset, int sourceCount, String target, int targetOffset, int targetCount, int fromIndex, CharEqualityComparator ceq)
+	{
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		char first = target.charAt(targetOffset);
+		int max = sourceOffset + (sourceCount - targetCount);
+		
+		for (int i = sourceOffset + fromIndex; i <= max; i++)
+		{
+			/* Look for first character. */
+			if (!ceq.charsEqual(source.charAt(i), first))
+			{
+				while (++i <= max && !ceq.charsEqual(source.charAt(i), first));
+			}
+			
+			/* Found first character, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = targetOffset + 1; j < end && ceq.charsEqual(source.charAt(j), target.charAt(k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i - sourceOffset;
+				}
+			}
+		}
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfCaseInsensitive(String string, String substring, int fromIndex)
+	{
+		return indexOf(string, 0, string.length(), substring, 0, substring.length(), fromIndex, StringUtilities::charsEqualCaseInsensitive);
+	}
+	
+	
+	
+	
+	
+	public static boolean charsEqualCaseInsensitive(char a, char b)
+	{
+		//TODO is there a better way??
+		
+		//Todo also non-case canonicalization (eg, German ß = ss, Greek ς = σ, every accent mark pre-applied thing, vs. accent-mark-as-a-separate-combining-character, and µ vs μ, etc.  X'D )
+		
+		//Todo does Gregorian require both, or does toLowerCase() work with it?  (And if so, is there some other alphabet that it doesn't work for? X'3 )
+		return
+		Character.toLowerCase(a) == Character.toLowerCase(b) &&
+		Character.toUpperCase(a) == Character.toUpperCase(b);
 	}
 }
