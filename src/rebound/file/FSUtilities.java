@@ -1656,6 +1656,7 @@ implements JavaNamespace
 	
 	/**
 	 * This tries to move source to dest (move != copy) first by renaming, then by copying and deleting source if that fails.
+	 * + Guaranteed to preserve symlinks exactly if source is (itself) a symlink (broken or not!).  Dest will be too and no transformation on target pathname will be done :3
 	 * 
 	 * Note: this will delete the destination if it exists (and throw an IOException if it can't).
 	 * And thus if the move fails, the source might not have been fully moved but the dest was deleted.
@@ -2482,7 +2483,7 @@ implements JavaNamespace
 	
 	
 	
-	//Todo postParents option, like python version :>
+	//Todo postParents option, like the python version :>
 	/**
 	 * See docs on (better) Python version xD'
 	 * @param descendRecurseFilter If this returns false, then we won't even descend into it recursively!  Much less will 'inclusion' filters in the observer have any affect on it! XP  :>
@@ -2490,45 +2491,48 @@ implements JavaNamespace
 	public static void recurse(UnaryProcedure<File> observer, Predicate<File> descendRecurseFilter, Iterable<File> targets)
 	{
 		Collection<File> done = new HashSet<File>();
-		Stack<File> rstack = new Stack<File>();
+		Stack<File> todo = new Stack<File>();
 		
 		for (File target : targets)
 		{
 			observer.f(target);
-			done.add(realpath(target));
 			
 			if (target.isDirectory())
 			{
+				done.add(realpath(target));
+				
 				if (descendRecurseFilter == null || descendRecurseFilter.test(target))  //null filter means RECURSE_FILTER_ALWAYS  >,>
 				{
-					rstack.push(target);
+					todo.push(target);
 				}
 			}
 			
 			while (true)
 			{
-				if (rstack.isEmpty())
+				if (todo.isEmpty())
 					break;
 				
-				File dir = rstack.pop();
+				final File dir = todo.pop();
 				
-				File[] files = dir.listFiles();
+				final File[] files = dir.listFiles();
 				
 				if (files == null)
 					throw new WrappedThrowableRuntimeException(new IOException("Listing directory failed for: "+repr(dir.getAbsolutePath())));
 				
-				for (File f : sorted(files))
+				for (final File f : sorted(files))
 				{
-					if (!done.contains(realpath(f)))
+					observer.f(f);  //Don't put this after "if (!done.contains(realpath(f)))" because they might *want* to see multiple symlinks to the same target! :D
+					
+					if (f.isDirectory())
 					{
-						observer.f(f);
-						done.add(realpath(f));
+						final File fRP = realpath(f);
 						
-						if (f.isDirectory())
+						if (!done.contains(fRP))  //This prevents us from falling into infinite recursion on encountering directory symlink cycles :3
 						{
 							if (descendRecurseFilter == null || descendRecurseFilter.test(f))  //null filter means RECURSE_FILTER_ALWAYS  >,>
 							{
-								rstack.push(f);
+								done.add(fRP);  //MUST COME INSIDE BOTH IF BODIES!!
+								todo.push(f);
 							}
 						}
 					}
@@ -2785,11 +2789,62 @@ implements JavaNamespace
 	
 	//Todo resolve duplicates?  XD''
 	
-	public static File realpath(File f)
+	public static @Nonnull File realpathThrowing(@Nonnull File f) throws IOException
+	{
+		File r = f.getCanonicalFile();
+		
+		if (eq(r, f))  //this is how the JRE signals failure instead of throwing an IOException on most (all?!) of the time!
+		{
+			if (isSymlink(f))
+			{
+				File t = readlink(f);
+				
+				if (eq(t, f))
+				{
+					throw new IOException("1-deep symbolic link cycle detected!: "+repr(f.getPath()));
+				}
+				else if (lexists(t))
+				{
+					//TODO Make this work, like the POSIX realpath command does!
+					throw new IOException("Too many levels of symbolic links (yes, realpath() isn't supposed to fail on this unless it's actually a cycle; it's on my todo list X'D ): "+repr(f.getPath()));
+				}
+				else
+				{
+					throw new IOException("Cannot realpath a broken symbolic link!: "+repr(f.getPath()));
+				}
+			}
+			else if (!f.exists())
+			{
+				throw new IOException("Cannot realpath a nonexistant pathname!: "+repr(f.getPath()));
+			}
+			else
+			{
+				return f;  //it was already a realpath! XD
+			}
+		}
+		else if (!f.exists())
+		{
+			if (r.exists())
+			{
+				//TODO Make this work, like the POSIX realpath command does!
+				throw new IOException("Probably a too-many-symlinks type of error!: "+repr(f.getPath())+" -> "+repr(r.getPath()));
+			}
+			else
+			{
+				throw new IOException("Cannot realpath a nonexistant pathname!: "+repr(f.getPath()));
+			}
+		}
+		else
+		{
+			return r;
+		}
+	}
+	
+	public static @Nonnull File realpath(@Nonnull File f) throws WrappedThrowableRuntimeException
 	{
 		try
 		{
-			return f.getCanonicalFile();
+			return realpathThrowing(f);
 		}
 		catch (IOException exc)
 		{

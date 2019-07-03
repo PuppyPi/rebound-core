@@ -3429,12 +3429,43 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
-	public static <K, V> Map<K, V> unionMaps(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b)
+	public static <K, V> Map<K, V> unionMaps(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b) throws AlreadyExistsException
+	{
+		return unionMapsFilteringSecond(a, b, (k, v) -> true);
+	}
+	
+	@ReadonlyValue
+	public static <K, V> Map<K, V> unionMapsFilteringSecond(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b, MapEntryPredicate<K, V> filter) throws AlreadyExistsException
 	{
 		Map<K, V> r = new HashMap<>(a.size() + b.size());
 		r.putAll(a);
-		r.putAll(b);
+		
+		//r.putAll(b);
+		
+		for (Entry<K, V> e : b.entrySet())
+		{
+			if (filter.test(e.getKey(), e.getValue()))
+				putNewUniqueMandatory(r, e.getKey(), e.getValue());
+		}
+		
 		return r;
+	}
+	
+	@ReadonlyValue
+	public static <K, V> Map<K, Set<V>> unionGeneralMaps(@ReadonlyValue Map<K, ? extends Iterable<V>> a, @ReadonlyValue Map<K, ? extends Iterable<V>> b)
+	{
+		Map<K, Set<V>> r = new HashMap<>(a.size() + b.size());
+		putAllGeneralMaps(r, a);
+		putAllGeneralMaps(r, b);
+		return r;
+	}
+	
+	public static <K, V> void putAllGeneralMaps(@ReadonlyValue Map<K, Set<V>> acceptor, @ReadonlyValue Map<K, ? extends Iterable<V>> donor)
+	{
+		for (Entry<K, ? extends Iterable<V>> e : donor.entrySet())
+		{
+			addAll(getOrCreate(acceptor, e.getKey(), () -> new HashSet<V>()), e.getValue());
+		}
 	}
 	
 	public static <E> Set<E> union(Iterable<E> a, Iterable<E> b) //OR (14)
@@ -5210,13 +5241,13 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <K, V> Map<K, V> filterdict(Predicate<Entry<K, V>> predicate, Map<K, V> input)
+	public static <K, V> Map<K, V> filterdict(MapEntryPredicate<K, V> predicate, Map<K, V> input)
 	{
 		Map<K, V> output = new HashMap<>();
 		
 		for (Entry<K, V> e : input.entrySet())
 		{
-			if (predicate.test(e))
+			if (predicate.test(e.getKey(), e.getValue()))
 			{
 				output.put(e.getKey(), e.getValue());
 			}
@@ -5720,47 +5751,47 @@ _$$primxpconf:intsonly$$_
 	
 	//Old map/filter!
 	@ThrowAwayValue
-	public static <I, O> Collection<O> mapToNewCollection(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> Collection<O> mapToNewCollection(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
 		if (input == null)
 			return null;
 		else if (input instanceof Set)
-			return mapToNewSet(computor, (Set<I>)input);
+			return mapToNewSet(mapper, (Set<I>)input);
 		else if (input instanceof List)
-			return mapToNewList(computor, (List<I>)input);
+			return mapToNewList(mapper, (List<I>)input);
 		else
-			return mapToNewList(computor, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
+			return mapToNewList(mapper, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
 	}
 	
 	@ThrowAwayValue
-	public static <I, O> List<O> mapToNewList(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> List<O> mapToNewList(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(mapper, (Iterable)input));
 	}
 	
 	@ThrowAwayValue
-	public static <I, O> Set<O> mapToNewSet(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> Set<O> mapToNewSet(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input));
 	}
 	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ThrowAwayValue
-	public static <I, O, A extends I> O[] mapToNewArray(Mapper<I, O> computor, Class<? super O> outputComponentType, A[] input)
+	public static <I, O, A extends I> O[] mapToNewArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, A[] input)
 	{
-		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(mapper, (Iterable)Arrays.asList(input)), outputComponentType);
 	}
 	
 	@ThrowAwayValue
-	public static <I, O, A extends I> Object[] mapToNewObjectArray(Mapper<I, O> computor, A[] input)
+	public static <I, O, A extends I> Object[] mapToNewObjectArray(Mapper<I, O> mapper, A[] input)
 	{
-		return mapToNewArray(computor, Object.class, input);
+		return mapToNewArray(mapper, Object.class, input);
 	}
 	
 	@ThrowAwayValue
-	public static <I, O, A extends I> Object[] mapToNewObjectArrayV(Mapper<I, O> computor, A... input)
+	public static <I, O, A extends I> Object[] mapToNewObjectArrayV(Mapper<I, O> mapper, A... input)
 	{
-		return mapToNewArray(computor, Object.class, input);
+		return mapToNewArray(mapper, Object.class, input);
 	}
 	
 	
@@ -5868,7 +5899,7 @@ _$$primxpconf:intsonly$$_
 	
 	/*
 	@ThrowAwayValue
-	public static <I, O> Collection<O> mapToNew(UnaryFunction<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> Collection<O> mapToNew(UnaryFunction<I, O> mapper, Iterable<? extends I> input)
 	{
 		if (input == null)
 			return null;
@@ -5887,7 +5918,7 @@ _$$primxpconf:intsonly$$_
 		}
 		
 		for (I i : input)
-			newcollection.add(computor.f(i));
+			newcollection.add(mapper.f(i));
 		
 		if (newcollection instanceof ArrayList)
 			((ArrayList)newcollection).trimToSize();
@@ -5896,23 +5927,23 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ThrowAwayValue
-	public static <I, O> List<O> mapToNew(UnaryFunction<I, O> computor, List<? extends I> input)
+	public static <I, O> List<O> mapToNew(UnaryFunction<I, O> mapper, List<? extends I> input)
 	{
 		//Dynamically determines correct type! :D   (currently!)
-		return (List<O>)mapToNew(computor, (Iterable<I>)input);
+		return (List<O>)mapToNew(mapper, (Iterable<I>)input);
 	}
 	
 	@ThrowAwayValue
-	public static <I, O> Set<O> mapToNew(UnaryFunction<I, O> computor, Set<? extends I> input)
+	public static <I, O> Set<O> mapToNew(UnaryFunction<I, O> mapper, Set<? extends I> input)
 	{
 		//Dynamically determines correct type! :D   (currently!)
-		return (Set<O>)mapToNew(computor, (Iterable<I>)input);
+		return (Set<O>)mapToNew(mapper, (Iterable<I>)input);
 	}
 	
 	
 	
 	@ThrowAwayValue
-	public static <I, O, A extends I> O[] mapToNewArray(UnaryFunction<I, O> computor, Class<? super O> outputComponentType, A[] input)
+	public static <I, O, A extends I> O[] mapToNewArray(UnaryFunction<I, O> mapper, Class<? super O> outputComponentType, A[] input)
 	{
 		if (input == null)
 			return null;
@@ -5921,21 +5952,21 @@ _$$primxpconf:intsonly$$_
 		
 		int len = input.length;
 		for (int i = 0; i < len; i++)
-			newarray[i] = computor.f(input[i]);
+			newarray[i] = mapper.f(input[i]);
 		
 		return newarray;
 	}
 	
 	@ThrowAwayValue
-	public static <I, O, A extends I> Object[] mapToNewObjectArray(UnaryFunction<I, O> computor, A[] input)
+	public static <I, O, A extends I> Object[] mapToNewObjectArray(UnaryFunction<I, O> mapper, A[] input)
 	{
-		return mapToNewArray(computor, Object.class, input);
+		return mapToNewArray(mapper, Object.class, input);
 	}
 	
 	@ThrowAwayValue
-	public static <I, O, A extends I> Object[] mapToNewObjectArrayV(UnaryFunction<I, O> computor, A... input)
+	public static <I, O, A extends I> Object[] mapToNewObjectArrayV(UnaryFunction<I, O> mapper, A... input)
 	{
-		return mapToNewArray(computor, Object.class, input);
+		return mapToNewArray(mapper, Object.class, input);
 	}
 	
 	
@@ -6029,47 +6060,53 @@ _$$primxpconf:intsonly$$_
 	//Todo make these produce caching Views instead of actual concrete nonscalars! :33
 	
 	@ReadonlyValue
-	public static <I, O> Collection<O> mapToCollection(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> Collection<O> mapToCollection(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
 		if (input == null)
 			return null;
 		else if (input instanceof Set)
-			return mapToSet(computor, (Set<I>)input);
+			return mapToSet(mapper, (Set<I>)input);
 		else if (input instanceof List)
-			return mapToList(computor, (List<I>)input);
+			return mapToList(mapper, (List<I>)input);
 		else
-			return mapToList(computor, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
+			return mapToList(mapper, (List<I>)PolymorphicCollectionUtilities.anyToList(input));
 	}
 	
 	@ReadonlyValue
-	public static <I, O> List<O> mapToList(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(computor, (Iterable)input));
+		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(mapper, (Iterable)input));
 	}
 	
 	@ReadonlyValue
-	public static <I, O> Set<O> mapToSet(Mapper<I, O> computor, Iterable<? extends I> input)
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, I[] input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(computor, (Iterable)input));
+		return mapToList(mapper, asList(input));
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, Iterable<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input));
 	}
 	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ReadonlyValue
-	public static <I, O, A extends I> O[] mapToArray(Mapper<I, O> computor, Class<? super O> outputComponentType, A[] input)
+	public static <I, O, A extends I> O[] mapToArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, A[] input)
 	{
-		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(computor, (Iterable)Arrays.asList(input)), outputComponentType);
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(mapper, (Iterable)Arrays.asList(input)), outputComponentType);
 	}
 	
 	@ReadonlyValue
-	public static <I, O, A extends I> Object[] mapToObjectArray(Mapper<I, O> computor, A[] input)
+	public static <I, O, A extends I> Object[] mapToObjectArray(Mapper<I, O> mapper, A[] input)
 	{
-		return mapToArray(computor, Object.class, input);
+		return mapToArray(mapper, Object.class, input);
 	}
 	
 	@ReadonlyValue
-	public static <I, O, A extends I> Object[] mapToObjectArrayV(Mapper<I, O> computor, A... input)
+	public static <I, O, A extends I> Object[] mapToObjectArrayV(Mapper<I, O> mapper, A... input)
 	{
-		return mapToArray(computor, Object.class, input);
+		return mapToArray(mapper, Object.class, input);
 	}
 	
 	
@@ -6425,7 +6462,7 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * @return if we did anything—if we altered it in any way
 	 */
-	public static <K, V> boolean filterDictInPlace(Predicate<Entry<K, V>> predicate, @WritableValue Map<K, V> dict)
+	public static <K, V> boolean filterDictInPlace(MapEntryPredicate<K, V> predicate, @WritableValue Map<K, V> dict)
 	{
 		boolean didAnything = false;
 		
@@ -6433,7 +6470,7 @@ _$$primxpconf:intsonly$$_
 		{
 			K key = (K) k;
 			
-			if (!predicate.test(new SimpleEntry<>(key, dict.get(key))))
+			if (!predicate.test(key, dict.get(key)))
 			{
 				dict.remove(key);
 				didAnything = true;
@@ -7019,7 +7056,7 @@ _$$primxpconf:intsonly$$_
 			V value = mapper.f(key);
 			
 			if (inverse.containsKey(value))
-				throw new NonForwardInjectiveMapException();
+				throw new NonForwardInjectiveMapException("Duplicates of value-in-input / key-in-output "+repr(value));
 			else
 				inverse.put(value, key);
 		}

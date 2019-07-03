@@ -10,6 +10,9 @@ implements JavaNamespace
 {
 	/**
 	 * Tests equivalence, as opposed to identity (==)  ^_^
+	 * 
+	 * Note that this *must always only ever mean* nothing more than a null-tolerant {@link Object#equals(Object)}!
+	 *  (code relies on that!)
 	 */
 	public static boolean eq(Object a, Object b)
 	{

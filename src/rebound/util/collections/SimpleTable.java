@@ -10,6 +10,7 @@ import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenBy
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
+import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NonrectangularException;
 import rebound.exceptions.NotYetImplementedException;
@@ -451,6 +452,17 @@ extends Copyable
 	
 	
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public default List<List<E>> toListOfListsPossiblyLive()
+	{
+		return toListOfLists();
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public default List<E> rowToListPossiblyLive(int index)
+	{
+		return rowToList(index);
+	}
 	
 	
 	

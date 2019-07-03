@@ -3,6 +3,8 @@ package rebound.util.collections;
 import java.util.ArrayList;
 import java.util.List;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NonrectangularException;
@@ -30,11 +32,21 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 		setFrom(otherTable);
 	}
 	
-	public NestedListsSimpleTable(@ReadonlyValue @SnapshotValue List<List<E>> otherTable) throws NonrectangularException
+	public NestedListsSimpleTable(@WritableValue @LiveValue List<List<E>> rows) throws NonrectangularException
 	{
-		this();
-		setFromListOfLists(otherTable);
+		this.rows = rows;
 	}
+	
+	
+	
+	public void appendRowLIVE(List<E> row)
+	{
+		if (!this.isEmpty() && row.size() != this.getNumberOfColumns())
+			throw new NonrectangularException();
+		
+		rows.add(row);
+	}
+	
 	
 	
 	
@@ -144,10 +156,20 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 	 * (In that case, this method call will still work, it'll simply make a copy//snapshot of the table's external form!)
 	 */
 	@PossiblySnapshotPossiblyLiveValue
-	public List<List<E>> asListOfListsPossiblyLive()
+	@Override
+	public List<List<E>> toListOfListsPossiblyLive()
 	{
 		return this.rows;
 	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	@Override
+	public List<E> rowToListPossiblyLive(int index)
+	{
+		return this.rows.get(index);
+	}
+	
+	
 	
 	
 	

@@ -7075,17 +7075,17 @@ primxp
 	
 	
 	
-	public static String toTwoDigitStringWithLeadingZeroPad(int v)
+	public static String toTwoDigitStringWithLeadingZeroPad(long v)
 	{
 		boolean negative = v < 0;
 		
 		if (v < 10)
 			return negative ? ("-0" + -v) : ("0" + v);
 			else
-				return Integer.toString(v);
+				return Long.toString(v);
 	}
 	
-	public static String toThreeDigitStringWithLeadingZeroPad(int v)
+	public static String toThreeDigitStringWithLeadingZeroPad(long v)
 	{
 		boolean negative = v < 0;
 		
@@ -7094,13 +7094,13 @@ primxp
 			else if (v < 100)
 				return negative ? ("-0" + -v) : ("0" + v);
 				else
-					return Integer.toString(v);
+					return Long.toString(v);
 	}
 	
 	
-	public static String zeroPad(int v, int minDigits)
+	public static String zeroPad(long v, int minDigits)
 	{
-		return zeroPad(Integer.toString(v), minDigits);
+		return zeroPad(Long.toString(v), minDigits);
 	}
 	
 	
@@ -7113,17 +7113,17 @@ primxp
 	
 	
 	
-	public static String zpad2(int v)
+	public static String zpad2(long v)
 	{
 		return toTwoDigitStringWithLeadingZeroPad(v);
 	}
 	
-	public static String zpad3(int v)
+	public static String zpad3(long v)
 	{
 		return toThreeDigitStringWithLeadingZeroPad(v);
 	}
 	
-	public static String zpad(int v, int minDigits)
+	public static String zpad(long v, int minDigits)
 	{
 		return zeroPad(v, minDigits);
 	}
@@ -7676,6 +7676,16 @@ primxp
 	public static int indexOfCaseInsensitive(String string, String substring, int fromIndex)
 	{
 		return indexOf(string, 0, string.length(), substring, 0, substring.length(), fromIndex, StringUtilities::charsEqualCaseInsensitive);
+	}
+	
+	public static int indexOfCaseInsensitive(String string, String substring)
+	{
+		return indexOfCaseInsensitive(string, substring, 0);
+	}
+	
+	public static boolean containsCaseInsensitive(String string, String substring)
+	{
+		return indexOfCaseInsensitive(string, substring) != -1;
 	}
 	
 	

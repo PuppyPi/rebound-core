@@ -4,6 +4,8 @@
  */
 package rebound.exceptions;
 
+import static rebound.util.objectutil.ObjectUtilities.*;
+
 /**
  * Specifically for enums :>
  * @author RProgrammer
@@ -22,6 +24,7 @@ extends RuntimeException
 	
 	public UnexpectedHardcodedEnumValueException(Object offendingValue)
 	{
+		super(toStringNT(offendingValue));
 		this.offendingValue = offendingValue;
 	}
 	
