@@ -1,4 +1,4 @@
-package rebound.io;
+package rebound.io.iio.sio;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;

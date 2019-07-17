@@ -1,4 +1,4 @@
-package rebound.io;
+package rebound.io.util;
 
 import java.io.Closeable;
 import java.io.EOFException;

@@ -1,7 +1,7 @@
-package rebound.io;
+package rebound.io.util;
 
-import static rebound.io.BasicIOUtilities.*;
-import static rebound.io.JRECompatIOUtilities.*;
+import static rebound.io.util.BasicIOUtilities.*;
+import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import java.io.BufferedReader;
@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
+import rebound.io.ChannelProvider;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;

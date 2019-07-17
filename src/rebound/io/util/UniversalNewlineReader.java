@@ -2,7 +2,7 @@
  * Created on Apr 4, 2008
  * 	by the wonderful Eclipse(c)
  */
-package rebound.io;
+package rebound.io.util;
 
 import java.io.FilterReader;
 import java.io.IOException;

@@ -4,8 +4,8 @@
  */
 package rebound.util.res;
 
-import static rebound.io.BasicIOUtilities.*;
-import static rebound.io.JRECompatIOUtilities.*;
+import static rebound.io.util.BasicIOUtilities.*;
+import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.awt.image.BufferedImage;
@@ -44,9 +44,9 @@ import rebound.exceptions.ResourceNotFoundException;
 import rebound.exceptions.UnsupportedOptionException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
-import rebound.io.FSIOUtilities;
-import rebound.io.JRECompatIOUtilities;
-import rebound.io.TextIOUtilities;
+import rebound.io.util.FSIOUtilities;
+import rebound.io.util.JRECompatIOUtilities;
+import rebound.io.util.TextIOUtilities;
 import rebound.util.FlushableCache;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;

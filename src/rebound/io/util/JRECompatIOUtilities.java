@@ -2,7 +2,7 @@
  * Created on Nov 17, 2005
  * 	by the wonderful Eclipse(c)
  */
-package rebound.io;
+package rebound.io.util;
 
 import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
