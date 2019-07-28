@@ -68,6 +68,7 @@ import rebound.util.ScanDirection;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.BasicCollectionUtilities;
 import rebound.util.collections.IdentityHashSet;
+import rebound.util.collections.Interval;
 import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
@@ -828,14 +829,120 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	
-	public static String[] split(String original, String delimiter, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties)
+	public static interface StringScanner
 	{
-		if (delimiter.length() == 0)
-			throw new IllegalArgumentException();
+		/**
+		 * @param start the start-of-match can be at this, but not before!
+		 * @return either null if we hit the end of the string with no matches, or the matched string if we hit a match :>
+		 */
+		public @Nullable Interval findNextOrNullIfNone(@Nonnull String string, int start);
+	}
+	
+	
+	
+	public static StringScanner singleSubstringScanner(String target)
+	{
+		final int targetLength = target.length();
 		
+		return (string, start) ->
+		{
+			int nextMatchNearside = string.indexOf(target, start);
+			
+			if (nextMatchNearside == -1)
+				return null;
+			else
+				return new Interval(nextMatchNearside, targetLength);
+		};
+	}
+	
+	
+	public static StringScanner singleSubstringScannerReversed(String target)
+	{
+		final int targetLength = target.length();
+		
+		return (string, start) ->
+		{
+			int nextMatchNearside = string.lastIndexOf(target, start);
+			
+			if (nextMatchNearside == -1)
+				return null;
+			else
+				return new Interval(nextMatchNearside, targetLength);
+		};
+	}
+	
+	
+	
+	/**
+	 * Note that if any target starts with any other target, either one might get matched!
+	 */
+	public static StringScanner multiSubstringScanner(Iterable<String> targets)
+	{
+		return (string, start) ->
+		{
+			String bestMatchTarget = null;
+			int bestMatchTargetStartingIndex = 0;
+			
+			for (String target : targets)
+			{
+				int nextMatchNearside = string.indexOf(target, start);
+				
+				if (nextMatchNearside != -1)
+				{
+					if (bestMatchTarget == null || nextMatchNearside < bestMatchTargetStartingIndex)    // < is "better" here :3
+					{
+						bestMatchTarget = target;
+						bestMatchTargetStartingIndex = nextMatchNearside;
+					}
+				}
+			}
+			
+			return bestMatchTarget == null ? null : new Interval(bestMatchTargetStartingIndex, bestMatchTarget.length());
+		};
+	}
+	
+	
+	/**
+	 * Note that if any target ends with any other target, either one might get matched!
+	 */
+	public static StringScanner multiSubstringScannerReversed(Iterable<String> targets)
+	{
+		return (string, start) ->
+		{
+			String bestMatchTarget = null;
+			int bestMatchTargetStartingIndex = 0;
+			
+			for (String target : targets)
+			{
+				int nextMatchFarside = string.lastIndexOf(target, start);
+				
+				if (nextMatchFarside != -1)
+				{
+					if (bestMatchTarget == null || nextMatchFarside > bestMatchTargetStartingIndex)    // > is "better" here :3
+					{
+						bestMatchTarget = target;
+						bestMatchTargetStartingIndex = nextMatchFarside;
+					}
+				}
+			}
+			
+			return bestMatchTarget == null ? null : new Interval(bestMatchTargetStartingIndex, bestMatchTarget.length());
+		};
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String[] split(@Nonnull String original, @Nonnull StringScanner delimiter, int limitInMaximumNumberOfDelimiterSplits, @Nonnull WhatToDoWithEmpties whatToDoWithEmpties, boolean leaveInDelimiters)
+	{
 		List<String> substrings = new ArrayList<>();
 		
 		int currentPos = 0;
@@ -845,15 +952,18 @@ implements JavaNamespace
 			if (limitInMaximumNumberOfDelimiterSplits != -1 && substrings.size() >= limitInMaximumNumberOfDelimiterSplits)
 				break;
 			
-			int nextMatchNearside = original.indexOf(delimiter, currentPos);
+			Interval nextMatchNearside = delimiter.findNextOrNullIfNone(original, currentPos);
 			
-			if (nextMatchNearside == -1)
+			if (nextMatchNearside == null)
 				break;
 			
-			if (whatToDoWithEmpties == WhatToDoWithEmpties.LeaveInEmpties || currentPos != nextMatchNearside)
-				substrings.add(original.substring(currentPos, nextMatchNearside));
+			if (whatToDoWithEmpties == WhatToDoWithEmpties.LeaveInEmpties || currentPos != nextMatchNearside.getOffset())
+				substrings.add(original.substring(currentPos, nextMatchNearside.getOffset()));
 			
-			currentPos = nextMatchNearside + delimiter.length();
+			if (leaveInDelimiters)
+				substrings.add(original.substring(nextMatchNearside.getOffset(), nextMatchNearside.getPastEnd()));
+			
+			currentPos = nextMatchNearside.getPastEnd();
 		}
 		
 		if (whatToDoWithEmpties == WhatToDoWithEmpties.LeaveInEmpties || currentPos != original.length())
@@ -863,11 +973,8 @@ implements JavaNamespace
 	}
 	
 	
-	public static String[] rsplit(String original, String delimiter, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties)
+	public static String[] rsplit(String original, StringScanner delimiterScanningBackwards, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties, boolean leaveInDelimiters)
 	{
-		if (delimiter.length() == 0)
-			throw new IllegalArgumentException();
-		
 		List<String> substrings = new ArrayList<>();
 		
 		int currentPos = original.length();
@@ -878,23 +985,26 @@ implements JavaNamespace
 			if (limitInMaximumNumberOfDelimiterSplits != -1 && substrings.size() >= limitInMaximumNumberOfDelimiterSplits)
 				break;
 			
-			int nextMatchFarside = original.lastIndexOf(delimiter, currentPos);
+			Interval nextMatchFarside = delimiterScanningBackwards.findNextOrNullIfNone(original, currentPos);
 			
-			if (nextMatchFarside == -1)
+			if (nextMatchFarside == null)
 				break;
 			
-			if (whatToDoWithEmpties == WhatToDoWithEmpties.LeaveInEmpties || currentPos != nextMatchFarside)
-				substrings.add(original.substring(nextMatchFarside + delimiter.length(), lastMark));
+			if (whatToDoWithEmpties == WhatToDoWithEmpties.LeaveInEmpties || currentPos != nextMatchFarside.getOffset())
+				substrings.add(original.substring(nextMatchFarside.getPastEnd(), lastMark));
+			
+			if (leaveInDelimiters)
+				substrings.add(original.substring(nextMatchFarside.getOffset(), nextMatchFarside.getPastEnd()));
 			
 			//quirk of impl of scanning in that it uses partially L2R start-indexes in a R2L scanner makes this an asymmetry :P
-			lastMark = nextMatchFarside;
-			if (nextMatchFarside < delimiter.length())
+			lastMark = nextMatchFarside.getOffset();
+			if (nextMatchFarside.getOffset() < nextMatchFarside.getLength())
 			{
 				break;
 			}
 			else
 			{
-				currentPos = nextMatchFarside-delimiter.length();
+				currentPos = nextMatchFarside.getOffset() - nextMatchFarside.getLength();
 			}
 		}
 		
@@ -905,6 +1015,37 @@ implements JavaNamespace
 		ArrayUtilities.reverse(a);
 		return a;
 	}
+	
+	
+	public static String[] split(@Nonnull String original, @Nonnull StringScanner delimiter, int limitInMaximumNumberOfDelimiterSplits, @Nonnull WhatToDoWithEmpties whatToDoWithEmpties)
+	{
+		return split(original, delimiter, limitInMaximumNumberOfDelimiterSplits, whatToDoWithEmpties, false);
+	}
+	
+	public static String[] rsplit(String original, StringScanner delimiterScanningBackwards, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties)
+	{
+		return rsplit(original, delimiterScanningBackwards, limitInMaximumNumberOfDelimiterSplits, whatToDoWithEmpties, false);
+	}
+	
+	
+	
+	public static String[] split(String original, String delimiter, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties)
+	{
+		if (delimiter.length() == 0)
+			throw new IllegalArgumentException();
+		
+		return split(original, singleSubstringScanner(delimiter), limitInMaximumNumberOfDelimiterSplits, whatToDoWithEmpties);
+	}
+	
+	public static String[] rsplit(String original, String delimiter, int limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties whatToDoWithEmpties)
+	{
+		if (delimiter.length() == 0)
+			throw new IllegalArgumentException();
+		
+		return rsplit(original, singleSubstringScannerReversed(delimiter), limitInMaximumNumberOfDelimiterSplits, whatToDoWithEmpties);
+	}
+	
+	
 	
 	
 	

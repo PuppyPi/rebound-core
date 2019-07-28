@@ -1,7 +1,9 @@
 package rebound.util.collections;
 
+import javax.annotation.concurrent.Immutable;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 
+@Immutable
 public class Interval<RuntimeType extends Interval<RuntimeType>>
 {
 	protected final int offset;

@@ -1901,6 +1901,12 @@ implements JavaNamespace
 		throw new StructuredClassCastException(a.getClass());
 	}
 	
+	@NormalizesPrimitives
+	public static Rational normalizeNumberToRational(Object a)
+	{
+		@RationalOrInteger Object roi = normalizeNumberToRationalOrInteger(a);
+		return isInteger(roi) ? new ImmutableRational(roi, 1l) : (Rational)roi;
+	}
 	
 	
 	
@@ -1978,6 +1984,7 @@ implements JavaNamespace
 		}
 		else if (a instanceof Rational)
 		{
+			assert signum(((Rational) a).getDenominator()) == 1;
 			return signum(((Rational) a).getNumerator());
 		}
 		else
@@ -3033,6 +3040,8 @@ implements JavaNamespace
 	
 	
 	
+	//TODO Support formatting to possibly-repeating-decimals! :D
+	//TODO Support PARSING FROM possibly-repeating-decimals! :0 :D!(?)
 	
 	/**
 	 * Note that this may return an integer if the denominator would be 1, but that's not guaranteed!
@@ -3252,8 +3261,9 @@ implements JavaNamespace
 	//TODO Test theseeeeeeee! :D
 	
 	
-	
-	
+	/**
+	 * Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, "[x, x)" ) to represent a single point without needing to use a whole other format than interval-typed values :3
+	 */
 	public static final ArithmeticIntegerInterval EmptyInterval = new ArithmeticIntegerInterval(0, 0);
 	
 	public static ArithmeticIntegerInterval emptyInterval()
@@ -3354,21 +3364,26 @@ implements JavaNamespace
 		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
 	}
 	
-	//This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b get close to and then include zero!)
-	//	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	//	{
-	//		long al = a.getStart();
-	//		long ah = a.getPastEnd();
-	//		long bl = b.getStart();
-	//		long bh = b.getPastEnd();
-	//		
-	//		long c0 = al/bl;
-	//		long c1 = ah/bl;
-	//		long c2 = al/bh;
-	//		long c3 = ah/bh;
-	//		
-	//		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
-	//	}
+	/**
+	 * NOTE: This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b (the denominator) get close to and then include zero!  (eg, by being negative on one side and positive on the other!))
+	 */
+	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		if (b.containsPoint(0))
+			throw new DivisionByZeroException();
+		
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long c0 = al/bl;
+		long c1 = ah/bl;
+		long c2 = al/bh;
+		long c3 = ah/bh;
+		
+		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
+	}
 	
 	
 	

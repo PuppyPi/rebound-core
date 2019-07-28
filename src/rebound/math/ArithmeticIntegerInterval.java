@@ -45,12 +45,12 @@ public class ArithmeticIntegerInterval
 	}
 	
 	
-	public boolean isValueInUnderlyingInRange(long valueInUnderlying)
+	public boolean containsPoint(long value)
 	{
-		//return valueInUnderlying >= start && valueInUnderlying < start + size;
+		//return value >= start && value < start + size;
 		
-		valueInUnderlying -= this.start;
-		return valueInUnderlying >= 0 && valueInUnderlying < this.size;
+		value -= this.start;
+		return value >= 0 && value < this.size;
 	}
 	
 	
@@ -106,6 +106,7 @@ public class ArithmeticIntegerInterval
 	}
 
 
+	//Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, [x, x]) to represent a single point without needing to use a whole other format than interval-typed values :3
 	@Override
 	public boolean equals(Object obj)
 	{

@@ -9,9 +9,6 @@ import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.TruncationException;
 
-//TODO Support formatting to possibly-repeating-decimals! :D
-//TODO Support PARSING FROM possibly-repeating-decimals! :0 :D!(?)
-
 /**
  * Note: it should really be Immutable*Reduced*Rational now :33
  * @author Puppy Pie ^w^

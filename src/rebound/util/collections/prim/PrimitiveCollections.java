@@ -84,32 +84,32 @@ public class PrimitiveCollections
 		else if (array instanceof _$$prim$$_[])
 			return _$$prim$$_ArrayAsList((_$$prim$$_[])array);
 		 */
-		
-		else if (array instanceof boolean[])
-			return booleanArrayAsList((boolean[])array);
-		
-		else if (array instanceof byte[])
-			return byteArrayAsList((byte[])array);
-		
-		else if (array instanceof char[])
-			return charArrayAsList((char[])array);
-		
-		else if (array instanceof short[])
-			return shortArrayAsList((short[])array);
-		
-		else if (array instanceof float[])
-			return floatArrayAsList((float[])array);
-		
-		else if (array instanceof int[])
-			return intArrayAsList((int[])array);
-		
-		else if (array instanceof double[])
-			return doubleArrayAsList((double[])array);
-		
-		else if (array instanceof long[])
-			return longArrayAsList((long[])array);
-		
-		// >>>
+
+else if (array instanceof boolean[])
+	return booleanArrayAsList((boolean[])array);
+ 
+else if (array instanceof byte[])
+	return byteArrayAsList((byte[])array);
+ 
+else if (array instanceof char[])
+	return charArrayAsList((char[])array);
+ 
+else if (array instanceof short[])
+	return shortArrayAsList((short[])array);
+ 
+else if (array instanceof float[])
+	return floatArrayAsList((float[])array);
+ 
+else if (array instanceof int[])
+	return intArrayAsList((int[])array);
+ 
+else if (array instanceof double[])
+	return doubleArrayAsList((double[])array);
+ 
+else if (array instanceof long[])
+	return longArrayAsList((long[])array);
+ 
+// >>>
 		
 		
 		else
@@ -2213,7 +2213,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue _$$prim$$_[] array)
+	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue _$$prim$$_... array)
 	{
 		return _$$prim$$_ArrayAsList(array, 0, array.length);
 	}
@@ -2234,7 +2234,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static _$$Primitive$$_List _$$prim$$_ArrayAsMutableList(@SnapshotValue @ReadonlyValue _$$prim$$_[] array)
+	public static _$$Primitive$$_List _$$prim$$_ArrayAsMutableList(@SnapshotValue @ReadonlyValue _$$prim$$_... array)
 	{
 		return _$$prim$$_ArrayAsMutableList(array, 0, array.length);
 	}
@@ -3492,9 +3492,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -3724,17 +3724,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public BooleanList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addBoolean(boolean)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addBoolean(boolean)}  :D
+	 	*/
 		public void setSizeBoolean(int newSize, boolean elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Boolean elementToAddIfGrowing)
@@ -3874,7 +3874,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllBooleans(int start, @WritableValue boolean[] array, int offset, int length)
 		{
@@ -4037,7 +4037,7 @@ primxp
 			{
 				int index = 0;
 				
-				public boolean nextrpBoolean() throws StopIterationReturnPath
+						public boolean nextrpBoolean() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -4116,7 +4116,7 @@ primxp
 		{
 			insertAllBooleans(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -4158,7 +4158,7 @@ primxp
 		{
 			return o instanceof Boolean ? lastIndexOfBoolean((Boolean)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -4542,9 +4542,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public BooleanArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -4745,7 +4745,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -4763,9 +4763,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue boolean[] array)
@@ -4950,7 +4950,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue boolean[] array)
+	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue boolean... array)
 	{
 		return booleanArrayAsList(array, 0, array.length);
 	}
@@ -4971,7 +4971,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static BooleanList booleanArrayAsMutableList(@SnapshotValue @ReadonlyValue boolean[] array)
+	public static BooleanList booleanArrayAsMutableList(@SnapshotValue @ReadonlyValue boolean... array)
 	{
 		return booleanArrayAsMutableList(array, 0, array.length);
 	}
@@ -5015,9 +5015,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableBooleanArrayList newLIVE(@LiveValue boolean[] LIVEDATA)
@@ -5135,8 +5135,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -5891,7 +5891,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static byte getByte(List<Byte> list, int index)
 	{
@@ -6228,9 +6228,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -6460,17 +6460,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public ByteList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addByte(byte)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addByte(byte)}  :D
+	 	*/
 		public void setSizeByte(int newSize, byte elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Byte elementToAddIfGrowing)
@@ -6610,7 +6610,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllBytes(int start, @WritableValue byte[] array, int offset, int length)
 		{
@@ -6773,7 +6773,7 @@ primxp
 			{
 				int index = 0;
 				
-				public byte nextrpByte() throws StopIterationReturnPath
+						public byte nextrpByte() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -6852,7 +6852,7 @@ primxp
 		{
 			insertAllBytes(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -6894,7 +6894,7 @@ primxp
 		{
 			return o instanceof Byte ? lastIndexOfByte((Byte)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -7278,9 +7278,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public ByteArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -7481,7 +7481,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -7499,9 +7499,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue byte[] array)
@@ -7686,7 +7686,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static ByteList byteArrayAsList(@LiveValue @WritableValue byte[] array)
+	public static ByteList byteArrayAsList(@LiveValue @WritableValue byte... array)
 	{
 		return byteArrayAsList(array, 0, array.length);
 	}
@@ -7707,7 +7707,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static ByteList byteArrayAsMutableList(@SnapshotValue @ReadonlyValue byte[] array)
+	public static ByteList byteArrayAsMutableList(@SnapshotValue @ReadonlyValue byte... array)
 	{
 		return byteArrayAsMutableList(array, 0, array.length);
 	}
@@ -7751,9 +7751,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableByteArrayList newLIVE(@LiveValue byte[] LIVEDATA)
@@ -7871,8 +7871,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -8627,7 +8627,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static char getChar(List<Character> list, int index)
 	{
@@ -8964,9 +8964,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -9196,17 +9196,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public CharacterList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addChar(char)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addChar(char)}  :D
+	 	*/
 		public void setSizeChar(int newSize, char elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Character elementToAddIfGrowing)
@@ -9346,7 +9346,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllChars(int start, @WritableValue char[] array, int offset, int length)
 		{
@@ -9509,7 +9509,7 @@ primxp
 			{
 				int index = 0;
 				
-				public char nextrpChar() throws StopIterationReturnPath
+						public char nextrpChar() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -9588,7 +9588,7 @@ primxp
 		{
 			insertAllChars(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -9630,7 +9630,7 @@ primxp
 		{
 			return o instanceof Character ? lastIndexOfChar((Character)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -10014,9 +10014,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public CharacterArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -10217,7 +10217,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -10235,9 +10235,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue char[] array)
@@ -10422,7 +10422,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static CharacterList charArrayAsList(@LiveValue @WritableValue char[] array)
+	public static CharacterList charArrayAsList(@LiveValue @WritableValue char... array)
 	{
 		return charArrayAsList(array, 0, array.length);
 	}
@@ -10443,7 +10443,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static CharacterList charArrayAsMutableList(@SnapshotValue @ReadonlyValue char[] array)
+	public static CharacterList charArrayAsMutableList(@SnapshotValue @ReadonlyValue char... array)
 	{
 		return charArrayAsMutableList(array, 0, array.length);
 	}
@@ -10487,9 +10487,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableCharacterArrayList newLIVE(@LiveValue char[] LIVEDATA)
@@ -10607,8 +10607,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -11363,7 +11363,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static short getShort(List<Short> list, int index)
 	{
@@ -11700,9 +11700,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -11932,17 +11932,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public ShortList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addShort(short)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addShort(short)}  :D
+	 	*/
 		public void setSizeShort(int newSize, short elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Short elementToAddIfGrowing)
@@ -12082,7 +12082,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllShorts(int start, @WritableValue short[] array, int offset, int length)
 		{
@@ -12245,7 +12245,7 @@ primxp
 			{
 				int index = 0;
 				
-				public short nextrpShort() throws StopIterationReturnPath
+						public short nextrpShort() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -12324,7 +12324,7 @@ primxp
 		{
 			insertAllShorts(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -12366,7 +12366,7 @@ primxp
 		{
 			return o instanceof Short ? lastIndexOfShort((Short)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -12750,9 +12750,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public ShortArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -12953,7 +12953,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -12971,9 +12971,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue short[] array)
@@ -13158,7 +13158,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static ShortList shortArrayAsList(@LiveValue @WritableValue short[] array)
+	public static ShortList shortArrayAsList(@LiveValue @WritableValue short... array)
 	{
 		return shortArrayAsList(array, 0, array.length);
 	}
@@ -13179,7 +13179,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static ShortList shortArrayAsMutableList(@SnapshotValue @ReadonlyValue short[] array)
+	public static ShortList shortArrayAsMutableList(@SnapshotValue @ReadonlyValue short... array)
 	{
 		return shortArrayAsMutableList(array, 0, array.length);
 	}
@@ -13223,9 +13223,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableShortArrayList newLIVE(@LiveValue short[] LIVEDATA)
@@ -13343,8 +13343,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -14099,7 +14099,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static float getFloat(List<Float> list, int index)
 	{
@@ -14436,9 +14436,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -14668,17 +14668,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public FloatList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addFloat(float)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addFloat(float)}  :D
+	 	*/
 		public void setSizeFloat(int newSize, float elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Float elementToAddIfGrowing)
@@ -14818,7 +14818,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllFloats(int start, @WritableValue float[] array, int offset, int length)
 		{
@@ -14981,7 +14981,7 @@ primxp
 			{
 				int index = 0;
 				
-				public float nextrpFloat() throws StopIterationReturnPath
+						public float nextrpFloat() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -15060,7 +15060,7 @@ primxp
 		{
 			insertAllFloats(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -15102,7 +15102,7 @@ primxp
 		{
 			return o instanceof Float ? lastIndexOfFloat((Float)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -15486,9 +15486,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public FloatArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -15689,7 +15689,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -15707,9 +15707,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue float[] array)
@@ -15894,7 +15894,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static FloatList floatArrayAsList(@LiveValue @WritableValue float[] array)
+	public static FloatList floatArrayAsList(@LiveValue @WritableValue float... array)
 	{
 		return floatArrayAsList(array, 0, array.length);
 	}
@@ -15915,7 +15915,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static FloatList floatArrayAsMutableList(@SnapshotValue @ReadonlyValue float[] array)
+	public static FloatList floatArrayAsMutableList(@SnapshotValue @ReadonlyValue float... array)
 	{
 		return floatArrayAsMutableList(array, 0, array.length);
 	}
@@ -15959,9 +15959,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableFloatArrayList newLIVE(@LiveValue float[] LIVEDATA)
@@ -16079,8 +16079,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -16835,7 +16835,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static int getInt(List<Integer> list, int index)
 	{
@@ -17172,9 +17172,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -17404,17 +17404,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public IntegerList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addInt(int)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addInt(int)}  :D
+	 	*/
 		public void setSizeInt(int newSize, int elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Integer elementToAddIfGrowing)
@@ -17554,7 +17554,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllInts(int start, @WritableValue int[] array, int offset, int length)
 		{
@@ -17717,7 +17717,7 @@ primxp
 			{
 				int index = 0;
 				
-				public int nextrpInt() throws StopIterationReturnPath
+						public int nextrpInt() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -17796,7 +17796,7 @@ primxp
 		{
 			insertAllInts(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -17838,7 +17838,7 @@ primxp
 		{
 			return o instanceof Integer ? lastIndexOfInt((Integer)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -18222,9 +18222,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public IntegerArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -18425,7 +18425,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -18443,9 +18443,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue int[] array)
@@ -18630,7 +18630,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static IntegerList intArrayAsList(@LiveValue @WritableValue int[] array)
+	public static IntegerList intArrayAsList(@LiveValue @WritableValue int... array)
 	{
 		return intArrayAsList(array, 0, array.length);
 	}
@@ -18651,7 +18651,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static IntegerList intArrayAsMutableList(@SnapshotValue @ReadonlyValue int[] array)
+	public static IntegerList intArrayAsMutableList(@SnapshotValue @ReadonlyValue int... array)
 	{
 		return intArrayAsMutableList(array, 0, array.length);
 	}
@@ -18695,9 +18695,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableIntegerArrayList newLIVE(@LiveValue int[] LIVEDATA)
@@ -18815,8 +18815,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -19571,7 +19571,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static double getDouble(List<Double> list, int index)
 	{
@@ -19908,9 +19908,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -20140,17 +20140,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public DoubleList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addDouble(double)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addDouble(double)}  :D
+	 	*/
 		public void setSizeDouble(int newSize, double elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Double elementToAddIfGrowing)
@@ -20290,7 +20290,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllDoubles(int start, @WritableValue double[] array, int offset, int length)
 		{
@@ -20453,7 +20453,7 @@ primxp
 			{
 				int index = 0;
 				
-				public double nextrpDouble() throws StopIterationReturnPath
+						public double nextrpDouble() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -20532,7 +20532,7 @@ primxp
 		{
 			insertAllDoubles(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -20574,7 +20574,7 @@ primxp
 		{
 			return o instanceof Double ? lastIndexOfDouble((Double)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -20958,9 +20958,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public DoubleArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -21161,7 +21161,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -21179,9 +21179,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue double[] array)
@@ -21366,7 +21366,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue double[] array)
+	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue double... array)
 	{
 		return doubleArrayAsList(array, 0, array.length);
 	}
@@ -21387,7 +21387,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static DoubleList doubleArrayAsMutableList(@SnapshotValue @ReadonlyValue double[] array)
+	public static DoubleList doubleArrayAsMutableList(@SnapshotValue @ReadonlyValue double... array)
 	{
 		return doubleArrayAsMutableList(array, 0, array.length);
 	}
@@ -21431,9 +21431,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableDoubleArrayList newLIVE(@LiveValue double[] LIVEDATA)
@@ -21551,8 +21551,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -22307,7 +22307,7 @@ primxp
 	
 	
 	
-	
+	 	
 	
 	public static long getLong(List<Long> list, int index)
 	{
@@ -22644,9 +22644,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-		
-		
-		
+
+
+
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -22876,17 +22876,17 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-		 */
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 	*/
 		public LongList clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addLong(long)}  :D
-		 */
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addLong(long)}  :D
+	 	*/
 		public void setSizeLong(int newSize, long elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Long elementToAddIfGrowing)
@@ -23026,7 +23026,7 @@ primxp
 		
 		
 		/**
-		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllLongs(int start, @WritableValue long[] array, int offset, int length)
 		{
@@ -23189,7 +23189,7 @@ primxp
 			{
 				int index = 0;
 				
-				public long nextrpLong() throws StopIterationReturnPath
+						public long nextrpLong() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -23268,7 +23268,7 @@ primxp
 		{
 			insertAllLongs(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-		
+
 		
 		
 		@Override
@@ -23310,7 +23310,7 @@ primxp
 		{
 			return o instanceof Long ? lastIndexOfLong((Long)o) : -1;
 		}
-		
+
 		
 		
 		@Override
@@ -23694,9 +23694,9 @@ primxp
 		
 		
 		/**
-		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public LongArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -23897,7 +23897,7 @@ primxp
 		}
 		
 		/**
-		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -23915,9 +23915,9 @@ primxp
 		
 		
 		/**
-		 * sets the underlying array that backs the array list.
-		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-		 * Note, also, that only up to {@link #size()} elements will be used.
+	 * sets the underlying array that backs the array list.
+	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+	 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue long[] array)
@@ -24102,7 +24102,7 @@ primxp
 	}
 	
 	@ReadonlyValue
-	public static LongList longArrayAsList(@LiveValue @WritableValue long[] array)
+	public static LongList longArrayAsList(@LiveValue @WritableValue long... array)
 	{
 		return longArrayAsList(array, 0, array.length);
 	}
@@ -24123,7 +24123,7 @@ primxp
 	}
 	
 	@ThrowAwayValue
-	public static LongList longArrayAsMutableList(@SnapshotValue @ReadonlyValue long[] array)
+	public static LongList longArrayAsMutableList(@SnapshotValue @ReadonlyValue long... array)
 	{
 		return longArrayAsMutableList(array, 0, array.length);
 	}
@@ -24167,9 +24167,9 @@ primxp
 		
 		
 		/**
-		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableLongArrayList newLIVE(@LiveValue long[] LIVEDATA)
@@ -24287,8 +24287,8 @@ primxp
 		}
 		
 		/**
-		 * DO NOT MODIFY THIS X"D
-		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -25043,8 +25043,8 @@ primxp
 	
 	
 	
-	
-	//>>>
+	 
+//>>>
 	
 	
 	
@@ -25321,8 +25321,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	 */
-	
-	
+
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -25338,7 +25338,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedByteSetBackedByList(@LiveValue ByteList presortedOrEmptyUnderlying)
 		{
@@ -25422,7 +25422,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedByteSetBackedByList other)
 		{
@@ -25444,8 +25444,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toByteArray()} which should probably be used in preference to {@link #toByteArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toByteArray()} which should probably be used in preference to {@link #toByteArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public byte[] toSortedByteArray()
@@ -25486,8 +25486,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -25548,8 +25548,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -25565,7 +25565,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedCharacterSetBackedByList(@LiveValue CharacterList presortedOrEmptyUnderlying)
 		{
@@ -25649,7 +25649,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedCharacterSetBackedByList other)
 		{
@@ -25671,8 +25671,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toCharArray()} which should probably be used in preference to {@link #toCharArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toCharArray()} which should probably be used in preference to {@link #toCharArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public char[] toSortedCharArray()
@@ -25713,8 +25713,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -25775,8 +25775,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -25792,7 +25792,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedShortSetBackedByList(@LiveValue ShortList presortedOrEmptyUnderlying)
 		{
@@ -25876,7 +25876,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedShortSetBackedByList other)
 		{
@@ -25898,8 +25898,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toShortArray()} which should probably be used in preference to {@link #toShortArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toShortArray()} which should probably be used in preference to {@link #toShortArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public short[] toSortedShortArray()
@@ -25940,8 +25940,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26002,8 +26002,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -26019,7 +26019,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedFloatSetBackedByList(@LiveValue FloatList presortedOrEmptyUnderlying)
 		{
@@ -26103,7 +26103,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedFloatSetBackedByList other)
 		{
@@ -26125,8 +26125,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toFloatArray()} which should probably be used in preference to {@link #toFloatArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toFloatArray()} which should probably be used in preference to {@link #toFloatArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public float[] toSortedFloatArray()
@@ -26167,8 +26167,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26229,8 +26229,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -26246,7 +26246,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedIntegerSetBackedByList(@LiveValue IntegerList presortedOrEmptyUnderlying)
 		{
@@ -26330,7 +26330,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedIntegerSetBackedByList other)
 		{
@@ -26352,8 +26352,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toIntArray()} which should probably be used in preference to {@link #toIntArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toIntArray()} which should probably be used in preference to {@link #toIntArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public int[] toSortedIntArray()
@@ -26394,8 +26394,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26456,8 +26456,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -26473,7 +26473,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedDoubleSetBackedByList(@LiveValue DoubleList presortedOrEmptyUnderlying)
 		{
@@ -26557,7 +26557,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedDoubleSetBackedByList other)
 		{
@@ -26579,8 +26579,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toDoubleArray()} which should probably be used in preference to {@link #toDoubleArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toDoubleArray()} which should probably be used in preference to {@link #toDoubleArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public double[] toSortedDoubleArray()
@@ -26621,8 +26621,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26683,8 +26683,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	
+	 
+
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
@@ -26700,7 +26700,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedLongSetBackedByList(@LiveValue LongList presortedOrEmptyUnderlying)
 		{
@@ -26784,7 +26784,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedLongSetBackedByList other)
 		{
@@ -26806,8 +26806,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * This is a synonym to {@link #toLongArray()} which should probably be used in preference to {@link #toLongArray()} if your code relies on its sorted-ness, at least for clarity :>
-		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+	 * This is a synonym to {@link #toLongArray()} which should probably be used in preference to {@link #toLongArray()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public long[] toSortedLongArray()
@@ -26848,8 +26848,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-		 * Remove all elements in the range (exclusive, like String).<br>
-		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26910,8 +26910,8 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
-	// >>>
+	 
+// >>>
 	
 	
 	
@@ -27386,7 +27386,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	 */
-	
+
 	
 	
 	
@@ -27798,7 +27798,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
+	 
 	
 	
 	
@@ -28210,7 +28210,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
+	 
 	
 	
 	
@@ -28622,7 +28622,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
+	 
 	
 	
 	
@@ -29034,7 +29034,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
+	 
 	
 	
 	
@@ -29446,8 +29446,8 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	// >>>
+	 
+// >>>
 }
 
 

@@ -32,7 +32,7 @@ extends OutputStream
 	 * simply passes through the given OutputStream if only one is given,
 	 * (or returns a dummy stream if none or null array are given)
 	 */
-	public static OutputStream inst(@PossiblySnapshotPossiblyLiveValue OutputStream[] sinks)
+	public static OutputStream inst(@PossiblySnapshotPossiblyLiveValue OutputStream... sinks)
 	{
 		if (sinks == null || sinks.length == 0)
 			return new BroadcastingOutputStream(); //basically a dummy

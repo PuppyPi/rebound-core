@@ -3266,7 +3266,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E> void addAll(Collection<E> self, Iterable<E> source)
+	public static <E> void addAll(Collection<E> self, Iterable<? extends E> source)
 	{
 		if (source instanceof Collection)
 			self.addAll((Collection<E>)source);
@@ -3286,7 +3286,7 @@ _$$primxpconf:intsonly$$_
 		addAll(self, source, 0, source.length);
 	}
 	
-	public static <E> void addAll(Collection<E> self, List<E> source, int sourceOffset, int count)
+	public static <E> void addAll(Collection<E> self, List<? extends E> source, int sourceOffset, int count)
 	{
 		for (int i = 0; i < count; i++)
 			self.add(source.get(sourceOffset+i));
@@ -3673,6 +3673,48 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	
+	public static <O, D extends O> List<O> joinlists(Iterable<? extends Iterable<? extends O>> lists, D delimiter)
+	{
+		List<O> r = new ArrayList<>();
+		
+		boolean first = true;
+		for (Iterable<? extends O> list : lists)
+		{
+			if (first)
+				first = false;
+			else
+				r.add(delimiter);
+			
+			addAll(r, list);
+		}
+		
+		return r;
+	}
+	
+	
+	
+	public static <O, D extends O> List<O> joinSingletonLists(Iterable<? extends O> list, D delimiter)
+	{
+		List<O> r = new ArrayList<>();
+		
+		boolean first = true;
+		for (O e : list)
+		{
+			if (first)
+				first = false;
+			else
+				r.add(delimiter);
+			
+			r.add(e);
+		}
+		
+		return r;
+	}
 	
 	
 	

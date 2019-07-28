@@ -23,6 +23,11 @@ public class SmallIntegerBasicGeometry2D
 		return ipoint(a.x + b.x, a.y + b.y);
 	}
 	
+	public static IntPoint subtractPoints(IntPoint a, IntPoint b)
+	{
+		return addVector(a, negateVector(b));
+	}
+	
 	public static IntPoint negateVector(IntPoint a)
 	{
 		return ipoint(-a.x, -a.y);
@@ -99,10 +104,5 @@ public class SmallIntegerBasicGeometry2D
 	public static IntDimension irectsize(IntRectangle r)
 	{
 		return idims(r.width, r.height);
-	}
-	
-	public static IntPoint subtractPoints(IntPoint a, IntPoint b)
-	{
-		return addVector(a, negateVector(b));
 	}
 }

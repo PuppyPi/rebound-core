@@ -9,7 +9,6 @@ import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.math.geom.ints.analogoustojavaawt.IntPoint;
-import rebound.math.geom.ints.analogoustojavaawt.IntRectangle;
 
 /**
  * Lossless 2D raster transforms form a Symmetry Group with eight elements :>
@@ -132,18 +131,35 @@ public enum LosslessRandRAffineTransform
 	
 	
 	@ThrowAwayValue
-	//Thank HEAVENS for inlining and compiler optimizationsssss!! XDDD :'DDD
-	public IntPoint transformIntegerPointInRectangleOP(@ReadonlyValue @SnapshotValue IntPoint input, IntRectangle space)
+	public IntPoint transformIntegerPointInsideOriginCorneredRectangleOP(@ReadonlyValue @SnapshotValue IntPoint input, int width, int height)
 	{
-		int x = input.x - space.x;
-		int y = input.y - space.y;
+		IntPoint p = transformIntegerPointOP(input);
 		
-		IntPoint p = transformIntegerPointOP(ipoint(x, y));
+		width--;
+		height--;
 		
-		return ipoint(
-		SmallIntegerMathUtilities.progmod(p.x, space.width) + space.x,
-		SmallIntegerMathUtilities.progmod(p.y, space.height) + space.y
-		);
+		final int tx, ty;
+		{
+			if (this.isAxesSwapped())
+			{
+				tx = this.isInputYInverted() ? height : 0;
+				ty = this.isInputXInverted() ? width : 0;
+			}
+			else
+			{
+				tx = this.isInputXInverted() ? width : 0;
+				ty = this.isInputYInverted() ? height : 0;
+			}
+		}
+		
+		return addVector(p, ipoint(tx, ty));
+	}
+	
+	
+	@ThrowAwayValue
+	public IntPoint transformIntegerPointCenteredOP(@ReadonlyValue @SnapshotValue IntPoint input, IntPoint centerPoint)
+	{
+		return addVector(transformIntegerPointOP(subtractPoints(input, centerPoint)), centerPoint);
 	}
 	
 	

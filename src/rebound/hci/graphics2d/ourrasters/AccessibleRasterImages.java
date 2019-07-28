@@ -1420,8 +1420,6 @@ public class AccessibleRasterImages
 		int w = srcImage.getWidth();
 		int h = srcImage.getHeight();
 		
-		IntRectangle r = irect(0, 0, w, h);
-		
 		if (AccessibleInterleavedRasterImageArrayInt.is(srcImage))
 		{
 			AccessibleInterleavedRasterImageArrayInt srcImageAcc = (AccessibleInterleavedRasterImageArrayInt) srcImage;
@@ -1439,7 +1437,7 @@ public class AccessibleRasterImages
 					int destX, destY;
 					{
 						//Thank HEAVENS for inlining and compiler optimizationsssss!! XDDD :'DDD
-						IntPoint newP = transform.transformIntegerPointInRectangleOP(ipoint(srcX, srcY), r);
+						IntPoint newP = transform.transformIntegerPointInsideOriginCorneredRectangleOP(ipoint(srcX, srcY), w, h);
 						destX = newP.x;
 						destY = newP.y;
 					}
@@ -1466,7 +1464,7 @@ public class AccessibleRasterImages
 					int destX, destY;
 					{
 						//Thank HEAVENS for inlining and compiler optimizationsssss!! XDDD :'DDD
-						IntPoint newP = transform.transformIntegerPointInRectangleOP(ipoint(srcX, srcY), r);
+						IntPoint newP = transform.transformIntegerPointInsideOriginCorneredRectangleOP(ipoint(srcX, srcY), w, h);
 						destX = newP.x;
 						destY = newP.y;
 					}
