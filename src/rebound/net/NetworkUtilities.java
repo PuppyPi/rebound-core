@@ -748,6 +748,12 @@ implements JavaNamespace
 	
 	public static String urlescapeGeneric(@Nonnull String s, UnaryFunctionIntToBoolean shouldEscape)
 	{
+		//note that we don't just do this inside _urlescape() because ReURL needs urlescapeJustUnicodesAndControls to escape unicode characters (AND NOT DOUBLY-ESCAPE THE ENTIRE ALREADY-ENCODED URL!! XDD)
+		return urlescapeRaw(s, c -> c == '%' || c == '+' || shouldEscape.f(c));  //'%' and '+' are the escape chars we might replace others with!, so them being escaped is non-negotiable XD
+	}
+	
+	public static String urlescapeRaw(@Nonnull String s, UnaryFunctionIntToBoolean shouldEscape)
+	{
 		int[] ucs4Chars = toCodePointArray(s);
 		
 		StringBuilder b = null;
@@ -798,11 +804,11 @@ implements JavaNamespace
 	
 	
 	/**
-	 * This is compatible for use with an already-escaped URL/URI :>
+	 * This is compatible for use with an already-escaped URL/URI to simply make it ASCII-safe :>
 	 */
 	public static String urlescapeJustUnicodesAndControls(@Nonnull String s)
 	{
-		return urlescapeGeneric(s, EscapedCharsJustUnicodesAndControls);
+		return urlescapeRaw(s, EscapedCharsJustUnicodesAndControls);
 	}
 	
 	

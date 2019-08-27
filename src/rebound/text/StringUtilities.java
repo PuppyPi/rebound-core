@@ -1338,9 +1338,103 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@Nullable
+	public static String[] rsplitonceOrNull(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	@Nonnull
+	public static String[] rsplitonce(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? new String[]{s} : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	
+	@Nullable
+	public static String[] rsplitonceOrNull(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	@Nonnull
+	public static String[] rsplitonce(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? new String[]{s} : new String[]{s.substring(0, i), s.substring(i+del.length())};
+	}
+	
+	
+	
+	
+	
+	@Nonnull
+	public static String rsplitonceReturnPrecedingOrWhole(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? s : s.substring(0, i);
+	}
+	
+	@Nonnull
+	public static String rsplitonceReturnPrecedingOrNull(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String rsplitonceReturnSucceedingOrNull(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : s.substring(i+1);
+	}
+	
+	
+	
+	@Nonnull
+	public static String rsplitonceReturnPrecedingOrWhole(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? s : s.substring(0, i);
+	}
+	
+	@Nonnull
+	public static String rsplitonceReturnPrecedingOrNull(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String rsplitonceReturnSucceedingOrNull(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? null : s.substring(i+del.length());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static String[] splitOnceCamelCaseName(String camelCaseName)
 	{
-		int c = findCapitalLetter(camelCaseName, 0);
+		int c = indexOf(camelCaseName, Character::isUpperCase);
 		
 		if (c == -1)
 			return new String[]{camelCaseName};
@@ -1349,16 +1443,6 @@ implements JavaNamespace
 	}
 	
 	//Todo splitCamelCaseName()!
-	
-	
-	public static int findCapitalLetter(String s, int startingIndex)
-	{
-		int n = s.length();
-		for (int i = startingIndex; i < n; i++)
-			if (Character.isUpperCase(s.charAt(i)))
-				return i;
-		return -1;
-	}
 	
 	
 	
@@ -1954,119 +2038,33 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean startsWith(Object longer, Object shorter)
+	public static boolean startsWith(String longer, String shorter)  //useful by syntactic similarity to the case-insensitive form for code generation :3
 	{
-		if (longer instanceof String && shorter instanceof String)
-		{
-			return ((String)longer).startsWith((String)shorter);
-		}
-		
-		//No more speedy shortcuts are available (although if these are actually raw char arrays, this is the same as String.startsWith and is no less speedy! ^_^ )    (I think XD')
-		else
-		{
-			if (getLength(shorter) > getLength(longer))
-				return false;
-			
-			char[] l = textthingToPossiblyUnclonedCharArray(longer);
-			char[] s = textthingToPossiblyUnclonedCharArray(shorter);
-			
-			int minlen = s.length; //we already verified that
-			
-			for (int i = 0; i < minlen; i++)
-			{
-				if (l[i] != s[i])
-					return false;
-			}
-			
-			return true;
-		}
+		return longer.startsWith(shorter);
 	}
 	
-	public static boolean endsWith(Object longer, Object shorter)
+	public static boolean endsWith(String longer, String shorter)  //useful by syntactic similarity to the case-insensitive form for code generation :3
 	{
-		if (longer instanceof String && shorter instanceof String)
-		{
-			return ((String)longer).startsWith((String)shorter);
-		}
-		
-		//No more speedy shortcuts are available
-		else
-		{
-			if (getLength(shorter) > getLength(longer))
-				return false;
-			
-			char[] l = textthingToPossiblyUnclonedCharArray(longer);
-			char[] s = textthingToPossiblyUnclonedCharArray(shorter);
-			
-			int minlen = s.length; //we already verified that
-			
-			for (int i = 0; i < minlen; i++)
-			{
-				if (l[l.length-i-1] != s[s.length-i-1])
-					return false;
-			}
-			
-			return true;
-		}
+		return longer.endsWith(shorter);
+	}
+	
+	public static boolean startsWithCaseInsensitively(String longer, String shorter)
+	{
+		return startsWith(longer.toLowerCase(), shorter.toLowerCase());
+	}
+	
+	public static boolean endsWithCaseInsensitively(String longer, String shorter)
+	{
+		return endsWith(longer.toLowerCase(), shorter.toLowerCase());
+	}
+	
+	public static boolean eqCaseInsensitively(String a, String b)
+	{
+		return a == null ? b == null : (b != null && a.equalsIgnoreCase(b));
 	}
 	
 	
 	
-	public static boolean startsWithCaseInsensitively(Object longer, Object shorter)
-	{
-		if (longer instanceof String && shorter instanceof String)
-		{
-			return ((String)longer).startsWith((String)shorter);
-		}
-		
-		//No more speedy shortcuts are available
-		else
-		{
-			if (getLength(shorter) > getLength(longer))
-				return false;
-			
-			char[] l = textthingToPossiblyUnclonedCharArray(longer);
-			char[] s = textthingToPossiblyUnclonedCharArray(shorter);
-			
-			int minlen = s.length; //we already verified that
-			
-			for (int i = 0; i < minlen; i++)
-			{
-				if (Character.toLowerCase(l[i]) != Character.toLowerCase(s[i]))
-					return false;
-			}
-			
-			return true;
-		}
-	}
-	
-	public static boolean endsWithCaseInsensitively(Object longer, Object shorter)
-	{
-		if (longer instanceof String && shorter instanceof String)
-		{
-			return ((String)longer).startsWith((String)shorter);
-		}
-		
-		//No more speedy shortcuts are available
-		else
-		{
-			if (getLength(shorter) > getLength(longer))
-				return false;
-			
-			char[] l = textthingToPossiblyUnclonedCharArray(longer);
-			char[] s = textthingToPossiblyUnclonedCharArray(shorter);
-			
-			int minlen = s.length; //we already verified that
-			
-			for (int i = 0; i < minlen; i++)
-			{
-				if (Character.toLowerCase(l[l.length-i-1]) != Character.toLowerCase(s[s.length-i-1]))
-					return false;
-			}
-			
-			return true;
-		}
-	}
 	
 	
 	
@@ -2437,7 +2435,7 @@ implements JavaNamespace
 	
 	public static String ltrimstrCaseInsensitive(String str, String trimmand)
 	{
-		if (str.startsWith(trimmand))
+		if (startsWithCaseInsensitively(str, trimmand))
 			return str.substring(trimmand.length());
 		else
 			return str;
@@ -2445,7 +2443,7 @@ implements JavaNamespace
 	
 	public static String rtrimstrCaseInsensitive(String str, String trimmand)
 	{
-		if (str.endsWith(trimmand))
+		if (endsWithCaseInsensitively(str, trimmand))
 			return str.substring(0, str.length() - trimmand.length());
 		else
 			return str;
@@ -2457,8 +2455,7 @@ implements JavaNamespace
 	
 	
 	
-	@Nullable
-	public static String ltrimstrOrNull(String str, String trimmand)
+	public static @Nullable String ltrimstrOrNull(String str, String trimmand)
 	{
 		if (str.startsWith(trimmand))
 			return str.substring(trimmand.length());
@@ -2466,13 +2463,65 @@ implements JavaNamespace
 			return null;
 	}
 	
-	@Nullable
-	public static String rtrimstrOrNull(String str, String trimmand)
+	public static @Nullable String rtrimstrOrNull(String str, String trimmand)
 	{
 		if (str.endsWith(trimmand))
 			return str.substring(0, str.length() - trimmand.length());
 		else
 			return null;
+	}
+	
+	
+	public static @Nullable String ltrimstrOrNullCaseInsensitive(String str, String trimmand)
+	{
+		if (startsWithCaseInsensitively(str, trimmand))
+			return str.substring(trimmand.length());
+		else
+			return null;
+	}
+	
+	public static @Nullable String rtrimstrOrNullCaseInsensitive(String str, String trimmand)
+	{
+		if (endsWithCaseInsensitively(str, trimmand))
+			return str.substring(0, str.length() - trimmand.length());
+		else
+			return null;
+	}
+	
+	
+	
+	
+	public static @Nullable String ltrimstrOrThrow(String str, String trimmand)
+	{
+		if (str.startsWith(trimmand))
+			return str.substring(trimmand.length());
+		else
+			throw new IllegalArgumentException();
+	}
+	
+	public static @Nullable String rtrimstrOrThrow(String str, String trimmand)
+	{
+		if (str.endsWith(trimmand))
+			return str.substring(0, str.length() - trimmand.length());
+		else
+			throw new IllegalArgumentException();
+	}
+	
+	
+	public static @Nullable String ltrimstrOrThrowCaseInsensitive(String str, String trimmand)
+	{
+		if (startsWithCaseInsensitively(str, trimmand))
+			return str.substring(trimmand.length());
+		else
+			throw new IllegalArgumentException();
+	}
+	
+	public static @Nullable String rtrimstrOrThrowCaseInsensitive(String str, String trimmand)
+	{
+		if (endsWithCaseInsensitively(str, trimmand))
+			return str.substring(0, str.length() - trimmand.length());
+		else
+			throw new IllegalArgumentException();
 	}
 	
 	
@@ -5720,6 +5769,15 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * A separate overload since this is so common :3
+	 */
+	public static String repr(CharSequence s)
+	{
+		return "\""+escapeJavaStandard(s.toString())+"\"";
+	}
+	
+	
 	
 	public static String repr(Object o)
 	{
@@ -6520,7 +6578,9 @@ implements JavaNamespace
 	public static String reverse(String x)
 	{
 		if (x.length() < 2)
+		{
 			return x;
+		}
 		else
 		{
 			//Todo UCS-4 things? ;;
@@ -7843,5 +7903,54 @@ primxp
 		return
 		Character.toLowerCase(a) == Character.toLowerCase(b) &&
 		Character.toUpperCase(a) == Character.toUpperCase(b);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static List<String> splitBeforeEachChar(String s, UnaryFunctionCharToBoolean pattern)
+	{
+		List<String> r = new ArrayList<>();
+		
+		if (!s.isEmpty())
+		{
+			int last = 0;
+			
+			int n = s.length();
+			for (int i = 0; i < n; i++)
+			{
+				char c = s.charAt(i);
+				
+				if (pattern.f(c) && i > 0)
+				{
+					r.add(s.substring(last, i));
+					last = i;
+				}
+			}
+			
+			r.add(s.substring(last, n));
+			//last = i;
+		}
+		
+		return r;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean containsNT(@Nullable String container, @Nullable String containee)
+	{
+		if (container == null || containee == null)
+			return false;
+		else
+			return container.contains(containee);
 	}
 }

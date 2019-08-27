@@ -25,6 +25,7 @@ import rebound.io.iio.InputByteStream;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.JavaNamespace;
 
 public class JRECompatIOUtilities
@@ -85,6 +86,130 @@ implements JavaNamespace
 	
 	
 	//<Pump
+	/**
+	 * @return the number of bytes we actually pumped! \o/
+	 */
+	public static long pumpObservingErrors(InputStream in, OutputStream out, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	{
+		long total = 0;
+		byte[] buffer = new byte[bufferSize];
+		
+		while (true)
+		{
+			int amt;
+			try
+			{
+				amt = in.read(buffer);
+			}
+			catch (IOException exc)
+			{
+				ioerrorInInput.f(exc);
+				break;
+			}
+			
+			if (amt < 0)
+				break;
+			
+			try
+			{
+				out.write(buffer, 0, amt);
+			}
+			catch (IOException exc)
+			{
+				ioerrorInOutput.f(exc);
+				break;
+			}
+			
+			total += amt;
+		}
+		
+		return total;
+	}
+	
+	/**
+	 * @return the number of bytes we actually pumped! \o/
+	 */
+	public static long pumpObservingErrors(InputStream in, OutputStream out, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	{
+		return pumpObservingErrors(in, out, 4096, ioerrorInInput, ioerrorInOutput);
+	}
+	
+	public static long pumpThenCloseBothObservingErrors(InputStream in, OutputStream out, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput) throws IOException
+	{
+		try
+		{
+			return pumpObservingErrors(in, out, ioerrorInInput, ioerrorInOutput);
+		}
+		finally
+		{
+			try
+			{
+				in.close();
+			}
+			finally
+			{
+				out.close();
+			}
+		}
+	}
+	
+	
+	
+	public static long pumpFixedObservingErrors(InputStream in, OutputStream out, long length, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	{
+		if (length > 0)
+		{
+			byte[] buffer = new byte[bufferSize];
+			long curr = 0;
+			while (curr < length)
+			{
+				int amt;
+				try
+				{
+					amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
+				}
+				catch (IOException exc)
+				{
+					ioerrorInInput.f(exc);
+					break;
+				}
+				
+				if (amt < 0)
+					return curr;
+				
+				curr += amt;
+				
+				try
+				{
+					out.write(buffer, 0, amt);
+				}
+				catch (IOException exc)
+				{
+					ioerrorInOutput.f(exc);
+					break;
+				}
+			}
+			return curr;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	
+	public static long pumpFixedObservingErrors(InputStream in, OutputStream out, long length, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	{
+		return pumpFixedObservingErrors(in, out, length, 4096, ioerrorInInput, ioerrorInOutput);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
@@ -387,18 +512,6 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	public static boolean compare(InputStream a, InputStream b, int bufferSize) throws IOException
-	{
-		Object rv = ExtraIOUtilities.consumeInSync(a, b, ExtraIOUtilities.CONSUMER_COMPARISON, bufferSize);
-		return (Boolean)rv; //null is never returned by the encompassing method
-	}
-	
-	public static boolean compare(InputStream a, InputStream b) throws IOException
-	{
-		return compare(a, b, 4096);
-	}
 	
 	
 	
@@ -743,6 +856,28 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO Resolve these duplicates XD''
+	
+	
+	public static boolean compare(InputStream a, InputStream b, int bufferSize) throws IOException
+	{
+		Object rv = ExtraIOUtilities.consumeInSync(a, b, ExtraIOUtilities.CONSUMER_COMPARISON, bufferSize);
+		return (Boolean)rv; //null is never returned by the encompassing method
+	}
+	
+	public static boolean compare(InputStream a, InputStream b) throws IOException
+	{
+		return compare(a, b, 4096);
+	}
 	
 	
 	

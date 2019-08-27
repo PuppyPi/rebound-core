@@ -53,6 +53,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoFreeResourceFoundException;
 import rebound.exceptions.NotFoundException;
@@ -68,6 +69,7 @@ import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
 import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
 
 /**
@@ -105,11 +107,11 @@ implements JavaNamespace
 		private static final long serialVersionUID = 1L;
 		
 		
-		protected static final NonExistantFile INST = new NonExistantFile();
+		protected static final NonExistantFile I = new NonExistantFile();
 		
 		public static NonExistantFile inst()
 		{
-			return INST;
+			return I;
 		}
 		
 		protected NonExistantFile()
@@ -1081,13 +1083,16 @@ implements JavaNamespace
 	{
 		//return resolvePath(currentDirectory, new File(pathname));   //java.io.File is safe to use with relative pathnames here, even though technically it uses the global CurrentDirectory ^^'
 		
-		File p = new File(pathname);
-		return p.isAbsolute() ? p : new File(currentDirectory, pathname);
+		return resolvePath(currentDirectory, new File(pathname));
 	}
 	
+	/**
+	 * Eg, for getting absolute paths from symlink targets (like you get from {@link #readlinkRaw(File)}) :>
+	 * Since {@link File#getAbsoluteFile()} would resolve them relative to whatever our entire JVM process' Current Working Directory arbitrarily happened to be instead of relative to that specific symlink!
+	 */
 	public static File resolvePath(File currentDirectory, File pathname)
 	{
-		return resolvePath(currentDirectory, pathname.getPath());
+		return pathname.isAbsolute() ? pathname : new File(currentDirectory, pathname.getPath());
 	}
 	
 	
@@ -1657,6 +1662,7 @@ implements JavaNamespace
 	/**
 	 * This tries to move source to dest (move != copy) first by renaming, then by copying and deleting source if that fails.
 	 * + Guaranteed to preserve symlinks exactly if source is (itself) a symlink (broken or not!).  Dest will be too and no transformation on target pathname will be done :3
+	 * 		+ Note that this may break the symlink if it's a relative one X'D
 	 * 
 	 * Note: this will delete the destination if it exists (and throw an IOException if it can't).
 	 * And thus if the move fails, the source might not have been fully moved but the dest was deleted.
@@ -1680,7 +1686,7 @@ implements JavaNamespace
 		
 		if (isSymlink(source))
 		{
-			File content = readlink(source);
+			File content = readlinkRaw(source);
 			
 			makelinkSymbolic(content, dest);
 			
@@ -2230,13 +2236,25 @@ implements JavaNamespace
 	
 	
 	
-	public static File readlinkRE(File f) throws WrappedThrowableRuntimeException
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Note that the target relative symlinks will be returned exactly, not resolved relative to the containing directory!
+	 * And so if you attempt to use that {@link File} as an actual {@link File}, then it will be resolved relative to *the JVM's current working directory and probably be wrong*!!
+	 * So use {@link #readlinkAbsoluteRE(File)} if you want the logical *target* instead of the literal *contents* of a symbolic link :3
+	 */
+	public static File readlinkRawRE(File f) throws WrappedThrowableRuntimeException
 	{
 		requireNonNull(f);
 		
 		try
 		{
-			return readlink(f);
+			return readlinkRaw(f);
 		}
 		catch (IOException exc)
 		{
@@ -2244,12 +2262,78 @@ implements JavaNamespace
 		}
 	}
 	
-	public static File readlink(File f) throws IOException
+	/**
+	 * Note that the target relative symlinks will be returned exactly, not resolved relative to the containing directory!
+	 * And so if you attempt to use that {@link File} as an actual {@link File}, then it will be resolved relative to *the JVM's current working directory and probably be wrong*!!
+	 * So use {@link #readlinkAbsolute(File)} if you want the logical *target* instead of the literal *contents* of a symbolic link :3
+	 */
+	public static File readlinkRaw(File f) throws IOException
 	{
 		requireNonNull(f);
 		
 		return Files.readSymbolicLink(f.toPath()).toFile();
 	}
+	
+	
+	public static File resolveSymlinkTarget(File symlinksTarget, File symlink)
+	{
+		if (symlinksTarget.isAbsolute())
+		{
+			return symlinksTarget;
+		}
+		else
+		{
+			File parent;
+			{
+				File root = new File("/");
+				
+				if (eq(symlink, root))
+				{
+					parent = root;
+				}
+				else
+				{
+					parent = symlink.getParentFile();
+					
+					if (parent == null)
+						throw new ImPrettySureThisNeverActuallyHappensRuntimeException("Parent == null for this File: "+repr(symlink.getPath()));
+				}
+			}
+			
+			return joinPathsLenient(realpath(parent), symlinksTarget);
+		}
+	}
+	
+	
+	
+	
+	
+	public static File readlinkAbsoluteRE(File f) throws WrappedThrowableRuntimeException
+	{
+		requireNonNull(f);
+		
+		try
+		{
+			return readlinkAbsolute(f);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static File readlinkAbsolute(File f) throws IOException
+	{
+		requireNonNull(f);
+		
+		return resolveSymlinkTarget(readlinkRaw(f), f);
+	}
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * ln -s immediateTarget pathForSymlink
@@ -2276,7 +2360,7 @@ implements JavaNamespace
 		
 		if (lexists(pathForSymlink))
 		{
-			if (isSymlink(pathForSymlink) && eq(readlink(pathForSymlink), immediateTarget))
+			if (isThisSymlinkPresent(immediateTarget, pathForSymlink))
 				return false;  //Already what we would make :>
 			else
 				throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
@@ -2284,6 +2368,11 @@ implements JavaNamespace
 		
 		Files.createSymbolicLink(pathForSymlink.toPath(), immediateTarget.toPath());
 		return true;
+	}
+	
+	public static boolean isThisSymlinkPresent(File immediateTarget, File pathForSymlink) throws IOException
+	{
+		return isSymlink(pathForSymlink) && eq(readlinkRaw(pathForSymlink), immediateTarget);
 	}
 	
 	
@@ -2296,7 +2385,7 @@ implements JavaNamespace
 		
 		if (isSymlink(pathForSymlink))
 		{
-			oldTarget = readlink(pathForSymlink);
+			oldTarget = readlinkRaw(pathForSymlink);
 			pathForSymlink.delete();
 			
 			if (lexists(pathForSymlink))
@@ -2797,7 +2886,7 @@ implements JavaNamespace
 		{
 			if (isSymlink(f))
 			{
-				File t = readlink(f);
+				File t = readlinkAbsolute(f);
 				
 				if (eq(t, f))
 				{
@@ -3509,7 +3598,7 @@ implements JavaNamespace
 	
 	
 	
-	public static void doLockedOnFileBlocking(File f, Runnable r) throws IOException
+	public static void doLockedOnFileBlocking(File f, RunnableThrowingIOException r) throws IOException
 	{
 		try (SimpleFileLock l = lockFileBlocking(f))
 		{
@@ -3522,7 +3611,7 @@ implements JavaNamespace
 	 * If this returns false, r.run() will have never been called :>
 	 * @return if the operation was performed or not.  false is only returned if the file is already locked by another process :3
 	 */
-	public static boolean doLockedOnFileNonblocking(File f, Runnable r) throws IOException
+	public static boolean doLockedOnFileNonblocking(File f, RunnableThrowingIOException r) throws IOException
 	{
 		try (SimpleFileLock l = lockFileNonblocking(f))
 		{
@@ -3607,7 +3696,7 @@ implements JavaNamespace
 	
 	public static void ensureDirLeafThrowing(File d) throws IOException
 	{
-		if (d.isDirectory())
+		if (d.isDirectory())  //it's important to dereference symlinks here :>
 			return;
 		else if (lexists(d))
 			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
@@ -3626,7 +3715,7 @@ implements JavaNamespace
 	
 	public static void ensureDirsWholePathThrowing(File d) throws IOException
 	{
-		if (d.isDirectory())
+		if (d.isDirectory())  //it's important to dereference symlinks here :>
 			return;
 		else if (lexists(d))
 			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
@@ -3666,6 +3755,38 @@ implements JavaNamespace
 	public static void ensureEmptyFileThrowing(File f) throws IOException
 	{
 		if (f.isFile() && f.length() == 0)
+		{
+			return;
+		}
+		else if (lexists(f))
+		{
+			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+		}
+		else
+		{
+			f.createNewFile();
+			
+			if (f.isFile())
+			{
+				if (f.length() != 0)
+					throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started writing to it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+				
+				return;
+			}
+			else if (lexists(f))
+			{
+				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+			}
+			else
+			{
+				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
+			}
+		}
+	}
+	
+	public static void ensureFileThrowing(File f) throws IOException
+	{
+		if (f.isFile())
 			return;
 		else if (lexists(f))
 			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
@@ -3673,7 +3794,7 @@ implements JavaNamespace
 		{
 			f.createNewFile();
 			
-			if (f.isFile() && f.length() == 0)
+			if (f.isFile())
 				return;
 			else if (lexists(f))
 				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
@@ -3715,23 +3836,27 @@ implements JavaNamespace
 		}
 		else
 		{
+			boolean lexistsAfter;
+			
 			try
 			{
 				f.createNewFile();
 			}
 			catch (IOException exc)
 			{
-			}
-			
-			if (lexists(f))
-			{
-				f.delete();
-				return true;
-			}
-			else
-			{
 				return false;
 			}
+			finally
+			{
+				lexistsAfter = lexists(f);
+				
+				if (lexistsAfter)
+				{
+					f.delete();
+				}
+			}
+			
+			return lexistsAfter;
 		}
 	}
 	
@@ -3868,6 +3993,27 @@ implements JavaNamespace
 		{
 			if (pattern.test(c))
 				deleteMandatory(c);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void createNewFileRT(File f)
+	{
+		try
+		{
+			f.createNewFile();
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
 		}
 	}
 }

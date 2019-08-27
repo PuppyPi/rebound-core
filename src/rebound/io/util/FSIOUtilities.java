@@ -4,6 +4,7 @@ import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.ArrayUtilities.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,7 +30,8 @@ import rebound.file.FSUtilities;
 import rebound.io.ChannelProvider;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
-import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
+import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 
 public class FSIOUtilities
@@ -65,33 +67,6 @@ public class FSIOUtilities
 	}
 	//Pump>
 	
-	public static boolean compare(File a, File b) throws IOException
-	{
-		if (!a.isFile() || !b.isFile())
-			throw new IOException("Cannot compare non-files");
-		
-		if (a.length() != b.length())
-			return false;
-		
-		FileInputStream inA = null;
-		FileInputStream inB = null;
-		
-		try
-		{
-			inA = new FileInputStream(a);
-			inB = new FileInputStream(b);
-			boolean results = JRECompatIOUtilities.compare(inA, inB);
-			inA.close();
-			inB.close();
-			return results;
-		}
-		catch (IOException exc)
-		{
-			closeWithoutError(inA);
-			closeWithoutError(inB);
-			throw exc;
-		}
-	}
 	
 	//	public static long scan(File f, byte[] tag) throws IOException, FileNotFoundException
 	//	{
@@ -234,11 +209,21 @@ public class FSIOUtilities
 	
 	public static void writeAll(File file, byte[] data, boolean append) throws IOException
 	{
+		writeAll(file, wholeArraySliceByte(data), append);
+	}
+	
+	public static void writeAll(File file, Slice<byte[]> data) throws IOException
+	{
+		writeAll(file, data, false);
+	}
+	
+	public static void writeAll(File file, Slice<byte[]> data, boolean append) throws IOException
+	{
 		OutputStream out = new FileOutputStream(file, append);
 		
 		try
 		{
-			out.write(data);
+			out.write(data.getUnderlying(), data.getOffset(), data.getLength());
 		}
 		catch (IOException exc)
 		{
@@ -276,14 +261,14 @@ public class FSIOUtilities
 	}
 	
 	
-	public static void writeAll(File file, ImmutableByteArrayList data) throws IOException
+	public static void writeAll(File file, ByteList data) throws IOException
 	{
 		writeAll(file, data, false);
 	}
 	
-	public static void writeAll(File file, ImmutableByteArrayList data, boolean append) throws IOException
+	public static void writeAll(File file, ByteList data, boolean append) throws IOException
 	{
-		writeAll(file, data.getREADONLYLiveWholeArrayBackingUNSAFE(), append);
+		writeAll(file, data.toByteArraySlicePossiblyLive(), append);
 	}
 	
 	
@@ -470,11 +455,61 @@ public class FSIOUtilities
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO Resolve these duplicates XD''
+	
+	
+	public static boolean compare(File a, File b) throws IOException
+	{
+		if (!a.isFile() || !b.isFile())
+			throw new IOException("Cannot compare non-files");
+		
+		if (a.length() != b.length())
+			return false;
+		
+		FileInputStream inA = null;
+		FileInputStream inB = null;
+		
+		try
+		{
+			inA = new FileInputStream(a);
+			inB = new FileInputStream(b);
+			boolean results = JRECompatIOUtilities.compare(inA, inB);
+			inA.close();
+			inB.close();
+			return results;
+		}
+		catch (IOException exc)
+		{
+			closeWithoutError(inA);
+			closeWithoutError(inB);
+			throw exc;
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * This shall not do any symlinky/hardlinky funny business!
+	 */
 	public static boolean fileeq(File a, File b) throws IOException
 	{
 		return filecmp(a, b) == 0;
 	}
 	
+	/**
+	 * This shall not do any symlinky/hardlinky funny business!
+	 */
 	public static int filecmp(File a, File b) throws IOException
 	{
 		int c = cmp(a.length(), b.length());

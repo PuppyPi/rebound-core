@@ -4,9 +4,44 @@ import rebound.annotations.semantic.temporal.NeverReturns;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.UnexpectedHardcodedEnumValueException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
 
 public class BasicExceptionUtilities
 {
+	public static void tryelse(Runnable tryBody, UnaryProcedureBoolean resolutionBody)
+	{
+		boolean success = false;
+		
+		try
+		{
+			tryBody.run();
+			success = true;
+		}
+		finally
+		{
+			resolutionBody.f(success);
+		}
+	}
+	
+	public static void tryelse(Runnable tryBody, Runnable successBody, Runnable failureBody)
+	{
+		tryelse(tryBody, success ->
+		{
+			if (success)
+				successBody.run();
+			else
+				failureBody.run();
+		});
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static RuntimeException newClassCastExceptionOrNullPointerException(Object o)
 	{
 		if (o == null)
@@ -31,6 +66,9 @@ public class BasicExceptionUtilities
 			return new StructuredClassCastException(o.getClass(), classItWasSupposedToBe);
 	}
 	
+	/**
+	 * @param o  this is not typed as {@link Enum} so that this works for "enums" that aren't official java 5.0 enums :3
+	 */
 	public static RuntimeException newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(Object o)
 	{
 		if (o == null)

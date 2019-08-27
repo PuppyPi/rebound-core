@@ -110,20 +110,27 @@ public interface SimpleIterator<E>
 		
 		public static <D> SimpleIterable<D> simpleIterable(Iterable<D> iterable)
 		{
-			return new SimpleIterable<D>()
+			if (iterable instanceof SimpleIterable)
 			{
-				@Override
-				public SimpleIterator<D> simpleIterator()
+				return (SimpleIterable<D>) iterable;
+			}
+			else
+			{
+				return new SimpleIterable<D>()
 				{
-					return SimpleIterator.simpleIterator(iterable.iterator());
-				}
-				
-				@Override
-				public Iterator<D> iterator()
-				{
-					return iterable.iterator();
-				}
-			};
+					@Override
+					public SimpleIterator<D> simpleIterator()
+					{
+						return SimpleIterator.simpleIterator(iterable.iterator());
+					}
+					
+					@Override
+					public Iterator<D> iterator()
+					{
+						return iterable.iterator();
+					}
+				};
+			}
 		}
 	}
 	
@@ -223,28 +230,35 @@ public interface SimpleIterator<E>
 	
 	
 	
-	public static <E> SimpleIterator<E> toSimpleIterator(Iterator<E> i)
+	public static <E> SimpleIterator<E> simpleIterator(Iterator<E> i)
 	{
-		class InnerIteratorAdapter
-		implements SimpleIterator<E>, SimpleIteratorWithRemove
+		if (i instanceof SimpleIterator)
 		{
-			@Override
-			public E nextrp() throws StopIterationReturnPath
+			return (SimpleIterator<E>) i;
+		}
+		else
+		{
+			class InnerIteratorAdapter
+			implements SimpleIterator<E>, SimpleIteratorWithRemove
 			{
-				if (i.hasNext())
-					return i.next();
-				else
-					throw StopIterationReturnPath.I;
+				@Override
+				public E nextrp() throws StopIterationReturnPath
+				{
+					if (i.hasNext())
+						return i.next();
+					else
+						throw StopIterationReturnPath.I;
+				}
+				
+				@Override
+				public void remove()
+				{
+					i.remove();
+				}
 			}
 			
-			@Override
-			public void remove()
-			{
-				i.remove();
-			}
+			return new InnerIteratorAdapter();
 		}
-		
-		return new InnerIteratorAdapter();
 	}
 	
 	
@@ -285,14 +299,28 @@ public interface SimpleIterator<E>
 	public static SimpleIterator simpleIterator(Object x)
 	{
 		if (x instanceof SimpleIterable)
+		{
 			return ((SimpleIterable)x).simpleIterator();
+		}
 		else if (x instanceof Object[])
+		{
 			return simpleIterator((Object[])x);
+		}
 		else if (x instanceof Iterable)
-			return SimpleIterator.toSimpleIterator(((Iterable)x).iterator());
+		{
+			return SimpleIterator.simpleIterator(((Iterable)x).iterator());
+		}
 		else
-			if (x == null) throw new NullPointerException();
-			else throw new ClassCastException(x.getClass().getName());
+		{
+			if (x == null)
+			{
+				throw new NullPointerException();
+			}
+			else
+			{
+				throw new ClassCastException(x.getClass().getName());
+			}
+		}
 	}
 	
 	public static <E> SimpleIterator<E> simpleIterator(Iterable<E> x)
@@ -300,33 +328,10 @@ public interface SimpleIterator<E>
 		if (x instanceof SimpleIterable)
 			return ((SimpleIterable<E>)x).simpleIterator();
 		else
-			return SimpleIterator.toSimpleIterator(x.iterator());
+			return SimpleIterator.simpleIterator(x.iterator());
 	}
 	
 	
-	public static <E> SimpleIterator<E> simpleIterator(E... array)
-	{
-		return new SimpleIterator<E>
-		()
-		{
-			int i = 0;
-			
-			@Override
-			public E nextrp() throws StopIterationReturnPath
-			{
-				if (i >= array.length)
-				{
-					throw StopIterationReturnPath.I;
-				}
-				else
-				{
-					E e = array[i];
-					i++;
-					return e;
-				}
-			}
-		};
-	}
 	
 	
 	public static <E> SimpleIterator<E> simpleIterator(E[] array, int offset, int length)
@@ -357,5 +362,15 @@ public interface SimpleIterator<E>
 				}
 			}
 		};
+	}
+	
+	public static <E> SimpleIterator<E> simpleIterator(E[] array)
+	{
+		return simpleIterator(array, 0, array.length);
+	}
+	
+	public static <E> SimpleIterator<E> simpleIteratorV(E... array)
+	{
+		return simpleIterator(array);
 	}
 }

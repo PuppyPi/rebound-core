@@ -1,6 +1,7 @@
 package rebound.util.collections;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -34,8 +35,27 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 	
 	public NestedListsSimpleTable(@WritableValue @LiveValue List<List<E>> rows) throws NonrectangularException
 	{
+		if (rows.size() > 1)
+		{
+			int w0 = rows.get(0).size();
+			
+			Iterator<List<E>> i = rows.iterator();
+			
+			i.next();
+			
+			while (i.hasNext())
+			{
+				List<E> row = i.next();
+				
+				if (row.size() != w0)
+					throw new NonrectangularException();
+			}
+		}
+		
+		
 		this.rows = rows;
 	}
+	
 	
 	
 	
@@ -46,6 +66,7 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 		
 		rows.add(row);
 	}
+	
 	
 	
 	
@@ -157,7 +178,7 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 	 */
 	@PossiblySnapshotPossiblyLiveValue
 	@Override
-	public List<List<E>> toListOfListsPossiblyLive()
+	public List<List<E>> toListOfRowsPossiblyLive()
 	{
 		return this.rows;
 	}

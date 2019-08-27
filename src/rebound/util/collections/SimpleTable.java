@@ -169,27 +169,27 @@ extends Copyable
 	/**
 	 * REDIMS AS WELL!!!
 	 */
-	public default void setFromListOfLists(@ReadonlyValue @SnapshotValue List<List<E>> source) throws NonrectangularException
+	public default void setFromListOfRows(@ReadonlyValue @SnapshotValue List<List<E>> rows) throws NonrectangularException
 	{
-		defaultSetFromListOfLists(this, source);
+		defaultSetFromListOfRows(this, rows);
 	}
 	
 	/**
 	 * REDIMS AS WELL!!!
 	 */
-	public static <E> void defaultSetFromListOfLists(SimpleTable<E> self, @ReadonlyValue @SnapshotValue List<List<E>> source) throws NonrectangularException
+	public static <E> void defaultSetFromListOfRows(SimpleTable<E> self, @ReadonlyValue @SnapshotValue List<List<E>> rows) throws NonrectangularException
 	{
-		if (source.isEmpty())
+		if (rows.isEmpty())
 			self.clearAndRedim(0, 0);
 		else
 		{
-			int w = source.get(0).size();
+			int w = rows.get(0).size();
 			
-			self.clearAndRedim(w, source.size());
+			self.clearAndRedim(w, rows.size());
 			
 			for (int r = 0; r < self.getNumberOfRows(); r++)
 			{
-				List<E> row = source.get(r);
+				List<E> row = rows.get(r);
 				
 				if (row.size() != w)
 					throw new NonrectangularException("The list-of-lists was not rectangular!  Not all rows were the same size!");
@@ -359,13 +359,13 @@ extends Copyable
 	
 	
 	@ThrowAwayValue
-	public default List<List<E>> toListOfLists()
+	public default List<List<E>> toListOfRows()
 	{
-		return defaultToListOfLists(this);
+		return defaultToListOfRows(this);
 	}
 	
 	@ThrowAwayValue
-	public static <E> List<List<E>> defaultToListOfLists(SimpleTable<E> self)
+	public static <E> List<List<E>> defaultToListOfRows(SimpleTable<E> self)
 	{
 		List<List<E>> rows = new ArrayList<>();
 		
@@ -453,9 +453,9 @@ extends Copyable
 	
 	
 	@PossiblySnapshotPossiblyLiveValue
-	public default List<List<E>> toListOfListsPossiblyLive()
+	public default List<List<E>> toListOfRowsPossiblyLive()
 	{
-		return toListOfLists();
+		return toListOfRows();
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue

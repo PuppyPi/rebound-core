@@ -12,6 +12,7 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
+import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
 import java.lang.reflect.Array;
@@ -74,6 +75,7 @@ import rebound.exceptions.StructuredClassCastException;
 import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
+import rebound.util.IdentityCardinality;
 import rebound.util.Primitives;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
@@ -124,10 +126,13 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
 import rebound.util.functional.MapFunctionalIterable;
 import rebound.util.functional.SuccessfulIterationStopType;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.EqualityComparator;
+import rebound.util.objectutil.NaturalEqualityComparator;
+import rebound.util.objectutil.PubliclyCloneable;
 
 
 //TODO Implement the NotYetImplemented things ^^''
@@ -1051,7 +1056,14 @@ public class CollectionUtilities
 	@ReadonlyValue
 	public static <E> List<E> concatenateManyListsOPC_V(@ReadonlyValue Iterable<E>... lists)
 	{
-		int n = lists.length;
+		return concatenateManyListsOPC(asList(lists));
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
+	public static <E> List<E> concatenateManyListsOPC(@ReadonlyValue Collection<? extends Iterable<E>> lists)
+	{
+		int n = lists.size();
 		
 		if (n == 0)
 		{
@@ -1059,11 +1071,19 @@ public class CollectionUtilities
 		}
 		else if (n == 1)
 		{
-			return toList(lists[0]);
+			return toList(getSingleElement(lists));
 		}
 		else if (n == 2)
 		{
-			return concatenateListsOPC(lists[0], lists[1]);
+			Iterator<? extends Iterable<E>> i = lists.iterator();
+			
+			if (!i.hasNext()) throw new ImpossibleException("Collection iterator mismatched with collection size!");
+			Iterable<E> a = i.next();
+			if (!i.hasNext()) throw new ImpossibleException("Collection iterator mismatched with collection size!");
+			Iterable<E> b = i.next();
+			if (i.hasNext()) throw new ImpossibleException("Collection iterator mismatched with collection size!");
+			
+			return concatenateListsOPC(a, b);
 		}
 		else
 		{
@@ -1135,6 +1155,7 @@ public class CollectionUtilities
 		}
 	}
 	
+	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> toList(Iterable<E> i)
 	{
 		if (i instanceof List)
@@ -3175,7 +3196,7 @@ _$$primxpconf:intsonly$$_
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static List uniqueifyListOrderPreserving(Iterable x)
+	public static List uniqueifyListOrderPreservingOPC(@ReadonlyValue Iterable x)
 	{
 		if (x == null)
 			throw new NullPointerException();
@@ -3192,7 +3213,7 @@ _$$primxpconf:intsonly$$_
 	
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
-	public static <E> E[] uniqueifyArrayOrderPreserving(E[] x)
+	public static <E> E[] uniqueifyArrayOrderPreservingOPC(@ReadonlyValue E[] x)
 	{
 		if (x == null)
 			throw new NullPointerException();
@@ -3224,7 +3245,7 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * Analogous to the Unix command 'uniq' :>
 	 */
-	public static <E> void uniqueifyPresorted(Iterable<E> input, EqualityComparator<? super E> equalityComparator)
+	public static <E> void uniqueifyPresortedIP(@WritableValue Iterable<E> input, EqualityComparator<? super E> equalityComparator)
 	{
 		Iterator<E> i = input.iterator();
 		
@@ -3257,9 +3278,18 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * Analogous to the Unix command 'uniq' :>
 	 */
-	public static <E> void uniqueifyPresorted(Iterable<E> input)
+	public static <E> void uniqueifyPresortedIP(@WritableValue Iterable<E> input)
 	{
-		uniqueifyPresorted(input, BasicObjectUtilities.getNaturalEqualityComparator());
+		uniqueifyPresortedIP(input, BasicObjectUtilities.getNaturalEqualityComparator());
+	}
+	
+	
+	
+	public static <E> List<E> uniqueifyPresortedOPC(Iterable<E> input)
+	{
+		List<E> l = new ArrayList<>(toList(input));
+		uniqueifyPresortedIP(l);
+		return l;
 	}
 	
 	
@@ -3429,6 +3459,36 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	public static <K, V> Map<K, V> unionManyMaps(@ReadonlyValue Iterable<Map<K, V>> maps) throws AlreadyExistsException
+	{
+		return unionManyMapsFiltering(maps, (k, v) -> true);
+	}
+	
+	@ReadonlyValue
+	public static <K, V> Map<K, V> unionManyMapsFiltering(@ReadonlyValue Iterable<Map<K, V>> maps, MapEntryPredicate<K, V> filter) throws AlreadyExistsException
+	{
+		int maxSize;
+		{
+			maxSize = 0;
+			for (Map<K, V> m : maps)
+				maxSize += m.size();
+		}
+		
+		Map<K, V> r = new HashMap<>(maxSize);
+		
+		for (Map<K, V> m : maps)
+		{
+			for (Entry<K, V> e : m.entrySet())
+			{
+				if (filter.test(e.getKey(), e.getValue()))
+					putNewUniqueMandatory(r, e.getKey(), e.getValue());
+			}
+		}
+		
+		return r;
+	}
+	
+	@ReadonlyValue
 	public static <K, V> Map<K, V> unionMaps(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b) throws AlreadyExistsException
 	{
 		return unionMapsFilteringSecond(a, b, (k, v) -> true);
@@ -3494,7 +3554,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static <E> Set<E> setdiff(Set<E> minuend, Set<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD      ¬(a ⇒ b)  XD
+	public static <E> Set<E> setdiff(Iterable<E> minuend, Collection<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD      ¬(a ⇒ b)  XD
 	{
 		Set output = new HashSet();
 		
@@ -3509,7 +3569,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <A, B, O> Set<O> cartesianProductMapped(Set<A> aSet, Set<B> bSet, BinaryFunction<A, B, O> mapper)
+	public static <A, B, O> Set<O> cartesianProductMapped(Iterable<A> aSet, Iterable<B> bSet, BinaryFunction<A, B, O> mapper)
 	{
 		Set<O> oSet = new HashSet<>();
 		
@@ -4132,22 +4192,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	/**
-	 * Using {@link Collection#equals} even of two members of the same <code>runtime type</code> might require other things like say ordering if they are {@link List}s.
-	 * This does proper multi-set equivalence.  Ie, order doesn't matter just like {@link Set}s, the only difference from {@link Set}s being that duplicate elements can be contained :3
-	 * (You can think of sets as restricted multi-sets, and multi-set-equivalence is comparing the *count integer* not the *is-member/contains boolean* for each element, and sets just merely ever contain 0 or 1 of each element :3 )
-	 */
-	public static <E> boolean multiSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b)
-	{
-		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
-		return defaultMultiSetsEquivalent_SmallNaive(a, b, (x, y) -> eq(x, y));
-	}
-	
-	public static <E> boolean multiSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
-	{
-		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
-		return defaultMultiSetsEquivalent_SmallNaive(a, b, eq);
-	}
 	
 	public static <E> boolean defaultMultiSetsEquivalent_SmallNaive(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
 	{
@@ -4279,7 +4323,7 @@ _$$primxpconf:intsonly$$_
 	/**
 	 * Where ordering is important :>
 	 * 
-	 * Just the default algorithm straight out of {@link List#hashCode()} ^_^
+	 * Just the standard algorithm straight out of {@link List#hashCode()} ^_^
 	 * 
 	 * int hashCode = 1;
 	 * for (E e : list)
@@ -4294,26 +4338,30 @@ _$$primxpconf:intsonly$$_
 		return hashCode;
 	}
 	
+	
 	/**
 	 * Where ordering is *not* important :>
 	 * 
 	 * 
-	 * Just the default algorithm straight out of {@link Set#hashCode()} ^_^
+	 * Just the standard algorithm straight out of {@link Set#hashCode()} ^_^
 	 * 
 	 * int hashCode = 0;
 	 * for (E e : set)
 	 * 		hashCode += (e == null ? 0 : e.hashCode());
 	 */
-	public static <E> int defaultSetHashCode(Iterable<E> set)
+	public static <E> int defaultMultiSetHashCode(Iterable<E> collection)
 	{
 		int hashCode = 0;
-		for (E e : set)
+		for (E e : collection)
 			hashCode += (e == null ? 0 : e.hashCode());
 		
 		return hashCode;
 	}
 	
-	
+	public static <E> int defaultSetHashCode(Set<E> set)
+	{
+		return defaultMultiSetHashCode(set);
+	}
 	
 	
 	
@@ -5298,6 +5346,39 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
+	public static <K, V> Map<K, V> filterdictByValues(Predicate<V> predicate, Map<K, V> input)
+	{
+		return filterdict((k, v) -> predicate.test(v), input);
+	}
+	
+	
+	
+	
+	
+	public static <K, V extends Collection<?>> Map<K, V> maptodictSameKeysFilteringAwayEmptyValues(Mapper<K, V> function, Iterable<K> input) throws NonReverseInjectiveMapException
+	{
+		return maptodict(k ->
+		{
+			V v = function.f(k);
+			
+			if (v.isEmpty())
+				throw FilterAwayReturnPath.I;
+			else
+				return new SimpleEntry<K, V>(k, v);
+			
+		}, input);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -5350,13 +5431,23 @@ _$$primxpconf:intsonly$$_
 	@ReadonlyValue
 	public static Map newmapInverseA(Object[] valuesAndKeys)
 	{
-		return newmapInverseMutableA(valuesAndKeys);
+		if (valuesAndKeys.length == 0)
+			return emptyMap();
+		else if (valuesAndKeys.length == 2)
+			return singletonMap(valuesAndKeys[1], valuesAndKeys[0]);
+		else
+			return newmapInverseMutableA(valuesAndKeys);
 	}
 	
 	@ReadonlyValue
 	public static Map newmapA(Object[] keysAndValues)
 	{
-		return newmapMutable(keysAndValues);
+		if (keysAndValues.length == 0)
+			return emptyMap();
+		else if (keysAndValues.length == 2)
+			return singletonMap(keysAndValues[0], keysAndValues[1]);
+		else
+			return newmapMutable(keysAndValues);
 	}
 	
 	
@@ -5733,12 +5824,12 @@ _$$primxpconf:intsonly$$_
 	
 	public static <I, O> SimpleIterator<O> map(Mapper<I, O> mapper, Iterator<I> underlying)
 	{
-		return map(mapper, SimpleIterator.toSimpleIterator(underlying));
+		return map(mapper, SimpleIterator.simpleIterator(underlying));
 	}
 	
 	public static <E> SimpleIterator<E> filter(Predicate<E> predicate, Iterator<E> underlying)
 	{
-		return filter(predicate, SimpleIterator.toSimpleIterator(underlying));
+		return filter(predicate, SimpleIterator.simpleIterator(underlying));
 	}
 	
 	
@@ -6132,6 +6223,12 @@ _$$primxpconf:intsonly$$_
 		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input));
 	}
 	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, I[] input)
+	{
+		return mapToSet(mapper, asList(input));
+	}
+	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ReadonlyValue
 	public static <I, O, A extends I> O[] mapToArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, A[] input)
@@ -6196,6 +6293,18 @@ _$$primxpconf:intsonly$$_
 	public static <E> Set<E> filterToSet(Predicate<? super E> filter, Iterable<E> input)
 	{
 		return (Set<E>)filterToCollection(filter, input, true);
+	}
+	
+	@ReadonlyValue
+	public static <E> List<E> filterToList(Predicate<? super E> filter, E[] input)
+	{
+		return filterToList(filter, asList(input));
+	}
+	
+	@ReadonlyValue
+	public static <E> Set<E> filterToSet(Predicate<? super E> filter, E[] input)
+	{
+		return filterToSet(filter, asList(input));
 	}
 	
 	
@@ -6976,10 +7085,15 @@ _$$primxpconf:intsonly$$_
 		return defaultSetsEquivalent(a, b);
 	}
 	
-	public static <E> boolean eqvCollections(Collection<? extends E> a, Collection<? extends E> b)
+	/**
+	 * Using {@link Collection#equals} even of two members of the same <code>runtime type</code> might require other things like say ordering if they are {@link List}s.
+	 * This does proper multi-set equivalence.  Ie, order doesn't matter just like {@link Set}s, the only difference from {@link Set}s being that duplicate elements can be contained :3
+	 * (You can think of sets as restricted multi-sets, and multi-set-equivalence is comparing the *count integer* not the *is-member/contains boolean* for each element, and sets just merely ever contain 0 or 1 of each element :3 )
+	 */
+	public static <E> boolean eqvMultiSets(Collection<? extends E> a, Collection<? extends E> b)
 	{
-		//TODO!
-		throw new NotYetImplementedException();
+		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, (x, y) -> eq(x, y));
 	}
 	
 	public static <E> boolean eqvLists(List<? extends E> a, List<? extends E> b)
@@ -6996,10 +7110,10 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E> boolean eqvCollections(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> equalityComparator)
+	public static <E> boolean eqvMultiSets(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> equalityComparator)
 	{
-		//TODO!
-		throw new NotYetImplementedException();
+		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, equalityComparator);
 	}
 	
 	public static <E> boolean eqvLists(List<? extends E> a, List<? extends E> b, EqualityComparator<E> equalityComparator)
@@ -7029,7 +7143,7 @@ _$$primxpconf:intsonly$$_
 	
 	public static <E> boolean acyclicDeepEqvCollections(Collection<? extends E> a, Collection<? extends E> b)
 	{
-		return eqvCollections(a, b, PolymorphicCollectionUtilities.acyclicDeepEqv);
+		return eqvMultiSets(a, b, PolymorphicCollectionUtilities.acyclicDeepEqv);
 	}
 	
 	public static <E> boolean acyclicDeepEqvLists(List<? extends E> a, List<? extends E> b)
@@ -8411,6 +8525,20 @@ _$$primxpconf:intsonly$$_
 		return hasAny_C.get();
 	}
 	
+	public static boolean hasAnyWithRunnable(UnaryProcedure<Runnable> observerUsingFunction)
+	{
+		BooleanContainer hasAny_C = new SimpleBooleanContainer(false);
+		observerUsingFunction.f(() -> hasAny_C.set(true));
+		return hasAny_C.get();
+	}
+	
+	public static boolean hasAnyWithPredicate(UnaryProcedure<UnaryProcedureBoolean> observerUsingFunction)
+	{
+		BooleanContainer hasAny_C = new SimpleBooleanContainer(false);
+		observerUsingFunction.f(v -> {if (v) hasAny_C.set(true);});
+		return hasAny_C.get();
+	}
+	
 	public static <E> boolean hasAtLeastOneMatchingWithObserver(UnaryProcedure<UnaryProcedure<E>> observerUsingFunction, Predicate<E> predicate)
 	{
 		BooleanContainer hasMatching_C = new SimpleBooleanContainer(false);
@@ -8459,5 +8587,248 @@ _$$primxpconf:intsonly$$_
 	{
 		for (Object k : map.values())
 			requireNonNull(k);
+	}
+	
+	public static void requireNonNullKeysAndValues(@NonnullKeys Map map)
+	{
+		requireNonNullKeys(map);
+		requireNonNullValues(map);
+	}
+	
+	
+	
+	
+	
+	public static <E> Iterable<E> cloneIterable(Iterable<E> iterable)
+	{
+		if (iterable instanceof PubliclyCloneable)
+			return (Iterable<E>) ((PubliclyCloneable) iterable).clone();
+		else
+		{
+			if (iterable instanceof Collection)
+				return new ArrayList<>((Collection)iterable);
+			else
+			{
+				List<E> l = new ArrayList<>();
+				addAll(l, iterable);
+				return l;
+			}
+		}
+	}
+	
+	public static <E> Collection<E> cloneCollection(Collection<E> Collection)
+	{
+		if (Collection instanceof PubliclyCloneable)
+			return (Collection<E>) ((PubliclyCloneable) Collection).clone();
+		else
+			return new ArrayList<>(Collection);
+	}
+	
+	public static <E> List<E> cloneList(List<E> list)
+	{
+		if (list instanceof PubliclyCloneable)
+			return (List<E>) ((PubliclyCloneable) list).clone();
+		else
+			return new ArrayList<>(list);
+	}
+	
+	public static <E> Set<E> cloneSet(Set<E> Set)
+	{
+		if (Set instanceof PubliclyCloneable)
+			return (Set<E>) ((PubliclyCloneable) Set).clone();
+		else
+			return new HashSet<>(Set);
+	}
+	
+	public static <K, V> Map<K, V> cloneMap(Map<K, V> Map)
+	{
+		if (Map instanceof PubliclyCloneable)
+			return (Map<K, V>) ((PubliclyCloneable) Map).clone();
+		else
+			return new HashMap<>(Map);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static IdentityCardinality identityCardinalityFromCardinality(int size)
+	{
+		if (size == 0)
+			return IdentityCardinality.Zero;
+		else if (size == 1)
+			return IdentityCardinality.One;
+		else
+			return IdentityCardinality.Multiple;
+	}
+	
+	public static IdentityCardinality identityCardinalityOf(Collection<?> collection)
+	{
+		return identityCardinalityFromCardinality(collection.size());
+	}
+	
+	public static IdentityCardinality identityCardinalityOf(Map<?, ?> map)
+	{
+		return identityCardinalityFromCardinality(map.size());
+	}
+	
+	public static IdentityCardinality identityCardinalityOf(Iterable<?> iterable)
+	{
+		if (iterable instanceof Collection)
+			return identityCardinalityOf((Collection)iterable);
+		
+		Iterator<?> i = iterable.iterator();
+		
+		if (i.hasNext())
+		{
+			i.next();
+			
+			if (i.hasNext())
+			{
+				return IdentityCardinality.Multiple;
+			}
+			else
+			{
+				return IdentityCardinality.One;
+			}
+		}
+		else
+		{
+			return IdentityCardinality.Zero;
+		}
+	}
+	
+	
+	/**
+	 * Assumes no values will be empty or null!
+	 */
+	public static IdentityCardinality identityCardinalityOfGeneralMap(Map<?, ? extends Iterable<?>> gmap)
+	{
+		IdentityCardinality ic = identityCardinalityOf(gmap);
+		
+		if (ic == IdentityCardinality.One)
+		{
+			Iterable<?> v = getSingleElement(gmap.values());
+			return identityCardinalityOf(v);
+		}
+		else
+		{
+			return ic;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterator<I> inputs, EqualityComparator<O> eq)
+	{
+		boolean has = false;
+		O arbitrary = null;
+		
+		while (true)
+		{
+			I i;
+			try
+			{
+				i = inputs.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			O o;
+			try
+			{
+				o = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			if (!has)
+			{
+				arbitrary = o;
+				has = true;
+			}
+			else
+			{
+				if (!eq.equals(o, arbitrary))
+					return false;
+			}
+		}
+		
+		if (!has)
+			throw new IllegalArgumentException("No inputs!");
+		
+		return true;
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterable<I> inputs, EqualityComparator<O> eq)
+	{
+		return eqMapping(mapper, inputs.simpleIterator(), eq);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterator<I> inputs, EqualityComparator<O> eq)
+	{
+		return eqMapping(mapper, SimpleIterator.simpleIterator(inputs), eq);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterable<I> inputs, EqualityComparator<O> eq)
+	{
+		return eqMapping(mapper, SimpleIterable.simpleIterable(inputs), eq);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, I[] inputs, EqualityComparator<O> eq)
+	{
+		return eqMapping(mapper, SimpleIterator.simpleIterator(inputs), eq);
+	}
+	
+	
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterator<I> inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterator<I> inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterable<I> inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterable<I> inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, I[] inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	public static <I, O> boolean eqMappingV(Mapper<I, O> mapper, I... inputs)
+	{
+		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
 	}
 }

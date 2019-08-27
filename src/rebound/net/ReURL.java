@@ -8,11 +8,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import rebound.annotations.semantic.operationspecification.HashableType;
+import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.TextSyntaxException;
+import rebound.file.FSUtilities;
 
-//TODO Waittt shouuuuuuld we descape/escape the parts???
+//TO DO Waittt shouuuuuuld we descape/escape the parts???
 //I like doing that because it considers '%20', '+', and ' ' to be equivalent during parsing, which, afaik, everything on the web does too X3
-//NOPE; IT TOTALLY BREAKS THE FORM-ENCODED QUERY STRING X"DDDD
+//NOPE; IT TOTALLY BREAKS THE FORM-ENCODED QUERY STRING OF COURSE X"DDDD
+//AND PATHS CAN'T HAVE "/" ESCAPED, BUT OTHER PARTS PROBABLY SHOULD (HOST *HAS* TO)!
 
 /**
  * Re-implementation of {@link URI} (except for URL's, specifically) because it chokes on domain names with underscores—
@@ -51,7 +54,9 @@ public class ReURL
 		if (user == null && password != null)
 			throw new NullPointerException();
 		
-		if (!path.startsWith("/"))
+		if (path.isEmpty())  //be lenient :3    (I've seen URLs (eg, "http://www.linear.com/docs/41280") that redirect through HTTP 30x to these kind of pathless urls (eg, "https://investor.analog.com") so this is used in the wild inside web servers, not just html pages X'D )
+			path = "/";
+		else if (!path.startsWith("/"))
 			throw new IllegalArgumentException("URL paths must start with '/'");
 		
 		
@@ -174,6 +179,79 @@ public class ReURL
 	{
 		return new ReURL(this.getProtocol(), this.getUser(), this.getPassword(), this.getHost(), this.getPort(), this.getPath(), this.getQuery(), newFragment);
 	}
+	
+	
+	
+	
+	public static String resolvePossiblyRelativeURLEncoded(String baseURL, String urlPossiblyRelativeToBase) throws TextSyntaxException
+	{
+		return resolvePossiblyRelativeURLToEncoded(parse(baseURL), urlPossiblyRelativeToBase);
+	}
+	
+	public static String resolvePossiblyRelativeURLToEncoded(ReURL baseURL, String urlPossiblyRelativeToBase)
+	{
+		if (urlPossiblyRelativeToBase.startsWith("://"))
+		{
+			return baseURL.getProtocol()+urlPossiblyRelativeToBase;
+		}
+		else if (urlPossiblyRelativeToBase.contains("://"))
+		{
+			//It's fine as it is :3
+			return urlPossiblyRelativeToBase;
+		}
+		else if (urlPossiblyRelativeToBase.startsWith("/"))
+		{
+			//Absolute url! :D
+			// (note that it might still have a query string!)
+			
+			String b = new ReURL(baseURL.getProtocol(), baseURL.getUser(), baseURL.getPassword(), baseURL.getHost(), baseURL.getPort(), "/", null, null).serialize();
+			
+			if (!b.endsWith("/"))
+				throw new ImpossibleException(repr(baseURL.serialize()));
+			b = b.substring(0, b.length()-1);  //trim off the trailing '/'
+			
+			/*
+			 * Example:
+			 *		"https://katalog.we-online.de/pbs/download/STEP-760308111-rev1.stp"  ->  "https://katalog.we-online.com/pbs/download/760308111 (rev1).stp"			@ 2019-08-23 12:14:47 z
+			 */
+			
+			return b + urlPossiblyRelativeToBase;
+		}
+		else
+		{
+			//Relative url! :>
+			// (note that it might still have a query string!)
+			
+			String p = baseURL.getPath();
+			
+			String dp = rsplitonceReturnPrecedingOrNull(p, '/');
+			
+			if (dp == null)
+				throw new ImpossibleException("Invalid URL should have been caught in parsing/constructing!!: "+repr(baseURL.serialize()));
+			
+			String newPath = FSUtilities.normpathPosix(dp+'/'+urlPossiblyRelativeToBase);
+			
+			String b = new ReURL(baseURL.getProtocol(), baseURL.getUser(), baseURL.getPassword(), baseURL.getHost(), baseURL.getPort(), "/", null, null).serialize();
+			
+			if (!b.endsWith("/"))
+				throw new ImpossibleException(repr(baseURL.serialize()));
+			b = b.substring(0, b.length()-1);  //trim off the trailing '/'
+			
+			return b + newPath;
+		}
+	}
+	
+	public static ReURL resolvePossiblyRelativeURL(ReURL baseURL, String urlPossiblyRelativeToBase) throws TextSyntaxException
+	{
+		return parse(resolvePossiblyRelativeURLToEncoded(baseURL, urlPossiblyRelativeToBase));
+	}
+	
+	public ReURL resolvePossiblyRelativeURL(String urlPossiblyRelativeToThis)
+	{
+		return resolvePossiblyRelativeURL(this, urlPossiblyRelativeToThis);
+	}
+	
+	
 	
 	
 	
@@ -309,11 +387,11 @@ public class ReURL
 		
 		int a = url.indexOf("://");
 		if (a == -1)
-			throw TextSyntaxException.inst("Missing \"://\"   "+url);
+			throw TextSyntaxException.inst("Missing \"://\"   "+repr(url));
 		
 		int e = url.indexOf('/', a+3);
 		if (e == -1)
-			throw TextSyntaxException.inst("Missing \"/\" after protocol delimiter   "+url);
+			throw TextSyntaxException.inst("Missing \"/\" after protocol delimiter   "+repr(url));
 		
 		int c = url.indexOf('@', a+3);
 		if (c != -1 && c > e)  //&& e != -1
@@ -361,7 +439,7 @@ public class ReURL
 		}
 		catch (NumberFormatException exc)
 		{
-			throw TextSyntaxException.inst("Invalid port: "+_port, exc);
+			throw TextSyntaxException.inst("Invalid port: "+repr(_port), exc);
 		}
 		
 		try

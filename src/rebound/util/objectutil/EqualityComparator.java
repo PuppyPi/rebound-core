@@ -10,6 +10,7 @@ package rebound.util.objectutil;
  * For when you don't need greater than / less than! :>
  * @author RProgrammer
  */
+@FunctionalInterface
 public interface EqualityComparator<T>
 {
 	public boolean equals(T a, T b);

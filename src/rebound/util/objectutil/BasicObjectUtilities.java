@@ -53,8 +53,30 @@ implements JavaNamespace
 		
 		Object first = many[0];
 		for (int i = 1; i < many.length; i++)
-			if (!eq(first, many[i]))
+			if (!eq(many[i], first))
 				return false;
+		return true;
+	}
+	
+	public static boolean eqC(Iterable<? extends Object> many)
+	{
+		boolean hasFirst = false;
+		Object first = null;
+		
+		for (Object o : many)
+		{
+			if (hasFirst)
+			{
+				if (!eq(o, first))
+					return false;
+			}
+			else
+			{
+				hasFirst = true;
+				first = o;
+			}
+		}
+		
 		return true;
 	}
 	
