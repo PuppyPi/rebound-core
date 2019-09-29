@@ -9,7 +9,9 @@ import static java.util.Objects.*;
 import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
@@ -39,6 +41,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,25 +55,31 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoFreeResourceFoundException;
 import rebound.exceptions.NotFoundException;
 import rebound.exceptions.NotYetImplementedException;
+import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.io.util.FSIOUtilities;
-import rebound.io.util.JRECompatIOUtilities;
 import rebound.text.StringUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
 import rebound.util.collections.ArrayUtilities;
+import rebound.util.collections.CollectionUtilities;
 import rebound.util.container.ContainerInterfaces.IntegerContainer;
 import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
 import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
+
+//Todo should joinPathsStrict use a different definition of strictness? (the one used by the isStrictPath()s ?) XD
+//         + should we have three levels? XD
 
 /**
  * 
@@ -412,6 +421,78 @@ implements JavaNamespace
 		return new File(normpathPosix(f.getAbsolutePath(), File.separatorChar));
 	}
 	
+	/**
+	 * Like {@link #normpath(File)} but doesn't make it absolute :3
+	 * NOTE: this does NOT do anything with ".."'s that go above the implicit base directory!  (whatever it's relative to; eg, the one that would be referred to if the entire path was just "."   so if the entire path is eg "..", we'll just leave it as that X3 )
+	 */
+	public static File normrelpath(File f)
+	{
+		return new File(normpathPosix(f.getPath(), File.separatorChar));
+	}
+	
+	
+	
+	
+	public static boolean isStrictPath(File f)
+	{
+		return isRoot(f) || isStrictPathPosix(f.getPath(), File.separatorChar);
+	}
+	
+	public static boolean isStrictPathPosix(String s)
+	{
+		return isStrictPathPosix(s, '/');
+	}
+	
+	/**
+	 * Note that "" is okay while "." is not!
+	 */
+	public static boolean isStrictPathPosix(String s, char c)
+	{
+		if (eq(s, new String(new char[]{c})))  //root (the only time something coming after a slash can be an empty element) :3
+		{
+			return true;
+		}
+		else
+		{
+			List<String> es = asList(split(s, c, -1, WhatToDoWithEmpties.LeaveInEmpties));
+			
+			String e0 = es.get(0);
+			List<String> r = es.subList(1, es.size());
+			
+			Predicate<String> bad0 = e -> eq(e, ".") || eq(e, "..");
+			Predicate<String> badR = e -> eq(e, ".") || eq(e, "..") || e.isEmpty();
+			
+			return !(bad0.test(e0) || forAny(badR, r));
+		}
+	}
+	
+	
+	/**
+	 * On windows, "C:\\" (C:\) isn't considered a relative path, so this returns false (and also for "C:", since a trailing separator always invalidates any concept of "strict" X3 )
+	 */
+	public static boolean isStrictNonemptyRelativePath(File f)
+	{
+		return !isRoot(f) && isStrictNonemptyRelativePathPosix(f.getPath(), File.separatorChar);
+	}
+	
+	public static boolean isStrictNonemptyRelativePathPosix(String s)
+	{
+		return isStrictNonemptyRelativePathPosix(s, '/');
+	}
+	
+	/**
+	 * Note that neither "" nor "." is okay!
+	 */
+	public static boolean isStrictNonemptyRelativePathPosix(String s, char c)
+	{
+		List<String> es = asList(split(s, c, -1, WhatToDoWithEmpties.LeaveInEmpties));
+		Predicate<String> bad = e -> eq(e, ".") || eq(e, "..") || e.isEmpty();
+		return !forAny(bad, es);
+	}
+	
+	
+	
+	
 	
 	
 	
@@ -426,7 +507,7 @@ implements JavaNamespace
 	 */
 	public static String normpathPosix(String f, char separator)
 	{
-		//Note: this is used by the archive (edit: you mean ARC1?? --er--I mean arc1? XD )
+		//Note: this is used by the archive (edit: you mean ARC1??)
 		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTPD AND SUCH!!!!
 		
 		
@@ -752,21 +833,29 @@ implements JavaNamespace
 	
 	public static String getFirstPathElement(String path, char sep)
 	{
+		//Todo use a splitonce..()?
 		int i = path.indexOf(sep);
 		return i == -1 ? path : path.substring(0, i);
 	}
 	
 	public static String getAllButFirstPathElement(String path, char sep)
 	{
-		path = StringUtilities.trim(path, sep);
+		//Todo use a splitonce..()?
+		path = trim(path, sep);
 		int i = path.indexOf(sep);
 		return i == -1 ? path : path.substring(i+1);
 	}
 	
 	public static String[] splitPathAtFirstOrNullIfNone(String path, char sep)
 	{
-		path = StringUtilities.trim(path, sep);
+		path = trim(path, sep);
 		return splitonceOrNull(path, sep);
+	}
+	
+	public static String[] splitPathAtLastOrNullIfNone(String path, char sep)
+	{
+		path = trim(path, sep);
+		return rsplitonceOrNull(path, sep);
 	}
 	
 	
@@ -774,13 +863,17 @@ implements JavaNamespace
 	 * Ie, basically <code>concat({@link StringUtilities#split(String, char)}(path, delimiter)[0:-1])</code>, but faster :D
 	 */
 	@Nullable
-	public static String getUptoLastPathElementOrNull(@Nonnull String path, char delimiter)
+	public static String getAllButLastPathElementOrNull(@Nonnull String path, char sep)
 	{
-		int dotpos = path.lastIndexOf(delimiter);
-		if (dotpos == -1)
-			return null;
-		else
-			return path.substring(0, dotpos);
+		path = trim(path, sep);
+		return rsplitonceReturnPrecedingOrNull(path, sep);
+	}
+	
+	public static String getAllButLastPathElementOrEmpty(String path, char sep)
+	{
+		path = trim(path, sep);
+		String r = getAllButLastPathElementOrNull(path, sep);
+		return r == null ? "" : r;
 	}
 	
 	
@@ -790,6 +883,7 @@ implements JavaNamespace
 	@Nonnull
 	public static String getLastPathElement(@Nonnull String path, char delimiter)
 	{
+		//Todo use a splitonce..()?
 		int dotpos = path.lastIndexOf(delimiter);
 		if (dotpos == -1)
 			return path;
@@ -833,6 +927,43 @@ implements JavaNamespace
 	public static String[] splitPathAtFirstOrNullIfNonePoxis(String path)
 	{
 		return splitPathAtFirstOrNullIfNone(path, '/');
+	}
+	
+	
+	
+	
+	
+	
+	public static String getLastPathElement(String path)
+	{
+		return getLastPathElement(path, File.separatorChar);
+	}
+	
+	public static String getAllButLastPathElementOrEmpty(String path)
+	{
+		return getAllButLastPathElementOrEmpty(path, File.separatorChar);
+	}
+	
+	public static String[] splitPathAtLastOrNullIfNone(String path)
+	{
+		return splitPathAtLastOrNullIfNone(path, File.separatorChar);
+	}
+	
+	
+	
+	public static String getLastPathElementPosix(String path)
+	{
+		return getLastPathElement(path, '/');
+	}
+	
+	public static String getAllButLastPathElementOrEmptyPosix(String path)
+	{
+		return getAllButLastPathElementOrEmpty(path, '/');
+	}
+	
+	public static String[] splitPathAtLastOrNullIfNonePoxis(String path)
+	{
+		return splitPathAtLastOrNullIfNone(path, '/');
 	}
 	
 	
@@ -1101,7 +1232,21 @@ implements JavaNamespace
 	
 	
 	
-	//TODO Unit tests for isLegalNonspecialPathElement's
+	//TODO Unit tests explicitly for these isLegalNonspecialPath..Element..'s
+	
+	public static boolean isLegalNonspecialPathStartElement(String n)
+	{
+		//Todo include extra unnecessarily-illegal chars that windows requires (if we're running on windows!)
+		if (isLegalNonspecialPathStartElementPosixlike(n, File.separatorChar))
+			return true;
+		
+		//absolute paths can have separators if they're the first element!
+		//this accomodates non-posix platforms ^^'
+		if (new File(n).isAbsolute())
+			return true;
+		
+		return false;
+	}
 	
 	public static boolean isLegalNonspecialPathElement(String n)
 	{
@@ -1109,9 +1254,33 @@ implements JavaNamespace
 		return isLegalNonspecialPathElementPosixlike(n, File.separatorChar);
 	}
 	
+	
+	
+	public static boolean isLegalNonspecialPathStartElementPosix(String n)
+	{
+		return isLegalNonspecialPathStartElementPosixlike(n, '/');
+	}
+	
 	public static boolean isLegalNonspecialPathElementPosix(String n)
 	{
 		return isLegalNonspecialPathElementPosixlike(n, '/');
+	}
+	
+	
+	
+	public static boolean isLegalNonspecialPathStartElementPosixlike(String n, char sep)
+	{
+		//return isLegalNonspecialPathElementPosixlike(ltrim(n, sep), sep);
+		
+		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
+			return false;
+		
+		n = trim(n, sep);  // "somedir/" is okay and "/somedir" is okay for a start-element! (hence the trim() not rtrim()!)
+		
+		if (eq(n, ".") || eq(n, ".."))  //and empty here is okay for the start element (ie, it's all slashes, the root directory!)
+			return false;
+		
+		return true;
 	}
 	
 	public static boolean isLegalNonspecialPathElementPosixlike(String n, char sep)
@@ -1131,70 +1300,23 @@ implements JavaNamespace
 	}
 	
 	
-	public static boolean isLegalNonspecialPathStartElement(String n)
-	{
-		//Todo include extra unnecessarily-illegal chars that windows requires (if we're running on windows!)
-		if (isLegalNonspecialPathElementPosixlike(n, File.separatorChar))
-			return true;
-		
-		//Todo do this right X'3
-		if (new File(n).isAbsolute())
-			return true;
-		
-		return false;
-	}
-	
-	public static boolean isLegalNonspecialPathStartElementPosix(String n)
-	{
-		return isLegalNonspecialPathElementPosixlike(n, '/');
-	}
-	
-	public static boolean isLegalNonspecialPathStartElementPosixlike(String n, char sep)
-	{
-		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
-			return false;
-		
-		n = trim(n, sep);  // "somedir/" is okay and "/somedir" is okay for a start-element! (hence the trim() not rtrim()!)
-		
-		if (n.isEmpty() || eq(n, ".") || eq(n, ".."))
-			return false;
-		
-		if (n.indexOf(sep) != -1)
-			return false;
-		
-		return true;
-	}
 	
 	
 	
 	
 	
 	
-	
-	
-	
-	
-	//TODO Unit tests for joinPaths..()
-	
-	//	/**
-	//	 * Please use either {@link #joinPathsStrict(Object...)} or {@link #joinPathsLenient(Object...)} instead :3
-	//	 */
-	//	@Deprecated
-	//	public static File joinPaths(Object... pathElements)
-	//	{
-	//		return joinPathsLenient(pathElements);
-	//	}
 	
 	
 	/**
-	 * Strict means "../somedir", empty elements, and etc. aren't allowed, and only the first element is allowed to be a {@link File}, the rest must be {@link String}s.
-	 * And a leading "/" is only allowed on the first element.
+	 * Strict means "../somedir", empty elements, absolute elements other than the first one, etc. aren't allowed.
+	 * And a path separator (eg, "/") is only allowed on the first element!
 	 * 
 	 * @see #isLegalNonspecialPathElement(String)
 	 */
 	public static File joinPathsStrict(Object... pathElements)
 	{
-		return joinPathsC(true, asList(pathElements));
+		return joinPathsStrictA(pathElements);
 	}
 	
 	/**
@@ -1202,7 +1324,19 @@ implements JavaNamespace
 	 */
 	public static File joinPathsLenient(Object... pathElements)
 	{
-		return joinPathsC(false, asList(pathElements));
+		return joinPathsLenientA(pathElements);
+	}
+	
+	
+	
+	public static File joinPathsStrictA(Object[] pathElements)
+	{
+		return joinPathsStrictC(asList(pathElements));
+	}
+	
+	public static File joinPathsLenientA(Object[] pathElements)
+	{
+		return joinPathsLenientC(asList(pathElements));
 	}
 	
 	
@@ -1230,17 +1364,15 @@ implements JavaNamespace
 		boolean first = true;
 		for (Object e : pathElements)
 		{
+			String n = e instanceof File ? ((File)e).getPath() : (String)e;
+			
+			if (!strict && (n == null || n.isEmpty()))
+				continue;
+			
 			if (strict)
 			{
-				if (e instanceof File)
+				// :>
 				{
-					if (!first)
-						throw new IllegalArgumentException("Only the first element may be a File in strict mode.");
-				}
-				else
-				{
-					String n = (String)e;
-					
 					if (first)
 					{
 						if (!isLegalNonspecialPathStartElement(n))
@@ -1255,16 +1387,19 @@ implements JavaNamespace
 			}
 			
 			
-			if (e == null || (e instanceof String && ((String)e).isEmpty()))
-				continue;
-			
 			if (f == null)
 			{
-				f = e instanceof File ? (File)e : new File((String)e);
+				f = e instanceof File ? (File)e : new File(n);  //no need remaking the File if 'n' came from one! X3
 			}
 			else
 			{
-				f = e instanceof File ? new File(f, ((File)e).getName()) : new File(f, (String)e);
+				if (!strict)
+				{
+					if (forAll(c -> c == File.separatorChar, n))  //new File() won't trim slashes if n is *entirely slashes!* XD    (it will trim them down to one slash, but no more than that!)
+						n = "";
+				}
+				
+				f = new File(f, n);
 			}
 			
 			first = false;
@@ -1312,58 +1447,73 @@ implements JavaNamespace
 		//			}
 		//		}
 		
-		boolean firstForStrictCheck = true;
-		boolean firstNonRoot = true;
+		boolean first = true;
 		for (String n : pathElements)
 		{
+			if (n.isEmpty() || n.equals("."))
+			{
+				first = false;
+				continue;
+			}
+			
+			
+			
 			if (strict)
 			{
-				if (firstForStrictCheck)
+				if (first)
 				{
-					if (!isLegalNonspecialPathStartElement(n))
+					if (!isLegalNonspecialPathStartElementPosix(n))
 						throw new IllegalArgumentException("Illegal first path element in strict mode: "+repr(n));
-					
-					firstForStrictCheck = false;
 				}
 				else
 				{
-					if (!isLegalNonspecialPathElement(n))
+					if (!isLegalNonspecialPathElementPosix(n))
 						throw new IllegalArgumentException("Illegal non-first path element in strict mode: "+repr(n));
 				}
 			}
 			
 			
-			boolean root = firstNonRoot && !n.isEmpty() && forAll('/', n);
 			
 			
-			if (root)  //The root directory! :D
+			
+			
+			//Trim slashes
 			{
-				n = "/";
-			}
-			else
-			{
-				n = trim(n, '/');
+				String nn = ltrimstrOrNull(n, "./");
 				
-				n = ltrimstr(n, "./");
-			}
-			
-			
-			if (!n.isEmpty() && !n.equals("."))
-			{
-				if (firstNonRoot)
+				if (nn == null)
 				{
-					if (!root)
-					{
-						firstNonRoot = false;
-					}
+					if (first)
+						n = n.startsWith("/") ? '/' + trim(n, '/') : trim(n, '/');
+						else
+							n = trim(n, '/');
 				}
 				else
 				{
-					b.append('/');
+					n = trim(nn, '/');
+				}
+			}
+			
+			
+			
+			//Actually append it! :D
+			{
+				if (n.isEmpty() || n.equals("."))
+				{
+					first = false;
+					continue;
+				}
+				
+				if (!first)
+				{
+					if (b.length() != 0 && !(b.length() == 1 && b.charAt(0) == '/'))
+						b.append('/');
 				}
 				
 				b.append(n);
 			}
+			
+			first = false;
 		}
 		
 		return b.toString();
@@ -1590,7 +1740,7 @@ implements JavaNamespace
 	 * @return <code>true</code> if all sub<code>File</code>s are deleted, otherwise <code>false</code>
 	 * @see java.io.File
 	 */
-	public static boolean delete_r(File f, boolean tryAll)
+	public static boolean deleteRecursively(File f, boolean tryAll)
 	{
 		if (isSymlink(f))
 		{
@@ -1604,7 +1754,7 @@ implements JavaNamespace
 			boolean success = false;
 			for (File c : children)
 			{
-				success = delete_r(c, tryAll);
+				success = deleteRecursively(c, tryAll);
 				if (!success && !tryAll)
 					return false;
 				allSuccess &= success;
@@ -1649,9 +1799,9 @@ implements JavaNamespace
 		deleteMandatory(f);
 	}
 	
-	public static void delete_rMandatory(File f, boolean tryAll) throws UncheckedIOException
+	public static void deleteRecursivelyMandatory(File f, boolean tryAll) throws UncheckedIOException
 	{
-		boolean success = delete_r(f, tryAll);
+		boolean success = deleteRecursively(f, tryAll);
 		if (!success)
 			throw new UncheckedIOException(new IOException("Could not delete file: "+f.getAbsolutePath()));
 	}
@@ -1840,7 +1990,7 @@ implements JavaNamespace
 	
 	
 	
-	public static File ensureExtension(File root, String desiredExtension)
+	public static File requireExtension(File root, String desiredExtension)
 	{
 		if (root.getName().endsWith("."+desiredExtension))
 			return root;
@@ -2085,10 +2235,7 @@ implements JavaNamespace
 	{
 		requireNonNull(f);
 		
-		if (f instanceof NonExistantFile)
-			return false;
-		
-		return !f.isFile() && !f.isDirectory() && f.exists();  //notice I use f.exists() not lexists(f) since the latter would include broken symlinks but the former excludes it! :>
+		return f.exists() && !f.isFile() && !f.isDirectory();  //notice I use f.exists() not lexists(f) since the latter would include broken symlinks but the former excludes it! :>
 	}
 	
 	
@@ -2114,10 +2261,7 @@ implements JavaNamespace
 	{
 		requireNonNull(f);
 		
-		if (f instanceof NonExistantFile)
-			return false;
-		
-		return !f.isDirectory() && f.exists();
+		return f.exists() && !f.isDirectory();
 	}
 	
 	
@@ -2373,6 +2517,12 @@ implements JavaNamespace
 	public static boolean isThisSymlinkPresent(File immediateTarget, File pathForSymlink) throws IOException
 	{
 		return isSymlink(pathForSymlink) && eq(readlinkRaw(pathForSymlink), immediateTarget);
+	}
+	
+	public static boolean isRealpathEquivalentSymlinkPresent(File immediateTarget, File pathForSymlink) throws IOException
+	{
+		File immediateTargetAbsolute = resolveSymlinkTarget(immediateTarget, pathForSymlink);
+		return isSymlink(pathForSymlink) && realpathEq(pathForSymlink, immediateTargetAbsolute);
 	}
 	
 	
@@ -2876,57 +3026,123 @@ implements JavaNamespace
 	
 	
 	
-	//Todo resolve duplicates?  XD''
-	
 	public static @Nonnull File realpathThrowing(@Nonnull File f) throws IOException
 	{
-		File r = f.getCanonicalFile();
-		
-		if (eq(r, f))  //this is how the JRE signals failure instead of throwing an IOException on most (all?!) of the time!
+		if (f.exists())
 		{
-			if (isSymlink(f))
+			File r = f.getCanonicalFile();  //this. is very inconsistent in its behavior X'D
+			
+			if (r.exists() && !isSymlink(r))
 			{
-				File t = readlinkAbsolute(f);
+				File o = _realpathThrowing_ourImpl(f);
+				if (!eq(r, o))
+					throw new AssertionError("realpath("+repr(f.getPath())+"): "+repr(r.getPath())+" != "+repr(o.getPath()));
 				
-				if (eq(t, f))
-				{
-					throw new IOException("1-deep symbolic link cycle detected!: "+repr(f.getPath()));
-				}
-				else if (lexists(t))
-				{
-					//TODO Make this work, like the POSIX realpath command does!
-					throw new IOException("Too many levels of symbolic links (yes, realpath() isn't supposed to fail on this unless it's actually a cycle; it's on my todo list X'D ): "+repr(f.getPath()));
-				}
-				else
-				{
-					throw new IOException("Cannot realpath a broken symbolic link!: "+repr(f.getPath()));
-				}
-			}
-			else if (!f.exists())
-			{
-				throw new IOException("Cannot realpath a nonexistant pathname!: "+repr(f.getPath()));
-			}
-			else
-			{
-				return f;  //it was already a realpath! XD
+				return r;  //it was already a realpath! XD
 			}
 		}
-		else if (!f.exists())
+		
+		return _realpathThrowing_ourImpl(f);
+	}
+	
+	@ImplementationTransparency
+	public static File _realpathThrowing_ourImpl(File f) throws IOException
+	{
+		Stack<File> s = new Stack<>();
+		File r = _realpathThrowing_ourImpl(f, s);
+		asrt(s.isEmpty());
+		return r;
+	}
+	
+	protected static File _realpathThrowing_ourImpl(File f, Stack<File> stack) throws IOException
+	{
+		f = normpath(f);
+		
+		File p = f.getParentFile();
+		
+		if (p == null) //it's the root directory!
 		{
-			if (r.exists())
-			{
-				//TODO Make this work, like the POSIX realpath command does!
-				throw new IOException("Probably a too-many-symlinks type of error!: "+repr(f.getPath())+" -> "+repr(r.getPath()));
-			}
-			else
-			{
-				throw new IOException("Cannot realpath a nonexistant pathname!: "+repr(f.getPath()));
-			}
+			return f;
 		}
 		else
 		{
-			return r;
+			File d = _realpathThrowing_ourImpl(p, stack);
+			String n = f.getName();
+			f = eq(n, ".") ? d : new File(d, n);
+			
+			if (isSymlink(f))
+			{
+				if (stack.contains(f))  //we don't support case-insensitivity and symbolic links on the same filesystem ^^'
+					throw new SymlinkCycleIOException("Symbolic link cycle detected!!: "+repr(f.getPath()));
+				stack.add(f);  //do after checking contains of course! XD
+				
+				File t = readlinkAbsolute(f);
+				
+				File r = _realpathThrowing_ourImpl(t, stack);
+				
+				asrt(stack.pop() == f);
+				
+				return r;
+			}
+			else
+			{
+				return f;
+			}
 		}
+	}
+	
+	
+	
+	
+	/**
+	 * On symlink cycles, this is eq(readlinkAbsolute(a), readlinkAbsolute(b)) if both are symlinks (if not it's just false XD )
+	 * When neither have a symlink cycle, it's eq(realpath(a), realpath(b))
+	 * :>
+	 */
+	public static boolean realpathEq(File a, File b)
+	{
+		File arp;
+		File brp;
+		
+		try
+		{
+			try
+			{
+				arp = realpathThrowing(a);
+				brp = realpathThrowing(b);
+			}
+			catch (SymlinkCycleIOException exc)
+			{
+				if (isSymlink(a))
+				{
+					if (isSymlink(b))
+					{
+						return eq(readlinkAbsolute(a), readlinkAbsolute(b));
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else
+				{
+					if (isSymlink(b))
+					{
+						return false;
+					}
+					else
+					{
+						return eq(a, b);
+					}
+				}
+			}
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+		
+		return eq(arp, brp);
 	}
 	
 	public static @Nonnull File realpath(@Nonnull File f) throws WrappedThrowableRuntimeException
@@ -3393,23 +3609,18 @@ implements JavaNamespace
 	}
 	
 	
-	//Todo recreated the old faster but more destructive one!
-	
-	
 	public static void performSafeFileSystemWriteTwoStageAndCopy(File dest, WriterProcedure write) throws IOException
 	{
 		if (dest.isDirectory() || isBrokenSymlink(dest))
 			throw new IOException("Tried to write into an invalid destination!: "+repr(dest.getAbsolutePath()));
 		
+		dest = realpath(dest);
 		
-		/*
-		 * This technique doesn't reset file permissions!
-		 */
 		
 		File temporary = getUniqueFileOrNull(dest.getParentFile(), dest.getName(), ".tmp");
-		
-		if (!lexists(temporary))
-			temporary.createNewFile();
+		if (lexists(temporary))
+			throw new IOException("Strange error while making temp file: "+repr(temporary.getAbsolutePath()));
+		ensureEmptyFileThrowing(temporary);
 		
 		if (!temporary.canWrite())
 		{
@@ -3420,36 +3631,24 @@ implements JavaNamespace
 		}
 		
 		
-		try (OutputStream out = new FileOutputStream(temporary))
+		try
 		{
-			write.write(out);
+			try (OutputStream out = new FileOutputStream(temporary))
+			{
+				write.write(out);
+			}
+			
+			
+			//We won't reach this part if writing failed!
+			
+			//Transfer it into the final location! :D
+			{
+				deleteMandatoryIfExists(dest);
+				renameMandatory(temporary, dest);
+			}
 		}
-		
-		
-		//We won't reach this part if writing failed!
-		
-		//Transfer it into the final location! :D
+		finally
 		{
-			if (dest.isFile() && !isSymlink(dest))
-				dest.delete();
-			
-			if (!lexists(dest))
-			{
-				if (temporary.renameTo(dest))
-					return;
-			}
-			
-			try (OutputStream out = new FileOutputStream(dest))
-			{
-				try (InputStream in = new FileInputStream(temporary))
-				{
-					JRECompatIOUtilities.pump(in, out);
-				}
-			}
-			
-			
-			//We won't reach this part if transfer failed!
-			
 			temporary.delete();
 		}
 	}
@@ -3810,7 +4009,7 @@ implements JavaNamespace
 	
 	
 	
-	public static File createTempFileRTExc(String prefix, String suffix) throws WrappedThrowableRuntimeException
+	public static File createTempFileUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
 	{
 		try
 		{
@@ -4005,7 +4204,7 @@ implements JavaNamespace
 	
 	
 	
-	public static void createNewFileRT(File f)
+	public static void createNewFileUnchecked(File f)
 	{
 		try
 		{
@@ -4015,5 +4214,229 @@ implements JavaNamespace
 		{
 			throw new WrappedThrowableRuntimeException(exc);
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Eg, if "/dir/something.pdf" exists, returns "/dir/something (2).pdf"  :3
+	 */
+	public static File getNextFreePath(File f)
+	{
+		if (!lexists(f))
+		{
+			return f;
+		}
+		else
+		{
+			int i = 2;
+			
+			if (isRoot(f))
+				throw new IllegalArgumentException(repr(f.getAbsolutePath()));
+			
+			File d = f.getAbsoluteFile().getParentFile();
+			requireNonNull(d);
+			
+			String n = f.getName();
+			String stem = splitonceReturnPrecedingOrWhole(n, '.');
+			String ext = splitonceReturnSucceedingOrNull(n, '.');
+			
+			while (true)
+			{
+				String nn = stem+" ("+i+")";
+				if (ext != null)
+					nn += '.' + ext;
+				
+				File t = new File(d, nn);
+				
+				if (!lexists(t))
+					return t;
+				else
+					i++;
+				
+				if (i == 0)
+					throw new OverflowException();
+			}
+		}
+	}
+	
+	
+	
+	
+	public static boolean isRoot(File f)
+	{
+		return forAny(r -> eq(f, r), File.listRoots());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
+	 * + Adds an ellipsis on the end of truncated names :3
+	 */
+	public static File getNextFreeMaxPath(final String sOrig, File dir)
+	{
+		return getMaxPath(sOrig, dir, s -> getNextFreePath(new File(dir, s)).getName(), s -> getNextFreePath(new File(dir, s+'…')).getName());
+	}
+	
+	/**
+	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
+	 * + Adds an ellipsis on the end of truncated names :3
+	 */
+	public static File getMaxPath(final String sOrig, File dir)
+	{
+		return getMaxPath(sOrig, dir, s -> s, s -> s+'…');
+	}
+	
+	/**
+	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
+	 */
+	public static File getMaxPath(final String sOrig, File dir, UnaryFunction<String, String> originalPathnameModifier, UnaryFunction<String, String> truncatedPathnameModifier)
+	{
+		String s = sOrig;
+		
+		//Then try the whole URL XD
+		File lp = new File(dir, originalPathnameModifier.f(s));
+		
+		//Then try the url truncated ^^'
+		while (!canFileExist(lp) && !s.isEmpty())
+		{
+			s = s.substring(0, s.length() - 1);
+			lp = new File(dir, truncatedPathnameModifier.f(s));
+		}
+		
+		if (s.isEmpty())
+			throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(sOrig)));
+		
+		return lp;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Only normal files (and symlinks to normal files) are entered into the map, not directories, special files, symlinks to dirs or specials, nor broken/cyclical symlinks :3
+	 * Symlinks to directories will be recurse like normal directories, though!
+	 */
+	public static Map<String, byte[]> readEntireDirectoryTreeFiles(File d, Predicate<File> p, int entryCountLimit, long fileSizeLimit)
+	{
+		Map<String, byte[]> rv = new HashMap<>();
+		
+		recurse(f ->
+		{
+			
+			if (f.isFile() && p.test(f))
+			{
+				int n = rv.size();
+				
+				if (n >= entryCountLimit)
+					throw new WrappedThrowableRuntimeException(new IOException("Number of files ("+n+") exceeded limit ("+entryCountLimit+")"));
+				
+				String relpath = getRelativePath(f, d);
+				
+				if (relpath == null)
+					throw new WrappedThrowableRuntimeException(new IOException("getRelativePath("+repr(f)+", "+repr(d)+") == null"));
+				
+				long l = f.length();
+				if (l > fileSizeLimit)
+					throw new WrappedThrowableRuntimeException(new IOException("File size ("+l+" bytes) exceeded limit ("+fileSizeLimit+" bytes)"));
+				
+				byte[] c;
+				try
+				{
+					c = FSIOUtilities.readAll(f);
+				}
+				catch (IOException exc)
+				{
+					throw new WrappedThrowableRuntimeException(exc);
+				}
+				
+				putNewMandatory(rv, relpath, c);
+			}
+			
+		}, DescendRecurse_Always, d);
+		
+		return rv;
+	}
+	
+	public static Map<String, byte[]> readEntireDirectoryTreeFiles(File d, int entryCountLimit, long fileSizeLimit)
+	{
+		return readEntireDirectoryTreeFiles(d, f -> true, entryCountLimit, fileSizeLimit);
+	}
+	
+	
+	
+	
+	
+	
+	public static void storeEntireDirectoryTreeFilesIntoEmptyParent(File parent, Map<String, byte[]> tree)
+	{
+		if (!parent.isDirectory())
+			throw new WrappedThrowableRuntimeException(new IOException("Not a directory: "+repr(parent.getAbsolutePath())));
+		
+		if (parent.list().length != 0)
+			throw new WrappedThrowableRuntimeException(new IOException("Not an empty directory: "+repr(parent.getAbsolutePath())));
+		
+		for (Entry<String, byte[]> e : tree.entrySet())
+		{
+			String r = e.getKey();
+			
+			if (r.contains(File.separator+".."+File.separator))  //this is not a security check!!  windows permits both forward and back slashes, so if this only checks for one, it's not being done properly!  (we'd really need joinPaths() somewhere in between lenient and strict ^^' )
+				throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(r)));
+			
+			File f = joinPathsLenient(parent, r);
+			
+			try
+			{
+				FSIOUtilities.writeAll(f, e.getValue());
+			}
+			catch (IOException exc)
+			{
+				throw new WrappedThrowableRuntimeException(exc);
+			}
+		}
+	}
+	
+	
+	public static void storeEntireDirectoryTreeFilesIntoParentThatIsEmptySaveForTheseFilenames(File parent, Map<String, byte[]> tree)
+	{
+		for (String k : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
+			new File(parent, k).delete();
+		
+		storeEntireDirectoryTreeFilesIntoEmptyParent(parent, tree);
+	}
+	
+	
+	
+	
+	public static boolean eqDirTrees(Map<String, byte[]> a, Map<String, byte[]> b)
+	{
+		return CollectionUtilities.defaultMapsEquivalent(a, b, (byte[] av, byte[] bv) -> Arrays.equals(av, bv));
 	}
 }

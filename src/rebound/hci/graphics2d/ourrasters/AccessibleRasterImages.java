@@ -412,7 +412,7 @@ public class AccessibleRasterImages
 					int dX = destX + destXr;
 					int sX = sourceX + destXr;
 					
-					int pixelValueInSouceFormat = Bytes.getLittleInt24(src, srcOffset + ((sY * sS + sX) * srcBytesPerPixel));
+					int pixelValueInSouceFormat = Bytes.getLittleUInt24(src, srcOffset + ((sY * sS + sX) * srcBytesPerPixel));
 					
 					int pixelValueInDestFormat = SimpleImageColorStorageType.convertPacked32(pixelValueInSouceFormat, sourcePixelFormat, destPixelFormat);
 					

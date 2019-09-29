@@ -4,11 +4,21 @@
  */
 package rebound.bits;
 
+import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.io.EOFException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Reader;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.ByteListRO;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterListRO;
 import rebound.util.objectutil.JavaNamespace;
 
 /**
@@ -130,26 +140,35 @@ implements JavaNamespace
 	 * </ul>
 	 * @param delimiterSize The size--in characters--of each delimiter
 	 */
-	public static void decodeHex(@ReadonlyValue @Nonnull char[] source, int sourceOffset, int sourceLength, @WritableValue @Nonnull byte[] dest, int destOffset, int length, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	public static void decodeHex(@ReadonlyValue @Nonnull char[] source, int sourceOffset, int sourceLength, @WritableValue @Nonnull byte[] dest, int destOffset, int destLength, int delimiterSize) throws EOFException, InvalidInputCharacterException
 	{
-		int sourceBoundExclusive = sourceOffset + sourceLength;
+		decodeHex(charArrayAsList(source, sourceOffset, sourceLength), byteArrayAsList(dest, destOffset, destLength), delimiterSize);
+	}
+	
+	public static void decodeHex(@ReadonlyValue @Nonnull CharacterListRO source, @WritableValue @Nonnull ByteList dest, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	{
+		final int sourceLength = source.size();
+		//int destOffset = 0;
+		int destLength = dest.size();
 		
-		//sourceOffset is used as the cursor
-		int sourceBoundInclusive = sourceBoundExclusive - 1;  //sourceOffset+1 >= sourceBound  <===>  sourceOffset >= sourceBound-1
+		
+		int sourcePointer = 0;
 		
 		delimiterSize++; //read - skipSize
 		
-		int count = 0;
+		int destIndex = 0;
 		char c = 0;
-		while (count < length)
+		while (destIndex < destLength)
 		{
 			//Ensure that both characters are within the bounds
-			if (sourceOffset >= sourceBoundInclusive)
+			if (!(sourcePointer+1 < sourceLength))
 				throw new EOFException();
+			
+			
 			
 			//First character
 			{
-				c = source[sourceOffset]; //Throw ArrayIndexException for EOF
+				c = source.getChar(sourcePointer); //Throw ArrayIndexException for EOF
 				
 				//Normalize letters (this makes 0x41('A') be 0xA, and 0x46('F') be 0xF)
 				//				c -= ((c & 0x40) != 0) ? 0x37 : 0;
@@ -160,17 +179,17 @@ implements JavaNamespace
 				
 				//Check validity
 				if (c < 0x10) //Java chars are uint16's, so "negatives" will wrap around
-					throw new InvalidInputCharacterExceptionWithPosition(sourceOffset);
+					throw new InvalidInputCharacterExceptionWithPosition(sourcePointer);
 				
-				dest[count] = (byte)(c);
+				dest.setByte(destIndex, (byte)(c));
 				
-				sourceOffset++;
+				sourcePointer++;
 			}
 			
 			
 			//Second character
 			{
-				c = source[sourceOffset]; //Throw ArrayIndexException for EOF
+				c = source.getChar(sourcePointer); //Throw ArrayIndexException for EOF
 				
 				//Unset the case bit for letters, and normalize numbers
 				c &= ~0x30;
@@ -182,55 +201,144 @@ implements JavaNamespace
 				
 				//Check validity
 				if (c >= 0x10) //Java chars are uint16's, so "negatives" will wrap around
-					throw new InvalidInputCharacterExceptionWithPosition(sourceOffset);
+					throw new InvalidInputCharacterExceptionWithPosition(sourcePointer);
 				
-				dest[count] |= c;
+				dest.setByte(destIndex, (byte)(dest.get(destIndex) | c));
 				
 				//				sourceOffset++;
 			}
 			
 			
-			count++; //One more byte under our belt
+			destIndex++; //One more byte under our belt
 			
-			sourceOffset += delimiterSize; //Skip delimiter+1 (or noop if delimiterSize == 0)
+			sourcePointer += delimiterSize;  //Skip delimiter+1 (or noop if delimiterSize == 0)
 		}
 	}
 	
 	
 	
-	//TODO What should I do with destBound?
+	
+	
+	
+	public static void decodeHex(Reader in, OutputStream out) throws InvalidInputCharacterException, IOException
+	{
+		while (true)
+		{
+			int d0;
+			
+			while (true)
+			{
+				int v0 = in.read();
+				
+				if (v0 < 0)
+					return;
+				else
+				{
+					char c0 = (char) v0;
+					
+					if (c0 >= '0' && c0 <= '9')
+					{
+						d0 = c0 - '0';
+						break;
+					}
+					else if (c0 >= 'a' && c0 <= 'f')
+					{
+						d0 = c0 - 'a' + 10;
+						break;
+					}
+					else if (c0 >= 'A' && c0 <= 'F')
+					{
+						d0 = c0 - 'A' + 10;
+						break;
+					}
+					//else: keep going over the delimiters :3
+				}
+			}
+			
+			
+			
+			
+			//Second character
+			int d1;
+			{
+				int v1 = in.read();
+				
+				char c1 = (char) v1;
+				
+				if (c1 >= '0' && c1 <= '9')
+				{
+					d1 = c1 - '0';
+				}
+				else if (c1 >= 'a' && c1 <= 'f')
+				{
+					d1 = c1 - 'a' + 10;
+				}
+				else if (c1 >= 'A' && c1 <= 'F')
+				{
+					d1 = c1 - 'A' + 10;
+				}
+				else
+				{
+					throw new InvalidInputCharacterException();
+				}
+			}
+			
+			
+			
+			byte b = (byte)(d1 | (d0 << 4));
+			
+			
+			
+			out.write(b);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * In supporting delimiters, this method does not write them but merely skips over where they would be located.
 	 * @param hexcase One of {@link #HEX_LOWERCASE} or {@link #HEX_UPPERCASE}
 	 * @param delimiterSize The size--in characters--of each delimiter
 	 */
-	public static void encodeHex(byte[] source, int sourceOffset, char[] dest, int destOffset, int destBound, int length, int hexcase, int delimiterSize)
+	public static void encodeHex(byte[] source, int sourceOffset, int sourceLength, char[] dest, int destOffset, int destLength, int hexcase, int delimiterSize)
 	{
-		delimiterSize += 1; //let it be known as skip size
-		int count = 0, destIndex = destOffset;
+		encodeHex(byteArrayAsList(source, sourceOffset, sourceLength), charArrayAsList(dest, destOffset, destLength), hexcase, delimiterSize);
+	}
+	
+	public static void encodeHex(ByteListRO source, @WritableValue CharacterList dest, int hexcase, int delimiterSize)
+	{
+		int sourceLength = source.size();
+		
+		delimiterSize += 1;  //let it be known as skip size
+		int sourceIndex = 0;
+		int destIndex = 0;
 		char c = 0;
-		while (count < length)
+		while (sourceIndex < sourceLength)
 		{
 			//First character
 			{
-				c = (char)(source[sourceOffset+count] & 0xF0);
+				c = (char)(source.getByte(sourceIndex) & 0xF0);
 				c = (char)((((c / 160) * hexcase) + 48) + (c >> 4));
-				dest[destIndex] = c;
+				dest.setChar(destIndex, c);
 			}
 			
 			destIndex++;
 			
 			//Second character
 			{
-				c = (char)(source[sourceOffset+count] & 0x0F);
+				c = (char)(source.getByte(sourceIndex) & 0x0F);
 				c = (char)((((c / 10) * hexcase) + 48) + c);
-				dest[destIndex] = c;
+				dest.setChar(destIndex, c);
 			}
 			
 			destIndex += delimiterSize;
 			
-			count++;
+			sourceIndex++;
 		}
 	}
 	//Hex>
@@ -435,10 +543,32 @@ implements JavaNamespace
 	}
 	
 	
-	//Todo decode
 	
-	//Todo for other primitives[]
 	
+	
+	
+	public static String encodeBinary(Iterable<Boolean> data)
+	{
+		return mapToString(b -> b ? '1' : '0', data);
+	}
+	
+	public static BooleanList decodeBinary(String encoded)
+	{
+		BooleanList l = newBooleanList();
+		
+		forEach(c ->
+		{
+			if (c == '0')
+				l.add(false);
+			else if (c == '1')
+				l.add(true);
+			
+			//otherwise ignore in case there are byte delimiters or something X3
+			
+		}, encoded);
+		
+		return l;
+	}
 	//Binary>
 	
 	
@@ -452,6 +582,89 @@ implements JavaNamespace
 	
 	//<Convenience methods
 	//<Hex
+	public static String encodeHexNoDelimiter(ByteList source, int hexcase)
+	{
+		return encodeHex(source, hexcase, (char[])null);
+	}
+	
+	
+	public static String encodeHex(ByteList source, int hexcase, @Nullable String delimiter)
+	{
+		return encodeHex(source, hexcase, delimiter == null ? null : delimiter.toCharArray());
+	}
+	
+	public static String encodeHex(ByteList source, int hexcase, @Nullable char[] delimiter)
+	{
+		int sourceLength = source.size();
+		int delimiterSize = delimiter == null ? 0 : delimiter.length;
+		CharacterList dest = charArrayAsList(new char[getHexTextlenFromDatalen(sourceLength, delimiterSize)]);
+		
+		encodeHex(source, dest, hexcase, delimiterSize);
+		
+		if (delimiterSize > 1)
+		{
+			for (int i = 0; i < sourceLength-1; i++) //{< length-1}  because there is no trailing delimiter
+				System.arraycopy(delimiter, 0, dest, (i * (2+delimiterSize) + 2), delimiter.length);
+		}
+		else if (delimiterSize == 1)
+		{
+			char delimiterChar = delimiter[0];
+			for (int i = 0; i < sourceLength-1; i++) //{< length-1}  because there is no trailing delimiter
+				dest.setChar(i * (2+delimiterSize) + 2, delimiterChar);
+		}
+		//Do nothing for delimiterSize == 0
+		
+		return newString(dest.toCharArraySlicePossiblyLive());
+	}
+	
+	
+	public static ByteList decodeHex(@Nonnull CharacterList source, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	{
+		//DivideInt_ceiling, because "0d:21:" (6/3) should be 2 bytes, but "0d:21" (5/3) should also be 2 bytes
+		int length = getHexDatalenFromTextlen(source.size(), delimiterSize);
+		
+		ByteList dest = byteArrayAsList(new byte[length]);
+		decodeHex(source, dest, delimiterSize);
+		
+		return dest;
+	}
+	
+	public static ByteList decodeHexToList(@Nonnull String source, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	{
+		return decodeHex(stringToList(source), delimiterSize);
+	}
+	
+	/**
+	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 */
+	public static ByteList decodeHexMandatoryToList(String source, int delimiterSize) throws AssertionError
+	{
+		try
+		{
+			return decodeHexToList(source, delimiterSize);
+		}
+		catch (EOFException exc)
+		{
+			throw new AssertionError(exc);
+		}
+		catch (InvalidInputCharacterException exc)
+		{
+			throw new AssertionError(exc);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static String encodeHexNoDelimiter(byte[] source, int hexcase)
 	{
 		return encodeHex(source, 0, source.length, hexcase, (char[])null);
@@ -483,7 +696,7 @@ implements JavaNamespace
 		int delimiterSize = delimiter == null ? 0 : delimiter.length;
 		char[] dest = new char[getHexTextlenFromDatalen(sourceLength, delimiterSize)];
 		
-		encodeHex(source, sourceOffset, dest, 0, dest.length, sourceLength, hexcase, delimiterSize);
+		encodeHex(source, sourceOffset, sourceLength, dest, 0, dest.length, hexcase, delimiterSize);
 		
 		if (delimiterSize > 1)
 		{
@@ -579,7 +792,7 @@ implements JavaNamespace
 	 */
 	public static int getHexTextlenFromDatalen(int dataLength, int delimiterSize)
 	{
-		return dataLength * (2+delimiterSize) - delimiterSize;
+		return dataLength == 0 ? 0 : dataLength * (2+delimiterSize) - delimiterSize;
 	}
 	
 	

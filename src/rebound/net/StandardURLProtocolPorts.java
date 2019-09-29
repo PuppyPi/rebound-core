@@ -9,11 +9,11 @@ import javax.annotation.Nullable;
 public class StandardURLProtocolPorts
 {
 	public static final int HTTP = 80;
-	public static final int HTTPS = 80;
+	public static final int HTTPS = 443;
 	public static final int FTP = 21;
 	public static final int FTPS = 989;
 	
-	public static final Map<String, Integer> DefaultPortsByProtocol = unmodifiableMap(newmap(
+	public static final Map<String, Integer> DefaultPortsByProtocol = unmodifiableMap(mapof(
 	"http", HTTP,
 	"https", HTTPS,
 	"ftp", FTP,

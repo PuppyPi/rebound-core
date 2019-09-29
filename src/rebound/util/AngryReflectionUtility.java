@@ -5,13 +5,16 @@
 package rebound.util;
 
 import static java.util.Objects.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -549,22 +552,26 @@ implements JavaNamespace
 	 * 
 	 * For Constructors this always returns true, as all constructors are essentially special static methods with the name "<init>" :3
 	 */
-	public static boolean isStatic(Object classOrMethodOrField)
+	public static boolean isStatic(Object classOrMethodOrFieldOrConstructor)
 	{
-		if (classOrMethodOrField instanceof Method)
-			return Modifier.isStatic(((Method)classOrMethodOrField).getModifiers());
-		else if (classOrMethodOrField instanceof Field)
-			return Modifier.isStatic(((Field)classOrMethodOrField).getModifiers());
+		if (classOrMethodOrFieldOrConstructor instanceof Member)
+			return isStatic((Member)classOrMethodOrFieldOrConstructor);
 		
-		else if (classOrMethodOrField instanceof Constructor)
-			return true;
-		
-		else if (classOrMethodOrField instanceof Class)
-			return Modifier.isStatic(((Class)classOrMethodOrField).getModifiers());
+		else if (classOrMethodOrFieldOrConstructor instanceof Class)
+			return Modifier.isStatic(((Class)classOrMethodOrFieldOrConstructor).getModifiers());
 		
 		else
-			throw new IllegalArgumentException(classOrMethodOrField != null ? new ClassCastException(classOrMethodOrField.getClass().toString()) : new NullPointerException());
+			throw new IllegalArgumentException(classOrMethodOrFieldOrConstructor != null ? new ClassCastException(classOrMethodOrFieldOrConstructor.getClass().toString()) : new NullPointerException());
 	}
+	
+	public static boolean isStatic(Member methodOrFieldOrConstructor)
+	{
+		if (methodOrFieldOrConstructor instanceof Constructor)
+			return true;
+		else
+			return Modifier.isStatic(methodOrFieldOrConstructor.getModifiers());
+	}
+	
 	
 	
 	//Todo the ones for subclassability ._.
@@ -586,8 +593,7 @@ implements JavaNamespace
 	 * @param optionalModifierStaticRequirement a criterion that the method be static or instance; a value of <code>null</code> disables this criterion  (use False to mandate non-static ;> )
 	 * @param scanSuperclasses if <code>false</code>, only scan for methods declared in this class
 	 */
-	@Nullable
-	public static Method getMethod(Class c, String methodName, Class[] argumentTypes, JavaVisibility optionalVisibilityRequirement, Class optionalReturnTypeRequirement, Boolean optionalModifierStaticRequirement, boolean scanSuperclasses)
+	public static @Nullable Method getMethod(Class c, String methodName, Class[] argumentTypes, JavaVisibility optionalVisibilityRequirement, Class optionalReturnTypeRequirement, Boolean optionalModifierStaticRequirement, boolean scanSuperclasses)
 	{
 		if (c == null || methodName == null || argumentTypes == null)
 			throw new NullPointerException();
@@ -628,13 +634,13 @@ implements JavaNamespace
 		return null;
 	}
 	
-	public static Method getMethod(Class c, String methodName, Class[] argumentTypes, boolean scanSuperclasses)
+	public static @Nullable Method getMethod(Class c, String methodName, Class[] argumentTypes, boolean scanSuperclasses)
 	{
 		return getMethod(c, methodName, argumentTypes, null, null, null, scanSuperclasses);
 	}
 	
 	
-	public static Method getMethod(Class c, String methodName, Class[] argumentTypes)
+	public static @Nullable Method getMethod(Class c, String methodName, Class[] argumentTypes)
 	{
 		return getMethod(c, methodName, argumentTypes, true);
 	}
@@ -645,8 +651,7 @@ implements JavaNamespace
 	
 	
 	
-	@Nonnull
-	public static Method getMethodByNameCheckingExactlyOneNotCountingInherited(Class c, String methodName) throws TooManyException, NotFoundException
+	public static @Nonnull Method getMethodByNameCheckingExactlyOneNotCountingInherited(Class c, String methodName) throws TooManyException, NotFoundException
 	{
 		return getMethodByNameCheckingExactlyOneNotCountingInherited(c, methodName, null);
 	}
@@ -655,8 +660,7 @@ implements JavaNamespace
 	/**
 	 * Since there technically could be more than one with the same name since JVM/Java allows overloading! (distinguishing them by different parameter types)
 	 */
-	@Nonnull
-	public static Method getMethodByNameCheckingExactlyOneNotCountingInherited(Class c, String methodName, @Nullable Boolean optionalStaticRequirement) throws TooManyException, NotFoundException
+	public static @Nonnull Method getMethodByNameCheckingExactlyOneNotCountingInherited(Class c, String methodName, @Nullable Boolean optionalStaticRequirement) throws TooManyException, NotFoundException
 	{
 		Method ourMethod = null;
 		boolean has = false;
@@ -712,7 +716,7 @@ implements JavaNamespace
 	
 	
 	//Todo write doc ._.
-	public static <T> Constructor<T> getConstructor(Class<T> c, Class[] argumentTypes, JavaVisibility optionalVisibilityRequirement)
+	public static @Nullable <T> Constructor<T> getConstructor(Class<T> c, Class[] argumentTypes, JavaVisibility optionalVisibilityRequirement)
 	{
 		if (c == null || argumentTypes == null)
 			throw new NullPointerException();
@@ -745,7 +749,7 @@ implements JavaNamespace
 	
 	
 	//Todo write doc ._.
-	public static Field getField(Class c, String fieldName, JavaVisibility optionalVisibilityRequirement, Class optionalFieldTypeRequirement, Boolean optionalModifierStaticRequirement, boolean scanSuperclasses)
+	public static @Nullable Field getField(Class c, String fieldName, JavaVisibility optionalVisibilityRequirement, Class optionalFieldTypeRequirement, Boolean optionalModifierStaticRequirement, boolean scanSuperclasses)
 	{
 		if (c == null || fieldName == null)
 			throw new NullPointerException();
@@ -782,14 +786,14 @@ implements JavaNamespace
 		return null;
 	}
 	
-	public static Field getField(Class c, String fieldName)
+	public static @Nullable Field getField(Class c, String fieldName)
 	{
 		return getField(c, fieldName, null, null, null, false);
 	}
 	
 	
 	
-	public static <T> Constructor<T> getPublicNoArgsConstructor(Class<T> c)
+	public static @Nullable <T> Constructor<T> getPublicNoArgsConstructor(Class<T> c)
 	{
 		return getConstructor(c, new Class[]{}, JavaVisibility.PUBLIC);
 	}
@@ -1744,12 +1748,32 @@ implements JavaNamespace
 	
 	
 	
-	@Nullable
-	public static Method getUninheritedMethodByAnnotationPresence(Class c, Class<? extends Annotation> annotationClass)
+	
+	public static @Nullable Method getUninheritedMethodByAnnotationPresence(Class c, Class<? extends Annotation> annotationClass)
 	{
 		Method found = null;
 		
 		for (Method m : c.getMethods())
+		{
+			if (m.isAnnotationPresent(annotationClass))
+			{
+				if (found != null)
+					throw new ImpossibleException("Misconfigured class!!  Multiple methods with the @"+annotationClass.getName()+" annotation!!");
+				else
+					found = m;
+			}
+		}
+		
+		return found;
+	}
+	
+	
+	
+	public static @Nullable Field getUninheritedFieldByAnnotationPresence(Class c, Class<? extends Annotation> annotationClass)
+	{
+		Field found = null;
+		
+		for (Field m : c.getFields())
 		{
 			if (m.isAnnotationPresent(annotationClass))
 			{
@@ -1825,5 +1849,101 @@ implements JavaNamespace
 			return ((ParameterizedType)t).getActualTypeArguments()[1];
 		else
 			return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Object invokeUnchecked(Method x, Object instance, Object... args) throws RuntimeException
+	{
+		try
+		{
+			return x.invoke(instance, args);
+		}
+		catch (IllegalAccessException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+		catch (InvocationTargetException exc)
+		{
+			throw throwGeneralThrowableIfPossible(exc.getTargetException());
+		}
+	}
+	
+	public static Object invokeStaticUnchecked(Method x, Object... args) throws RuntimeException
+	{
+		return invokeUnchecked(x, null, args);
+	}
+	
+	public static Object invokeStaticUnchecked(Constructor x, Object... args) throws RuntimeException
+	{
+		try
+		{
+			return x.newInstance(args);
+		}
+		catch (InstantiationException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+		catch (IllegalAccessException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+		catch (InvocationTargetException exc)
+		{
+			throw throwGeneralThrowableIfPossible(exc.getTargetException());
+		}
+	}
+	
+	public static Object invokeStaticUnchecked(Executable x, Object... args) throws RuntimeException
+	{
+		if (x instanceof Method)
+			return invokeStaticUnchecked((Method)x, args);
+		else if (x instanceof Constructor)
+			return invokeStaticUnchecked((Constructor)x, args);
+		else
+			throw newClassCastExceptionOrNullPointerException(x);
+	}
+	
+	
+	
+	
+	public static Object getUnchecked(Field x, Object instance) throws RuntimeException
+	{
+		try
+		{
+			return x.get(instance);
+		}
+		catch (IllegalAccessException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void setUnchecked(Field x, Object instance, Object newValue) throws RuntimeException
+	{
+		try
+		{
+			x.set(instance, newValue);
+		}
+		catch (IllegalAccessException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static Object getStaticUnchecked(Field x) throws RuntimeException
+	{
+		return getUnchecked(x, null);
+	}
+	
+	public static void setStaticUnchecked(Field x, Object newValue) throws RuntimeException
+	{
+		setUnchecked(x, null, newValue);
 	}
 }

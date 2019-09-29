@@ -2,6 +2,7 @@ package rebound.util.collections;
 
 import static rebound.util.AngryReflectionUtility.*;
 import static rebound.util.Primitives.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
@@ -38,6 +39,7 @@ import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
+import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath;
 import rebound.exceptions.StopIterationReturnPath;
@@ -1145,46 +1147,81 @@ public class PolymorphicCollectionUtilities
 	@ThrowAwayValue
 	public static Set anyToNewMutableSet(final Object x)
 	{
+		return anyToNewMutableSet(x, false);
+	}
+	
+	@SnapshotValue
+	@ThrowAwayValue
+	public static Set anyToNewMutableSet(final Object x, boolean throwOnDuplicates) throws AlreadyExistsException
+	{
 		//Todo rich/general sets :P
 		
 		if (x == null)
+		{
 			throw new NullPointerException();
-		
+		}
 		else if (x instanceof Object[])
 		{
-			return new HashSet(Arrays.asList((Object[])x)); //new HashSet(Collection) may just add each element iteratively, but it tunes the load factor and initial capacity and such, so there ya go! :>!
+			Set r = new HashSet(Arrays.asList((Object[])x)); //new HashSet(Collection) may just add each element iteratively, but it tunes the load factor and initial capacity and such, so there ya go! :>!
+			if (r.size() != ((Object[])x).length)
+				if (throwOnDuplicates) throw new AlreadyExistsException();
+			return r;
 		}
 		else if (x.getClass().isArray()) //&& !(x instanceof Object[])  ==> (implies)   x is a primitive array! :D
 		{
-			return new HashSet(Arrays.asList(Primitives.box(x)));
+			Object[] a = Primitives.box(x);
+			Set r = new HashSet(Arrays.asList(a));
+			if (r.size() != a.length)
+				if (throwOnDuplicates) throw new AlreadyExistsException();
+			return r;
 		}
 		else if (x instanceof Collection) //takes care of instanceof Set case :>
 		{
-			return new HashSet((Collection)x);
+			Set r = new HashSet((Collection)x);
+			if (r.size() != ((Collection)x).size())
+				if (throwOnDuplicates) throw new AlreadyExistsException();
+			return r;
 		}
 		else if (x instanceof Iterable)
 		{
 			Set set = new HashSet();
 			for (Object e : (Iterable)x)
-				set.add(e);
+			{
+				if (throwOnDuplicates)
+					addNewMandatory(set, e);
+				else
+					set.add(e);
+			}
 			return set;
 		}
 		else if (x instanceof SimpleIterable)
 		{
-			return anyToNewMutableSet(((SimpleIterable)x).simpleIterator());
+			return anyToNewMutableSet(((SimpleIterable)x).simpleIterator(), throwOnDuplicates);
 		}
 		else if (x instanceof Iterator)
 		{
 			Set set = new HashSet();
 			while (((Iterator)x).hasNext())
-				set.add(((Iterator)x).next());
+			{
+				Object e = ((Iterator)x).next();
+				if (throwOnDuplicates)
+					addNewMandatory(set, e);
+				else
+					set.add(e);
+			}
 			return set;
 		}
 		else if (x instanceof Enumeration)
 		{
 			Set set = new HashSet();
 			while (((Enumeration)x).hasMoreElements())
-				set.add(((Enumeration)x).nextElement());
+			{
+				Object e = ((Enumeration)x).nextElement();
+				if (throwOnDuplicates)
+					addNewMandatory(set, e);
+				else
+					set.add(e);
+			}
 			return set;
 		}
 		else if (x instanceof SimpleIterator)
@@ -1193,21 +1230,29 @@ public class PolymorphicCollectionUtilities
 			
 			while (true)
 			{
+				Object e;
 				try
 				{
-					set.add(((SimpleIterator)x).nextrp());
+					e = ((SimpleIterator)x).nextrp();
 				}
 				catch (StopIterationReturnPath exc)
 				{
 					break;
 				}
+				
+				if (throwOnDuplicates)
+					addNewMandatory(set, e);
+				else
+					set.add(e);
 			}
 			
 			return set;
 		}
 		
 		else
+		{
 			throw new ClassCastException(CollectionUtilities.Converters_ClassCastException_Message_Prefix+x.getClass().getName()+"'s   sorries ._.");
+		}
 	}
 	
 	@ReadonlyValue

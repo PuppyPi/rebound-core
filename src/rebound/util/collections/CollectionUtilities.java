@@ -9,12 +9,14 @@ import static java.util.Objects.*;
 import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
+import java.awt.Container;
 import java.lang.reflect.Array;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.AbstractSet;
@@ -53,12 +55,15 @@ import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
+import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.NonnullValues;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
+import rebound.exceptions.DuplicatesException;
 import rebound.exceptions.GenericDatastructuresFormatException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoSuchElementReturnPath;
@@ -66,12 +71,15 @@ import rebound.exceptions.NoSuchMappingReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath.NoSuchMappingException;
 import rebound.exceptions.NonForwardInjectiveMapException;
 import rebound.exceptions.NonReverseInjectiveMapException;
+import rebound.exceptions.NonSingletonException;
 import rebound.exceptions.NotFoundException;
+import rebound.exceptions.NotSupportedReturnPath;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.ReadonlyUnsupportedOperationException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.exceptions.StructuredClassCastException;
+import rebound.math.Direction1D;
 import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
@@ -83,6 +91,7 @@ import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
 import rebound.util.collections.maps.MapWithBoundKeyEqualityComparator;
 import rebound.util.collections.maps.MapWithBoundValueEqualityComparator;
+import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
@@ -108,12 +117,15 @@ import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortInterval
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortIntervalSet;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.collections.prim.PrimitiveCollections.PrimitiveCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.container.ContainerInterfaces.BooleanContainer;
+import rebound.util.container.ContainerInterfaces.ObjectContainer;
 import rebound.util.container.SimpleContainers.SimpleBooleanContainer;
 import rebound.util.functional.CollectionFunctionalIterable;
 import rebound.util.functional.ContinueSignal;
 import rebound.util.functional.FunctionInterfaces.BinaryFunction;
+import rebound.util.functional.FunctionInterfaces.BinaryFunctionToBoolean;
 import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionBooleanToBoolean;
@@ -154,10 +166,6 @@ import rebound.util.objectutil.PubliclyCloneable;
 
 public class CollectionUtilities
 {
-	//TODO hasDuplicateElements(Iterable)
-	//TODO checkNoDuplicateElements(Set)  ;>
-	
-	
 	public static void checkRangeNonnegative(int underlyingLength, int start, int length) throws IndexOutOfBoundsException
 	{
 		if (underlyingLength < 0) throw new ImpossibleException("incorrect use of this function >,>");
@@ -1030,6 +1038,15 @@ public class CollectionUtilities
 	@ThrowAwayValue
 	public static <E> List<E> concatenateListsOP(@ReadonlyValue Iterable<E> a, @ReadonlyValue Iterable<E> b)
 	{
+		if (a instanceof PrimitiveCollection || b instanceof PrimitiveCollection)
+		{
+			List<E> rv = PrimitiveCollections.concatenateManyPrimitiveListsOP(listof(a, b));
+			if (rv != null)
+				return rv;
+			//else: continue :3
+		}
+		
+		
 		List<E> l = a instanceof Collection && b instanceof Collection ? new ArrayList<>(((Collection)a).size() + ((Collection)a).size()) : new ArrayList<>();
 		
 		addAll(l, a);
@@ -1087,6 +1104,15 @@ public class CollectionUtilities
 		}
 		else
 		{
+			if (forAny(l -> l instanceof PrimitiveCollection, lists))
+			{
+				List<E> rv = PrimitiveCollections.concatenateManyPrimitiveListsOP(lists);
+				if (rv != null)
+					return rv;
+				//else: continue :3
+			}
+			
+			
 			boolean hasInfo = true;
 			int totalSize = 0;
 			boolean hasMultipleNonEmpties = false;
@@ -1319,9 +1345,7 @@ public class CollectionUtilities
 		
 		if (c instanceof List)
 		{
-			E e = ((List<E>)c).get(0);
-			((List<E>)c).remove(0); //remove-by-index not value; fasters and more reliables ^^
-			return e;
+			return ((List<E>)c).remove(0);  //remove-by-index not value; faster and more reliable ^^
 		}
 		
 		//Fallback :)
@@ -1841,6 +1865,47 @@ public class CollectionUtilities
 	}
 	
 	
+	public static <E> int indexOfSingle(Predicate<E> predicate, @CollectionValue List<E> list) throws NonSingletonException
+	{
+		if (isRandomAccessFast(list))
+		{
+			int rv = -1;
+			int length = list.size();
+			for (int i = 0; i < length; i++)
+			{
+				if (predicate.test(list.get(i)))
+				{
+					if (rv == -1)
+						rv = i;
+					else
+						throw new NonSingletonException();
+				}
+			}
+			return rv;
+		}
+		else
+		{
+			int rv = -1;
+			int i = 0;
+			
+			for (E element : list)
+			{
+				if (predicate.test(element))
+				{
+					if (rv == -1)
+						rv = i;
+					else
+						throw new NonSingletonException();
+				}
+				
+				i++;
+			}
+			
+			return -1;
+		}
+	}
+	
+	
 	
 	
 	
@@ -2344,6 +2409,7 @@ _$$primxpconf:intsonly$$_
 	
 	//Importing java.util.Arrays.* conflicts with java.util.ArrayList so they can't both be imported! :[
 	//So we offer a delegate here to get around that! ^wwwww^
+	//(also it's not varargs, since that causes a lot of problems X'D )
 	@LiveValue
 	@WritableValue
 	public static <E> List<E> asList(E[] array)  //fixed-length but writable view of the array!
@@ -3365,6 +3431,12 @@ _$$primxpconf:intsonly$$_
 	
 	
 	//SETS AHAHA (X>)
+	
+	
+	/**
+	 * Subset *or* Equal(Equivalent) :>
+	 * + If 'sub' is empty this always returns true :>
+	 */
 	public static boolean isSubset(Set sub, Set sup)
 	{
 		for (Object e : sub)
@@ -3491,12 +3563,18 @@ _$$primxpconf:intsonly$$_
 	@ReadonlyValue
 	public static <K, V> Map<K, V> unionMaps(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b) throws AlreadyExistsException
 	{
+		if (a.isEmpty())
+			return b;
+		
 		return unionMapsFilteringSecond(a, b, (k, v) -> true);
 	}
 	
 	@ReadonlyValue
 	public static <K, V> Map<K, V> unionMapsFilteringSecond(@ReadonlyValue Map<K, V> a, @ReadonlyValue Map<K, V> b, MapEntryPredicate<K, V> filter) throws AlreadyExistsException
 	{
+		if (b.isEmpty())
+			return a;
+		
 		Map<K, V> r = new HashMap<>(a.size() + b.size());
 		r.putAll(a);
 		
@@ -5021,6 +5099,14 @@ _$$primxpconf:intsonly$$_
 		return sorted;
 	}
 	
+	@ThrowAwayValue
+	public static <E> E[] sorted(@ReadonlyValue E[] input, Comparator<? super E> comparator)
+	{
+		E[] sorted = input.clone();
+		Arrays.sort(sorted, comparator);
+		return sorted;
+	}
+	
 	
 	
 	
@@ -5033,7 +5119,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ThrowAwayValue
-	public static <E> List<E> sorted(@ReadonlyValue Collection<E> input, Comparator<E> comparator)
+	public static <E> List<E> sorted(@ReadonlyValue Collection<E> input, Comparator<? super E> comparator)
 	{
 		Object[] array = input.toArray();
 		Arrays.sort((E[])array, comparator);
@@ -5329,6 +5415,11 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
+	public static <Ki, Ko, V> Map<Ko, V> mapdictkeys(Mapper<Ki, Ko> function, Map<Ki, V> input) throws NonReverseInjectiveMapException
+	{
+		return mapdict(e -> new SimpleEntry<>(function.f(e.getKey()), e.getValue()), input);
+	}
+	
 	
 	
 	public static <K, V> Map<K, V> filterdict(MapEntryPredicate<K, V> predicate, Map<K, V> input)
@@ -5349,6 +5440,11 @@ _$$primxpconf:intsonly$$_
 	public static <K, V> Map<K, V> filterdictByValues(Predicate<V> predicate, Map<K, V> input)
 	{
 		return filterdict((k, v) -> predicate.test(v), input);
+	}
+	
+	public static <K, V> Map<K, V> filterdictByKeys(Predicate<K> predicate, Map<K, V> input)
+	{
+		return filterdict((k, v) -> predicate.test(k), input);
 	}
 	
 	
@@ -5372,6 +5468,26 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	public static <K, V> void mapdictvaluesIP(Mapper<V, V> function, @WritableValue Map<K, V> map)
+	{
+		for (Entry<K, V> eIn : map.entrySet())
+		{
+			K key = eIn.getKey();
+			
+			V vOut;
+			try
+			{
+				vOut = function.f(eIn.getValue());
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				map.remove(key);
+				continue;
+			}
+			
+			map.put(key, vOut);
+		}
+	}
 	
 	
 	
@@ -5381,10 +5497,72 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This is not map() because that would conflict with the verb "map" as in {@link #map(Mapper, Iterator)} / etc. and also be confusing I think XD
+	 */
+	@ReadonlyValue
+	public static Map mapof(Object... keysAndValues)
+	{
+		return mapofArray(keysAndValues);
+	}
+	
+	@ReadonlyValue
+	public static Map mapofInverted(Object... valuesAndKeys)
+	{
+		return mapofInvertedArray(valuesAndKeys);
+	}
+	
+	@ThrowAwayValue
+	public static Map newMap(Object... keysAndValues)
+	{
+		return newMapArray(keysAndValues);
+	}
+	
+	@ThrowAwayValue
+	public static Map newMapInverted(Object... valuesAndKeys)
+	{
+		return newMapInvertedArray(valuesAndKeys);
+	}
+	
+	
+	
+	
+	@ReadonlyValue
+	public static Map mapofArray(Object[] keysAndValues)
+	{
+		if (keysAndValues.length == 0)
+			return emptyMap();
+		else if (keysAndValues.length == 2)
+			return singletonMap(keysAndValues[0], keysAndValues[1]);
+		else
+			return newMap(keysAndValues);
+	}
+	
+	@ReadonlyValue
+	public static Map mapofInvertedArray(Object[] valuesAndKeys)
+	{
+		if (valuesAndKeys.length == 0)
+			return emptyMap();
+		else if (valuesAndKeys.length == 2)
+			return singletonMap(valuesAndKeys[1], valuesAndKeys[0]);
+		else
+			return newMapInvertedArray(valuesAndKeys);
+	}
 	
 	
 	@ThrowAwayValue
-	public static Map newmapMutableA(Object[] keysAndValues)
+	public static Map newMapArray(Object[] keysAndValues)
 	{
 		if ((keysAndValues.length % 2) != 0)
 			throw new IllegalArgumentException();
@@ -5406,7 +5584,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ThrowAwayValue
-	public static Map newmapInverseMutableA(Object[] valuesAndKeys)
+	public static Map newMapInvertedArray(Object[] valuesAndKeys)
 	{
 		if ((valuesAndKeys.length % 2) != 0)
 			throw new IllegalArgumentException();
@@ -5428,71 +5606,50 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This is not set() because that would conflict with the verb "set", as in {@link ObjectContainer#get() get()}/{@link ObjectContainer#set(Object) set()} and also be confusing I think XD
+	 */
 	@ReadonlyValue
-	public static Map newmapInverseA(Object[] valuesAndKeys)
+	public static <E> Set<E> setof(E... members)
 	{
-		if (valuesAndKeys.length == 0)
-			return emptyMap();
-		else if (valuesAndKeys.length == 2)
-			return singletonMap(valuesAndKeys[1], valuesAndKeys[0]);
+		return setofArray(members);
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> newSet(E... members)
+	{
+		return newSetArray(members);
+	}
+	
+	
+	@ReadonlyValue
+	public static <E> Set<E> setofArray(E[] members)
+	{
+		if (members.length == 0)
+			return emptySet();
+		else if (members.length == 1)
+			return singletonSet(members[0]);
 		else
-			return newmapInverseMutableA(valuesAndKeys);
-	}
-	
-	@ReadonlyValue
-	public static Map newmapA(Object[] keysAndValues)
-	{
-		if (keysAndValues.length == 0)
-			return emptyMap();
-		else if (keysAndValues.length == 2)
-			return singletonMap(keysAndValues[0], keysAndValues[1]);
-		else
-			return newmapMutable(keysAndValues);
-	}
-	
-	
-	
-	
-	
-	
-	@ThrowAwayValue
-	public static Map newmapMutable(Object... keysAndValues)
-	{
-		return newmapMutableA(keysAndValues);
+			return newSet(members);
 	}
 	
 	@ThrowAwayValue
-	public static Map newmapInverseMutable(Object... valuesAndKeys)
-	{
-		return newmapInverseMutableA(valuesAndKeys);
-	}
-	
-	
-	@ReadonlyValue
-	public static Map newmap(Object... keysAndValues)
-	{
-		return newmapA(keysAndValues);
-	}
-	
-	@ReadonlyValue
-	public static Map newmapInverse(Object... valuesAndKeys)
-	{
-		return newmapInverseA(valuesAndKeys);
-	}
-	
-	
-	
-	
-	
-	
-	@ReadonlyValue
-	public static <E> Set<E> newset(E... members)
-	{
-		return newsetMutable(members);
-	}
-	
-	@ThrowAwayValue
-	public static <E> Set<E> newsetMutable(E... members)
+	public static <E> Set<E> newSetArray(E[] members)
 	{
 		return new HashSet<E>(asList(members));
 	}
@@ -5502,23 +5659,70 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This is not list() because that conflicts with the verb "list", as in {@link Container#list()} X'D
+	 */
 	@ReadonlyValue
-	public static <E> List<E> newlist(E... members)
+	public static <E> List<E> listof(E... members)
 	{
-		return members.length == 0 ? emptyList() : (members.length == 1 ? singletonList(members[0]) : asList(members));
+		return listofArray(members);
 	}
 	
 	@ThrowAwayValue
-	public static <E> List<E> newlistMutable(E... members)
+	public static <E> List<E> newList(E... members)
 	{
-		return new ArrayList<>(newlist(members));
+		return newListArray(members);
 	}
 	
+	/**
+	 * This is deprecated not because it's going to be removed, but to serve as a reminder to specify which one you mean, {@link #listof(Object...)} or {@link #newList(Object...)} X3
+	 * (It delegates to {@link #newList(Object...)} in reality :3 )
+	 */
 	@ThrowAwayValue
 	@Deprecated
-	public static <E> List<E> newlistUnspecifiedWritability(E... members)
+	public static <E> List<E> newlistofUnspecifiedWritability(E... members)
 	{
-		return newlistMutable(members);
+		return newListArray(members);
+	}
+	
+	
+	
+	@ReadonlyValue
+	public static <E> List<E> listofArray(E[] members)
+	{
+		if (members.length == 0)
+			return emptyList();
+		else if (members.length == 1)
+			return singletonList(members[0]);
+		else
+			return asList(members);
+	}
+	
+	@ThrowAwayValue
+	public static <E> List<E> newListArray(E[] members)
+	{
+		return new ArrayList<>(listofArray(members));
+	}
+	
+	/**
+	 * Contrast with {@link PrimitiveCollections#newIntegerListZerofilled(int)} and etc. :3
+	 */
+	@ThrowAwayValue
+	@WritableValue
+	public static <E> List<E> newListNullfilled(int size)
+	{
+		ArrayList<E> l = new ArrayList<>(size);
+		fillByAdding(l, null, size);
+		return l;
 	}
 	
 	
@@ -5526,14 +5730,39 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
 	@ReadonlyValue
-	public static <E> SimpleTable<E> newtable(int width, E... contents)
+	public static <E> SimpleTable<E> tableof(int width, E... contents)
 	{
-		return newtableMutable(width, contents);
+		return tableofArray(width, contents);
 	}
 	
 	@ReadonlyValue
-	public static <E> SimpleTable<E> newtableMutable(int width, E... contents)
+	public static <E> SimpleTable<E> newTable(int width, E... contents)
+	{
+		return newTableArray(width, contents);
+	}
+	
+	
+	
+	@ReadonlyValue
+	public static <E> SimpleTable<E> tableofArray(int width, E[] contents)
+	{
+		if (width == 0 || contents.length == 0)
+			return emptyTable();
+		else
+			return newTable(width, contents);
+	}
+	
+	@ReadonlyValue
+	public static <E> SimpleTable<E> newTableArray(int width, E[] contents)
 	{
 		if (contents.length % width != 0)
 			throw new IllegalArgumentException();
@@ -5541,7 +5770,7 @@ _$$primxpconf:intsonly$$_
 		int height = contents.length / width;
 		
 		
-		SimpleTable<E> t = newtableBlankMutable(width, height);
+		SimpleTable<E> t = newTableNullfilled(width, height);
 		
 		for (int r = 0; r < height; r++)
 		{
@@ -5556,48 +5785,41 @@ _$$primxpconf:intsonly$$_
 		return t;
 	}
 	
-	
-	
-	
-	@ReadonlyValue
-	public static <E> SimpleTable<E> emptyTable()
-	{
-		//Todo make an immutable empty subclass xD ^^'''
-		return newtableBlankMutable();
-	}
-	
-	
 	@ThrowAwayValue
-	public static <E> SimpleTable<E> newtableBlankMutable()
+	public static <E> SimpleTable<E> newTable()
 	{
-		return newtableBlankMutable(0, 0);
+		return newTableNullfilled(0, 0);
 	}
 	
 	@ThrowAwayValue
-	public static <E> SimpleTable<E> newtableBlankMutable(int width, int height)
+	public static <E> SimpleTable<E> newTableNullfilled(int width, int height)
 	{
 		return new NestedListsSimpleTable<E>(width, height);
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public static <K, V> Map<K, V> concreteMap(Set<K> keys, UnaryFunction<K, V> mapping)
+	@ReadonlyValue
+	public static <E> SimpleTable<E> emptyTable()
 	{
-		Map<K, V> m = new HashMap<>();
-		
-		for (K key : keys)
-			m.put(key, mapping.f(key));
-		
-		return m;
+		//Todo make an immutable empty subclass that can be statically cached xD ^^'''
+		return newTable();
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -5789,7 +6011,7 @@ _$$primxpconf:intsonly$$_
 		{
 			while (true)
 			{
-				I i = underlying.nextrp();  //propagate SIRP!  ^,^
+				I i = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
 				
 				try
 				{
@@ -5809,7 +6031,7 @@ _$$primxpconf:intsonly$$_
 		{
 			while (true)
 			{
-				E e = underlying.nextrp();  //propagate SIRP!  ^,^
+				E e = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
 				
 				if (predicate.test(e))
 					return e;
@@ -6212,6 +6434,12 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ReadonlyValue
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Enumeration<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(map(mapper, (Iterator)enumerationToIterator(input)));
+	}
+	
+	@ReadonlyValue
 	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, I[] input)
 	{
 		return mapToList(mapper, asList(input));
@@ -6247,6 +6475,21 @@ _$$primxpconf:intsonly$$_
 	{
 		return mapToArray(mapper, Object.class, input);
 	}
+	
+	
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterable<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input), true);
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, I[] input)
+	{
+		return mapToSetThrowingOnDuplicates(mapper, asList(input));
+	}
+	
 	
 	
 	
@@ -7077,12 +7320,89 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	/**
+	 * Note that this is shallow (eg, two lists's contents will be compared whether their equals() methods do that or not; but if their contents are lists themselves, those will be equals() compared ^^' )
+	 * (This is necessary for {@link Set}s to be compared quickly :3 )
+	 */
+	public static boolean eqv(Object a, Object b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return a == null;
+		else
+		{
+			if (a instanceof Equivalenceable)
+			{
+				try
+				{
+					return ((Equivalenceable)a).equivalent(b);
+				}
+				catch (NotSupportedReturnPath exc)
+				{
+				}
+			}
+			
+			if (b instanceof Equivalenceable)
+			{
+				try
+				{
+					return ((Equivalenceable)b).equivalent(a);
+				}
+				catch (NotSupportedReturnPath exc)
+				{
+				}
+			}
+			
+			//else
+			{
+				if (isTrueAndNotNull(isThreadUnsafelyImmutable(a)) && isTrueAndNotNull(isThreadUnsafelyImmutable(b)))  //handles String, Primitive Wrappers, etc. :D
+				{
+					return eq(a, b);
+				}
+				else if (a instanceof Enum || b instanceof Enum)
+				{
+					return a == b;
+				}
+				else
+				{
+					if (a instanceof List && b instanceof List)
+						return defaultListsEquivalent((List)a, (List)b);
+					
+					else if (a instanceof Set && b instanceof Set)
+						return defaultSetsEquivalent((Set)a, (Set)b);
+					
+					else if (a instanceof Collection && b instanceof Collection)
+						return defaultMultiSetsEquivalent_SmallNaive((Collection)a, (Collection)b, NaturalEqualityComparator.I);  //Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+					
+					else if (a instanceof Map && b instanceof Map)
+						return defaultMapsEquivalent((Map)a, (Map)b);
+					
+					else
+						throw new UnsupportedOperationException();
+				}
+			}
+		}
+	}
+	
+	
+	public static boolean eqvMany(Iterable<Object> xs)
+	{
+		return transitiveReduce(xs, (a, b) -> eqv(a, b));
+	}
+	
+	public static boolean eqvManyV(Object... xs)
+	{
+		return transitiveReduceV((a, b) -> eqv(a, b), xs);
+	}
+	
+	
 	
 	
 	
 	public static <E> boolean eqvSets(Set<? extends E> a, Set<? extends E> b)
 	{
-		return defaultSetsEquivalent(a, b);
+		return eqv(a, b);
 	}
 	
 	/**
@@ -7092,18 +7412,18 @@ _$$primxpconf:intsonly$$_
 	 */
 	public static <E> boolean eqvMultiSets(Collection<? extends E> a, Collection<? extends E> b)
 	{
-		//Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
-		return defaultMultiSetsEquivalent_SmallNaive(a, b, (x, y) -> eq(x, y));
+		//We can't go based on the runtime type because the Java Collections Framework doesn't really do inheritance right x'D
+		return eqvMultiSets(a, b, NaturalEqualityComparator.I);
 	}
 	
 	public static <E> boolean eqvLists(List<? extends E> a, List<? extends E> b)
 	{
-		return defaultListsEquivalent(a, b);
+		return eqv(a, b);
 	}
 	
 	public static <K, V> boolean eqvMaps(Map<? extends K, ? extends V> a, Map<? extends K, ? extends V> b)
 	{
-		return defaultMapsEquivalent(a, b);
+		return eqv(a, b);
 	}
 	
 	
@@ -7126,6 +7446,19 @@ _$$primxpconf:intsonly$$_
 		return defaultMapsEquivalent(a, b, valuesEqualityComparator);
 	}
 	
+	
+	
+	public static int hashCodeOfContents(Object a)
+	{
+		if (a == null)
+			return 0;
+		else if (a instanceof Equivalenceable)
+			return ((Equivalenceable)a).hashCodeOfContents();
+		else if (isTrueAndNotNull(isThreadUnsafelyImmutable(a)))
+			return a.hashCode();
+		else
+			throw new UnsupportedOperationException();
+	}
 	
 	
 	
@@ -7280,6 +7613,24 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	public static <E> boolean hasDuplicates(Iterable<E> input)
+	{
+		Set<E> seen = new HashSet<>();
+		
+		for (E e : input)
+		{
+			if (seen.contains(e))
+			{
+				return true;
+			}
+			else
+			{
+				seen.add(e);
+			}
+		}
+		
+		return false;
+	}
 	
 	public static <E> Set<E> findDuplicates(Iterable<E> input)
 	{
@@ -7299,6 +7650,24 @@ _$$primxpconf:intsonly$$_
 		}
 		
 		return duplicates;
+	}
+	
+	public static <E> Iterable<E> requireNoDuplicates(Iterable<E> input) throws DuplicatesException
+	{
+		Set<E> duplicates = findDuplicates(input);
+		
+		if (!duplicates.isEmpty())
+			throw new DuplicatesException("Duplicate elements!: {"+reprListContentsSingleLine(duplicates)+"}    (the number of times each duplicate appears is not represented here)");
+		
+		return input;
+	}
+	
+	public static <E> void requireNoIntersection(Set<E> a, Set<E> b) throws AlreadyExistsException
+	{
+		Set<E> conflicts = intersection(a, b);
+		
+		if (!conflicts.isEmpty())
+			throw new AlreadyExistsException("Conflicts detected!: {"+reprListContentsSingleLine(conflicts)+"}");
 	}
 	
 	
@@ -7832,17 +8201,17 @@ _$$primxpconf:intsonly$$_
 		int h = rows.size();
 		
 		if (h == 0)
-			return newtableBlankMutable();
+			return newTable();
 		
 		int largestRowSize = greatestMap(List::size, rows);
 		
 		if (largestRowSize == 0)
-			return newtableBlankMutable();
+			return newTable();
 		
 		
 		int w = largestRowSize;
 		
-		SimpleTable<E> table = newtableBlankMutable(w, h);
+		SimpleTable<E> table = newTableNullfilled(w, h);
 		
 		
 		for (int r = 0; r < h; r++)
@@ -7868,6 +8237,20 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	public static <E> void fill(List<? super E> list, E e)
+	{
+		//TODO Provide a trait interface here for PrimitiveLists to implement to avoid boxing! :D
+		//fill(list, 0, list.size(), e);
+		Collections.fill(list, e);
+	}
+	
+	public static <E> void fill(List<? super E> list, int offset, int length, E e)
+	{
+		//TODO Provide a trait interface here for PrimitiveLists to implement to avoid boxing! :D
+		Collections.fill(offset == 0 && length == list.size() ? list : list.subList(offset, offset+length), e);
+	}
 	
 	
 	
@@ -7925,7 +8308,7 @@ _$$primxpconf:intsonly$$_
 		int wi = input.getNumberOfColumns();
 		int hi = input.getNumberOfRows();
 		
-		SimpleTable<E> output = newtableBlankMutable(hi, wi);
+		SimpleTable<E> output = newTableNullfilled(hi, wi);
 		
 		for (int yi = 0; yi < hi; yi++)
 		{
@@ -7963,7 +8346,7 @@ _$$primxpconf:intsonly$$_
 		
 		
 		
-		SimpleTable<E> output = newtableBlankMutable(numberOfRepeatedColumnsAtStart + numberOfRepeatedRowsAtStart + 1, wd*hd);
+		SimpleTable<E> output = newTableNullfilled(numberOfRepeatedColumnsAtStart + numberOfRepeatedRowsAtStart + 1, wd*hd);
 		
 		int i = 0;
 		for (int yd = 0; yd < hd; yd++)
@@ -8390,19 +8773,26 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E> List<E> subListToEnd(List<E> list, int start)
+	
+	//These funky generics work for PrimitiveLists and other such things :>
+	
+	public static <E, L extends List<E>> L subListToEnd(L list, int start)
 	{
-		return list.subList(start, list.size());
+		asrt(start >= 0);
+		return (L)list.subList(start, list.size());
 	}
 	
-	public static <E> List<E> subListFromBeginning(List<E> list, int pastEndAkaSize)
+	public static <E, L extends List<E>> L subListFromBeginning(L list, int pastEndAkaSize)
 	{
-		return list.subList(0, pastEndAkaSize);
+		asrt(pastEndAkaSize >= 0);
+		return (L)list.subList(0, pastEndAkaSize);
 	}
 	
-	public static <E> List<E> subListBySubSize(List<E> list, int start, int subListSize)
+	public static <E, L extends List<E>> L subListBySize(L list, int start, int subListSize)
 	{
-		return list.subList(start, start + subListSize);
+		asrt(start >= 0);
+		asrt(subListSize >= 0);
+		return (L)list.subList(start, start + subListSize);
 	}
 	
 	
@@ -8571,28 +8961,49 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static void requireNonNullElements(@NonnullElements Iterable collection)
+	public static <T extends Iterable<?>> T requireNonNullElements(@NonnullElements T collection)
 	{
-		for (Object k : collection)
-			requireNonNull(k);
+		if (isAnyNull(collection))  //superfast for PrimitiveCollections! :D
+			throw new NullPointerException();
+		
+		return collection;
 	}
 	
-	public static void requireNonNullKeys(@NonnullKeys Map map)
+	public static <T extends Map<?, ?>> T requireNonNullKeys(@NonnullKeys T map)
 	{
-		for (Object k : map.keySet())
-			requireNonNull(k);
+		if (isAnyNull(map.keySet()))  //superfast for PrimitiveCollections! :D
+			throw new NullPointerException();
+		return map;
 	}
 	
-	public static void requireNonNullValues(@NonnullValues Map map)
+	public static <T extends Map<?, ?>> T requireNonNullValues(@NonnullValues T map)
 	{
-		for (Object k : map.values())
-			requireNonNull(k);
+		if (isAnyNull(map.values()))  //superfast for PrimitiveCollections! :D
+			throw new NullPointerException();
+		return map;
 	}
 	
-	public static void requireNonNullKeysAndValues(@NonnullKeys Map map)
+	public static <T extends Map<?, ?>> T requireNonNullKeysAndValues(@NonnullKeys T map)
 	{
 		requireNonNullKeys(map);
 		requireNonNullValues(map);
+		return map;
+	}
+	
+	
+	
+	public static <T extends Iterable<?>> T requireNonEmpty(@Nonempty T c)
+	{
+		if (isEmptyIterable(c))
+			throw new IllegalArgumentException();
+		return c;
+	}
+	
+	public static <T extends Map<?, ?>> T requireNonEmpty(@Nonempty T map)
+	{
+		if (map.isEmpty())
+			throw new IllegalArgumentException();
+		return map;
 	}
 	
 	
@@ -8735,6 +9146,10 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterator<I> inputs, EqualityComparator<O> eq)
 	{
 		boolean has = false;
@@ -8779,6 +9194,9 @@ _$$primxpconf:intsonly$$_
 		
 		return true;
 	}
+	
+	
+	
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterable<I> inputs, EqualityComparator<O> eq)
 	{
@@ -8830,5 +9248,344 @@ _$$primxpconf:intsonly$$_
 	public static <I, O> boolean eqMappingV(Mapper<I, O> mapper, I... inputs)
 	{
 		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+	}
+	
+	
+	
+	public static <I> boolean transitiveReduce(SimpleIterator<I> inputs, BinaryFunctionToBoolean<I, I> f)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	public static <I> boolean transitiveReduce(Iterator<I> inputs, BinaryFunctionToBoolean<I, I> f)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	public static <I> boolean transitiveReduce(Iterable<I> inputs, BinaryFunctionToBoolean<I, I> f)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	public static <I> boolean transitiveReduce(SimpleIterable<I> inputs, BinaryFunctionToBoolean<I, I> f)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	public static <I> boolean transitiveReduce(I[] inputs, BinaryFunctionToBoolean<I, I> f)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	public static <I> boolean transitiveReduceV(BinaryFunctionToBoolean<I, I> f, I... inputs)
+	{
+		return eqMapping(x -> x, inputs, (a, b) -> f.f(a, b));
+	}
+	
+	
+	
+	
+	
+	
+	@Nullable
+	public static <E> Integer binarySearchList(UnaryFunction<? super E, Direction1D> predicate, List<E> list)
+	{
+		return MathUtilities.binarySearchS32(i -> predicate.f(list.get(i)), 0, list.size());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static final Comparator<Entry<?, ?>> EntryComparator = (a, b) -> cmp2chainable(cmp2(a.getKey(), b.getKey()), a.getValue(), b.getValue());
+	
+	
+	
+	
+	
+	
+	
+	public static boolean isAllNull(Iterable<?> i)
+	{
+		if (i instanceof PrimitiveCollection)
+			return false;
+		else
+			return forAll(e -> e == null, i);
+	}
+	
+	public static boolean isAnyNull(Iterable<?> i)
+	{
+		if (i instanceof PrimitiveCollection)
+			return false;
+		else
+			return forAny(e -> e == null, i);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@ReadonlyValue
+	@SnapshotValue
+	public static <E> List<List<E>> simpleMergeOPC(BinaryFunctionToBoolean<List<E>, List<E>> shouldMerge, List<List<E>> input)
+	{
+		return mergeOPC(shouldMerge, (List<List<E>> l) -> singletonList(concatenateManyListsOPC(l)), input);
+	}
+	
+	
+	
+	
+	
+	
+	
+	@ReadonlyValue
+	@SnapshotValue
+	public static <E> List<E> mergeOP(BinaryFunctionToBoolean<E, E> shouldMerge, UnaryFunction<List<E>, List<E>> merger, List<E> input)
+	{
+		return mergeOPx(shouldMerge, merger, input, false);
+	}
+	
+	@ReadonlyValue
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> mergeOPC(BinaryFunctionToBoolean<E, E> shouldMerge, UnaryFunction<List<E>, List<E>> merger, List<E> input)
+	{
+		return mergeOPx(shouldMerge, merger, input, true);
+	}
+	
+	@ReadonlyValue
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> mergeOPx(BinaryFunctionToBoolean<E, E> shouldMerge, UnaryFunction<List<E>, List<E>> merger, List<E> input, boolean conserve)
+	{
+		return mergeOPx(shouldMerge, merger, input, initialCapacity -> new ArrayList<>(initialCapacity), conserve);
+	}
+	
+	@ReadonlyValue
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> mergeOPx(BinaryFunctionToBoolean<E, E> shouldMerge, UnaryFunction<List<E>, List<E>> merger, List<E> input, UnaryFunctionIntToObject<List<E>> outputInstantiator, boolean conserve)
+	{
+		if (input.isEmpty())
+			return conserve ? input : outputInstantiator.f(0);
+		
+		List<E> merged = conserve ? null : outputInstantiator.f(input.size());
+		
+		int mergeRunStart = 0;
+		
+		int n;
+		E prev = null;
+		{
+			int i = 0;
+			
+			for (E e : input)
+			{
+				if (i > 0)
+				{
+					if (shouldMerge.f(prev, e))
+					{
+						//Keep going :>
+					}
+					else
+					{
+						//Commit extant previous merge run! :D
+						{
+							int runLength = i - mergeRunStart;
+							
+							asrt(runLength > 0);
+							
+							if (runLength == 1)
+							{
+								//asrt(mergeRunStart == i - 1);
+								
+								if (merged != null)
+								{
+									//asrt(input.get(mergeRunStart) == prev);
+									merged.add(prev);
+								}
+								else
+								{
+									//Leave it :>
+								}
+							}
+							else
+							{
+								if (merged == null)
+								{
+									merged = outputInstantiator.f(input.size());
+									merged.addAll(input.subList(0, mergeRunStart));
+								}
+								
+								merged.addAll(merger.f(input.subList(mergeRunStart, i)));
+							}
+						}
+						
+						mergeRunStart = i;
+					}
+				}
+				
+				i++;
+				prev = e;
+			}
+			
+			
+			n = i;
+		}
+		
+		
+		
+		
+		//Commit last merge run! :D
+		{
+			int runLength = n - mergeRunStart;
+			
+			asrt(runLength > 0);
+			
+			if (runLength == 1)
+			{
+				//asrt(mergeRunStart == n - 1);
+				
+				if (merged != null)
+				{
+					//asrt(input.get(mergeRunStart) == prev);
+					merged.add(prev);
+				}
+				else
+				{
+					//Leave it :>
+				}
+			}
+			else
+			{
+				if (merged == null)
+				{
+					merged = outputInstantiator.f(input.size());
+					merged.addAll(input.subList(0, mergeRunStart));
+				}
+				
+				merged.addAll(merger.f(input.subList(mergeRunStart, n)));
+			}
+		}
+		
+		
+		
+		
+		
+		
+		if (merged == null)
+		{
+			asrt(conserve);
+			return input;
+		}
+		else
+		{
+			return merged;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Useful for, eg, generating random data :>
+	 */
+	@ThrowAwayValue
+	public static <I, O> List<O> mapNullaryToList(Mapper<I, O> mapper, NullaryFunction<I> generator, int amount)
+	{
+		List<O> rv = new ArrayList<>();
+		
+		for (int i = 0; i < amount; i++)
+		{
+			O o;
+			try
+			{
+				o = mapper.f(generator.f());
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			rv.add(o);
+		}
+		
+		return rv;
+	}
+	
+	
+	
+	/**
+	 * Useful for, eg, generating random data :>
+	 * + Noops on duplicate elements, like {@link #mapToSet(Mapper, Iterable)} :3
+	 */
+	@ThrowAwayValue
+	public static <I, O> Set<O> mapNullaryToSet(Mapper<I, O> mapper, NullaryFunction<I> generator, int amount)
+	{
+		Set<O> rv = new HashSet<>();
+		
+		for (int i = 0; i < amount; i++)
+		{
+			O o;
+			try
+			{
+				o = mapper.f(generator.f());
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			rv.add(o);
+		}
+		
+		return rv;
+	}
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <E> List<E> nullaryToList(NullaryFunction<E> generator, int amount)
+	{
+		return mapNullaryToList(x -> x, generator, amount);
+	}
+	
+	public static <E> Set<E> nullaryToSet(NullaryFunction<E> generator, int amount)
+	{
+		return mapNullaryToSet(x -> x, generator, amount);
+	}
+	
+	
+	
+	
+	public static <E> Iterator<E> enumerationToIterator(Enumeration<E> e)
+	{
+		return new Iterator<E>()
+		{
+			@Override
+			public boolean hasNext()
+			{
+				return e.hasMoreElements();
+			}
+			
+			@Override
+			public E next()
+			{
+				return e.nextElement();
+			}
+		};
 	}
 }

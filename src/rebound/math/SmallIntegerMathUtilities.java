@@ -9,7 +9,10 @@ import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.Negative;
+import rebound.annotations.semantic.simpledata.Nonpositive;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.BitUtilities;
 import rebound.bits.Unsigned;
 import rebound.exceptions.DivisionByZeroException;
@@ -18,6 +21,11 @@ import rebound.exceptions.OutOfDomainArithmeticException;
 import rebound.exceptions.OutOfDomainArithmeticException.ComplexNumberArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.TruncationException;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
+import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 
 public class SmallIntegerMathUtilities
 {
@@ -643,19 +651,19 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	public static boolean isOverflow_add_u32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean isOverflow_add_u32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		return _isOverflow_add_u32__a(a, b);
 	}
 	
 	@ImplementationTransparency
-	public static boolean _isOverflow_add_u32__a(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean _isOverflow_add_u32__a(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		return Unsigned.greaterThanU32(a, 0xFFFF_FFFF - b);
 	}
 	
 	@ImplementationTransparency
-	public static boolean _isOverflow_add_u32__control(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean _isOverflow_add_u32__control(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		long aa = upcast(a);
 		long bb = upcast(b);
@@ -668,7 +676,7 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	public static boolean isOverflow_add_u64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	public static boolean isOverflow_add_u64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		return Unsigned.greaterThanU64(a, 0xFFFF_FFFF_FFFF_FFFFl - b);
 	}
@@ -1200,6 +1208,88 @@ public class SmallIntegerMathUtilities
 		return x;
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:intsonly$$_
+	
+	
+	
+	public static _$$prim$$_ least(_$$prim$$_... values)
+	{
+		if (values.length == 0)
+			throw new IllegalArgumentException();
+		
+		_$$prim$$_ e = values[0];
+		for (int i = 1; i < values.length; i++)
+		{
+			if (values[i] < e)
+				e = values[i];
+		}
+		
+		return e;
+	}
+	
+	public static _$$prim$$_ greatest(_$$prim$$_... values)
+	{
+		if (values.length == 0)
+			throw new IllegalArgumentException();
+		
+		_$$prim$$_ e = values[0];
+		for (int i = 1; i < values.length; i++)
+		{
+			if (values[i] > e)
+				e = values[i];
+		}
+		
+		return e;
+	}
+	
+	
+	public static _$$prim$$_ least(_$$Primitive$$_List values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		_$$prim$$_ e = values.get_$$Prim$$_(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.get_$$Prim$$_(i) < e)
+				e = values.get_$$Prim$$_(i);
+		}
+		
+		return e;
+	}
+	
+	public static _$$prim$$_ greatest(_$$Primitive$$_List values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		_$$prim$$_ e = values.get_$$Prim$$_(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.get_$$Prim$$_(i) > e)
+				e = values.get_$$Prim$$_(i);
+		}
+		
+		return e;
+	}
+	 */
+	
+	
+	
+	
 	public static byte least(byte... values)
 	{
 		if (values.length == 0)
@@ -1229,6 +1319,40 @@ public class SmallIntegerMathUtilities
 		
 		return e;
 	}
+	
+	
+	public static byte least(ByteList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		byte e = values.getByte(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getByte(i) < e)
+				e = values.getByte(i);
+		}
+		
+		return e;
+	}
+	
+	public static byte greatest(ByteList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		byte e = values.getByte(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getByte(i) > e)
+				e = values.getByte(i);
+		}
+		
+		return e;
+	}
+	
+	
+	
 	
 	public static char least(char... values)
 	{
@@ -1260,6 +1384,40 @@ public class SmallIntegerMathUtilities
 		return e;
 	}
 	
+	
+	public static char least(CharacterList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		char e = values.getChar(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getChar(i) < e)
+				e = values.getChar(i);
+		}
+		
+		return e;
+	}
+	
+	public static char greatest(CharacterList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		char e = values.getChar(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getChar(i) > e)
+				e = values.getChar(i);
+		}
+		
+		return e;
+	}
+	
+	
+	
+	
 	public static short least(short... values)
 	{
 		if (values.length == 0)
@@ -1289,6 +1447,40 @@ public class SmallIntegerMathUtilities
 		
 		return e;
 	}
+	
+	
+	public static short least(ShortList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		short e = values.getShort(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getShort(i) < e)
+				e = values.getShort(i);
+		}
+		
+		return e;
+	}
+	
+	public static short greatest(ShortList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		short e = values.getShort(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getShort(i) > e)
+				e = values.getShort(i);
+		}
+		
+		return e;
+	}
+	
+	
+	
 	
 	public static int least(int... values)
 	{
@@ -1320,6 +1512,40 @@ public class SmallIntegerMathUtilities
 		return e;
 	}
 	
+	
+	public static int least(IntegerList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		int e = values.getInt(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getInt(i) < e)
+				e = values.getInt(i);
+		}
+		
+		return e;
+	}
+	
+	public static int greatest(IntegerList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		int e = values.getInt(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getInt(i) > e)
+				e = values.getInt(i);
+		}
+		
+		return e;
+	}
+	
+	
+	
+	
 	public static long least(long... values)
 	{
 		if (values.length == 0)
@@ -1349,6 +1575,48 @@ public class SmallIntegerMathUtilities
 		
 		return e;
 	}
+	
+	
+	public static long least(LongList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		long e = values.getLong(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getLong(i) < e)
+				e = values.getLong(i);
+		}
+		
+		return e;
+	}
+	
+	public static long greatest(LongList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		long e = values.getLong(0);
+		for (int i = 1; i < values.size(); i++)
+		{
+			if (values.getLong(i) > e)
+				e = values.getLong(i);
+		}
+		
+		return e;
+	}
+	
+	// >>>	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static byte least(byte a, byte b)
 	{
@@ -2067,66 +2335,6 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	
-	public static int safeCastS8toS32(byte input)
-	{
-		return input;
-	}
-	
-	public static int safeCastS16toS32(short input)
-	{
-		return input;
-	}
-	
-	public static int safeCastU16toS32(char input)
-	{
-		return input;
-	}
-	
-	public static int safeCastS32toS32(int input)
-	{
-		return input;
-	}
-	
-	public static long safeCastS8toS64(byte input)
-	{
-		return input;
-	}
-	
-	public static long safeCastS16toS64(short input)
-	{
-		return input;
-	}
-	
-	public static long safeCastU16toS64(char input)
-	{
-		return input;
-	}
-	
-	public static long safeCastS32toS64(int input)
-	{
-		return input;
-	}
-	
-	public static long safeCastS64toS64(long input)
-	{
-		return input;
-	}
-	
-	public static byte safeCastU16toS8(char input)
-	{
-		if (input > Byte.MAX_VALUE || input < Byte.MIN_VALUE)
-			throw new OverflowException("(U16)"+input+" -> S8");
-		return (byte)input;
-	}
-	
-	public static short safeCastU16toS16(char input)
-	{
-		if (input > Short.MAX_VALUE || input < Short.MIN_VALUE)
-			throw new OverflowException("(U16)"+input+" -> S16");
-		return (short)input;
-	}
-	
 	//<Discrete frames
 	public static int pyr(int l)
 	{
@@ -2271,6 +2479,56 @@ public class SmallIntegerMathUtilities
 	
 	
 	
+	
+	
+	
+	
+	public static int losslessLogBase2(long value) throws TruncationException
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0) //takes care of two's-complement thingies :3
+			throw new ComplexNumberArithmeticException();
+		
+		int exponent = BitUtilities.dcd64(value);
+		
+		if (powb2_s64(exponent) != value)
+			throw new TruncationException("result was not integer");
+		
+		return exponent;
+	}
+	
+	public static int floorLogBase2(long value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0) //takes care of two's-complement thingies :3
+			throw new ComplexNumberArithmeticException();
+		
+		return dcd64(getHighestOneBit(value));
+	}
+	
+	public static int ceilLogBase2(long value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0) //takes care of two's-complement thingies :3
+			throw new ComplexNumberArithmeticException();
+		
+		long h = getHighestOneBit(value);
+		return dcd64(h) + (value != h ? 1 : 0);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static boolean commutativePairEq(int a, int b,   int x, int y)
 	{
 		return (a == x && b == y) || (a == y && b == x);
@@ -2381,5 +2639,312 @@ public class SmallIntegerMathUtilities
 		@WritableValue int[] halves = new int[]{n, d};
 		simplifyFraction(halves);
 		return halves;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+
+_$$primxpconf:noboolean$$_
+
+	public static _$$prim$$_ requireNonNegative(@Nonnegative _$$prim$$_ i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+
+	public static _$$prim$$_ requirePositive(@Positive _$$prim$$_ i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+
+	public static _$$prim$$_ requireNonPositive(@Nonpositive _$$prim$$_ i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+
+	public static _$$prim$$_ requireNegative(@Negative _$$prim$$_ i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	 */
+	
+	
+	
+	public static byte requireNonNegative(@Nonnegative byte i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requirePositive(@Positive byte i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireNonPositive(@Nonpositive byte i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireNegative(@Negative byte i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static char requireNonNegative(@Nonnegative char i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requirePositive(@Positive char i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireNonPositive(@Nonpositive char i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireNegative(@Negative char i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static short requireNonNegative(@Nonnegative short i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requirePositive(@Positive short i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireNonPositive(@Nonpositive short i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireNegative(@Negative short i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static float requireNonNegative(@Nonnegative float i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requirePositive(@Positive float i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireNonPositive(@Nonpositive float i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireNegative(@Negative float i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static int requireNonNegative(@Nonnegative int i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requirePositive(@Positive int i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireNonPositive(@Nonpositive int i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireNegative(@Negative int i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static double requireNonNegative(@Nonnegative double i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requirePositive(@Positive double i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireNonPositive(@Nonpositive double i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireNegative(@Negative double i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	
+	
+	public static long requireNonNegative(@Nonnegative long i)
+	{
+		if (i < 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requirePositive(@Positive long i)
+	{
+		if (i <= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireNonPositive(@Nonpositive long i)
+	{
+		if (i > 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireNegative(@Negative long i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * upmod(0, 5) = 0 (!)
+	 * upmod(1, 5) = 1
+	 * upmod(2, 5) = 2
+	 * upmod(3, 5) = 3
+	 * upmod(4, 5) = 4
+	 * upmod(5, 5) = 5 (!)
+	 * upmod(6, 5) = 1
+	 * upmod(7, 5) = 2
+	 * upmod(8, 5) = 3
+	 * 
+	 * upmod(n < 0, d) = undefined
+	 * 
+	 * + It's useful for determining, eg, the number of bits in the last byte, given n = number of bits and d = 8  :>
+	 * 		The number of small-things inside the last of larger uniformly-sized containers :>
+	 */
+	public static int upmod(int n, int d)
+	{
+		int r = n % d;
+		return r == 0 ? (n == 0 ? 0 : d) : r;
+	}
+	
+	public static long upmod(long n, long d)
+	{
+		long r = n % d;
+		return r == 0 ? (n == 0 ? 0 : d) : r;
 	}
 }

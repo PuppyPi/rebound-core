@@ -6,9 +6,11 @@ package rebound.math;
 
 import static java.lang.Math.*;
 import static java.util.Objects.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
@@ -21,7 +23,7 @@ import java.util.Comparator;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.NormalizesPrimitives;
 import rebound.bits.Bytes;
 import rebound.exceptions.DivisionByZeroException;
@@ -43,6 +45,8 @@ import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.LongArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
 import rebound.util.objectutil.JavaNamespace;
 
 public class MathUtilities
@@ -589,7 +593,7 @@ implements JavaNamespace
 	
 	
 	
-	public static BigInteger toBigIntegerFromUnsignedLong(@ActuallyUnsignedValue long value)
+	public static BigInteger toBigIntegerFromUnsignedLong(@ActuallyUnsigned long value)
 	{
 		if (value >= 0)
 		{
@@ -635,6 +639,7 @@ implements JavaNamespace
 	public static final BigInteger BIGINT_LONG_MAX_VAL = toBigInteger(Long.MAX_VALUE);
 	public static final BigInteger BIGINT_LONG_ABOVE_MAX_VAL = BIGINT_LONG_MAX_VAL.add(BigInteger.ONE);    // 2^63  :D
 	
+	public static final BigInteger BIGINT_ULONG_MIN_VAL = BigInteger.ZERO;
 	public static final BigInteger BIGINT_ULONG_MAX_VAL = toBigInteger(Long.MAX_VALUE).multiply(BigInteger.valueOf(2));
 	public static final BigInteger BIGINT_ULONG_ABOVE_MAX_VAL = toBigInteger(Long.MAX_VALUE).add(BigInteger.ONE);    // 2^64  :D
 	//Missing BigInteger constructors>
@@ -1294,6 +1299,27 @@ implements JavaNamespace
 	}
 	
 	
+	public static @ActuallyUnsigned long safeCastBigIntegerToU64(BigInteger input) throws OverflowException
+	{
+		if (isOverflowsCastBigIntegerToU64(input))
+			throw new OverflowException(input+" -> U64");
+		return input.longValue();
+	}
+	
+	public static boolean isOverflowsCastBigIntegerToU64(BigInteger input)
+	{
+		return input.compareTo(BIGINT_ULONG_MIN_VAL) < 0 || input.compareTo(BIGINT_ULONG_MAX_VAL) > 0;
+	}
+	
+	
+	
+	public static BigInteger ulongToBigInteger(@ActuallyUnsigned long v)
+	{
+		return new BigInteger(1, Bytes.packBigLong(v));
+	}
+	
+	
+	
 	
 	
 	public static byte safeCastIntegerToS8(Object input)
@@ -1365,6 +1391,48 @@ implements JavaNamespace
 			return safeCastIntegerToS64(safeCastFloatToInteger((Float)input));
 		else if (input instanceof Double)
 			return safeCastIntegerToS64(safeCastFloatToInteger((Double)input));
+		
+		throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(input);
+	}
+	
+	
+	
+	
+	
+	public static @ActuallyUnsigned long safeCastIntegerToU64(Object input) throws OverflowException
+	{
+		if (input instanceof CastableToSmallIntegerTrait) //order is many importants here!!
+			return ((CastableToSmallIntegerTrait)input).toSmallInteger();
+		else if (input instanceof CastableToIntegerTrait)
+			input = ((CastableToIntegerTrait)input).toInteger(); //only one level deep srries
+		
+		if (input instanceof Byte)
+			return (Byte)input;
+		else if (input instanceof Short)
+			return (Short)input;
+		else if (input instanceof Character)
+			return (Character)input;
+		else if (input instanceof Integer)
+			return (Integer)input;
+		
+		else if (input instanceof Long)
+			return (Long)input;
+		
+		else if (input instanceof BigInteger)
+			return safeCastBigIntegerToU64((BigInteger)input);
+		
+		throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(input);
+	}
+	
+	public static @ActuallyUnsigned long safeCastAnythingToU64(Object input) throws OverflowException, TruncationException
+	{
+		if (isInteger(input))
+			return safeCastIntegerToU64(input);
+		
+		else if (input instanceof Float)
+			return safeCastIntegerToU64(safeCastFloatToInteger((Float)input));
+		else if (input instanceof Double)
+			return safeCastIntegerToU64(safeCastFloatToInteger((Double)input));
 		
 		throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(input);
 	}
@@ -2797,6 +2865,93 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	@NormalizesPrimitives
+	public static <I> long sumMapping64(Mapper<I, Long> mapper, Iterable<I> inputs)
+	{
+		long result = 0;
+		
+		for (I input : inputs)
+		{
+			long output;
+			try
+			{
+				output = mapper.f(input);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			result = addExact(result, output);
+		}
+		
+		return result;
+	}
+	
+	
+	@NormalizesPrimitives
+	public static <I> long productMapping64(Mapper<I, Long> mapper, Iterable<I> inputs)
+	{
+		long result = 1;
+		
+		for (I input : inputs)
+		{
+			long output;
+			try
+			{
+				output = mapper.f(input);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			result = multiplyExact(result, output);
+		}
+		
+		return result;
+	}
+	
+	
+	
+	
+	
+	@NormalizesPrimitives
+	public static <I> int sumMapping32(Mapper<I, Integer> mapper, Iterable<I> inputs)
+	{
+		return safeCastS64toS32(sumMapping64(i -> upcastNT(mapper.f(i)), inputs));
+	}
+	
+	
+	@NormalizesPrimitives
+	public static <I> int productMapping32(Mapper<I, Integer> mapper, Iterable<I> inputs)
+	{
+		return safeCastS64toS32(productMapping64(i -> upcastNT(mapper.f(i)), inputs));
+	}
+	
+	
+	public static Integer upcastNT(Byte b)
+	{
+		return b == null ? null : (int)(byte)b;
+	}
+	
+	public static Integer upcastNT(Short b)
+	{
+		return b == null ? null : (int)(short)b;
+	}
+	
+	public static Long upcastNT(Integer b)
+	{
+		return b == null ? null : (long)(int)b;
+	}
+	
+	
+	
+	
+	
+	
 	//See ObjectUtilities.eq(), and cmp()  ^_^
 	
 	//Todo more Object-polymorphics! :D
@@ -3159,7 +3314,7 @@ implements JavaNamespace
 			if (!Double.isFinite(f))
 				throw new NonfiniteException();
 			
-			return new DecimalFormat("#."+mul('#', maximumDecimalPlaces)).format(f);
+			return new DecimalFormat("#."+mulnn('#', maximumDecimalPlaces)).format(f);
 		}
 		else
 		{
@@ -3528,5 +3683,81 @@ implements JavaNamespace
 	{
 		ArithmeticIntegerInterval r = intervalIntersectionOfSubset(a, b);
 		return r != null ? r : intervalIntersectionOfSubset(b, a);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static @Nullable Integer binarySearchS32(UnaryFunctionIntToObject<Direction1D> predicate, int inclusiveLowBound, int exclusiveHighBound)
+	{
+		Long r = binarySearchS64(i -> predicate.f(safeCastS64toS32(i)), inclusiveLowBound, exclusiveHighBound);
+		return r == null ? null : safeCastS64toS32(r);
+	}
+	
+	public static @Nullable Long binarySearchS64(UnaryFunctionLongToObject<Direction1D> predicate, long inclusiveLowBound, long exclusiveHighBound)
+	{
+		if (exclusiveHighBound < inclusiveLowBound)
+			throw new IllegalArgumentException();
+		
+		if (exclusiveHighBound == inclusiveLowBound)
+			return null;
+		
+		long l = inclusiveLowBound;
+		long h = exclusiveHighBound;
+		
+		while (true)
+		{
+			asrt(l != h);
+			
+			//Todo consider overflows ^^'
+			//long m = (h - l) / 2 + l;
+			long m = (l + h) / 2;
+			
+			asrt(m != h);
+			asrt((h == l + 1) == (m == l));
+			
+			Direction1D r = predicate.f(m);
+			
+			if (r == Direction1D.HigherUp)
+			{
+				if (h == l + 1)
+				{
+					asrt(m == l);
+					return null;
+				}
+				else
+				{
+					l = m;
+				}
+			}
+			else if (r == Direction1D.LowerDown)
+			{
+				if (h == l + 1)
+				{
+					asrt(m == l);
+					return null;
+				}
+				
+				h = m;
+			}
+			else //r == 0
+			{
+				if (r == null)
+					throw new IllegalArgumentException();
+				
+				asrt(r == Direction1D.Zero);
+				
+				return m;
+			}
+		}
 	}
 }

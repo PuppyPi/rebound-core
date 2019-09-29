@@ -14,7 +14,7 @@ import rebound.util.BasicExceptionUtilities;
 /**
  * Eg, {@link System#exit(int)}, or {@link BasicExceptionUtilities#throwGeneralThrowableIfPossible(Throwable)} or etc. :>
  * 
- * Note that these methods may commonly return an exception--that's merely to make it easy on users, so they can 'throw' the return-value of this method,
+ * Note that these methods may commonly return an exception—that's merely to make it easy on users, so they can 'throw' the return-value of this method,
  * since Java's flow path analysis of course does not account for this annotation XDD
  * 
  * @author Puppy Pie ^_^

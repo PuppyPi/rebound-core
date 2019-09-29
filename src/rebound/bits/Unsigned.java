@@ -4,7 +4,8 @@
  */
 package rebound.bits;
 
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import static rebound.util.Primitives.*;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.OverflowException;
 import rebound.util.objectutil.JavaNamespace;
@@ -42,15 +43,15 @@ implements JavaNamespace
 	public static final byte BYTE_NEGFLAG = (byte)0x80;
 	public static final byte BYTE_DATAMASK = (byte)(BYTE_NEGFLAG-1);
 	
-	public static final float INT_HIGH_BIT_IN_SINGLEFLOAT = Integer.MAX_VALUE + 1f;
+	public static final float INT_HIGH_BIT_IN_SINGLEFLOAT = S32_MAX_VALUE + 1f;
 	public static final float LONG_HIGH_BIT_IN_SINGLEFLOAT = Long.MAX_VALUE + 1f;
-	public static final double INT_HIGH_BIT_IN_DOUBLEFLOAT = Integer.MAX_VALUE + 1d;
+	public static final double INT_HIGH_BIT_IN_DOUBLEFLOAT = S32_MAX_VALUE + 1d;
 	public static final double LONG_HIGH_BIT_IN_DOUBLEFLOAT = Long.MAX_VALUE + 1d;
 	
-	public static final float INT_MAX_SIGNED_VALUE_IN_SINGLEFLOAT = Integer.MAX_VALUE;
-	public static final float INT_MAX_UNSIGNED_VALUE_IN_SINGLEFLOAT = (Integer.MAX_VALUE+1f)*2f - 1f;
-	public static final double INT_MAX_SIGNED_VALUE_IN_DOUBLEFLOAT = Integer.MAX_VALUE;
-	public static final double INT_MAX_UNSIGNED_VALUE_IN_DOUBLEFLOAT = (Integer.MAX_VALUE+1d)*2d - 1d;
+	public static final float INT_MAX_SIGNED_VALUE_IN_SINGLEFLOAT = S32_MAX_VALUE;
+	public static final float INT_MAX_UNSIGNED_VALUE_IN_SINGLEFLOAT = (S32_MAX_VALUE+1f)*2f - 1f;
+	public static final double INT_MAX_SIGNED_VALUE_IN_DOUBLEFLOAT = S32_MAX_VALUE;
+	public static final double INT_MAX_UNSIGNED_VALUE_IN_DOUBLEFLOAT = (S32_MAX_VALUE+1d)*2d - 1d;
 	
 	public static final float LONG_MAX_SIGNED_VALUE_IN_SINGLEFLOAT = Long.MAX_VALUE;
 	public static final float LONG_MAX_UNSIGNED_VALUE_IN_SINGLEFLOAT = (Long.MAX_VALUE+1f)*2f - 1f;
@@ -65,8 +66,8 @@ implements JavaNamespace
 	/**
 	 * Returns number of times b fits into a (a / b) disregarding the remainder(a % b).
 	 */
-	@ActuallyUnsignedValue
-	public static long divideU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	@ActuallyUnsigned
+	public static long divideU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		//Speed daemons
 		if (b == 0)
@@ -127,8 +128,8 @@ implements JavaNamespace
 	/**
 	 * Returns number of times b fits into a (a / b) disregarding the remainder(a % b).
 	 */
-	@ActuallyUnsignedValue
-	public static int divideU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	@ActuallyUnsigned
+	public static int divideU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		//Speed daemons
 		if (b == 0)
@@ -251,8 +252,8 @@ implements JavaNamespace
 	/**
 	 * Returns number of times b fits into a (a / b) disregarding the remainder(a % b).
 	 */
-	@ActuallyUnsignedValue
-	public static byte divideU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	@ActuallyUnsigned
+	public static byte divideU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		//Speed daemons
 		if (b == 0)
@@ -318,8 +319,8 @@ implements JavaNamespace
 	/**
 	 * Returns remainder after finding number of times b fits into a.
 	 */
-	@ActuallyUnsignedValue
-	public static long modulusU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	@ActuallyUnsigned
+	public static long modulusU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		long div = divideU64(a, b);
 		long inaccurateA = (div * b);
@@ -329,8 +330,8 @@ implements JavaNamespace
 	/**
 	 * Returns remainder after finding number of times b fits into a.
 	 */
-	@ActuallyUnsignedValue
-	public static int modulusU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	@ActuallyUnsigned
+	public static int modulusU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		int div = divideU32(a, b);
 		int inaccurateA = (div * b);
@@ -351,8 +352,8 @@ implements JavaNamespace
 	/**
 	 * Returns remainder after finding number of times b fits into a.
 	 */
-	@ActuallyUnsignedValue
-	public static byte modulusU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	@ActuallyUnsigned
+	public static byte modulusU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		byte div = divideU8(a, b);
 		byte inaccurateA = (byte)(div * b);
@@ -370,7 +371,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
-	public static boolean lessThanU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	public static boolean lessThanU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		//return a < b
 		if (a < 0 && b >= 0)
@@ -400,7 +401,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
-	public static boolean lessThanU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean lessThanU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		//return a < b
 		
@@ -419,7 +420,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
-	public static boolean lessThanU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	public static boolean lessThanU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		//return a < b
 		if (a < 0 && b >= 0)
@@ -440,7 +441,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
-	public static boolean greaterThanU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	public static boolean greaterThanU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		//return a > b
 		if (a < 0 && b >= 0)
@@ -470,7 +471,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
-	public static boolean greaterThanU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean greaterThanU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		//return a > b
 		if (a < 0 && b >= 0)
@@ -485,7 +486,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
-	public static boolean greaterThanU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	public static boolean greaterThanU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		//return a > b
 		if (a < 0 && b >= 0)
@@ -502,7 +503,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
-	public static boolean lessThanEqualToU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	public static boolean lessThanEqualToU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		if (a == b)
 			return true;
@@ -538,7 +539,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
-	public static boolean lessThanEqualToU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean lessThanEqualToU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		//return a < b
 		if (a == b)
@@ -559,7 +560,7 @@ implements JavaNamespace
 	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
-	public static boolean lessThanEqualToU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	public static boolean lessThanEqualToU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		if (a == b)
 			return true;
@@ -583,7 +584,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
-	public static boolean greaterThanEqualToU8(@ActuallyUnsignedValue byte a, @ActuallyUnsignedValue byte b)
+	public static boolean greaterThanEqualToU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
 	{
 		if (a == b)
 			return true;
@@ -619,7 +620,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
-	public static boolean greaterThanEqualToU32(@ActuallyUnsignedValue int a, @ActuallyUnsignedValue int b)
+	public static boolean greaterThanEqualToU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		if (a == b)
 			return true;
@@ -637,7 +638,7 @@ implements JavaNamespace
 	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
-	public static boolean greaterThanEqualToU64(@ActuallyUnsignedValue long a, @ActuallyUnsignedValue long b)
+	public static boolean greaterThanEqualToU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
 	{
 		if (a == b)
 			return true;
@@ -661,9 +662,9 @@ implements JavaNamespace
 	 * @param b bits of an unsigned
 	 * @return b expanded to int
 	 */
-	public static int upcast(@ActuallyUnsignedValue byte b)
+	public static int upcast(@ActuallyUnsigned byte b)
 	{
-		return b & 0x000000FF;
+		return upcastTo32(b);
 	}
 	
 	/**
@@ -671,9 +672,9 @@ implements JavaNamespace
 	 * @param b bits of an unsigned
 	 * @return b expanded to int
 	 */
-	public static int upcast(@ActuallyUnsignedValue short b)
+	public static int upcast(@ActuallyUnsigned short b)
 	{
-		return b & 0x0000FFFF;
+		return upcastTo32(b);
 	}
 	
 	/**
@@ -681,14 +682,49 @@ implements JavaNamespace
 	 * @param b bits of an integer
 	 * @return b expanded to long
 	 */
-	public static long upcast(@ActuallyUnsignedValue int b)
+	public static long upcast(@ActuallyUnsigned int b)
+	{
+		return upcastTo64(b);
+	}
+	
+	
+	
+	
+	
+	public static int upcastTo32(@ActuallyUnsigned byte b)
+	{
+		return b & 0x000000FF;
+	}
+	
+	public static int upcastTo32(@ActuallyUnsigned short b)
+	{
+		return b & 0x0000FFFF;
+	}
+	
+	
+	public static long upcastTo64(@ActuallyUnsigned byte b)
+	{
+		return b & 0x00000000000000FFl;
+	}
+	
+	public static long upcastTo64(@ActuallyUnsigned short b)
+	{
+		return b & 0x000000000000FFFFl;
+	}
+	
+	public static long upcastTo64(@ActuallyUnsigned int b)
 	{
 		return b & 0x00000000FFFFFFFFl;
 	}
 	
 	
 	
-	public static int[] upcastAll(@ActuallyUnsignedValue byte[] a)
+	
+	
+	
+	
+	
+	public static int[] upcastAll(@ActuallyUnsigned byte[] a)
 	{
 		int[] rv = new int[a.length];
 		for (int i = 0; i < a.length; i++)
@@ -696,7 +732,7 @@ implements JavaNamespace
 		return rv;
 	}
 	
-	public static int[] upcastAll(@ActuallyUnsignedValue short[] a)
+	public static int[] upcastAll(@ActuallyUnsigned short[] a)
 	{
 		int[] rv = new int[a.length];
 		for (int i = 0; i < a.length; i++)
@@ -704,7 +740,7 @@ implements JavaNamespace
 		return rv;
 	}
 	
-	public static long[] upcastAll(@ActuallyUnsignedValue int[] a)
+	public static long[] upcastAll(@ActuallyUnsigned int[] a)
 	{
 		long[] rv = new long[a.length];
 		for (int i = 0; i < a.length; i++)
@@ -717,7 +753,7 @@ implements JavaNamespace
 	
 	
 	
-	public static float safeCastU8toF32(@ActuallyUnsignedValue byte unsigned)
+	public static float safeCastU8toF32(@ActuallyUnsigned byte unsigned)
 	{
 		return upcast(unsigned);
 	}
@@ -727,7 +763,7 @@ implements JavaNamespace
 		return upcast(unsigned);
 	}
 	
-	public static float safeCastU32toF32(@ActuallyUnsignedValue int unsigned)
+	public static float safeCastU32toF32(@ActuallyUnsigned int unsigned)
 	{
 		if (unsigned >= 0)
 			return unsigned;
@@ -735,7 +771,7 @@ implements JavaNamespace
 			return (unsigned & INT_DATAMASK) + INT_HIGH_BIT_IN_SINGLEFLOAT;
 	}
 	
-	public static float safeCastU64toF32(@ActuallyUnsignedValue long unsigned)
+	public static float safeCastU64toF32(@ActuallyUnsigned long unsigned)
 	{
 		if (unsigned >= 0)
 			return unsigned;
@@ -745,7 +781,7 @@ implements JavaNamespace
 	
 	
 	
-	public static double safeCastU8toF64(@ActuallyUnsignedValue byte unsigned)
+	public static double safeCastU8toF64(@ActuallyUnsigned byte unsigned)
 	{
 		return upcast(unsigned);
 	}
@@ -755,7 +791,7 @@ implements JavaNamespace
 		return upcast(unsigned);
 	}
 	
-	public static double safeCastU32toF64(@ActuallyUnsignedValue int unsigned)
+	public static double safeCastU32toF64(@ActuallyUnsigned int unsigned)
 	{
 		if (unsigned >= 0)
 			return unsigned;
@@ -763,7 +799,7 @@ implements JavaNamespace
 			return (unsigned & INT_DATAMASK) + INT_HIGH_BIT_IN_DOUBLEFLOAT;
 	}
 	
-	public static double safeCastU64toF64(@ActuallyUnsignedValue long unsigned)
+	public static double safeCastU64toF64(@ActuallyUnsigned long unsigned)
 	{
 		if (unsigned >= 0)
 			return unsigned;
@@ -780,7 +816,7 @@ implements JavaNamespace
 	//TODO safeCastF64toU16 :p
 	
 	
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static int safeCastF32toU32(float floatingValue) throws OverflowException
 	{
 		if (floatingValue > INT_MAX_UNSIGNED_VALUE_IN_SINGLEFLOAT || floatingValue < 0)
@@ -797,7 +833,7 @@ implements JavaNamespace
 		}
 	}
 	
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static long safeCastF32toU64(float floatingValue) throws OverflowException
 	{
 		if (floatingValue > LONG_MAX_UNSIGNED_VALUE_IN_SINGLEFLOAT || floatingValue < 0)
@@ -816,7 +852,7 @@ implements JavaNamespace
 	
 	
 	
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static int safeCastF64toU32(double floatingValue) throws OverflowException
 	{
 		if (floatingValue > INT_MAX_UNSIGNED_VALUE_IN_DOUBLEFLOAT || floatingValue < 0)
@@ -833,7 +869,7 @@ implements JavaNamespace
 		}
 	}
 	
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static long safeCastF64toU64(double floatingValue) throws OverflowException
 	{
 		if (floatingValue > LONG_MAX_UNSIGNED_VALUE_IN_DOUBLEFLOAT || floatingValue < 0)
@@ -869,432 +905,30 @@ implements JavaNamespace
 	//<CCCCAAAAASSSSTTTTTSSSSS! :D
 	
 	/*
-p = map(lambda t: concat(*t), seqmul(["U", "S"], [8,16,32,64]));
-
-def javatypemap(c):
-	if (c == "U16"):
-		return "char";
-	else:
-		l = int(c[1:]);
-		return {8: "byte", 16: "short", 32: "int", 64: "long"}[l];
-
-def isAUV(c):
-	return c[0].upper() == "U" and c != "U16";
-
-decls = [];
-for a in p:
-	for b in p:
-		if (a != b):
-			d = "public static "+javatypemap(b)+" safeCast"+a+"to"+b+"("+javatypemap(a)+" input)";
-			decls.append(d);
-			#print d;
-			#print "{\n\n}\n";
-	 */
-	
-	
-	
-	
-	/*
-	 * Narrowing U -> U
-	 */
-	
-	@ActuallyUnsignedValue
-	public static byte safeCastU16toU8(char input) throws OverflowException
-	{
-		if (input >= 1 << 8 || input < 0)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	
-	@ActuallyUnsignedValue
-	public static byte safeCastU32toU8(@ActuallyUnsignedValue int input) throws OverflowException
-	{
-		if (input >= 1 << 8 || input < 0)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static char safeCastU32toU16(@ActuallyUnsignedValue int input) throws OverflowException
-	{
-		if (input >= 1 << 16 || input < 0)
-			throw new OverflowException();
-		return (char)input;
-	}
-	
-	
-	@ActuallyUnsignedValue
-	public static byte safeCastU64toU8(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 1L << 8 || input < 0)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static char safeCastU64toU16(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 1L << 16 || input < 0)
-			throw new OverflowException();
-		return (char)input;
-	}
-	
-	@ActuallyUnsignedValue
-	public static int safeCastU64toU32(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 1L << 32 || input < 0)
-			throw new OverflowException();
-		return (int)input;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	 * Narrowing S -> U
-	 */
-	@ActuallyUnsignedValue
-	public static byte safeCastS16toU8(short input) throws OverflowException
-	{
-		if (input < 0 || input >= 0x100)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	
-	@ActuallyUnsignedValue
-	public static byte safeCastS32toU8(int input) throws OverflowException
-	{
-		if (input < 0 || input >= 0x100)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	
-	@ActuallyUnsignedValue
-	public static byte safeCastS64toU8(long input) throws OverflowException
-	{
-		if (input < 0 || input >= 0x100l)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	@ActuallyUnsignedValue
-	public static int safeCastS64toU32(long input) throws OverflowException
-	{
-		if (input < 0 || input >= 0x100000000l)
-			throw new OverflowException();
-		return (int)input;
-	}
-	
-	
-	
-	
-	
-	
-	/*
-	 * Narrowing U -> S
-	 */
-	public static byte safeCastU32toS8(@ActuallyUnsignedValue int input) throws OverflowException
-	{
-		if (input >= 0x80 || input < 0)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static short safeCastU32toS16(@ActuallyUnsignedValue int input) throws OverflowException
-	{
-		if (input >= 0x8000 || input < 0)
-			throw new OverflowException();
-		return (short)input;
-	}
-	
-	
-	public static byte safeCastU64toS8(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 0x80l || input < 0)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static short safeCastU64toS16(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 0x8000l || input < 0)
-			throw new OverflowException();
-		return (short)input;
-	}
-	
-	public static int safeCastU64toS32(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input >= 0x80000000l || input < 0)
-			throw new OverflowException();
-		return (int)input;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	 * Safe versions of narrowing casts directly supported by Java! ^w^
-	 */
-	public static byte safeCastS16toS8(short input) throws OverflowException
-	{
-		if (input > Byte.MAX_VALUE || input < Byte.MIN_VALUE)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	
-	public static byte safeCastU16toS8(char input) throws OverflowException
-	{
-		if (input > Byte.MAX_VALUE || input < Byte.MIN_VALUE)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	
-	
-	public static byte safeCastS32toS8(int input) throws OverflowException
-	{
-		if (input > Byte.MAX_VALUE || input < Byte.MIN_VALUE)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static short safeCastS32toS16(int input) throws OverflowException
-	{
-		if (input > Short.MAX_VALUE || input < Short.MIN_VALUE)
-			throw new OverflowException();
-		return (short)input;
-	}
-	
-	public static char safeCastS32toU16(int input) throws OverflowException
-	{
-		if (input > Character.MAX_VALUE || input < Character.MIN_VALUE)
-			throw new OverflowException();
-		return (char)input;
-	}
-	
-	public static int safeCastS32toU24(int input) throws OverflowException
-	{
-		if (input > 16777215 || input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	
-	
-	public static byte safeCastS64toS8(long input) throws OverflowException
-	{
-		if (input > Byte.MAX_VALUE || input < Byte.MIN_VALUE)
-			throw new OverflowException();
-		return (byte)input;
-	}
-	
-	public static short safeCastS64toS16(long input) throws OverflowException
-	{
-		if (input > Short.MAX_VALUE || input < Short.MIN_VALUE)
-			throw new OverflowException();
-		return (short)input;
-	}
-	
-	public static char safeCastS64toU16(long input) throws OverflowException
-	{
-		if (input > Character.MAX_VALUE || input < Character.MIN_VALUE)
-			throw new OverflowException();
-		return (char)input;
-	}
-	
-	public static int safeCastS64toS32(long input) throws OverflowException
-	{
-		if (input > Integer.MAX_VALUE || input < Integer.MIN_VALUE)
-			throw new OverflowException();
-		return (int)input;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	 * Equal bitlength U -> S
-	 * Only need to check not > max input; ie, only need to check high bit not set ^_~
-	 */
-	public static byte safeCastU8toS8(@ActuallyUnsignedValue byte input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	public static short safeCastU16toS16(char input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return (short)input;
-	}
-	
-	public static int safeCastU32toS32(@ActuallyUnsignedValue int input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	public static long safeCastU64toS64(@ActuallyUnsignedValue long input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	
-	
-	
-	
-	/*
-	 * Equal bitlength S -> U
-	 * Only need to check not < 0!  ^_~
-	 */
-	@ActuallyUnsignedValue
-	public static byte safeCastS8toU8(byte input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	public static char safeCastS16toU16(short input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return (char)input;
-	}
-	
-	@ActuallyUnsignedValue
-	public static int safeCastS32toU32(int input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	@ActuallyUnsignedValue
-	public static long safeCastS64toU64(long input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	 * Widening S -> U
-	 * Only need to check not < 0!  ^_~
-	 */
-	public static char safeCastS8toU16(byte input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return (char)(input & 0xFF);
-	}
-	
-	@ActuallyUnsignedValue
-	public static int safeCastS8toU32(byte input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input & 0xFF;
-	}
-	
-	@ActuallyUnsignedValue
-	public static long safeCastS8toU64(byte input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input & 0xFFl;
-	}
-	
-	@ActuallyUnsignedValue
-	public static int safeCastS16toU32(short input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input & 0xFFFF;
-	}
-	
-	@ActuallyUnsignedValue
-	public static long safeCastS16toU64(short input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input & 0xFFFFl;
-	}
-	
-	@ActuallyUnsignedValue
-	public static long safeCastS32toU64(int input) throws OverflowException
-	{
-		if (input < 0)
-			throw new OverflowException();
-		return input & 0xFFFFFFFFl;
-	}
-	
-	
-	
-	
-	
-	
-	/*
 	 * Widening U -> S
 	 * Always safe :>
 	 */
-	public static short upcastU8toS16(@ActuallyUnsignedValue byte input)
+	public static short upcastU8toS16(@ActuallyUnsigned byte input)
 	{
 		return (short)(input & 0xFF);
 	}
 	
-	public static int upcastU8toS32(@ActuallyUnsignedValue byte input)
+	public static int upcastU8toS32(@ActuallyUnsigned byte input)
 	{
 		return input & 0xFF;
 	}
 	
-	public static long upcastU8toS64(@ActuallyUnsignedValue byte input)
+	public static long upcastU8toS64(@ActuallyUnsigned byte input)
 	{
 		return input & 0xFFl;
 	}
 	
-	public static long upcastU32toS64(@ActuallyUnsignedValue int input)
+	public static long upcastU16toS64(@ActuallyUnsigned short input)
+	{
+		return input & 0xFFFFl;
+	}
+	
+	public static long upcastU32toS64(@ActuallyUnsigned int input)
 	{
 		return input & 0xFFFFFFFFl;
 	}
@@ -1306,25 +940,25 @@ for a in p:
 	 * Widening U -> U
 	 * Always safe :>
 	 */
-	public static char upcastU8toU16(@ActuallyUnsignedValue byte input)
+	public static char upcastU8toU16(@ActuallyUnsigned byte input)
 	{
 		return (char)(input & 0xFF);
 	}
 	
-	@ActuallyUnsignedValue
-	public static int upcastU8toU32(@ActuallyUnsignedValue byte input)
+	@ActuallyUnsigned
+	public static int upcastU8toU32(@ActuallyUnsigned byte input)
 	{
 		return input & 0xFF;
 	}
 	
-	@ActuallyUnsignedValue
-	public static long upcastU8toU64(@ActuallyUnsignedValue byte input)
+	@ActuallyUnsigned
+	public static long upcastU8toU64(@ActuallyUnsigned byte input)
 	{
 		return input & 0xFFl;
 	}
 	
-	@ActuallyUnsignedValue
-	public static long upcastU32toU64(@ActuallyUnsignedValue int input)
+	@ActuallyUnsigned
+	public static long upcastU32toU64(@ActuallyUnsigned int input)
 	{
 		return input & 0xFFFFFFFFl;
 	}

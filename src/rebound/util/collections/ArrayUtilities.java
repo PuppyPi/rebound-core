@@ -5,10 +5,11 @@
 package rebound.util.collections;
 
 import static rebound.bits.BitUtilities.*;
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.Primitives.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
@@ -29,6 +30,13 @@ import rebound.exceptions.NotYetImplementedException;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.Primitives;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
+import rebound.util.collections.prim.PrimitiveCollections.DoubleList;
+import rebound.util.collections.prim.PrimitiveCollections.FloatList;
+import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionBooleanToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionByteToBoolean;
@@ -11670,33 +11678,6 @@ primxp
 	
 	
 	
-	public static void checkIntegerArrayIsDuplicatelessArrayOfValidIndexes(int[] arrayOfIndexes, int sizeOfArrayTheyreIndexing, int offsetOfArrayTheyreIndexing)
-	{
-		if (arrayOfIndexes.length != sizeOfArrayTheyreIndexing)
-			throw new IllegalArgumentException("Size of array is wrong!");
-		
-		
-		BitSet has = new BitSet();
-		
-		for (int value : arrayOfIndexes)
-		{
-			int zValue = value - offsetOfArrayTheyreIndexing;
-			
-			if (has.get(zValue))
-				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+value);
-			else
-				has.set(zValue);
-		}
-		
-		
-		int l = has.length();
-		boolean isAllOnes = has.cardinality() == l;
-		if (l != sizeOfArrayTheyreIndexing || !isAllOnes)
-			throw new IllegalArgumentException("Not all values in the interval ["+offsetOfArrayTheyreIndexing+", "+(sizeOfArrayTheyreIndexing-1+offsetOfArrayTheyreIndexing)+"] were covered!");
-		
-		
-		//Else: Cleannn!! \:DD/
-	}
 	
 	
 	
@@ -11736,6 +11717,81 @@ primxp
 	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(_$$prim$$_[] arrayA, _$$prim$$_[] arrayB, _$$prim$$_ valueBase)
 	{
 		if (arrayA.length != arrayB.length)
+			throw new IllegalArgumentException("They differ even in length as well!! \\\\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (_$$prim$$_ value : arrayA)
+			{
+				int zValue = safeCast_$$bitabbv$$_toS32(value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((_$$upcast$$_)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (_$$prim$$_ value : arrayB)
+			{
+				int zValue = safeCast_$$bitabbv$$_toS32(value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((_$$upcast$$_)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(_$$Primitive$$_List array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(_$$Primitive$$_List array, _$$prim$$_ valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (_$$prim$$_ value : array)
+		{
+			int zValue = safeCast_$$bitabbv$$_toS32(value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(_$$Primitive$$_List arrayA, _$$Primitive$$_List arrayB, _$$prim$$_ valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
 			throw new IllegalArgumentException("They differ even in length as well!! \\\\o/");
 		
 		
@@ -11870,6 +11926,81 @@ primxp
 	
 	
 	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(ByteList array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(ByteList array, byte valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (byte value : array)
+		{
+			int zValue = (value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(ByteList arrayA, ByteList arrayB, byte valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
+			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (byte value : arrayA)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((int)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (byte value : arrayB)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((int)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
 	
 	public static void checkSmallRangeValuedArrayIsDuplicateless(char[] array)
 	{
@@ -11899,6 +12030,81 @@ primxp
 	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(char[] arrayA, char[] arrayB, char valueBase)
 	{
 		if (arrayA.length != arrayB.length)
+			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (char value : arrayA)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((int)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (char value : arrayB)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((int)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(CharacterList array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(CharacterList array, char valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (char value : array)
+		{
+			int zValue = (value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(CharacterList arrayA, CharacterList arrayB, char valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
 			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
 		
 		
@@ -12022,6 +12228,81 @@ primxp
 	
 	
 	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(ShortList array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(ShortList array, short valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (short value : array)
+		{
+			int zValue = (value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(ShortList arrayA, ShortList arrayB, short valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
+			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (short value : arrayA)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((int)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (short value : arrayB)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((int)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
 	
 	public static void checkSmallRangeValuedArrayIsDuplicateless(int[] array)
 	{
@@ -12098,6 +12379,81 @@ primxp
 	
 	
 	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(IntegerList array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(IntegerList array, int valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (int value : array)
+		{
+			int zValue = (value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(IntegerList arrayA, IntegerList arrayB, int valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
+			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (int value : arrayA)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((long)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (int value : arrayB)
+			{
+				int zValue = (value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((long)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
 	
 	public static void checkSmallRangeValuedArrayIsDuplicateless(long[] array)
 	{
@@ -12127,6 +12483,81 @@ primxp
 	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(long[] arrayA, long[] arrayB, long valueBase)
 	{
 		if (arrayA.length != arrayB.length)
+			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
+		
+		
+		BitSet hasA = new BitSet();
+		{
+			for (long value : arrayA)
+			{
+				int zValue = safeCastS64toS32(value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasA.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array A!:  Multiple occurrences of "+((long)value));
+				else
+					hasA.set(zValue);
+			}
+		}
+		
+		
+		BitSet hasB = new BitSet();
+		{
+			for (long value : arrayB)
+			{
+				int zValue = safeCastS64toS32(value - valueBase);
+				
+				if (zValue < 0)
+					throw new IllegalArgumentException();
+				
+				if (hasB.get(zValue))
+					throw new IllegalArgumentException("Duplicates detected in array B!:  Multiple occurrences of "+((long)value));
+				else
+					hasB.set(zValue);
+			}
+		}
+		
+		
+		
+		if (!hasA.equals(hasB))
+			throw new IllegalArgumentException("They differ even as sets in which values they contain, not just in the order of them!!");
+	}
+	
+	
+	
+	
+	
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(LongList array)
+	{
+		checkSmallRangeValuedArrayIsDuplicateless(array, least(array));
+	}
+	
+	public static void checkSmallRangeValuedArrayIsDuplicateless(LongList array, long valueBase)
+	{
+		BitSet has = new BitSet();
+		
+		for (long value : array)
+		{
+			int zValue = safeCastS64toS32(value - valueBase);
+			
+			if (zValue < 0)
+				throw new IllegalArgumentException();
+			
+			if (has.get(zValue))
+				throw new IllegalArgumentException("Duplicates detected in array!:  Multiple occurrences of "+((long)value));
+			else
+				has.set(zValue);
+		}
+	}
+	
+	
+	
+	public static void checkSmallRangeValuedArraysAreDuplicatelessAndCoverSameValuesInPossiblyDifferentOrders(LongList arrayA, LongList arrayB, long valueBase)
+	{
+		if (arrayA.size() != arrayB.size())
 			throw new IllegalArgumentException("They differ even in length as well!! \\o/");
 		
 		
@@ -13018,6 +13449,54 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	public static void fillRangeListByLength(@WritableValue _$$Primitive$$_List array, int offset, _$$prim$$_ inclusiveStart, int length, _$$prim$$_ step)
+	{
+		for (int i = 0; i < length; i++)
+			array.set_$$Prim$$_(offset+i, (_$$prim$$_)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue _$$Primitive$$_List array, int offset, _$$prim$$_ inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (_$$prim$$_)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static _$$Primitive$$_List rangeListByLength(_$$prim$$_ inclusiveStart, int length, _$$prim$$_ step)
+	{
+		_$$Primitive$$_List array = new_$$Primitive$$_ListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static _$$Primitive$$_List rangeListByLength(_$$prim$$_ inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (_$$prim$$_)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static _$$Primitive$$_List rangeList(_$$prim$$_ inclusiveStart, _$$prim$$_ exclusiveEnd)
+	{
+		int length = safeCast_$$bitabbv$$_toS32(exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static _$$Primitive$$_List rangeList(_$$prim$$_ exclusiveEnd)
+	{
+		return rangeList((_$$prim$$_)0, exclusiveEnd);
+	}
+	
+	
+	
 	"""
 	
 	
@@ -13074,6 +13553,54 @@ primxp
 	
 	
 	
+	
+	
+	public static void fillRangeListByLength(@WritableValue ByteList array, int offset, byte inclusiveStart, int length, byte step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setByte(offset+i, (byte)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue ByteList array, int offset, byte inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (byte)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static ByteList rangeListByLength(byte inclusiveStart, int length, byte step)
+	{
+		ByteList array = newByteListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static ByteList rangeListByLength(byte inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (byte)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static ByteList rangeList(byte inclusiveStart, byte exclusiveEnd)
+	{
+		int length = (exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static ByteList rangeList(byte exclusiveEnd)
+	{
+		return rangeList((byte)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
 	public static void fillRangeByLength(@WritableValue char[] array, int offset, char inclusiveStart, int length, char step)
 	{
 		for (int i = 0; i < length; i++)
@@ -13110,6 +13637,54 @@ primxp
 	public static char[] range(char exclusiveEnd)
 	{
 		return range((char)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void fillRangeListByLength(@WritableValue CharacterList array, int offset, char inclusiveStart, int length, char step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setChar(offset+i, (char)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue CharacterList array, int offset, char inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (char)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static CharacterList rangeListByLength(char inclusiveStart, int length, char step)
+	{
+		CharacterList array = newCharacterListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static CharacterList rangeListByLength(char inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (char)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static CharacterList rangeList(char inclusiveStart, char exclusiveEnd)
+	{
+		int length = (exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static CharacterList rangeList(char exclusiveEnd)
+	{
+		return rangeList((char)0, exclusiveEnd);
 	}
 	
 	
@@ -13158,6 +13733,54 @@ primxp
 	
 	
 	
+	
+	
+	public static void fillRangeListByLength(@WritableValue ShortList array, int offset, short inclusiveStart, int length, short step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setShort(offset+i, (short)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue ShortList array, int offset, short inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (short)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static ShortList rangeListByLength(short inclusiveStart, int length, short step)
+	{
+		ShortList array = newShortListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static ShortList rangeListByLength(short inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (short)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static ShortList rangeList(short inclusiveStart, short exclusiveEnd)
+	{
+		int length = (exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static ShortList rangeList(short exclusiveEnd)
+	{
+		return rangeList((short)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
 	public static void fillRangeByLength(@WritableValue int[] array, int offset, int inclusiveStart, int length, int step)
 	{
 		for (int i = 0; i < length; i++)
@@ -13194,6 +13817,54 @@ primxp
 	public static int[] range(int exclusiveEnd)
 	{
 		return range((int)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void fillRangeListByLength(@WritableValue IntegerList array, int offset, int inclusiveStart, int length, int step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setInt(offset+i, (int)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue IntegerList array, int offset, int inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (int)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static IntegerList rangeListByLength(int inclusiveStart, int length, int step)
+	{
+		IntegerList array = newIntegerListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static IntegerList rangeListByLength(int inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (int)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static IntegerList rangeList(int inclusiveStart, int exclusiveEnd)
+	{
+		int length = (exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static IntegerList rangeList(int exclusiveEnd)
+	{
+		return rangeList((int)0, exclusiveEnd);
 	}
 	
 	
@@ -13242,6 +13913,54 @@ primxp
 	
 	
 	
+	
+	
+	public static void fillRangeListByLength(@WritableValue FloatList array, int offset, float inclusiveStart, int length, float step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setFloat(offset+i, (float)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue FloatList array, int offset, float inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (float)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static FloatList rangeListByLength(float inclusiveStart, int length, float step)
+	{
+		FloatList array = newFloatListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static FloatList rangeListByLength(float inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (float)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static FloatList rangeList(float inclusiveStart, float exclusiveEnd)
+	{
+		int length = safeCastIntegerValuedFloatingPointF32toS32(exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static FloatList rangeList(float exclusiveEnd)
+	{
+		return rangeList((float)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
 	public static void fillRangeByLength(@WritableValue double[] array, int offset, double inclusiveStart, int length, double step)
 	{
 		for (int i = 0; i < length; i++)
@@ -13284,6 +14003,54 @@ primxp
 	
 	
 	
+	
+	
+	public static void fillRangeListByLength(@WritableValue DoubleList array, int offset, double inclusiveStart, int length, double step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setDouble(offset+i, (double)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue DoubleList array, int offset, double inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (double)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static DoubleList rangeListByLength(double inclusiveStart, int length, double step)
+	{
+		DoubleList array = newDoubleListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static DoubleList rangeListByLength(double inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (double)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static DoubleList rangeList(double inclusiveStart, double exclusiveEnd)
+	{
+		int length = safeCastIntegerValuedFloatingPointF64toS32(exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static DoubleList rangeList(double exclusiveEnd)
+	{
+		return rangeList((double)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
 	public static void fillRangeByLength(@WritableValue long[] array, int offset, long inclusiveStart, int length, long step)
 	{
 		for (int i = 0; i < length; i++)
@@ -13320,6 +14087,54 @@ primxp
 	public static long[] range(long exclusiveEnd)
 	{
 		return range((long)0, exclusiveEnd);
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void fillRangeListByLength(@WritableValue LongList array, int offset, long inclusiveStart, int length, long step)
+	{
+		for (int i = 0; i < length; i++)
+			array.setLong(offset+i, (long)(inclusiveStart + (step * i)));
+	}
+	
+	public static void fillRangeListByLength(@WritableValue LongList array, int offset, long inclusiveStart, int length)
+	{
+		fillRangeListByLength(array, offset, inclusiveStart, length, (long)1);
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static LongList rangeListByLength(long inclusiveStart, int length, long step)
+	{
+		LongList array = newLongListZerofilled(length);
+		fillRangeListByLength(array, 0, inclusiveStart, length, step);
+		return array;
+	}
+	
+	@ThrowAwayValue
+	@WritableValue
+	public static LongList rangeListByLength(long inclusiveStart, int length)
+	{
+		return rangeListByLength(inclusiveStart, length, (long)1);
+	}
+	
+	
+	
+	@WritableValue
+	public static LongList rangeList(long inclusiveStart, long exclusiveEnd)
+	{
+		int length = safeCastS64toS32(exclusiveEnd - inclusiveStart);
+		return rangeListByLength(inclusiveStart, length);
+	}
+	
+	@WritableValue
+	public static LongList rangeList(long exclusiveEnd)
+	{
+		return rangeList((long)0, exclusiveEnd);
 	}
 	
 	

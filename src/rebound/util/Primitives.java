@@ -5,14 +5,13 @@
 package rebound.util;
 
 import static rebound.bits.BitUtilities.*;
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
-import rebound.bits.Unsigned;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
@@ -27,6 +26,9 @@ import rebound.util.objectutil.JavaNamespace;
 public class Primitives
 implements JavaNamespace
 {
+	//These constants are great for code-generation! :D
+	
+	
 	public static final int JSIZEOF_BYTES_BYTE = 1;
 	public static final int JSIZEOF_BYTES_CHAR = 2;
 	public static final int JSIZEOF_BYTES_SHORT = 2;
@@ -44,8 +46,121 @@ implements JavaNamespace
 	public static final int JSIZEOF_BITS_LONG = 64;
 	
 	
+	
+	
+	
+	public static final float FLOAT_MIN_VALUE = Float.MIN_VALUE;
+	public static final float FLOAT_MAX_VALUE = Float.MAX_VALUE;
+	public static final double DOUBLE_MIN_VALUE = Double.MIN_VALUE;
+	public static final double DOUBLE_MAX_VALUE = Double.MAX_VALUE;
+	
+	
+	
+	public static final byte  BYTE_MIN_VALUE    = (byte) 0x80;
+	public static final short SHORT_MIN_VALUE   = (short)0x8000;
+	public static final int   SINT24_MIN_VALUE  =        0xFF800000;
+	public static final int   INT_MIN_VALUE     =        0x80000000;
+	public static final long  SLONG40_MIN_VALUE =        0xFFFFFF8000000000l;
+	public static final long  SLONG48_MIN_VALUE =        0xFFFF800000000000l;
+	public static final long  SLONG56_MIN_VALUE =        0xFF80000000000000l;
+	public static final long  LONG_MIN_VALUE    =        0x8000000000000000l;
+	
+	public static final byte  BYTE_MAX_VALUE    = (byte) 0x7F;
+	public static final short SHORT_MAX_VALUE   = (short)0x7FFF;
+	public static final int   SINT24_MAX_VALUE  =        0x007FFFFF;
+	public static final int   INT_MAX_VALUE     =        0x7FFFFFFF;
+	public static final long  SLONG40_MAX_VALUE =        0x0000007FFFFFFFFFl;
+	public static final long  SLONG48_MAX_VALUE =        0x00007FFFFFFFFFFFl;
+	public static final long  SLONG56_MAX_VALUE =        0x007FFFFFFFFFFFFFl;
+	public static final long  LONG_MAX_VALUE    =        0x7FFFFFFFFFFFFFFFl;
+	
+	
+	
+	public static final char  CHAR_MIN_VALUE    =        0x0000;
+	public static final int   UINT24_MIN_VALUE  =        0x00000000;
+	public static final long  ULONG40_MIN_VALUE =        0x0000000000000000l;
+	public static final long  ULONG48_MIN_VALUE =        0x0000000000000000l;
+	public static final long  ULONG56_MIN_VALUE =        0x0000000000000000l;
+	
+	public static final char  CHAR_MAX_VALUE    =        0xFFFF;
+	public static final int   UINT24_MAX_VALUE  =        0x00FFFFFF;
+	public static final long  ULONG40_MAX_VALUE =        0x000000FFFFFFFFFFl;
+	public static final long  ULONG48_MAX_VALUE =        0x0000FFFFFFFFFFFFl;
+	public static final long  ULONG56_MAX_VALUE =        0x00FFFFFFFFFFFFFFl;
+	
+	
+	
+	
+	
+	
+	
+	//Note: don't change the types from long here or things which rely on the consistency for casting will break!  X'D
+	
+	public static final long   S8_MIN_VALUE =        0xFFFFFFFFFFFFFF80l;
+	public static final long  S16_MIN_VALUE =        0xFFFFFFFFFFFF8000l;
+	public static final long  S24_MIN_VALUE =        0xFFFFFFFFFF800000l;
+	public static final long  S32_MIN_VALUE =        0xFFFFFFFF80000000l;
+	public static final long  S40_MIN_VALUE =        0xFFFFFF8000000000l;
+	public static final long  S48_MIN_VALUE =        0xFFFF800000000000l;
+	public static final long  S56_MIN_VALUE =        0xFF80000000000000l;
+	public static final long  S64_MIN_VALUE =        0x8000000000000000l;
+	
+	public static final long   S8_MAX_VALUE =        0x000000000000007Fl;
+	public static final long  S16_MAX_VALUE =        0x0000000000007FFFl;
+	public static final long  S24_MAX_VALUE =        0x00000000007FFFFFl;
+	public static final long  S32_MAX_VALUE =        0x000000007FFFFFFFl;
+	public static final long  S40_MAX_VALUE =        0x0000007FFFFFFFFFl;
+	public static final long  S48_MAX_VALUE =        0x00007FFFFFFFFFFFl;
+	public static final long  S56_MAX_VALUE =        0x007FFFFFFFFFFFFFl;
+	public static final long  S64_MAX_VALUE =        0x7FFFFFFFFFFFFFFFl;
+	
+	
+	public static final long   U8_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U16_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U24_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U32_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U40_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U48_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U56_MIN_VALUE =        0x0000000000000000l;
+	public static final long  U64_MIN_VALUE =        0x0000000000000000l;
+	
+	public static final long   U8_MAX_VALUE =        0x00000000000000FFl;
+	public static final long  U16_MAX_VALUE =        0x000000000000FFFFl;
+	public static final long  U24_MAX_VALUE =        0x0000000000FFFFFFl;
+	public static final long  U32_MAX_VALUE =        0x00000000FFFFFFFFl;
+	public static final long  U40_MAX_VALUE =        0x000000FFFFFFFFFFl;
+	public static final long  U48_MAX_VALUE =        0x0000FFFFFFFFFFFFl;
+	public static final long  U56_MAX_VALUE =        0x00FFFFFFFFFFFFFFl;
+	
+	@ActuallyUnsigned
+	public static final long  U64_MAX_VALUE =        0xFFFFFFFFFFFFFFFFl;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static final List<Class> Primitive_Types = Collections.unmodifiableList(Arrays.asList(new Class[]{boolean.class, byte.class, char.class, short.class, float.class, int.class, double.class, long.class}));
 	public static final List<Class> Primitive_Wrapper_Types = Collections.unmodifiableList(Arrays.asList(new Class[]{Boolean.class, Byte.class, Character.class, Short.class, Float.class, Integer.class, Double.class, Long.class}));
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -2154,7 +2269,7 @@ implements JavaNamespace
 		else throw new IllegalArgumentException(c+" isn't an array Class!");
 	}
 	
-	public static long getIntegerArrayElement(Object array, @ActuallyUnsignedValue long index, boolean signextend)
+	public static long getIntegerArrayElement(Object array, @ActuallyUnsigned long index, boolean signextend)
 	{
 		int index32 = safeCastU64toS32(index);
 		
@@ -2672,10 +2787,11 @@ implements JavaNamespace
 	
 	
 	
-	//<Primitive hashings! :D
+	//<Primitive hashings—Equivalent to the Wrapper classes! :D
+	
 	public static int hashprim(boolean x)
 	{
-		return x ? 0x84657A2B : 0xDC3EA157;  //chosen by fair dice roll, guaranteed to be random
+		return x ? 1231 : 1237;  //chosen by fair dice roll, guaranteed to be random X3
 	}
 	
 	public static int hashprim(long x)
@@ -2717,7 +2833,7 @@ implements JavaNamespace
 		return x;
 	}
 	
-	//Primitive hashings! :D >
+	//Primitive hashings—Equivalent to the Wrapper classes! :D >
 	
 	
 	
@@ -2783,23 +2899,23 @@ implements JavaNamespace
 	{
 		if (destType == byte.class || destType == Byte.class)
 		{
-			return actuallyUnsigned ? Unsigned.safeCastS64toU8(value64) : Unsigned.safeCastS64toS8(value64);
+			return actuallyUnsigned ? safeCastS64toU8(value64) : safeCastS64toS8(value64);
 		}
 		else if (destType == short.class || destType == Short.class)
 		{
-			return actuallyUnsigned ? Unsigned.safeCastS64toU16(value64) : Unsigned.safeCastS64toS16(value64);
+			return actuallyUnsigned ? safeCastS64toU16(value64) : safeCastS64toS16(value64);
 		}
 		else if (destType == char.class || destType == Character.class)
 		{
-			return Unsigned.safeCastS64toU16(value64);  //always unsigned XDD
+			return safeCastS64toU16(value64);  //always unsigned XDD
 		}
 		else if (destType == int.class || destType == Integer.class)
 		{
-			return actuallyUnsigned ? Unsigned.safeCastS64toU32(value64) : Unsigned.safeCastS64toS32(value64);
+			return actuallyUnsigned ? safeCastS64toU32(value64) : safeCastS64toS32(value64);
 		}
 		else if (destType == long.class || destType == Long.class)
 		{
-			return actuallyUnsigned ? Unsigned.safeCastS64toU64(value64) : value64;
+			return actuallyUnsigned ? safeCastS64toU64(value64) : value64;
 		}
 		else
 		{

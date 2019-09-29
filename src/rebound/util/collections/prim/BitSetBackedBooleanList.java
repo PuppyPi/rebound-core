@@ -7,20 +7,24 @@ import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
+import java.util.List;
+import java.util.RandomAccess;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.util.collections.ShiftableList;
 import rebound.util.collections.Slice;
-import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanListWithByteListConversion;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultShiftingBasedBooleanList;
+import rebound.util.objectutil.Copyable;
 
 /**
  * Super-efficient bit-packed boolean list! :D
  */
 public class BitSetBackedBooleanList
-implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteListConversion    //Trimmable Nope, the Java people used their favorite access level again (private), so we can't do this without copying the whole source code! X"3
+implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteListConversion, Copyable, RandomAccess    //Trimmable Nope, the Java people used their favorite access level again (private), so we can't do this without copying the whole source code! X"3
 {
 	protected BitSet bitSet = new BitSet();
 	protected int size = 0;
@@ -40,13 +44,42 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	}
 	
 	
+	public static BitSetBackedBooleanList instCopying(@ReadonlyValue @SnapshotValue List<Boolean> other)
+	{
+		if (other instanceof BitSetBackedBooleanList)
+			return ((BitSetBackedBooleanList)other).clone();
+		else
+		{
+			BitSetBackedBooleanList l = new BitSetBackedBooleanList();
+			l.setFrom(other);
+			return l;
+		}
+	}
+	
 	
 	
 	@Override
-	public BooleanList clone()
+	public BitSetBackedBooleanList clone()
 	{
 		return new BitSetBackedBooleanList((BitSet)this.bitSet.clone(), this.size);
 	}
+	
+	@Override
+	public void setFrom(final Object source)
+	{
+		if (source instanceof BitSetBackedBooleanList)
+		{
+			final BitSetBackedBooleanList s = (BitSetBackedBooleanList)source;
+			
+			this.size = s.size;
+			this.bitSet = (BitSet) s.bitSet.clone();
+		}
+		else
+		{
+			DefaultShiftingBasedBooleanList.super.setFrom(source);
+		}
+	}
+	
 	
 	
 	@ImplementationTransparency
@@ -101,13 +134,13 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	{
 		if (amount > 0)
 		{
-			for (int i = pastEnd-1; i >= start; i++)
-				b.set(start + i - amount, b.get(i));
+			for (int i = pastEnd-1; i >= start; i--)
+				b.set(i + amount, b.get(i));
 		}
 		else if (amount < 0)
 		{
 			for (int i = start; i < pastEnd; i++)
-				b.set(i - amount, b.get(i));
+				b.set(i + amount, b.get(i));
 		}
 	}
 	
@@ -167,6 +200,18 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 		
 		return byteArrayAsList(b);
 	}
+	
+	
+	
+	
+	@Override
+	public String toString()
+	{
+		return _toString();
+	}
+	
+	
+	
 	
 	
 	

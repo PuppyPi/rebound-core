@@ -51,6 +51,9 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
 	/* <<<
 	primxp
 
@@ -2395,65 +2398,103 @@ for arity in range(3, 16): genObjectProcedure(arity);
 	
 	
 	//>>>
+	
+	
+	
+	
+	
+	
+	
+	
+	//Shelved, mostly unnecessary with Java 8  :>
+	
+	//	public static interface UnaryFunctionAnyToObject<ObjectInput, Output>
+	//	extends
+	//	UnaryFunction<ObjectInput, Output>,
+	//	//UnaryFunction_$$Prim$$_ToObject<Output>,
+	//	UnaryFunctionBooleanToObject<Output>,
+	//	UnaryFunctionByteToObject<Output>,
+	//	UnaryFunctionCharToObject<Output>,
+	//	UnaryFunctionShortToObject<Output>,
+	//	UnaryFunctionFloatToObject<Output>,
+	//	UnaryFunctionIntToObject<Output>,
+	//	UnaryFunctionDoubleToObject<Output>,
+	//	UnaryFunctionLongToObject<Output>
+	//	{
+	//	}
+	//
+	//
+	//
+	//
+	//	public static interface UnaryFunctionAnyToBoolean<ObjectInput>
+	//	extends
+	//	UnaryFunctionObjectToBoolean<ObjectInput>,
+	//	//UnaryFunction_$$Prim$$_ToBoolean,
+	//	UnaryFunctionBooleanToBoolean,
+	//	UnaryFunctionByteToBoolean,
+	//	UnaryFunctionCharToBoolean,
+	//	UnaryFunctionShortToBoolean,
+	//	UnaryFunctionFloatToBoolean,
+	//	UnaryFunctionIntToBoolean,
+	//	UnaryFunctionDoubleToBoolean,
+	//	UnaryFunctionLongToBoolean
+	//	{
+	//	}
+	//
+	//
+	//
+	//
+	//	public static interface UnaryProcedureAny<ObjectInput>
+	//	extends
+	//	UnaryProcedure<ObjectInput>,
+	//	//UnaryProcedure_$$Prim$$_,
+	//	UnaryProcedureBoolean,
+	//	UnaryProcedureByte,
+	//	UnaryProcedureChar,
+	//	UnaryProcedureShort,
+	//	UnaryProcedureFloat,
+	//	UnaryProcedureInt,
+	//	UnaryProcedureDouble,
+	//	UnaryProcedureLong
+	//	{
+	//	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@FunctionalInterface
+	public static interface BinaryFunctionToBoolean<Input0, Input1>
+	{
+		//public static final MethodHandle f = lookupInstanceNonoverloadedMethod(BinaryFunction.class, "f");
+		public boolean f(Input0 input0, Input1 input1);
+		
+		//public static final BinaryFunction<?, ?, ?> AlwaysNull = (input0, input1) -> null;
+	}
+	
+	
+	@FunctionalInterface
+	public static interface BinaryFunctionLongLongToBoolean
+	{
+		public boolean f(long input0, long input1);
+	}
+	
+	@FunctionalInterface
+	public static interface BinaryFunctionIntIntToBoolean
+	{
+		public boolean f(int input0, int input1);
+	}
 }
-
-
-
-
-
-
-
-
-
-//Shelved, mostly unnecessary with Java 8  :>
-
-//		public static interface UnaryFunctionAnyToObject<ObjectInput, Output>
-//		extends
-//		UnaryFunction<ObjectInput, Output>,
-//		//UnaryFunction_$$Prim$$_ToObject<Output>,
-//		UnaryFunctionBooleanToObject<Output>,
-//		UnaryFunctionByteToObject<Output>,
-//		UnaryFunctionCharToObject<Output>,
-//		UnaryFunctionShortToObject<Output>,
-//		UnaryFunctionFloatToObject<Output>,
-//		UnaryFunctionIntToObject<Output>,
-//		UnaryFunctionDoubleToObject<Output>,
-//		UnaryFunctionLongToObject<Output>
-//		{
-//		}
-//
-//
-//
-//
-//		public static interface UnaryFunctionAnyToBoolean<ObjectInput>
-//		extends
-//		UnaryFunctionObjectToBoolean<ObjectInput>,
-//		//UnaryFunction_$$Prim$$_ToBoolean,
-//		UnaryFunctionBooleanToBoolean,
-//		UnaryFunctionByteToBoolean,
-//		UnaryFunctionCharToBoolean,
-//		UnaryFunctionShortToBoolean,
-//		UnaryFunctionFloatToBoolean,
-//		UnaryFunctionIntToBoolean,
-//		UnaryFunctionDoubleToBoolean,
-//		UnaryFunctionLongToBoolean
-//		{
-//		}
-//
-//
-//
-//
-//		public static interface UnaryProcedureAny<ObjectInput>
-//		extends
-//		UnaryProcedure<ObjectInput>,
-//		//UnaryProcedure_$$Prim$$_,
-//		UnaryProcedureBoolean,
-//		UnaryProcedureByte,
-//		UnaryProcedureChar,
-//		UnaryProcedureShort,
-//		UnaryProcedureFloat,
-//		UnaryProcedureInt,
-//		UnaryProcedureDouble,
-//		UnaryProcedureLong
-//		{
-//		}

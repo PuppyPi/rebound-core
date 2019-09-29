@@ -28,6 +28,7 @@ import java.net.URL;
 import java.nio.Buffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
@@ -63,6 +64,7 @@ import rebound.util.AngryReflectionUtility.JavaVisibility;
 import rebound.util.ExceptionUtilities;
 import rebound.util.Primitives;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
+import rebound.util.classhacking.jre.JREGlassBox.ArraysGlassBox;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.objectutil.InstantiationNotSupportedException.InputlessInstantiationNotSupportedException;
 import rebound.util.objectutil.Trimmable.TrimmableTrimRV;
@@ -684,6 +686,8 @@ implements JavaNamespace
 		//Simple public clone() method :>   (added here so the non-reflective version will work, and for speed)
 		if (object instanceof ArrayList)
 			return (E)((ArrayList)object).clone();
+		if (object.getClass() == ArraysGlassBox.ArrayList)
+			return (E)Arrays.asList(((Collection)object).toArray());
 		if (object instanceof Vector)
 			return (E)((Vector)object).clone();
 		if (object instanceof Stack)

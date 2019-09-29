@@ -29,6 +29,18 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 		public Output f(Input input) throws Throwable;
 	}
 	
+	@FunctionalInterface
+	public static interface BinaryProcedureThrowingAnything<Input0, Input1>
+	{
+		public void f(Input0 input0, Input1 input1) throws Throwable;
+	}
+	
+	@FunctionalInterface
+	public static interface BinaryFunctionThrowingAnything<Input0, Input1, Output>
+	{
+		public Output f(Input0 input0, Input1 input1) throws Throwable;
+	}
+	
 	
 	
 	
@@ -95,5 +107,59 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 	public static interface BinaryProcedureThrowingIOException<Input0, Input1>
 	{
 		public void f(Input0 input0, Input1 input1) throws IOException;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureLongThrowingIOException
+	{
+		public void f(long input) throws IOException;
+	}
+	
+	@FunctionalInterface
+	public static interface UnaryFunctionLongToLongThrowingIOException
+	{
+		public long f(long input) throws IOException;
+	}
+	
+	
+	@FunctionalInterface
+	public static interface UnaryProcedureLongThrowingAnything
+	{
+		public void f(long input) throws Throwable;
+	}
+	
+	@FunctionalInterface
+	public static interface UnaryFunctionLongToLongThrowingAnything
+	{
+		public long f(long input) throws Throwable;
+	}
+	
+	
+	
+	
+	
+	@FunctionalInterface
+	public static interface UnaryFunctionObjectToLongThrowingIOException<I>
+	{
+		public long f(I input) throws IOException;
+	}
+	
+	@FunctionalInterface
+	public static interface UnaryFunctionObjectToLongThrowingAnything<I>
+	{
+		public long f(I input) throws Throwable;
 	}
 }

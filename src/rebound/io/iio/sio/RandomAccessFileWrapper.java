@@ -1,5 +1,7 @@
 package rebound.io.iio.sio;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import rebound.io.iio.unions.CloseableFlushableRandomAccessBytesInterface;
@@ -13,6 +15,19 @@ implements CloseableFlushableRandomAccessBytesInterface
 	{
 		this.underlying = underlying;
 	}
+	
+	public RandomAccessFileWrapper(File f, boolean write) throws FileNotFoundException
+	{
+		this(new RandomAccessFile(f, write ? "rw" : "r"));
+	}
+	
+	public RandomAccessFileWrapper(String f, boolean write) throws FileNotFoundException
+	{
+		this(new File(f), write);
+	}
+	
+	
+	
 	
 	
 	

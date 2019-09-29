@@ -5,12 +5,14 @@
 
 package rebound.bits;
 
+import static rebound.bits.BitUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import rebound.io.iio.InputByteStream;
 import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.RandomAccessBytes;
@@ -26,6 +28,8 @@ import rebound.util.objectutil.JavaNamespace;
 /**
  * Utility methods for getting/putting, packing/unpacking, reading/relaying primitive values of all multiples of 8 bits up to 64 (long/double), in/out of
  * 	• byte[]s
+ * 	• {@link Slice}<byte[]>s
+ * 	• {@link ByteList}s
  * 	• {@link ByteBuffer}s
  * 	• {@link InputStream}s / {@link OutputStream}s
  * 	• {@link InputByteStream}s / {@link OutputByteStream}s  (including, eg, {@link RandomAccessBytes}! :DD )
@@ -74,21 +78,51 @@ implements JavaNamespace
 	/* <<<
 python
 
-prims = [
-	["char", "char", 16],
-	["short", "short", 16],
-	["int24", "int", 24],
-	["int", "int", 32],
-	["long40", "long", 40],
-	["long48", "long", 48],
-	["long56", "long", 56],
-	["long", "long", 64],
+primsExtras = [
+	["int24", "Int24", "int", 24],
+	["long40", "Long40", "long", 40],
+	["long48", "Long48", "long", 48],
+	["long56", "Long56", "long", 56],
 ]
 
-allprims = prims + [
-	["float", "float", 32],
-	["double", "double", 64],
+iprims = [
+	["char", "Char", "char", 16],
+	["short", "Short", "short", 16],
+	["uint24", "UInt24", "int", 24],
+	["int", "Int", "int", 32],
+	["ulong40", "ULong40", "long", 40],
+	["ulong48", "ULong48", "long", 48],
+	["ulong56", "ULong56", "long", 56],
+	["long", "Long", "long", 64],
+]
+
+oprims = [
+	["char", "Char", "char", 16],
+	["short", "Short", "short", 16],
+	["int24", "Int24", "int", 24],
+	["int", "Int", "int", 32],
+	["long40", "Long40", "long", 40],
+	["long48", "Long48", "long", 48],
+	["long56", "Long56", "long", 56],
+	["long", "Long", "long", 64],
+]
+
+fl = [
+	["float", "Float", "float", 32],
+	["double", "Double", "double", 64],
 ];
+
+si = [
+	["sint24", "SInt24", "int", 24],
+	["slong40", "SLong40", "long", 40],
+	["slong48", "SLong48", "long", 48],
+	["slong56", "SLong56", "long", 56],
+];
+
+alliprims = iprims + fl + si;
+alloprims = oprims + fl;
+
+
 
 def isnew(logiprim):
 	return logiprim[-1].isdigit();
@@ -101,15 +135,22 @@ apis = [
 [  [ [["Slice<byte[]>", "source"], ["int", "offset"]], None, "source.getUnderlying()[source.getOffset()+offset+byteIndex]"],           [ [["Slice<byte[]>", "dest"], ["int", "offset"]], None, "dest.getUnderlying()[dest.getOffset()+offset+byteIndex] = %"]         ],
 [  [ [["ByteList", "source"], ["int", "offset"]], None, "source.getByte(offset+byteIndex)"],           [ [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
 [  None,                                                                                               [ [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
-[  [ [["ByteBuffer", "source"]], None, "source.get(byteIndex)"],                             [ [["ByteBuffer", "dest"]], None, "dest.put(byteIndex, %)"]                            ],
-[  [ [["ByteBuffer", "source"], ["int", "offset"]], None, "source.get(offset+byteIndex)"],   [ [["ByteBuffer", "dest"], ["int", "offset"]], None, "dest.put(offset+byteIndex, %)"]  ],
 [  [ [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ [["InputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ [["OutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 ];
 
+allapis = apis + [
+[  [ [["ByteBuffer", "source"]], None, "source.get(byteIndex)"],                             [ [["ByteBuffer", "dest"]], None, "dest.put(byteIndex, %)"]                            ],
+[  [ [["ByteBuffer", "source"], ["int", "offset"]], None, "source.get(offset+byteIndex)"],   [ [["ByteBuffer", "dest"], ["int", "offset"]], None, "dest.put(offset+byteIndex, %)"]  ],
+]
+
 iapis = filter(lambda a: a != None, map(lambda (inform, outform): inform, apis));
 oapis = filter(lambda a: a != None, map(lambda (inform, outform): outform, apis));
+
+alliapis = filter(lambda a: a != None, map(lambda (inform, outform): inform, allapis));
+alloapis = filter(lambda a: a != None, map(lambda (inform, outform): outform, allapis));
+
 
 
 
@@ -135,9 +176,8 @@ _s = "";   #for disabling certain blocks ^_~
 # Core functions! ^w^
 
 for littleEndian in [True, False]:
-	for logiprim, physprim, bitlen in prims:
-		clogiprim = capitalize(logiprim);
-		
+	
+	for logiprim, clogiprim, physprim, bitlen in iprims:
 		for args, throws, expr in iapis:
 			s += """
 			public static """+physprim+" get"+("Little" if littleEndian else "Big")+clogiprim+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
@@ -149,6 +189,7 @@ for littleEndian in [True, False]:
 			}
 			""";
 		
+	for logiprim, clogiprim, physprim, bitlen in oprims:
 		for args, throws, expr in oapis:
 			s += """
 			public static void put"""+("Little" if littleEndian else "Big")+clogiprim+"("+argsdecl(args+[[physprim, "value"]])+")"+(" throws "+throws if throws != None else "")+"""
@@ -161,6 +202,25 @@ for littleEndian in [True, False]:
 			""";
 
 s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+
+
+
+
+
+# Signed upcasters :>
+for littleEndian in [True, False]:
+	
+	for logiprim, clogiprim, physprim, bitlen in primsExtras:
+		for args, throws, expr in iapis:
+			s += """
+			public static """+physprim+" get"+("LittleS" if littleEndian else "BigS")+clogiprim+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
+			{
+				return signedUpcast"""+str(bitlen)+"""(get"""+("LittleU" if littleEndian else "BigU")+clogiprim+"("+argslist(args)+"""));
+			}
+			""";
+s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+
+
 
 
 
@@ -195,10 +255,9 @@ s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 
 # Runtime-endianness specification conveniences! \o/
 
-for logiprim, physprim, bitlen in allprims:
-		clogiprim = capitalize(logiprim);
+for logiprim, clogiprim, physprim, bitlen in alliprims:
 		
-		for args, throws, expr in iapis:
+		for args, throws, expr in alliapis:
 			s += """
 				public static """+physprim+" get"+clogiprim+"("+argsdecl(args+[["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 				{
@@ -211,7 +270,10 @@ for logiprim, physprim, bitlen in allprims:
 				}
 			""";
 		
-		for args, throws, expr in oapis:
+
+for logiprim, clogiprim, physprim, bitlen in alloprims:
+		
+		for args, throws, expr in alloapis:
 			s += """
 				public static void put"""+clogiprim+"("+argsdecl(args+[[physprim, "value"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 				{
@@ -245,8 +307,8 @@ s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 # Array nicenesses! :D
 
 for e in ["Little", "Big"]:
-	for logiprim, physprim, bitlen in allprims:
-		clogiprim = capitalize(logiprim);
+	for logiprim, clogiprim, physprim, bitlen in alloprims:
+		
 		s += """
 			public static byte[] pack"""+e+clogiprim+"("+physprim+""" value)
 			{
@@ -264,9 +326,9 @@ for e in ["Little", "Big"]:
 
 # Dynamic number of bytes!
 
-for args, throws, expr in iapis:
+for args, throws, expr in alliapis:
 	s += """
-		public static long getLittle("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long getLittleUnsigned("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
@@ -275,15 +337,15 @@ for args, throws, expr in iapis:
 				case 2:
 					return getLittleShort("""+argslist(args)+""") & 0xFFFFl;
 				case 3:
-					return getLittleInt24("""+argslist(args)+""") & 0xFF_FFFFl;
+					return getLittleUInt24("""+argslist(args)+""") & 0xFF_FFFFl;
 				case 4:
 					return getLittleInt("""+argslist(args)+""") & 0xFFFF_FFFFl;
 				case 5:
-					return getLittleLong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
+					return getLittleULong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
 				case 6:
-					return getLittleLong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
+					return getLittleULong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
 				case 7:
-					return getLittleLong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
+					return getLittleULong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
 				case 8:
 					return getLittleLong("""+argslist(args)+""");
 				default:
@@ -291,7 +353,7 @@ for args, throws, expr in iapis:
 			}
 		}
 		
-		public static long getBig("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long getBigUnsigned("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
@@ -300,15 +362,15 @@ for args, throws, expr in iapis:
 				case 2:
 					return getBigShort("""+argslist(args)+""") & 0xFFFFl;
 				case 3:
-					return getBigInt24("""+argslist(args)+""") & 0xFF_FFFFl;
+					return getBigUInt24("""+argslist(args)+""") & 0xFF_FFFFl;
 				case 4:
 					return getBigInt("""+argslist(args)+""") & 0xFFFF_FFFFl;
 				case 5:
-					return getBigLong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
+					return getBigULong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
 				case 6:
-					return getBigLong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
+					return getBigULong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
 				case 7:
-					return getBigLong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
+					return getBigULong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
 				case 8:
 					return getBigLong("""+argslist(args)+""");
 				default:
@@ -316,18 +378,18 @@ for args, throws, expr in iapis:
 			}
 		}
 		
-		public static long get("""+argsdecl(args+[["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long getUnsigned("""+argsdecl(args+[["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			if (endianness == Endianness.Little)
-				return getLittle("""+argslist(args+[["int", "numberOfBytes"]])+""");
+				return getLittleUnsigned("""+argslist(args+[["int", "numberOfBytes"]])+""");
 			else if (endianness == Endianness.Big)
-				return getBig("""+argslist(args+[["int", "numberOfBytes"]])+""");
+				return getBigUnsigned("""+argslist(args+[["int", "numberOfBytes"]])+""");
 			else
 				throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 		}
 	""";
 
-for args, throws, expr in oapis:
+for args, throws, expr in alloapis:
 	s += """
 		public static void putLittle("""+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
@@ -459,22 +521,6 @@ p(s);
 		return rv;
 	}
 	
-	public static char getLittleChar(ByteBuffer source)
-	{
-		char rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 0;
-		rv |= ((source.get(1)) & 0xFF) << 8;
-		return rv;
-	}
-	
-	public static char getLittleChar(ByteBuffer source, int offset)
-	{
-		char rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 0;
-		rv |= ((source.get(offset+1)) & 0xFF) << 8;
-		return rv;
-	}
-	
 	public static char getLittleChar(InputStream source) throws IOException, EOFException
 	{
 		char rv = 0;
@@ -497,66 +543,6 @@ p(s);
 		rv |= ((getByte(source)) & 0xFF) << 0;
 		rv |= ((getByte(source)) & 0xFF) << 8;
 		return rv;
-	}
-	
-	public static void putLittleChar(byte[] dest, char value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleChar(byte[] dest, int offset, char value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleChar(Slice<byte[]> dest, int offset, char value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleChar(ByteList dest, int offset, char value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(ByteList dest, char value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(ByteBuffer dest, char value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(ByteBuffer dest, int offset, char value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(OutputStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(OutputByteStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleChar(ByteBlockWriteStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static short getLittleShort(byte[] source)
@@ -591,22 +577,6 @@ p(s);
 		return rv;
 	}
 	
-	public static short getLittleShort(ByteBuffer source)
-	{
-		short rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 0;
-		rv |= ((source.get(1)) & 0xFF) << 8;
-		return rv;
-	}
-	
-	public static short getLittleShort(ByteBuffer source, int offset)
-	{
-		short rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 0;
-		rv |= ((source.get(offset+1)) & 0xFF) << 8;
-		return rv;
-	}
-	
 	public static short getLittleShort(InputStream source) throws IOException, EOFException
 	{
 		short rv = 0;
@@ -631,67 +601,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putLittleShort(byte[] dest, short value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleShort(byte[] dest, int offset, short value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleShort(Slice<byte[]> dest, int offset, short value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-	}
-	
-	public static void putLittleShort(ByteList dest, int offset, short value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(ByteList dest, short value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(ByteBuffer dest, short value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(ByteBuffer dest, int offset, short value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(OutputStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(OutputByteStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static void putLittleShort(ByteBlockWriteStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-	}
-	
-	public static int getLittleInt24(byte[] source)
+	public static int getLittleUInt24(byte[] source)
 	{
 		int rv = 0;
 		rv |= ((source[0]) & 0xFF) << 0;
@@ -700,7 +610,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(byte[] source, int offset)
+	public static int getLittleUInt24(byte[] source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source[offset+0]) & 0xFF) << 0;
@@ -709,7 +619,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(Slice<byte[]> source, int offset)
+	public static int getLittleUInt24(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 0;
@@ -718,7 +628,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(ByteList source, int offset)
+	public static int getLittleUInt24(ByteList source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFF) << 0;
@@ -727,25 +637,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(ByteBuffer source)
-	{
-		int rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 0;
-		rv |= ((source.get(1)) & 0xFF) << 8;
-		rv |= ((source.get(2)) & 0xFF) << 16;
-		return rv;
-	}
-	
-	public static int getLittleInt24(ByteBuffer source, int offset)
-	{
-		int rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 0;
-		rv |= ((source.get(offset+1)) & 0xFF) << 8;
-		rv |= ((source.get(offset+2)) & 0xFF) << 16;
-		return rv;
-	}
-	
-	public static int getLittleInt24(InputStream source) throws IOException, EOFException
+	public static int getLittleUInt24(InputStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -754,7 +646,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(InputByteStream source) throws IOException, EOFException
+	public static int getLittleUInt24(InputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -763,83 +655,13 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt24(ByteBlockReadStream source) throws IOException, EOFException
+	public static int getLittleUInt24(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
 		rv |= ((getByte(source)) & 0xFF) << 8;
 		rv |= ((getByte(source)) & 0xFF) << 16;
 		return rv;
-	}
-	
-	public static void putLittleInt24(byte[] dest, int value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-	}
-	
-	public static void putLittleInt24(byte[] dest, int offset, int value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-	}
-	
-	public static void putLittleInt24(Slice<byte[]> dest, int offset, int value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-	}
-	
-	public static void putLittleInt24(ByteList dest, int offset, int value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(ByteList dest, int value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(ByteBuffer dest, int value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(ByteBuffer dest, int offset, int value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(OutputStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(OutputByteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-	}
-	
-	public static void putLittleInt24(ByteBlockWriteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
 	}
 	
 	public static int getLittleInt(byte[] source)
@@ -882,26 +704,6 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt(ByteBuffer source)
-	{
-		int rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 0;
-		rv |= ((source.get(1)) & 0xFF) << 8;
-		rv |= ((source.get(2)) & 0xFF) << 16;
-		rv |= ((source.get(3)) & 0xFF) << 24;
-		return rv;
-	}
-	
-	public static int getLittleInt(ByteBuffer source, int offset)
-	{
-		int rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 0;
-		rv |= ((source.get(offset+1)) & 0xFF) << 8;
-		rv |= ((source.get(offset+2)) & 0xFF) << 16;
-		rv |= ((source.get(offset+3)) & 0xFF) << 24;
-		return rv;
-	}
-	
 	public static int getLittleInt(InputStream source) throws IOException, EOFException
 	{
 		int rv = 0;
@@ -932,87 +734,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putLittleInt(byte[] dest, int value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-		dest[3] = (byte)((value >>> 24) & 0xFF);
-	}
-	
-	public static void putLittleInt(byte[] dest, int offset, int value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
-	}
-	
-	public static void putLittleInt(Slice<byte[]> dest, int offset, int value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
-	}
-	
-	public static void putLittleInt(ByteList dest, int offset, int value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(ByteList dest, int value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(ByteBuffer dest, int value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(ByteBuffer dest, int offset, int value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(OutputStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(OutputByteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static void putLittleInt(ByteBlockWriteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-	}
-	
-	public static long getLittleLong40(byte[] source)
+	public static long getLittleULong40(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 0;
@@ -1023,7 +745,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(byte[] source, int offset)
+	public static long getLittleULong40(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 0;
@@ -1034,7 +756,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(Slice<byte[]> source, int offset)
+	public static long getLittleULong40(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 0;
@@ -1045,7 +767,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(ByteList source, int offset)
+	public static long getLittleULong40(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 0;
@@ -1056,29 +778,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 0;
-		rv |= ((source.get(1)) & 0xFFl) << 8;
-		rv |= ((source.get(2)) & 0xFFl) << 16;
-		rv |= ((source.get(3)) & 0xFFl) << 24;
-		rv |= ((source.get(4)) & 0xFFl) << 32;
-		return rv;
-	}
-	
-	public static long getLittleLong40(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 0;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 32;
-		return rv;
-	}
-	
-	public static long getLittleLong40(InputStream source) throws IOException, EOFException
+	public static long getLittleULong40(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1089,7 +789,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong40(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1100,7 +800,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong40(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getLittleULong40(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1111,97 +811,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putLittleLong40(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-		dest[3] = (byte)((value >>> 24) & 0xFF);
-		dest[4] = (byte)((value >>> 32) & 0xFF);
-	}
-	
-	public static void putLittleLong40(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
-	}
-	
-	public static void putLittleLong40(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
-	}
-	
-	public static void putLittleLong40(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-		dest.put(4, (byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static void putLittleLong40(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-	}
-	
-	public static long getLittleLong48(byte[] source)
+	public static long getLittleULong48(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 0;
@@ -1213,7 +823,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(byte[] source, int offset)
+	public static long getLittleULong48(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 0;
@@ -1225,7 +835,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(Slice<byte[]> source, int offset)
+	public static long getLittleULong48(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 0;
@@ -1237,7 +847,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(ByteList source, int offset)
+	public static long getLittleULong48(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 0;
@@ -1249,31 +859,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 0;
-		rv |= ((source.get(1)) & 0xFFl) << 8;
-		rv |= ((source.get(2)) & 0xFFl) << 16;
-		rv |= ((source.get(3)) & 0xFFl) << 24;
-		rv |= ((source.get(4)) & 0xFFl) << 32;
-		rv |= ((source.get(5)) & 0xFFl) << 40;
-		return rv;
-	}
-	
-	public static long getLittleLong48(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 0;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 40;
-		return rv;
-	}
-	
-	public static long getLittleLong48(InputStream source) throws IOException, EOFException
+	public static long getLittleULong48(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1285,7 +871,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong48(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1297,7 +883,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong48(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getLittleULong48(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1309,107 +895,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putLittleLong48(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-		dest[3] = (byte)((value >>> 24) & 0xFF);
-		dest[4] = (byte)((value >>> 32) & 0xFF);
-		dest[5] = (byte)((value >>> 40) & 0xFF);
-	}
-	
-	public static void putLittleLong48(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
-		dest[offset+5] = (byte)((value >>> 40) & 0xFF);
-	}
-	
-	public static void putLittleLong48(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
-	}
-	
-	public static void putLittleLong48(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-		dest.addByte((byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-		dest.put(4, (byte)((value >>> 32) & 0xFF));
-		dest.put(5, (byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static void putLittleLong48(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-	}
-	
-	public static long getLittleLong56(byte[] source)
+	public static long getLittleULong56(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 0;
@@ -1422,7 +908,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(byte[] source, int offset)
+	public static long getLittleULong56(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 0;
@@ -1435,7 +921,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(Slice<byte[]> source, int offset)
+	public static long getLittleULong56(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 0;
@@ -1448,7 +934,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(ByteList source, int offset)
+	public static long getLittleULong56(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 0;
@@ -1461,33 +947,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 0;
-		rv |= ((source.get(1)) & 0xFFl) << 8;
-		rv |= ((source.get(2)) & 0xFFl) << 16;
-		rv |= ((source.get(3)) & 0xFFl) << 24;
-		rv |= ((source.get(4)) & 0xFFl) << 32;
-		rv |= ((source.get(5)) & 0xFFl) << 40;
-		rv |= ((source.get(6)) & 0xFFl) << 48;
-		return rv;
-	}
-	
-	public static long getLittleLong56(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 0;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 40;
-		rv |= ((source.get(offset+6)) & 0xFFl) << 48;
-		return rv;
-	}
-	
-	public static long getLittleLong56(InputStream source) throws IOException, EOFException
+	public static long getLittleULong56(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1500,7 +960,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong56(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1513,7 +973,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong56(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getLittleULong56(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1524,116 +984,6 @@ p(s);
 		rv |= ((getByte(source)) & 0xFFl) << 40;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
 		return rv;
-	}
-	
-	public static void putLittleLong56(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 0) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-		dest[3] = (byte)((value >>> 24) & 0xFF);
-		dest[4] = (byte)((value >>> 32) & 0xFF);
-		dest[5] = (byte)((value >>> 40) & 0xFF);
-		dest[6] = (byte)((value >>> 48) & 0xFF);
-	}
-	
-	public static void putLittleLong56(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
-		dest[offset+5] = (byte)((value >>> 40) & 0xFF);
-		dest[offset+6] = (byte)((value >>> 48) & 0xFF);
-	}
-	
-	public static void putLittleLong56(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 48) & 0xFF);
-	}
-	
-	public static void putLittleLong56(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-		dest.addByte((byte)((value >>> 40) & 0xFF));
-		dest.addByte((byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-		dest.put(4, (byte)((value >>> 32) & 0xFF));
-		dest.put(5, (byte)((value >>> 40) & 0xFF));
-		dest.put(6, (byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 40) & 0xFF));
-		dest.put(offset+6, (byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 48) & 0xFF));
-	}
-	
-	public static void putLittleLong56(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 0) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 48) & 0xFF));
 	}
 	
 	public static long getLittleLong(byte[] source)
@@ -1692,34 +1042,6 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 0;
-		rv |= ((source.get(1)) & 0xFFl) << 8;
-		rv |= ((source.get(2)) & 0xFFl) << 16;
-		rv |= ((source.get(3)) & 0xFFl) << 24;
-		rv |= ((source.get(4)) & 0xFFl) << 32;
-		rv |= ((source.get(5)) & 0xFFl) << 40;
-		rv |= ((source.get(6)) & 0xFFl) << 48;
-		rv |= ((source.get(7)) & 0xFFl) << 56;
-		return rv;
-	}
-	
-	public static long getLittleLong(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 0;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 40;
-		rv |= ((source.get(offset+6)) & 0xFFl) << 48;
-		rv |= ((source.get(offset+7)) & 0xFFl) << 56;
-		return rv;
-	}
-	
 	public static long getLittleLong(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -1760,6 +1082,462 @@ p(s);
 		rv |= ((getByte(source)) & 0xFFl) << 48;
 		rv |= ((getByte(source)) & 0xFFl) << 56;
 		return rv;
+	}
+	
+	public static void putLittleChar(byte[] dest, char value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleChar(byte[] dest, int offset, char value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleChar(Slice<byte[]> dest, int offset, char value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleChar(ByteList dest, int offset, char value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleChar(ByteList dest, char value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleChar(OutputStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleChar(OutputByteStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleChar(ByteBlockWriteStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(byte[] dest, short value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleShort(byte[] dest, int offset, short value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleShort(Slice<byte[]> dest, int offset, short value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void putLittleShort(ByteList dest, int offset, short value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(ByteList dest, short value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(OutputStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(OutputByteStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(ByteBlockWriteStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleInt24(byte[] dest, int value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+	}
+	
+	public static void putLittleInt24(byte[] dest, int offset, int value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+	}
+	
+	public static void putLittleInt24(Slice<byte[]> dest, int offset, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+	}
+	
+	public static void putLittleInt24(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt24(ByteList dest, int value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt24(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt24(OutputByteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt24(ByteBlockWriteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt(byte[] dest, int value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+		dest[3] = (byte)((value >>> 24) & 0xFF);
+	}
+	
+	public static void putLittleInt(byte[] dest, int offset, int value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
+	}
+	
+	public static void putLittleInt(Slice<byte[]> dest, int offset, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+	}
+	
+	public static void putLittleInt(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleInt(ByteList dest, int value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleInt(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleInt(OutputByteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleInt(ByteBlockWriteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleLong40(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+		dest[3] = (byte)((value >>> 24) & 0xFF);
+		dest[4] = (byte)((value >>> 32) & 0xFF);
+	}
+	
+	public static void putLittleLong40(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
+	}
+	
+	public static void putLittleLong40(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
+	}
+	
+	public static void putLittleLong40(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong40(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong40(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong40(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong40(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong48(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+		dest[3] = (byte)((value >>> 24) & 0xFF);
+		dest[4] = (byte)((value >>> 32) & 0xFF);
+		dest[5] = (byte)((value >>> 40) & 0xFF);
+	}
+	
+	public static void putLittleLong48(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
+		dest[offset+5] = (byte)((value >>> 40) & 0xFF);
+	}
+	
+	public static void putLittleLong48(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
+	}
+	
+	public static void putLittleLong48(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong48(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+		dest.addByte((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong48(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong48(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong48(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong56(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 0) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+		dest[3] = (byte)((value >>> 24) & 0xFF);
+		dest[4] = (byte)((value >>> 32) & 0xFF);
+		dest[5] = (byte)((value >>> 40) & 0xFF);
+		dest[6] = (byte)((value >>> 48) & 0xFF);
+	}
+	
+	public static void putLittleLong56(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
+		dest[offset+5] = (byte)((value >>> 40) & 0xFF);
+		dest[offset+6] = (byte)((value >>> 48) & 0xFF);
+	}
+	
+	public static void putLittleLong56(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 48) & 0xFF);
+	}
+	
+	public static void putLittleLong56(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void putLittleLong56(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+		dest.addByte((byte)((value >>> 40) & 0xFF));
+		dest.addByte((byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void putLittleLong56(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void putLittleLong56(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void putLittleLong56(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
 	}
 	
 	public static void putLittleLong(byte[] dest, long value)
@@ -1820,30 +1598,6 @@ p(s);
 		dest.addByte((byte)((value >>> 40) & 0xFF));
 		dest.addByte((byte)((value >>> 48) & 0xFF));
 		dest.addByte((byte)((value >>> 56) & 0xFF));
-	}
-	
-	public static void putLittleLong(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 0) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-		dest.put(4, (byte)((value >>> 32) & 0xFF));
-		dest.put(5, (byte)((value >>> 40) & 0xFF));
-		dest.put(6, (byte)((value >>> 48) & 0xFF));
-		dest.put(7, (byte)((value >>> 56) & 0xFF));
-	}
-	
-	public static void putLittleLong(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 40) & 0xFF));
-		dest.put(offset+6, (byte)((value >>> 48) & 0xFF));
-		dest.put(offset+7, (byte)((value >>> 56) & 0xFF));
 	}
 	
 	public static void putLittleLong(OutputStream dest, long value) throws IOException, EOFException
@@ -1914,22 +1668,6 @@ p(s);
 		return rv;
 	}
 	
-	public static char getBigChar(ByteBuffer source)
-	{
-		char rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 8;
-		rv |= ((source.get(1)) & 0xFF) << 0;
-		return rv;
-	}
-	
-	public static char getBigChar(ByteBuffer source, int offset)
-	{
-		char rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 8;
-		rv |= ((source.get(offset+1)) & 0xFF) << 0;
-		return rv;
-	}
-	
 	public static char getBigChar(InputStream source) throws IOException, EOFException
 	{
 		char rv = 0;
@@ -1952,66 +1690,6 @@ p(s);
 		rv |= ((getByte(source)) & 0xFF) << 8;
 		rv |= ((getByte(source)) & 0xFF) << 0;
 		return rv;
-	}
-	
-	public static void putBigChar(byte[] dest, char value)
-	{
-		dest[0] = (byte)((value >>> 8) & 0xFF);
-		dest[1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigChar(byte[] dest, int offset, char value)
-	{
-		dest[offset+0] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigChar(Slice<byte[]> dest, int offset, char value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigChar(ByteList dest, int offset, char value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(ByteList dest, char value)
-	{
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(ByteBuffer dest, char value)
-	{
-		dest.put(0, (byte)((value >>> 8) & 0xFF));
-		dest.put(1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(ByteBuffer dest, int offset, char value)
-	{
-		dest.put(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(OutputStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(OutputByteStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigChar(ByteBlockWriteStream dest, char value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static short getBigShort(byte[] source)
@@ -2046,22 +1724,6 @@ p(s);
 		return rv;
 	}
 	
-	public static short getBigShort(ByteBuffer source)
-	{
-		short rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 8;
-		rv |= ((source.get(1)) & 0xFF) << 0;
-		return rv;
-	}
-	
-	public static short getBigShort(ByteBuffer source, int offset)
-	{
-		short rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 8;
-		rv |= ((source.get(offset+1)) & 0xFF) << 0;
-		return rv;
-	}
-	
 	public static short getBigShort(InputStream source) throws IOException, EOFException
 	{
 		short rv = 0;
@@ -2086,67 +1748,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putBigShort(byte[] dest, short value)
-	{
-		dest[0] = (byte)((value >>> 8) & 0xFF);
-		dest[1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigShort(byte[] dest, int offset, short value)
-	{
-		dest[offset+0] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigShort(Slice<byte[]> dest, int offset, short value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigShort(ByteList dest, int offset, short value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(ByteList dest, short value)
-	{
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(ByteBuffer dest, short value)
-	{
-		dest.put(0, (byte)((value >>> 8) & 0xFF));
-		dest.put(1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(ByteBuffer dest, int offset, short value)
-	{
-		dest.put(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(OutputStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(OutputByteStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigShort(ByteBlockWriteStream dest, short value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static int getBigInt24(byte[] source)
+	public static int getBigUInt24(byte[] source)
 	{
 		int rv = 0;
 		rv |= ((source[0]) & 0xFF) << 16;
@@ -2155,7 +1757,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(byte[] source, int offset)
+	public static int getBigUInt24(byte[] source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source[offset+0]) & 0xFF) << 16;
@@ -2164,7 +1766,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(Slice<byte[]> source, int offset)
+	public static int getBigUInt24(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 16;
@@ -2173,7 +1775,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(ByteList source, int offset)
+	public static int getBigUInt24(ByteList source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFF) << 16;
@@ -2182,25 +1784,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(ByteBuffer source)
-	{
-		int rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 16;
-		rv |= ((source.get(1)) & 0xFF) << 8;
-		rv |= ((source.get(2)) & 0xFF) << 0;
-		return rv;
-	}
-	
-	public static int getBigInt24(ByteBuffer source, int offset)
-	{
-		int rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 16;
-		rv |= ((source.get(offset+1)) & 0xFF) << 8;
-		rv |= ((source.get(offset+2)) & 0xFF) << 0;
-		return rv;
-	}
-	
-	public static int getBigInt24(InputStream source) throws IOException, EOFException
+	public static int getBigUInt24(InputStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 16;
@@ -2209,7 +1793,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(InputByteStream source) throws IOException, EOFException
+	public static int getBigUInt24(InputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 16;
@@ -2218,83 +1802,13 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt24(ByteBlockReadStream source) throws IOException, EOFException
+	public static int getBigUInt24(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 16;
 		rv |= ((getByte(source)) & 0xFF) << 8;
 		rv |= ((getByte(source)) & 0xFF) << 0;
 		return rv;
-	}
-	
-	public static void putBigInt24(byte[] dest, int value)
-	{
-		dest[0] = (byte)((value >>> 16) & 0xFF);
-		dest[1] = (byte)((value >>> 8) & 0xFF);
-		dest[2] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt24(byte[] dest, int offset, int value)
-	{
-		dest[offset+0] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt24(Slice<byte[]> dest, int offset, int value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt24(ByteList dest, int offset, int value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(ByteList dest, int value)
-	{
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(ByteBuffer dest, int value)
-	{
-		dest.put(0, (byte)((value >>> 16) & 0xFF));
-		dest.put(1, (byte)((value >>> 8) & 0xFF));
-		dest.put(2, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(ByteBuffer dest, int offset, int value)
-	{
-		dest.put(offset+0, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(OutputStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(OutputByteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt24(ByteBlockWriteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static int getBigInt(byte[] source)
@@ -2337,26 +1851,6 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt(ByteBuffer source)
-	{
-		int rv = 0;
-		rv |= ((source.get(0)) & 0xFF) << 24;
-		rv |= ((source.get(1)) & 0xFF) << 16;
-		rv |= ((source.get(2)) & 0xFF) << 8;
-		rv |= ((source.get(3)) & 0xFF) << 0;
-		return rv;
-	}
-	
-	public static int getBigInt(ByteBuffer source, int offset)
-	{
-		int rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFF) << 24;
-		rv |= ((source.get(offset+1)) & 0xFF) << 16;
-		rv |= ((source.get(offset+2)) & 0xFF) << 8;
-		rv |= ((source.get(offset+3)) & 0xFF) << 0;
-		return rv;
-	}
-	
 	public static int getBigInt(InputStream source) throws IOException, EOFException
 	{
 		int rv = 0;
@@ -2387,87 +1881,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putBigInt(byte[] dest, int value)
-	{
-		dest[0] = (byte)((value >>> 24) & 0xFF);
-		dest[1] = (byte)((value >>> 16) & 0xFF);
-		dest[2] = (byte)((value >>> 8) & 0xFF);
-		dest[3] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt(byte[] dest, int offset, int value)
-	{
-		dest[offset+0] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt(Slice<byte[]> dest, int offset, int value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigInt(ByteList dest, int offset, int value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(ByteList dest, int value)
-	{
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(ByteBuffer dest, int value)
-	{
-		dest.put(0, (byte)((value >>> 24) & 0xFF));
-		dest.put(1, (byte)((value >>> 16) & 0xFF));
-		dest.put(2, (byte)((value >>> 8) & 0xFF));
-		dest.put(3, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(ByteBuffer dest, int offset, int value)
-	{
-		dest.put(offset+0, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(OutputStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(OutputByteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigInt(ByteBlockWriteStream dest, int value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static long getBigLong40(byte[] source)
+	public static long getBigULong40(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 32;
@@ -2478,7 +1892,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(byte[] source, int offset)
+	public static long getBigULong40(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 32;
@@ -2489,7 +1903,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(Slice<byte[]> source, int offset)
+	public static long getBigULong40(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 32;
@@ -2500,7 +1914,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(ByteList source, int offset)
+	public static long getBigULong40(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 32;
@@ -2511,29 +1925,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 32;
-		rv |= ((source.get(1)) & 0xFFl) << 24;
-		rv |= ((source.get(2)) & 0xFFl) << 16;
-		rv |= ((source.get(3)) & 0xFFl) << 8;
-		rv |= ((source.get(4)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong40(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong40(InputStream source) throws IOException, EOFException
+	public static long getBigULong40(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 32;
@@ -2544,7 +1936,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong40(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 32;
@@ -2555,7 +1947,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong40(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getBigULong40(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 32;
@@ -2566,97 +1958,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putBigLong40(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 32) & 0xFF);
-		dest[1] = (byte)((value >>> 24) & 0xFF);
-		dest[2] = (byte)((value >>> 16) & 0xFF);
-		dest[3] = (byte)((value >>> 8) & 0xFF);
-		dest[4] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong40(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 32) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong40(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 32) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong40(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 32) & 0xFF));
-		dest.put(1, (byte)((value >>> 24) & 0xFF));
-		dest.put(2, (byte)((value >>> 16) & 0xFF));
-		dest.put(3, (byte)((value >>> 8) & 0xFF));
-		dest.put(4, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong40(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static long getBigLong48(byte[] source)
+	public static long getBigULong48(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 40;
@@ -2668,7 +1970,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(byte[] source, int offset)
+	public static long getBigULong48(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 40;
@@ -2680,7 +1982,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(Slice<byte[]> source, int offset)
+	public static long getBigULong48(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 40;
@@ -2692,7 +1994,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(ByteList source, int offset)
+	public static long getBigULong48(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 40;
@@ -2704,31 +2006,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 40;
-		rv |= ((source.get(1)) & 0xFFl) << 32;
-		rv |= ((source.get(2)) & 0xFFl) << 24;
-		rv |= ((source.get(3)) & 0xFFl) << 16;
-		rv |= ((source.get(4)) & 0xFFl) << 8;
-		rv |= ((source.get(5)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong48(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 40;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong48(InputStream source) throws IOException, EOFException
+	public static long getBigULong48(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 40;
@@ -2740,7 +2018,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong48(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 40;
@@ -2752,7 +2030,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong48(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getBigULong48(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 40;
@@ -2764,107 +2042,7 @@ p(s);
 		return rv;
 	}
 	
-	public static void putBigLong48(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 40) & 0xFF);
-		dest[1] = (byte)((value >>> 32) & 0xFF);
-		dest[2] = (byte)((value >>> 24) & 0xFF);
-		dest[3] = (byte)((value >>> 16) & 0xFF);
-		dest[4] = (byte)((value >>> 8) & 0xFF);
-		dest[5] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong48(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 40) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 32) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+5] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong48(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 40) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 32) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong48(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 40) & 0xFF));
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 40) & 0xFF));
-		dest.put(1, (byte)((value >>> 32) & 0xFF));
-		dest.put(2, (byte)((value >>> 24) & 0xFF));
-		dest.put(3, (byte)((value >>> 16) & 0xFF));
-		dest.put(4, (byte)((value >>> 8) & 0xFF));
-		dest.put(5, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 40) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong48(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static long getBigLong56(byte[] source)
+	public static long getBigULong56(byte[] source)
 	{
 		long rv = 0;
 		rv |= ((source[0]) & 0xFFl) << 48;
@@ -2877,7 +2055,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(byte[] source, int offset)
+	public static long getBigULong56(byte[] source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source[offset+0]) & 0xFFl) << 48;
@@ -2890,7 +2068,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(Slice<byte[]> source, int offset)
+	public static long getBigULong56(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFFl) << 48;
@@ -2903,7 +2081,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(ByteList source, int offset)
+	public static long getBigULong56(ByteList source, int offset)
 	{
 		long rv = 0;
 		rv |= ((source.getByte(offset+0)) & 0xFFl) << 48;
@@ -2916,33 +2094,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 48;
-		rv |= ((source.get(1)) & 0xFFl) << 40;
-		rv |= ((source.get(2)) & 0xFFl) << 32;
-		rv |= ((source.get(3)) & 0xFFl) << 24;
-		rv |= ((source.get(4)) & 0xFFl) << 16;
-		rv |= ((source.get(5)) & 0xFFl) << 8;
-		rv |= ((source.get(6)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong56(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 48;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 40;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+6)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong56(InputStream source) throws IOException, EOFException
+	public static long getBigULong56(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
@@ -2955,7 +2107,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong56(InputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
@@ -2968,7 +2120,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong56(ByteBlockReadStream source) throws IOException, EOFException
+	public static long getBigULong56(ByteBlockReadStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
@@ -2979,116 +2131,6 @@ p(s);
 		rv |= ((getByte(source)) & 0xFFl) << 8;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
 		return rv;
-	}
-	
-	public static void putBigLong56(byte[] dest, long value)
-	{
-		dest[0] = (byte)((value >>> 48) & 0xFF);
-		dest[1] = (byte)((value >>> 40) & 0xFF);
-		dest[2] = (byte)((value >>> 32) & 0xFF);
-		dest[3] = (byte)((value >>> 24) & 0xFF);
-		dest[4] = (byte)((value >>> 16) & 0xFF);
-		dest[5] = (byte)((value >>> 8) & 0xFF);
-		dest[6] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong56(byte[] dest, int offset, long value)
-	{
-		dest[offset+0] = (byte)((value >>> 48) & 0xFF);
-		dest[offset+1] = (byte)((value >>> 40) & 0xFF);
-		dest[offset+2] = (byte)((value >>> 32) & 0xFF);
-		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest[offset+4] = (byte)((value >>> 16) & 0xFF);
-		dest[offset+5] = (byte)((value >>> 8) & 0xFF);
-		dest[offset+6] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong56(Slice<byte[]> dest, int offset, long value)
-	{
-		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 48) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 40) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 32) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 16) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 8) & 0xFF);
-		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 0) & 0xFF);
-	}
-	
-	public static void putBigLong56(ByteList dest, int offset, long value)
-	{
-		dest.setByte(offset+0, (byte)((value >>> 48) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(ByteList dest, long value)
-	{
-		dest.addByte((byte)((value >>> 48) & 0xFF));
-		dest.addByte((byte)((value >>> 40) & 0xFF));
-		dest.addByte((byte)((value >>> 32) & 0xFF));
-		dest.addByte((byte)((value >>> 24) & 0xFF));
-		dest.addByte((byte)((value >>> 16) & 0xFF));
-		dest.addByte((byte)((value >>> 8) & 0xFF));
-		dest.addByte((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 48) & 0xFF));
-		dest.put(1, (byte)((value >>> 40) & 0xFF));
-		dest.put(2, (byte)((value >>> 32) & 0xFF));
-		dest.put(3, (byte)((value >>> 24) & 0xFF));
-		dest.put(4, (byte)((value >>> 16) & 0xFF));
-		dest.put(5, (byte)((value >>> 8) & 0xFF));
-		dest.put(6, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 48) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 40) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+6, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(OutputStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 48) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(OutputByteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 48) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong56(ByteBlockWriteStream dest, long value) throws IOException, EOFException
-	{
-		dest.write((byte)((value >>> 48) & 0xFF));
-		dest.write((byte)((value >>> 40) & 0xFF));
-		dest.write((byte)((value >>> 32) & 0xFF));
-		dest.write((byte)((value >>> 24) & 0xFF));
-		dest.write((byte)((value >>> 16) & 0xFF));
-		dest.write((byte)((value >>> 8) & 0xFF));
-		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static long getBigLong(byte[] source)
@@ -3147,34 +2189,6 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong(ByteBuffer source)
-	{
-		long rv = 0;
-		rv |= ((source.get(0)) & 0xFFl) << 56;
-		rv |= ((source.get(1)) & 0xFFl) << 48;
-		rv |= ((source.get(2)) & 0xFFl) << 40;
-		rv |= ((source.get(3)) & 0xFFl) << 32;
-		rv |= ((source.get(4)) & 0xFFl) << 24;
-		rv |= ((source.get(5)) & 0xFFl) << 16;
-		rv |= ((source.get(6)) & 0xFFl) << 8;
-		rv |= ((source.get(7)) & 0xFFl) << 0;
-		return rv;
-	}
-	
-	public static long getBigLong(ByteBuffer source, int offset)
-	{
-		long rv = 0;
-		rv |= ((source.get(offset+0)) & 0xFFl) << 56;
-		rv |= ((source.get(offset+1)) & 0xFFl) << 48;
-		rv |= ((source.get(offset+2)) & 0xFFl) << 40;
-		rv |= ((source.get(offset+3)) & 0xFFl) << 32;
-		rv |= ((source.get(offset+4)) & 0xFFl) << 24;
-		rv |= ((source.get(offset+5)) & 0xFFl) << 16;
-		rv |= ((source.get(offset+6)) & 0xFFl) << 8;
-		rv |= ((source.get(offset+7)) & 0xFFl) << 0;
-		return rv;
-	}
-	
 	public static long getBigLong(InputStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -3215,6 +2229,462 @@ p(s);
 		rv |= ((getByte(source)) & 0xFFl) << 8;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
 		return rv;
+	}
+	
+	public static void putBigChar(byte[] dest, char value)
+	{
+		dest[0] = (byte)((value >>> 8) & 0xFF);
+		dest[1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigChar(byte[] dest, int offset, char value)
+	{
+		dest[offset+0] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigChar(Slice<byte[]> dest, int offset, char value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigChar(ByteList dest, int offset, char value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigChar(ByteList dest, char value)
+	{
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigChar(OutputStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigChar(OutputByteStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigChar(ByteBlockWriteStream dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(byte[] dest, short value)
+	{
+		dest[0] = (byte)((value >>> 8) & 0xFF);
+		dest[1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigShort(byte[] dest, int offset, short value)
+	{
+		dest[offset+0] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigShort(Slice<byte[]> dest, int offset, short value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigShort(ByteList dest, int offset, short value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(ByteList dest, short value)
+	{
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(OutputStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(OutputByteStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(ByteBlockWriteStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(byte[] dest, int value)
+	{
+		dest[0] = (byte)((value >>> 16) & 0xFF);
+		dest[1] = (byte)((value >>> 8) & 0xFF);
+		dest[2] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt24(byte[] dest, int offset, int value)
+	{
+		dest[offset+0] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt24(Slice<byte[]> dest, int offset, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt24(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(ByteList dest, int value)
+	{
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(OutputByteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(ByteBlockWriteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(byte[] dest, int value)
+	{
+		dest[0] = (byte)((value >>> 24) & 0xFF);
+		dest[1] = (byte)((value >>> 16) & 0xFF);
+		dest[2] = (byte)((value >>> 8) & 0xFF);
+		dest[3] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt(byte[] dest, int offset, int value)
+	{
+		dest[offset+0] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt(Slice<byte[]> dest, int offset, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigInt(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(ByteList dest, int value)
+	{
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(OutputByteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(ByteBlockWriteStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 32) & 0xFF);
+		dest[1] = (byte)((value >>> 24) & 0xFF);
+		dest[2] = (byte)((value >>> 16) & 0xFF);
+		dest[3] = (byte)((value >>> 8) & 0xFF);
+		dest[4] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong40(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 32) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong40(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong40(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 40) & 0xFF);
+		dest[1] = (byte)((value >>> 32) & 0xFF);
+		dest[2] = (byte)((value >>> 24) & 0xFF);
+		dest[3] = (byte)((value >>> 16) & 0xFF);
+		dest[4] = (byte)((value >>> 8) & 0xFF);
+		dest[5] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong48(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 40) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 32) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+5] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong48(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong48(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 40) & 0xFF));
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(byte[] dest, long value)
+	{
+		dest[0] = (byte)((value >>> 48) & 0xFF);
+		dest[1] = (byte)((value >>> 40) & 0xFF);
+		dest[2] = (byte)((value >>> 32) & 0xFF);
+		dest[3] = (byte)((value >>> 24) & 0xFF);
+		dest[4] = (byte)((value >>> 16) & 0xFF);
+		dest[5] = (byte)((value >>> 8) & 0xFF);
+		dest[6] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong56(byte[] dest, int offset, long value)
+	{
+		dest[offset+0] = (byte)((value >>> 48) & 0xFF);
+		dest[offset+1] = (byte)((value >>> 40) & 0xFF);
+		dest[offset+2] = (byte)((value >>> 32) & 0xFF);
+		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest[offset+4] = (byte)((value >>> 16) & 0xFF);
+		dest[offset+5] = (byte)((value >>> 8) & 0xFF);
+		dest[offset+6] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong56(Slice<byte[]> dest, int offset, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 48) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void putBigLong56(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(ByteList dest, long value)
+	{
+		dest.addByte((byte)((value >>> 48) & 0xFF));
+		dest.addByte((byte)((value >>> 40) & 0xFF));
+		dest.addByte((byte)((value >>> 32) & 0xFF));
+		dest.addByte((byte)((value >>> 24) & 0xFF));
+		dest.addByte((byte)((value >>> 16) & 0xFF));
+		dest.addByte((byte)((value >>> 8) & 0xFF));
+		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(OutputByteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(ByteBlockWriteStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong(byte[] dest, long value)
@@ -3277,30 +2747,6 @@ p(s);
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong(ByteBuffer dest, long value)
-	{
-		dest.put(0, (byte)((value >>> 56) & 0xFF));
-		dest.put(1, (byte)((value >>> 48) & 0xFF));
-		dest.put(2, (byte)((value >>> 40) & 0xFF));
-		dest.put(3, (byte)((value >>> 32) & 0xFF));
-		dest.put(4, (byte)((value >>> 24) & 0xFF));
-		dest.put(5, (byte)((value >>> 16) & 0xFF));
-		dest.put(6, (byte)((value >>> 8) & 0xFF));
-		dest.put(7, (byte)((value >>> 0) & 0xFF));
-	}
-	
-	public static void putBigLong(ByteBuffer dest, int offset, long value)
-	{
-		dest.put(offset+0, (byte)((value >>> 56) & 0xFF));
-		dest.put(offset+1, (byte)((value >>> 48) & 0xFF));
-		dest.put(offset+2, (byte)((value >>> 40) & 0xFF));
-		dest.put(offset+3, (byte)((value >>> 32) & 0xFF));
-		dest.put(offset+4, (byte)((value >>> 24) & 0xFF));
-		dest.put(offset+5, (byte)((value >>> 16) & 0xFF));
-		dest.put(offset+6, (byte)((value >>> 8) & 0xFF));
-		dest.put(offset+7, (byte)((value >>> 0) & 0xFF));
-	}
-	
 	public static void putBigLong(OutputStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 56) & 0xFF));
@@ -3353,6 +2799,302 @@ p(s);
 	
 	
 	
+	public static int getLittleSInt24(byte[] source)
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
+	public static int getLittleSInt24(byte[] source, int offset)
+	{
+		return signedUpcast24(getLittleUInt24(source, offset));
+	}
+	
+	public static int getLittleSInt24(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast24(getLittleUInt24(source, offset));
+	}
+	
+	public static int getLittleSInt24(ByteList source, int offset)
+	{
+		return signedUpcast24(getLittleUInt24(source, offset));
+	}
+	
+	public static int getLittleSInt24(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
+	public static int getLittleSInt24(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
+	public static int getLittleSInt24(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
+	public static long getLittleSLong40(byte[] source)
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
+	public static long getLittleSLong40(byte[] source, int offset)
+	{
+		return signedUpcast40(getLittleULong40(source, offset));
+	}
+	
+	public static long getLittleSLong40(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast40(getLittleULong40(source, offset));
+	}
+	
+	public static long getLittleSLong40(ByteList source, int offset)
+	{
+		return signedUpcast40(getLittleULong40(source, offset));
+	}
+	
+	public static long getLittleSLong40(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
+	public static long getLittleSLong40(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
+	public static long getLittleSLong40(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
+	public static long getLittleSLong48(byte[] source)
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
+	public static long getLittleSLong48(byte[] source, int offset)
+	{
+		return signedUpcast48(getLittleULong48(source, offset));
+	}
+	
+	public static long getLittleSLong48(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast48(getLittleULong48(source, offset));
+	}
+	
+	public static long getLittleSLong48(ByteList source, int offset)
+	{
+		return signedUpcast48(getLittleULong48(source, offset));
+	}
+	
+	public static long getLittleSLong48(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
+	public static long getLittleSLong48(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
+	public static long getLittleSLong48(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
+	public static long getLittleSLong56(byte[] source)
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
+	public static long getLittleSLong56(byte[] source, int offset)
+	{
+		return signedUpcast56(getLittleULong56(source, offset));
+	}
+	
+	public static long getLittleSLong56(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast56(getLittleULong56(source, offset));
+	}
+	
+	public static long getLittleSLong56(ByteList source, int offset)
+	{
+		return signedUpcast56(getLittleULong56(source, offset));
+	}
+	
+	public static long getLittleSLong56(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
+	public static long getLittleSLong56(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
+	public static long getLittleSLong56(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
+	public static int getBigSInt24(byte[] source)
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
+	public static int getBigSInt24(byte[] source, int offset)
+	{
+		return signedUpcast24(getBigUInt24(source, offset));
+	}
+	
+	public static int getBigSInt24(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast24(getBigUInt24(source, offset));
+	}
+	
+	public static int getBigSInt24(ByteList source, int offset)
+	{
+		return signedUpcast24(getBigUInt24(source, offset));
+	}
+	
+	public static int getBigSInt24(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
+	public static int getBigSInt24(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
+	public static int getBigSInt24(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
+	public static long getBigSLong40(byte[] source)
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
+	public static long getBigSLong40(byte[] source, int offset)
+	{
+		return signedUpcast40(getBigULong40(source, offset));
+	}
+	
+	public static long getBigSLong40(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast40(getBigULong40(source, offset));
+	}
+	
+	public static long getBigSLong40(ByteList source, int offset)
+	{
+		return signedUpcast40(getBigULong40(source, offset));
+	}
+	
+	public static long getBigSLong40(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
+	public static long getBigSLong40(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
+	public static long getBigSLong40(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
+	public static long getBigSLong48(byte[] source)
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
+	public static long getBigSLong48(byte[] source, int offset)
+	{
+		return signedUpcast48(getBigULong48(source, offset));
+	}
+	
+	public static long getBigSLong48(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast48(getBigULong48(source, offset));
+	}
+	
+	public static long getBigSLong48(ByteList source, int offset)
+	{
+		return signedUpcast48(getBigULong48(source, offset));
+	}
+	
+	public static long getBigSLong48(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
+	public static long getBigSLong48(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
+	public static long getBigSLong48(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
+	public static long getBigSLong56(byte[] source)
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
+	public static long getBigSLong56(byte[] source, int offset)
+	{
+		return signedUpcast56(getBigULong56(source, offset));
+	}
+	
+	public static long getBigSLong56(Slice<byte[]> source, int offset)
+	{
+		return signedUpcast56(getBigULong56(source, offset));
+	}
+	
+	public static long getBigSLong56(ByteList source, int offset)
+	{
+		return signedUpcast56(getBigULong56(source, offset));
+	}
+	
+	public static long getBigSLong56(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
+	public static long getBigSLong56(InputByteStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
+	public static long getBigSLong56(ByteBlockReadStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static float getLittleFloat(byte[] source)
 	{
 		return Float.intBitsToFloat(getLittleInt(source));
@@ -3369,16 +3111,6 @@ p(s);
 	}
 	
 	public static float getLittleFloat(ByteList source, int offset)
-	{
-		return Float.intBitsToFloat(getLittleInt(source, offset));
-	}
-	
-	public static float getLittleFloat(ByteBuffer source)
-	{
-		return Float.intBitsToFloat(getLittleInt(source));
-	}
-	
-	public static float getLittleFloat(ByteBuffer source, int offset)
 	{
 		return Float.intBitsToFloat(getLittleInt(source, offset));
 	}
@@ -3423,16 +3155,6 @@ p(s);
 		putLittleInt(dest, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putLittleFloat(ByteBuffer dest, float value)
-	{
-		putLittleInt(dest, Float.floatToRawIntBits(value));
-	}
-	
-	public static void putLittleFloat(ByteBuffer dest, int offset, float value)
-	{
-		putLittleInt(dest, offset, Float.floatToRawIntBits(value));
-	}
-	
 	public static void putLittleFloat(OutputStream dest, float value) throws IOException, EOFException
 	{
 		putLittleInt(dest, Float.floatToRawIntBits(value));
@@ -3464,16 +3186,6 @@ p(s);
 	}
 	
 	public static double getLittleDouble(ByteList source, int offset)
-	{
-		return Double.longBitsToDouble(getLittleLong(source, offset));
-	}
-	
-	public static double getLittleDouble(ByteBuffer source)
-	{
-		return Double.longBitsToDouble(getLittleLong(source));
-	}
-	
-	public static double getLittleDouble(ByteBuffer source, int offset)
 	{
 		return Double.longBitsToDouble(getLittleLong(source, offset));
 	}
@@ -3518,16 +3230,6 @@ p(s);
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
-	public static void putLittleDouble(ByteBuffer dest, double value)
-	{
-		putLittleLong(dest, Double.doubleToRawLongBits(value));
-	}
-	
-	public static void putLittleDouble(ByteBuffer dest, int offset, double value)
-	{
-		putLittleLong(dest, offset, Double.doubleToRawLongBits(value));
-	}
-	
 	public static void putLittleDouble(OutputStream dest, double value) throws IOException, EOFException
 	{
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
@@ -3559,16 +3261,6 @@ p(s);
 	}
 	
 	public static float getBigFloat(ByteList source, int offset)
-	{
-		return Float.intBitsToFloat(getBigInt(source, offset));
-	}
-	
-	public static float getBigFloat(ByteBuffer source)
-	{
-		return Float.intBitsToFloat(getBigInt(source));
-	}
-	
-	public static float getBigFloat(ByteBuffer source, int offset)
 	{
 		return Float.intBitsToFloat(getBigInt(source, offset));
 	}
@@ -3613,16 +3305,6 @@ p(s);
 		putBigInt(dest, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putBigFloat(ByteBuffer dest, float value)
-	{
-		putBigInt(dest, Float.floatToRawIntBits(value));
-	}
-	
-	public static void putBigFloat(ByteBuffer dest, int offset, float value)
-	{
-		putBigInt(dest, offset, Float.floatToRawIntBits(value));
-	}
-	
 	public static void putBigFloat(OutputStream dest, float value) throws IOException, EOFException
 	{
 		putBigInt(dest, Float.floatToRawIntBits(value));
@@ -3654,16 +3336,6 @@ p(s);
 	}
 	
 	public static double getBigDouble(ByteList source, int offset)
-	{
-		return Double.longBitsToDouble(getBigLong(source, offset));
-	}
-	
-	public static double getBigDouble(ByteBuffer source)
-	{
-		return Double.longBitsToDouble(getBigLong(source));
-	}
-	
-	public static double getBigDouble(ByteBuffer source, int offset)
 	{
 		return Double.longBitsToDouble(getBigLong(source, offset));
 	}
@@ -3706,16 +3378,6 @@ p(s);
 	public static void putBigDouble(ByteList dest, double value)
 	{
 		putBigLong(dest, Double.doubleToRawLongBits(value));
-	}
-	
-	public static void putBigDouble(ByteBuffer dest, double value)
-	{
-		putBigLong(dest, Double.doubleToRawLongBits(value));
-	}
-	
-	public static void putBigDouble(ByteBuffer dest, int offset, double value)
-	{
-		putBigLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
 	public static void putBigDouble(OutputStream dest, double value) throws IOException, EOFException
@@ -3789,26 +3451,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static char getChar(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleChar(source);
-		else if (endianness == Endianness.Big)
-			return getBigChar(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static char getChar(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleChar(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigChar(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static char getChar(InputStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -3835,6 +3477,1196 @@ p(s);
 			return getLittleChar(source);
 		else if (endianness == Endianness.Big)
 			return getBigChar(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static char getChar(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleChar(source);
+		else if (endianness == Endianness.Big)
+			return getBigChar(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static char getChar(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleChar(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigChar(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(byte[] source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(byte[] source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(Slice<byte[]> source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(ByteList source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(ByteBuffer source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(ByteBuffer source, int offset, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source, offset);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source, offset);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3889,26 +4721,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putChar(ByteBuffer dest, char value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleChar(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigChar(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putChar(ByteBuffer dest, int offset, char value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleChar(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigChar(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putChar(OutputStream dest, char value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -3939,102 +4751,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putChar(ByteBuffer dest, char value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleChar(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigChar(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putChar(ByteBuffer dest, int offset, char value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleChar(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigChar(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packChar(char value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleChar(value);
 		else if (endianness == Endianness.Big)
 			return packBigChar(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static short getShort(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleShort(source);
-		else if (endianness == Endianness.Big)
-			return getBigShort(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4089,26 +4831,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putShort(ByteBuffer dest, short value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleShort(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigShort(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putShort(ByteBuffer dest, int offset, short value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleShort(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigShort(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putShort(OutputStream dest, short value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4139,102 +4861,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putShort(ByteBuffer dest, short value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleShort(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigShort(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putShort(ByteBuffer dest, int offset, short value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleShort(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigShort(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packShort(short value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleShort(value);
 		else if (endianness == Endianness.Big)
 			return packBigShort(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt24(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt24(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt24(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4289,26 +4941,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt24(ByteBuffer dest, int value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleInt24(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigInt24(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putInt24(ByteBuffer dest, int offset, int value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleInt24(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigInt24(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putInt24(OutputStream dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4339,102 +4971,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putInt24(ByteBuffer dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt24(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt24(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putInt24(ByteBuffer dest, int offset, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt24(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigInt24(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packInt24(int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleInt24(value);
 		else if (endianness == Endianness.Big)
 			return packBigInt24(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static int getInt(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleInt(source);
-		else if (endianness == Endianness.Big)
-			return getBigInt(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4489,26 +5051,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt(ByteBuffer dest, int value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleInt(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigInt(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putInt(ByteBuffer dest, int offset, int value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleInt(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigInt(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putInt(OutputStream dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4539,102 +5081,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putInt(ByteBuffer dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putInt(ByteBuffer dest, int offset, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigInt(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packInt(int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleInt(value);
 		else if (endianness == Endianness.Big)
 			return packBigInt(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong40(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong40(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong40(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4689,26 +5161,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong40(ByteBuffer dest, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong40(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigLong40(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLong40(ByteBuffer dest, int offset, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong40(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigLong40(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putLong40(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4739,102 +5191,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong40(ByteBuffer dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong40(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong40(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong40(ByteBuffer dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong40(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigLong40(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packLong40(long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleLong40(value);
 		else if (endianness == Endianness.Big)
 			return packBigLong40(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong48(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong48(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong48(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4889,26 +5271,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong48(ByteBuffer dest, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong48(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigLong48(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLong48(ByteBuffer dest, int offset, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong48(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigLong48(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putLong48(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4939,102 +5301,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong48(ByteBuffer dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong48(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong48(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong48(ByteBuffer dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong48(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigLong48(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packLong48(long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleLong48(value);
 		else if (endianness == Endianness.Big)
 			return packBigLong48(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong56(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong56(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong56(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5089,26 +5381,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong56(ByteBuffer dest, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong56(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigLong56(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLong56(ByteBuffer dest, int offset, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong56(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigLong56(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putLong56(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5139,102 +5411,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong56(ByteBuffer dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong56(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong56(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong56(ByteBuffer dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong56(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigLong56(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packLong56(long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleLong56(value);
 		else if (endianness == Endianness.Big)
 			return packBigLong56(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLong(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleLong(source);
-		else if (endianness == Endianness.Big)
-			return getBigLong(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5289,26 +5491,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong(ByteBuffer dest, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigLong(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLong(ByteBuffer dest, int offset, long value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleLong(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigLong(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putLong(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5339,102 +5521,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong(ByteBuffer dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong(ByteBuffer dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigLong(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packLong(long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleLong(value);
 		else if (endianness == Endianness.Big)
 			return packBigLong(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static float getFloat(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleFloat(source);
-		else if (endianness == Endianness.Big)
-			return getBigFloat(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5489,26 +5601,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putFloat(ByteBuffer dest, float value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleFloat(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigFloat(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putFloat(ByteBuffer dest, int offset, float value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleFloat(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigFloat(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putFloat(OutputStream dest, float value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5539,102 +5631,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putFloat(ByteBuffer dest, float value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleFloat(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigFloat(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putFloat(ByteBuffer dest, int offset, float value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleFloat(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigFloat(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static byte[] packFloat(float value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return packLittleFloat(value);
 		else if (endianness == Endianness.Big)
 			return packBigFloat(value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(byte[] source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(byte[] source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(Slice<byte[]> source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(ByteList source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(ByteBuffer source, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(ByteBuffer source, int offset, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source, offset);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source, offset);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(InputStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(InputByteStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static double getDouble(ByteBlockReadStream source, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittleDouble(source);
-		else if (endianness == Endianness.Big)
-			return getBigDouble(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5689,26 +5711,6 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putDouble(ByteBuffer dest, double value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleDouble(dest, value);
-		else if (endianness == Endianness.Big)
-			putBigDouble(dest, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putDouble(ByteBuffer dest, int offset, double value, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittleDouble(dest, offset, value);
-		else if (endianness == Endianness.Big)
-			putBigDouble(dest, offset, value);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
 	public static void putDouble(OutputStream dest, double value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5735,6 +5737,26 @@ p(s);
 			putLittleDouble(dest, value);
 		else if (endianness == Endianness.Big)
 			putBigDouble(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putDouble(ByteBuffer dest, double value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleDouble(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigDouble(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putDouble(ByteBuffer dest, int offset, double value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleDouble(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			putBigDouble(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5905,7 +5927,7 @@ p(s);
 		return dest;
 	}
 	
-	public static long getLittle(byte[] source, int numberOfBytes)
+	public static long getLittleUnsigned(byte[] source, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -5914,15 +5936,15 @@ p(s);
 			case 2:
 				return getLittleShort(source) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source) & 0xFF_FFFFl;
+				return getLittleUInt24(source) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source);
 			default:
@@ -5930,7 +5952,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(byte[] source, int numberOfBytes)
+	public static long getBigUnsigned(byte[] source, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -5939,15 +5961,15 @@ p(s);
 			case 2:
 				return getBigShort(source) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source) & 0xFF_FFFFl;
+				return getBigUInt24(source) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source);
 			default:
@@ -5955,17 +5977,17 @@ p(s);
 		}
 	}
 	
-	public static long get(byte[] source, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(byte[] source, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, numberOfBytes);
+			return getLittleUnsigned(source, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, numberOfBytes);
+			return getBigUnsigned(source, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittle(byte[] source, int offset, int numberOfBytes)
+	public static long getLittleUnsigned(byte[] source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -5974,15 +5996,15 @@ p(s);
 			case 2:
 				return getLittleShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source, offset) & 0xFF_FFFFl;
+				return getLittleUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source, offset);
 			default:
@@ -5990,7 +6012,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(byte[] source, int offset, int numberOfBytes)
+	public static long getBigUnsigned(byte[] source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -5999,15 +6021,15 @@ p(s);
 			case 2:
 				return getBigShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source, offset) & 0xFF_FFFFl;
+				return getBigUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source, offset);
 			default:
@@ -6015,17 +6037,17 @@ p(s);
 		}
 	}
 	
-	public static long get(byte[] source, int offset, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(byte[] source, int offset, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, offset, numberOfBytes);
+			return getLittleUnsigned(source, offset, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, offset, numberOfBytes);
+			return getBigUnsigned(source, offset, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittle(Slice<byte[]> source, int offset, int numberOfBytes)
+	public static long getLittleUnsigned(Slice<byte[]> source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6034,15 +6056,15 @@ p(s);
 			case 2:
 				return getLittleShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source, offset) & 0xFF_FFFFl;
+				return getLittleUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source, offset);
 			default:
@@ -6050,7 +6072,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(Slice<byte[]> source, int offset, int numberOfBytes)
+	public static long getBigUnsigned(Slice<byte[]> source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6059,15 +6081,15 @@ p(s);
 			case 2:
 				return getBigShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source, offset) & 0xFF_FFFFl;
+				return getBigUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source, offset);
 			default:
@@ -6075,17 +6097,17 @@ p(s);
 		}
 	}
 	
-	public static long get(Slice<byte[]> source, int offset, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(Slice<byte[]> source, int offset, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, offset, numberOfBytes);
+			return getLittleUnsigned(source, offset, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, offset, numberOfBytes);
+			return getBigUnsigned(source, offset, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittle(ByteList source, int offset, int numberOfBytes)
+	public static long getLittleUnsigned(ByteList source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6094,15 +6116,15 @@ p(s);
 			case 2:
 				return getLittleShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source, offset) & 0xFF_FFFFl;
+				return getLittleUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source, offset);
 			default:
@@ -6110,7 +6132,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(ByteList source, int offset, int numberOfBytes)
+	public static long getBigUnsigned(ByteList source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6119,15 +6141,15 @@ p(s);
 			case 2:
 				return getBigShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source, offset) & 0xFF_FFFFl;
+				return getBigUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source, offset);
 			default:
@@ -6135,17 +6157,197 @@ p(s);
 		}
 	}
 	
-	public static long get(ByteList source, int offset, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(ByteList source, int offset, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, offset, numberOfBytes);
+			return getLittleUnsigned(source, offset, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, offset, numberOfBytes);
+			return getBigUnsigned(source, offset, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittle(ByteBuffer source, int numberOfBytes)
+	public static long getLittleUnsigned(InputStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(InputStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(InputStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLittleUnsigned(InputByteStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(InputByteStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(InputByteStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLittleUnsigned(ByteBlockReadStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(ByteBlockReadStream source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(ByteBlockReadStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLittleUnsigned(ByteBuffer source, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6154,15 +6356,15 @@ p(s);
 			case 2:
 				return getLittleShort(source) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source) & 0xFF_FFFFl;
+				return getLittleUInt24(source) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source);
 			default:
@@ -6170,7 +6372,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(ByteBuffer source, int numberOfBytes)
+	public static long getBigUnsigned(ByteBuffer source, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6179,15 +6381,15 @@ p(s);
 			case 2:
 				return getBigShort(source) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source) & 0xFF_FFFFl;
+				return getBigUInt24(source) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source);
 			default:
@@ -6195,17 +6397,17 @@ p(s);
 		}
 	}
 	
-	public static long get(ByteBuffer source, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(ByteBuffer source, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, numberOfBytes);
+			return getLittleUnsigned(source, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, numberOfBytes);
+			return getBigUnsigned(source, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittle(ByteBuffer source, int offset, int numberOfBytes)
+	public static long getLittleUnsigned(ByteBuffer source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6214,15 +6416,15 @@ p(s);
 			case 2:
 				return getLittleShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getLittleInt24(source, offset) & 0xFF_FFFFl;
+				return getLittleUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getLittleInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getLittleLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getLittleULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getLittleLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getLittleULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getLittleLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getLittleULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getLittleLong(source, offset);
 			default:
@@ -6230,7 +6432,7 @@ p(s);
 		}
 	}
 	
-	public static long getBig(ByteBuffer source, int offset, int numberOfBytes)
+	public static long getBigUnsigned(ByteBuffer source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
@@ -6239,15 +6441,15 @@ p(s);
 			case 2:
 				return getBigShort(source, offset) & 0xFFFFl;
 			case 3:
-				return getBigInt24(source, offset) & 0xFF_FFFFl;
+				return getBigUInt24(source, offset) & 0xFF_FFFFl;
 			case 4:
 				return getBigInt(source, offset) & 0xFFFF_FFFFl;
 			case 5:
-				return getBigLong40(source, offset) & 0xFF_FFFF_FFFFl;
+				return getBigULong40(source, offset) & 0xFF_FFFF_FFFFl;
 			case 6:
-				return getBigLong48(source, offset) & 0xFFFF_FFFF_FFFFl;
+				return getBigULong48(source, offset) & 0xFFFF_FFFF_FFFFl;
 			case 7:
-				return getBigLong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
+				return getBigULong56(source, offset) & 0xFF_FFFF_FFFF_FFFFl;
 			case 8:
 				return getBigLong(source, offset);
 			default:
@@ -6255,192 +6457,12 @@ p(s);
 		}
 	}
 	
-	public static long get(ByteBuffer source, int offset, int numberOfBytes, Endianness endianness)
+	public static long getUnsigned(ByteBuffer source, int offset, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			return getLittle(source, offset, numberOfBytes);
+			return getLittleUnsigned(source, offset, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			return getBig(source, offset, numberOfBytes);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLittle(InputStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getLittleShort(source) & 0xFFFFl;
-			case 3:
-				return getLittleInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getLittleInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getLittleLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getLittleLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getLittleLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getLittleLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long getBig(InputStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getBigShort(source) & 0xFFFFl;
-			case 3:
-				return getBigInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getBigInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getBigLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getBigLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getBigLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getBigLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long get(InputStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittle(source, numberOfBytes);
-		else if (endianness == Endianness.Big)
-			return getBig(source, numberOfBytes);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLittle(InputByteStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getLittleShort(source) & 0xFFFFl;
-			case 3:
-				return getLittleInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getLittleInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getLittleLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getLittleLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getLittleLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getLittleLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long getBig(InputByteStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getBigShort(source) & 0xFFFFl;
-			case 3:
-				return getBigInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getBigInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getBigLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getBigLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getBigLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getBigLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long get(InputByteStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittle(source, numberOfBytes);
-		else if (endianness == Endianness.Big)
-			return getBig(source, numberOfBytes);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static long getLittle(ByteBlockReadStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getLittleShort(source) & 0xFFFFl;
-			case 3:
-				return getLittleInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getLittleInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getLittleLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getLittleLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getLittleLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getLittleLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long getBig(ByteBlockReadStream source, int numberOfBytes) throws IOException, EOFException
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				return getByte(source) & 0xFFl;
-			case 2:
-				return getBigShort(source) & 0xFFFFl;
-			case 3:
-				return getBigInt24(source) & 0xFF_FFFFl;
-			case 4:
-				return getBigInt(source) & 0xFFFF_FFFFl;
-			case 5:
-				return getBigLong40(source) & 0xFF_FFFF_FFFFl;
-			case 6:
-				return getBigLong48(source) & 0xFFFF_FFFF_FFFFl;
-			case 7:
-				return getBigLong56(source) & 0xFF_FFFF_FFFF_FFFFl;
-			case 8:
-				return getBigLong(source);
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static long get(ByteBlockReadStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
-	{
-		if (endianness == Endianness.Little)
-			return getLittle(source, numberOfBytes);
-		else if (endianness == Endianness.Big)
-			return getBig(source, numberOfBytes);
+			return getBigUnsigned(source, offset, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -6458,13 +6480,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, value); break;
+				putLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, value); break;
+				putLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, value); break;
+				putLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, value); break;
+				putLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6483,13 +6505,13 @@ p(s);
 			case 4:
 				putBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, value); break;
+				putBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, value); break;
+				putBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, value); break;
+				putBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, value); break;
+				putBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6518,13 +6540,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, offset, (int)value); break;
 			case 5:
-				putLittleLong40(dest, offset, value); break;
+				putLittleLong40(dest, offset, (long)value); break;
 			case 6:
-				putLittleLong48(dest, offset, value); break;
+				putLittleLong48(dest, offset, (long)value); break;
 			case 7:
-				putLittleLong56(dest, offset, value); break;
+				putLittleLong56(dest, offset, (long)value); break;
 			case 8:
-				putLittleLong(dest, offset, value); break;
+				putLittleLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6543,13 +6565,13 @@ p(s);
 			case 4:
 				putBigInt(dest, offset, (int)value); break;
 			case 5:
-				putBigLong40(dest, offset, value); break;
+				putBigLong40(dest, offset, (long)value); break;
 			case 6:
-				putBigLong48(dest, offset, value); break;
+				putBigLong48(dest, offset, (long)value); break;
 			case 7:
-				putBigLong56(dest, offset, value); break;
+				putBigLong56(dest, offset, (long)value); break;
 			case 8:
-				putBigLong(dest, offset, value); break;
+				putBigLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6578,13 +6600,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, offset, (int)value); break;
 			case 5:
-				putLittleLong40(dest, offset, value); break;
+				putLittleLong40(dest, offset, (long)value); break;
 			case 6:
-				putLittleLong48(dest, offset, value); break;
+				putLittleLong48(dest, offset, (long)value); break;
 			case 7:
-				putLittleLong56(dest, offset, value); break;
+				putLittleLong56(dest, offset, (long)value); break;
 			case 8:
-				putLittleLong(dest, offset, value); break;
+				putLittleLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6603,13 +6625,13 @@ p(s);
 			case 4:
 				putBigInt(dest, offset, (int)value); break;
 			case 5:
-				putBigLong40(dest, offset, value); break;
+				putBigLong40(dest, offset, (long)value); break;
 			case 6:
-				putBigLong48(dest, offset, value); break;
+				putBigLong48(dest, offset, (long)value); break;
 			case 7:
-				putBigLong56(dest, offset, value); break;
+				putBigLong56(dest, offset, (long)value); break;
 			case 8:
-				putBigLong(dest, offset, value); break;
+				putBigLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6638,13 +6660,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, offset, (int)value); break;
 			case 5:
-				putLittleLong40(dest, offset, value); break;
+				putLittleLong40(dest, offset, (long)value); break;
 			case 6:
-				putLittleLong48(dest, offset, value); break;
+				putLittleLong48(dest, offset, (long)value); break;
 			case 7:
-				putLittleLong56(dest, offset, value); break;
+				putLittleLong56(dest, offset, (long)value); break;
 			case 8:
-				putLittleLong(dest, offset, value); break;
+				putLittleLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6663,13 +6685,13 @@ p(s);
 			case 4:
 				putBigInt(dest, offset, (int)value); break;
 			case 5:
-				putBigLong40(dest, offset, value); break;
+				putBigLong40(dest, offset, (long)value); break;
 			case 6:
-				putBigLong48(dest, offset, value); break;
+				putBigLong48(dest, offset, (long)value); break;
 			case 7:
-				putBigLong56(dest, offset, value); break;
+				putBigLong56(dest, offset, (long)value); break;
 			case 8:
-				putBigLong(dest, offset, value); break;
+				putBigLong(dest, offset, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6698,13 +6720,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, value); break;
+				putLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, value); break;
+				putLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, value); break;
+				putLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, value); break;
+				putLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6723,13 +6745,13 @@ p(s);
 			case 4:
 				putBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, value); break;
+				putBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, value); break;
+				putBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, value); break;
+				putBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, value); break;
+				putBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6741,126 +6763,6 @@ p(s);
 			putLittle(dest, value, numberOfBytes);
 		else if (endianness == Endianness.Big)
 			putBig(dest, value, numberOfBytes);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLittle(ByteBuffer dest, long value, int numberOfBytes)
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				dest.put(0, (byte)value); break;
-			case 2:
-				putLittleShort(dest, (short)value); break;
-			case 3:
-				putLittleInt24(dest, (int)value); break;
-			case 4:
-				putLittleInt(dest, (int)value); break;
-			case 5:
-				putLittleLong40(dest, value); break;
-			case 6:
-				putLittleLong48(dest, value); break;
-			case 7:
-				putLittleLong56(dest, value); break;
-			case 8:
-				putLittleLong(dest, value); break;
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static void putBig(ByteBuffer dest, long value, int numberOfBytes)
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				dest.put(0, (byte)value); break;
-			case 2:
-				putBigShort(dest, (short)value); break;
-			case 3:
-				putBigInt24(dest, (int)value); break;
-			case 4:
-				putBigInt(dest, (int)value); break;
-			case 5:
-				putBigLong40(dest, value); break;
-			case 6:
-				putBigLong48(dest, value); break;
-			case 7:
-				putBigLong56(dest, value); break;
-			case 8:
-				putBigLong(dest, value); break;
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static void put(ByteBuffer dest, long value, int numberOfBytes, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittle(dest, value, numberOfBytes);
-		else if (endianness == Endianness.Big)
-			putBig(dest, value, numberOfBytes);
-		else
-			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
-	}
-	
-	public static void putLittle(ByteBuffer dest, int offset, long value, int numberOfBytes)
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				dest.put(offset+0, (byte)value); break;
-			case 2:
-				putLittleShort(dest, offset, (short)value); break;
-			case 3:
-				putLittleInt24(dest, offset, (int)value); break;
-			case 4:
-				putLittleInt(dest, offset, (int)value); break;
-			case 5:
-				putLittleLong40(dest, offset, value); break;
-			case 6:
-				putLittleLong48(dest, offset, value); break;
-			case 7:
-				putLittleLong56(dest, offset, value); break;
-			case 8:
-				putLittleLong(dest, offset, value); break;
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static void putBig(ByteBuffer dest, int offset, long value, int numberOfBytes)
-	{
-		switch (numberOfBytes)
-		{
-			case 1:
-				dest.put(offset+0, (byte)value); break;
-			case 2:
-				putBigShort(dest, offset, (short)value); break;
-			case 3:
-				putBigInt24(dest, offset, (int)value); break;
-			case 4:
-				putBigInt(dest, offset, (int)value); break;
-			case 5:
-				putBigLong40(dest, offset, value); break;
-			case 6:
-				putBigLong48(dest, offset, value); break;
-			case 7:
-				putBigLong56(dest, offset, value); break;
-			case 8:
-				putBigLong(dest, offset, value); break;
-			default:
-				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
-		}
-	}
-	
-	public static void put(ByteBuffer dest, int offset, long value, int numberOfBytes, Endianness endianness)
-	{
-		if (endianness == Endianness.Little)
-			putLittle(dest, offset, value, numberOfBytes);
-		else if (endianness == Endianness.Big)
-			putBig(dest, offset, value, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -6878,13 +6780,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, value); break;
+				putLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, value); break;
+				putLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, value); break;
+				putLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, value); break;
+				putLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6903,13 +6805,13 @@ p(s);
 			case 4:
 				putBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, value); break;
+				putBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, value); break;
+				putBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, value); break;
+				putBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, value); break;
+				putBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6938,13 +6840,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, value); break;
+				putLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, value); break;
+				putLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, value); break;
+				putLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, value); break;
+				putLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6963,13 +6865,13 @@ p(s);
 			case 4:
 				putBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, value); break;
+				putBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, value); break;
+				putBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, value); break;
+				putBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, value); break;
+				putBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -6998,13 +6900,13 @@ p(s);
 			case 4:
 				putLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, value); break;
+				putLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, value); break;
+				putLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, value); break;
+				putLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, value); break;
+				putLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -7023,13 +6925,13 @@ p(s);
 			case 4:
 				putBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, value); break;
+				putBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, value); break;
+				putBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, value); break;
+				putBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, value); break;
+				putBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
@@ -7041,6 +6943,126 @@ p(s);
 			putLittle(dest, value, numberOfBytes);
 		else if (endianness == Endianness.Big)
 			putBig(dest, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLittle(ByteBuffer dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.put(0, (byte)value); break;
+			case 2:
+				putLittleShort(dest, (short)value); break;
+			case 3:
+				putLittleInt24(dest, (int)value); break;
+			case 4:
+				putLittleInt(dest, (int)value); break;
+			case 5:
+				putLittleLong40(dest, (long)value); break;
+			case 6:
+				putLittleLong48(dest, (long)value); break;
+			case 7:
+				putLittleLong56(dest, (long)value); break;
+			case 8:
+				putLittleLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void putBig(ByteBuffer dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.put(0, (byte)value); break;
+			case 2:
+				putBigShort(dest, (short)value); break;
+			case 3:
+				putBigInt24(dest, (int)value); break;
+			case 4:
+				putBigInt(dest, (int)value); break;
+			case 5:
+				putBigLong40(dest, (long)value); break;
+			case 6:
+				putBigLong48(dest, (long)value); break;
+			case 7:
+				putBigLong56(dest, (long)value); break;
+			case 8:
+				putBigLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void put(ByteBuffer dest, long value, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittle(dest, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			putBig(dest, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLittle(ByteBuffer dest, int offset, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.put(offset+0, (byte)value); break;
+			case 2:
+				putLittleShort(dest, offset, (short)value); break;
+			case 3:
+				putLittleInt24(dest, offset, (int)value); break;
+			case 4:
+				putLittleInt(dest, offset, (int)value); break;
+			case 5:
+				putLittleLong40(dest, offset, (long)value); break;
+			case 6:
+				putLittleLong48(dest, offset, (long)value); break;
+			case 7:
+				putLittleLong56(dest, offset, (long)value); break;
+			case 8:
+				putLittleLong(dest, offset, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void putBig(ByteBuffer dest, int offset, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.put(offset+0, (byte)value); break;
+			case 2:
+				putBigShort(dest, offset, (short)value); break;
+			case 3:
+				putBigInt24(dest, offset, (int)value); break;
+			case 4:
+				putBigInt(dest, offset, (int)value); break;
+			case 5:
+				putBigLong40(dest, offset, (long)value); break;
+			case 6:
+				putBigLong48(dest, offset, (long)value); break;
+			case 7:
+				putBigLong56(dest, offset, (long)value); break;
+			case 8:
+				putBigLong(dest, offset, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void put(ByteBuffer dest, int offset, long value, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittle(dest, offset, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			putBig(dest, offset, value, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -7069,6 +7091,4113 @@ p(s);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
+	
+	// >>>
+				
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getLittleUInt24Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		int rv = source.getShort() & 0xFFFF;
+		rv |= (source.get() & 0xFF) << 16;
+		return rv;
+	}
+	
+	public static int getBigUInt24Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		int rv = (source.getShort() & 0xFFFF) << 8;
+		rv |= source.get() & 0xFF;
+		return rv;
+	}
+	
+	
+	public static int getLittleUInt24Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		int rv = source.getShort(offset) & 0xFFFF;
+		rv |= (source.get(offset+2) & 0xFF) << 16;
+		return rv;
+	}
+	
+	public static int getBigUInt24Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		int rv = (source.getShort(offset) & 0xFFFF) << 8;
+		rv |= source.get(offset+2) & 0xFF;
+		return rv;
+	}
+	
+	
+	
+	
+	public static void putLittleInt24Buffermodifying(ByteBuffer source, int value)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putShort((short)value);
+		source.put((byte)(value >>> 16));
+	}
+	
+	public static void putBigInt24Buffermodifying(ByteBuffer source, int value)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putShort((short)(value >>> 8));
+		source.put((byte)(value));
+	}
+	
+	
+	public static void putLittleInt24Buffermodifying(ByteBuffer source, int offset, int value)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putShort(offset, (short)value);
+		source.put(offset+2, (byte)(value >>> 16));
+	}
+	
+	public static void putBigInt24Buffermodifying(ByteBuffer source, int offset, int value)
+	{
+		//Note that we can't just use ints and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putShort(offset, (short)(value >>> 8));
+		source.put(offset+2, (byte)(value));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong40Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt() & 0xFFFF_FFFFl;
+		rv |= (source.get() & 0xFFl) << 32l;
+		return rv;
+	}
+	
+	public static long getBigULong40Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt() & 0xFFFF_FFFFl) << 8l;
+		rv |= source.get() & 0xFFl;
+		return rv;
+	}
+	
+	
+	public static long getLittleULong40Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt(offset) & 0xFFFF_FFFFl;
+		rv |= (source.get(offset+4) & 0xFFl) << 32l;
+		return rv;
+	}
+	
+	public static long getBigULong40Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt(offset) & 0xFFFF_FFFFl) << 8l;
+		rv |= source.get(offset+4) & 0xFFl;
+		return rv;
+	}
+	
+	
+	
+	
+	public static void putLittleLong40Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt((int)value);
+		source.put((byte)(value >>> 32));
+	}
+	
+	public static void putBigLong40Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt((int)(value >>> 8));
+		source.put((byte)(value));
+	}
+	
+	
+	public static void putLittleLong40Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt(offset, (int)value);
+		source.put(offset+4, (byte)(value >>> 32));
+	}
+	
+	public static void putBigLong40Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt(offset, (int)(value >>> 8));
+		source.put(offset+4, (byte)(value));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong48Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt() & 0xFFFF_FFFFl;
+		rv |= (source.getShort() & 0xFFFFl) << 32l;
+		return rv;
+	}
+	
+	public static long getBigULong48Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt() & 0xFFFF_FFFFl) << 16l;
+		rv |= source.getShort() & 0xFFFFl;
+		return rv;
+	}
+	
+	
+	public static long getLittleULong48Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt(offset) & 0xFFFF_FFFFl;
+		rv |= (source.getShort(offset+4) & 0xFFFFl) << 32l;
+		return rv;
+	}
+	
+	public static long getBigULong48Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt(offset) & 0xFFFF_FFFFl) << 16l;
+		rv |= source.getShort(offset+4) & 0xFFFFl;
+		return rv;
+	}
+	
+	
+	
+	
+	public static void putLittleLong48Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt((int)value);
+		source.putShort((short)(value >>> 32));
+	}
+	
+	public static void putBigLong48Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt((int)(value >>> 16));
+		source.putShort((short)(value));
+	}
+	
+	
+	public static void putLittleLong48Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt(offset, (int)value);
+		source.putShort(offset+4, (short)(value >>> 32));
+	}
+	
+	public static void putBigLong48Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt(offset, (int)(value >>> 16));
+		source.putShort(offset+4, (short)(value));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong56Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt() & 0xFFFF_FFFFl;
+		rv |= (source.getShort() & 0xFFFFl) << 32l;
+		rv |= (source.get() & 0xFFl) << 48l;
+		return rv;
+	}
+	
+	public static long getBigULong56Buffermodifying(ByteBuffer source)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt() & 0xFFFF_FFFFl) << 24l;
+		rv |= (source.getShort() & 0xFFFFl) << 8l;
+		rv |= source.get() & 0xFFl;
+		return rv;
+	}
+	
+	
+	public static long getLittleULong56Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		long rv = source.getInt(offset) & 0xFFFF_FFFFl;
+		rv |= (source.getShort(offset+4) & 0xFFFFl) << 32l;
+		rv |= (source.get(offset+6) & 0xFFl) << 48l;
+		return rv;
+	}
+	
+	public static long getBigULong56Buffermodifying(ByteBuffer source, int offset)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		long rv = (source.getInt(offset) & 0xFFFF_FFFFl) << 24l;
+		rv |= (source.getShort(offset+4) & 0xFFFFl) << 8l;
+		rv |= source.get(offset+6) & 0xFFl;
+		return rv;
+	}
+	
+	
+	
+	
+	public static void putLittleLong56Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt((int)value);
+		source.putShort((short)(value >>> 32));
+		source.put((byte)(value >>> 48));
+	}
+	
+	public static void putBigLong56Buffermodifying(ByteBuffer source, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt((int)(value >>> 24));
+		source.putShort((short)(value >> 8));
+		source.put((byte)(value));
+	}
+	
+	
+	public static void putLittleLong56Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt(offset, (int)value);
+		source.putShort(offset+4, (short)(value >>> 32));
+		source.put(offset+6, (byte)(value >>> 48));
+	}
+	
+	public static void putBigLong56Buffermodifying(ByteBuffer source, int offset, long value)
+	{
+		//Note that we can't just use longs and masking, because that might run off past the end! X'D
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt(offset, (int)(value >>> 24));
+		source.putShort(offset+4, (short)(value >>> 8));
+		source.put(offset+6, (byte)(value));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:uint24,ulong40,ulong48,ulong56$$_
+
+	public static _$$litprim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittle_$$Prim$$_Buffermodifying(source);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBig_$$Prim$$_Buffermodifying(source);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static _$$litprim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittle_$$Prim$$_Buffermodifying(source, offset);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBig_$$Prim$$_Buffermodifying(source, offset);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void put_$$SLPrim$$_Buffermodifying(ByteBuffer source, _$$litprim$$_ value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittle_$$SLPrim$$_Buffermodifying(source, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBig_$$SLPrim$$_Buffermodifying(source, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void put_$$SLPrim$$_Buffermodifying(ByteBuffer source, int offset, _$$litprim$$_ value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittle_$$SLPrim$$_Buffermodifying(source, offset, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBig_$$SLPrim$$_Buffermodifying(source, offset, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	
+	
+	 */
+	
+	
+	public static int getUInt24Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleUInt24Buffermodifying(source);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigUInt24Buffermodifying(source);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleUInt24Buffermodifying(source, offset);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigUInt24Buffermodifying(source, offset);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putInt24Buffermodifying(ByteBuffer source, int value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleInt24Buffermodifying(source, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigInt24Buffermodifying(source, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putInt24Buffermodifying(ByteBuffer source, int offset, int value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleInt24Buffermodifying(source, offset, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigInt24Buffermodifying(source, offset, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	
+	
+	
+	
+	public static long getULong40Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong40Buffermodifying(source);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong40Buffermodifying(source);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong40Buffermodifying(source, offset);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong40Buffermodifying(source, offset);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong40Buffermodifying(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong40Buffermodifying(source, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong40Buffermodifying(source, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong40Buffermodifying(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong40Buffermodifying(source, offset, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong40Buffermodifying(source, offset, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	
+	
+	
+	
+	public static long getULong48Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong48Buffermodifying(source);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong48Buffermodifying(source);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong48Buffermodifying(source, offset);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong48Buffermodifying(source, offset);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong48Buffermodifying(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong48Buffermodifying(source, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong48Buffermodifying(source, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong48Buffermodifying(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong48Buffermodifying(source, offset, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong48Buffermodifying(source, offset, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	
+	
+	
+	
+	public static long getULong56Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong56Buffermodifying(source);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong56Buffermodifying(source);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			return getLittleULong56Buffermodifying(source, offset);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			return getBigULong56Buffermodifying(source, offset);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong56Buffermodifying(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong56Buffermodifying(source, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong56Buffermodifying(source, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong56Buffermodifying(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		if (endianness == ByteOrder.LITTLE_ENDIAN)
+			putLittleLong56Buffermodifying(source, offset, value);
+		else if (endianness == ByteOrder.BIG_ENDIAN)
+			putBigLong56Buffermodifying(source, offset, value);
+		else
+			throw newClassCastExceptionOrNullPointerException(endianness);
+	}
+	
+	
+	
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:sint24,slong40,slong48,slong56$$_
+	public static _$$litprim$$_ getLittle_$$Prim$$_Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast_$$primlen$$_(getLittleU_$$SLPrim$$_Buffermodifying(source));
+	}
+	
+	public static _$$litprim$$_ getBig_$$Prim$$_Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast_$$primlen$$_(getBigU_$$SLPrim$$_Buffermodifying(source));
+	}
+	
+	public static _$$litprim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		return signedUpcast_$$primlen$$_(getU_$$SLPrim$$_Buffermodifying(source, endianness));
+	}
+	
+	
+	public static _$$litprim$$_ getLittle_$$Prim$$_Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast_$$primlen$$_(getLittleU_$$SLPrim$$_Buffermodifying(source, offset));
+	}
+	
+	public static _$$litprim$$_ getBig_$$Prim$$_Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast_$$primlen$$_(getBigU_$$SLPrim$$_Buffermodifying(source, offset));
+	}
+	
+	public static _$$litprim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		return signedUpcast_$$primlen$$_(getU_$$SLPrim$$_Buffermodifying(source, offset, endianness));
+	}
+	
+	
+	
+	 */
+	
+	public static int getLittleSInt24Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast24(getLittleUInt24Buffermodifying(source));
+	}
+	
+	public static int getBigSInt24Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast24(getBigUInt24Buffermodifying(source));
+	}
+	
+	public static int getSInt24Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		return signedUpcast24(getUInt24Buffermodifying(source, endianness));
+	}
+	
+	
+	public static int getLittleSInt24Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast24(getLittleUInt24Buffermodifying(source, offset));
+	}
+	
+	public static int getBigSInt24Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast24(getBigUInt24Buffermodifying(source, offset));
+	}
+	
+	public static int getSInt24Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		return signedUpcast24(getUInt24Buffermodifying(source, offset, endianness));
+	}
+	
+	
+	
+	
+	public static long getLittleSLong40Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast40(getLittleULong40Buffermodifying(source));
+	}
+	
+	public static long getBigSLong40Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast40(getBigULong40Buffermodifying(source));
+	}
+	
+	public static long getSLong40Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		return signedUpcast40(getULong40Buffermodifying(source, endianness));
+	}
+	
+	
+	public static long getLittleSLong40Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast40(getLittleULong40Buffermodifying(source, offset));
+	}
+	
+	public static long getBigSLong40Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast40(getBigULong40Buffermodifying(source, offset));
+	}
+	
+	public static long getSLong40Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		return signedUpcast40(getULong40Buffermodifying(source, offset, endianness));
+	}
+	
+	
+	
+	
+	public static long getLittleSLong48Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast48(getLittleULong48Buffermodifying(source));
+	}
+	
+	public static long getBigSLong48Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast48(getBigULong48Buffermodifying(source));
+	}
+	
+	public static long getSLong48Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		return signedUpcast48(getULong48Buffermodifying(source, endianness));
+	}
+	
+	
+	public static long getLittleSLong48Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast48(getLittleULong48Buffermodifying(source, offset));
+	}
+	
+	public static long getBigSLong48Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast48(getBigULong48Buffermodifying(source, offset));
+	}
+	
+	public static long getSLong48Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		return signedUpcast48(getULong48Buffermodifying(source, offset, endianness));
+	}
+	
+	
+	
+	
+	public static long getLittleSLong56Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast56(getLittleULong56Buffermodifying(source));
+	}
+	
+	public static long getBigSLong56Buffermodifying(ByteBuffer source)
+	{
+		return signedUpcast56(getBigULong56Buffermodifying(source));
+	}
+	
+	public static long getSLong56Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		return signedUpcast56(getULong56Buffermodifying(source, endianness));
+	}
+	
+	
+	public static long getLittleSLong56Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast56(getLittleULong56Buffermodifying(source, offset));
+	}
+	
+	public static long getBigSLong56Buffermodifying(ByteBuffer source, int offset)
+	{
+		return signedUpcast56(getBigULong56Buffermodifying(source, offset));
+	}
+	
+	public static long getSLong56Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		return signedUpcast56(getULong56Buffermodifying(source, offset, endianness));
+	}
+	
+	
+	
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:multibytes$$_
+	
+	public static _$$prim$$_ getLittle_$$Prim$$_Buffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.get_$$Prim$$_();
+	}
+	
+	public static _$$prim$$_ getBig_$$Prim$$_Buffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.get_$$Prim$$_();
+	}
+	
+	public static _$$prim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.get_$$Prim$$_();
+	}
+	
+	
+	public static _$$prim$$_ getLittle_$$Prim$$_Buffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.get_$$Prim$$_(offset);
+	}
+	
+	public static _$$prim$$_ getBig_$$Prim$$_Buffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.get_$$Prim$$_(offset);
+	}
+	
+	public static _$$prim$$_ get_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.get_$$Prim$$_(offset);
+	}
+	
+	
+	
+	
+	public static void putLittle_$$Prim$$_Buffermodifying(ByteBuffer source, _$$prim$$_ value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.put_$$Prim$$_(value);
+	}
+	
+	public static void putBig_$$Prim$$_Buffermodifying(ByteBuffer source, _$$prim$$_ value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.put_$$Prim$$_(value);
+	}
+	
+	public static void put_$$Prim$$_Buffermodifying(ByteBuffer source, _$$prim$$_ value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.put_$$Prim$$_(value);
+	}
+	
+	
+	public static void putLittle_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, _$$prim$$_ value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.put_$$Prim$$_(offset, value);
+	}
+	
+	public static void putBig_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, _$$prim$$_ value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.put_$$Prim$$_(offset, value);
+	}
+	
+	public static void put_$$Prim$$_Buffermodifying(ByteBuffer source, int offset, _$$prim$$_ value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.put_$$Prim$$_(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	 */
+	
+	
+	public static char getLittleCharBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getChar();
+	}
+	
+	public static char getBigCharBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getChar();
+	}
+	
+	public static char getCharBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getChar();
+	}
+	
+	
+	public static char getLittleCharBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getChar(offset);
+	}
+	
+	public static char getBigCharBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getChar(offset);
+	}
+	
+	public static char getCharBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getChar(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleCharBuffermodifying(ByteBuffer source, char value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putChar(value);
+	}
+	
+	public static void putBigCharBuffermodifying(ByteBuffer source, char value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putChar(value);
+	}
+	
+	public static void putCharBuffermodifying(ByteBuffer source, char value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putChar(value);
+	}
+	
+	
+	public static void putLittleCharBuffermodifying(ByteBuffer source, int offset, char value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putChar(offset, value);
+	}
+	
+	public static void putBigCharBuffermodifying(ByteBuffer source, int offset, char value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putChar(offset, value);
+	}
+	
+	public static void putCharBuffermodifying(ByteBuffer source, int offset, char value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putChar(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static short getLittleShortBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getShort();
+	}
+	
+	public static short getBigShortBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getShort();
+	}
+	
+	public static short getShortBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getShort();
+	}
+	
+	
+	public static short getLittleShortBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getShort(offset);
+	}
+	
+	public static short getBigShortBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getShort(offset);
+	}
+	
+	public static short getShortBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getShort(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleShortBuffermodifying(ByteBuffer source, short value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putShort(value);
+	}
+	
+	public static void putBigShortBuffermodifying(ByteBuffer source, short value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putShort(value);
+	}
+	
+	public static void putShortBuffermodifying(ByteBuffer source, short value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putShort(value);
+	}
+	
+	
+	public static void putLittleShortBuffermodifying(ByteBuffer source, int offset, short value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putShort(offset, value);
+	}
+	
+	public static void putBigShortBuffermodifying(ByteBuffer source, int offset, short value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putShort(offset, value);
+	}
+	
+	public static void putShortBuffermodifying(ByteBuffer source, int offset, short value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putShort(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static float getLittleFloatBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getFloat();
+	}
+	
+	public static float getBigFloatBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getFloat();
+	}
+	
+	public static float getFloatBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getFloat();
+	}
+	
+	
+	public static float getLittleFloatBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getFloat(offset);
+	}
+	
+	public static float getBigFloatBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getFloat(offset);
+	}
+	
+	public static float getFloatBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getFloat(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleFloatBuffermodifying(ByteBuffer source, float value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putFloat(value);
+	}
+	
+	public static void putBigFloatBuffermodifying(ByteBuffer source, float value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putFloat(value);
+	}
+	
+	public static void putFloatBuffermodifying(ByteBuffer source, float value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putFloat(value);
+	}
+	
+	
+	public static void putLittleFloatBuffermodifying(ByteBuffer source, int offset, float value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putFloat(offset, value);
+	}
+	
+	public static void putBigFloatBuffermodifying(ByteBuffer source, int offset, float value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putFloat(offset, value);
+	}
+	
+	public static void putFloatBuffermodifying(ByteBuffer source, int offset, float value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putFloat(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getLittleIntBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getInt();
+	}
+	
+	public static int getBigIntBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getInt();
+	}
+	
+	public static int getIntBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getInt();
+	}
+	
+	
+	public static int getLittleIntBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getInt(offset);
+	}
+	
+	public static int getBigIntBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getInt(offset);
+	}
+	
+	public static int getIntBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getInt(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleIntBuffermodifying(ByteBuffer source, int value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt(value);
+	}
+	
+	public static void putBigIntBuffermodifying(ByteBuffer source, int value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt(value);
+	}
+	
+	public static void putIntBuffermodifying(ByteBuffer source, int value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putInt(value);
+	}
+	
+	
+	public static void putLittleIntBuffermodifying(ByteBuffer source, int offset, int value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putInt(offset, value);
+	}
+	
+	public static void putBigIntBuffermodifying(ByteBuffer source, int offset, int value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putInt(offset, value);
+	}
+	
+	public static void putIntBuffermodifying(ByteBuffer source, int offset, int value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putInt(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static double getLittleDoubleBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getDouble();
+	}
+	
+	public static double getBigDoubleBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getDouble();
+	}
+	
+	public static double getDoubleBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getDouble();
+	}
+	
+	
+	public static double getLittleDoubleBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getDouble(offset);
+	}
+	
+	public static double getBigDoubleBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getDouble(offset);
+	}
+	
+	public static double getDoubleBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getDouble(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleDoubleBuffermodifying(ByteBuffer source, double value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putDouble(value);
+	}
+	
+	public static void putBigDoubleBuffermodifying(ByteBuffer source, double value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putDouble(value);
+	}
+	
+	public static void putDoubleBuffermodifying(ByteBuffer source, double value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putDouble(value);
+	}
+	
+	
+	public static void putLittleDoubleBuffermodifying(ByteBuffer source, int offset, double value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putDouble(offset, value);
+	}
+	
+	public static void putBigDoubleBuffermodifying(ByteBuffer source, int offset, double value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putDouble(offset, value);
+	}
+	
+	public static void putDoubleBuffermodifying(ByteBuffer source, int offset, double value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putDouble(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleLongBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getLong();
+	}
+	
+	public static long getBigLongBuffermodifying(ByteBuffer source)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getLong();
+	}
+	
+	public static long getLongBuffermodifying(ByteBuffer source, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getLong();
+	}
+	
+	
+	public static long getLittleLongBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		return source.getLong(offset);
+	}
+	
+	public static long getBigLongBuffermodifying(ByteBuffer source, int offset)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		return source.getLong(offset);
+	}
+	
+	public static long getLongBuffermodifying(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		source.order(endianness);
+		return source.getLong(offset);
+	}
+	
+	
+	
+	
+	public static void putLittleLongBuffermodifying(ByteBuffer source, long value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putLong(value);
+	}
+	
+	public static void putBigLongBuffermodifying(ByteBuffer source, long value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putLong(value);
+	}
+	
+	public static void putLongBuffermodifying(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putLong(value);
+	}
+	
+	
+	public static void putLittleLongBuffermodifying(ByteBuffer source, int offset, long value)
+	{
+		source.order(ByteOrder.LITTLE_ENDIAN);
+		source.putLong(offset, value);
+	}
+	
+	public static void putBigLongBuffermodifying(ByteBuffer source, int offset, long value)
+	{
+		source.order(ByteOrder.BIG_ENDIAN);
+		source.putLong(offset, value);
+	}
+	
+	public static void putLongBuffermodifying(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		source.order(endianness);
+		source.putLong(offset, value);
+	}
+	
+	
+	
+	
+	
+	
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:char,short,int,long,float,double,sint24,slong40,slong48,slong56,uint24,ulong40,ulong48,ulong56$$_
+	
+	public static _$$litprim$$_ getLittle_$$Prim$$_(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = getLittle_$$Prim$$_Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static _$$litprim$$_ getBig_$$Prim$$_(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = getBig_$$Prim$$_Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static _$$litprim$$_ get_$$Prim$$_(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = get_$$Prim$$_Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static _$$litprim$$_ getLittle_$$Prim$$_(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = getLittle_$$Prim$$_Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static _$$litprim$$_ getBig_$$Prim$$_(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = getBig_$$Prim$$_Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static _$$litprim$$_ get_$$Prim$$_(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		_$$litprim$$_ rv;
+		try
+		{
+			rv = get_$$Prim$$_Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	 */
+	
+	
+	public static char getLittleChar(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getLittleCharBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static char getBigChar(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getBigCharBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static char getChar(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getCharBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static char getLittleChar(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getLittleCharBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static char getBigChar(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getBigCharBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static char getChar(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		char rv;
+		try
+		{
+			rv = getCharBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static short getLittleShort(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getLittleShortBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static short getBigShort(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getBigShortBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static short getShort(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getShortBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static short getLittleShort(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getLittleShortBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static short getBigShort(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getBigShortBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static short getShort(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		short rv;
+		try
+		{
+			rv = getShortBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static float getLittleFloat(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getLittleFloatBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static float getBigFloat(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getBigFloatBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static float getFloat(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getFloatBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static float getLittleFloat(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getLittleFloatBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static float getBigFloat(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getBigFloatBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static float getFloat(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		float rv;
+		try
+		{
+			rv = getFloatBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getLittleInt(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleIntBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getBigInt(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigIntBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getInt(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getIntBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static int getLittleInt(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleIntBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getBigInt(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigIntBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getInt(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getIntBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static double getLittleDouble(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getLittleDoubleBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static double getBigDouble(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getBigDoubleBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static double getDouble(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getDoubleBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static double getLittleDouble(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getLittleDoubleBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static double getBigDouble(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getBigDoubleBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static double getDouble(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		double rv;
+		try
+		{
+			rv = getDoubleBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleLong(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleLongBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigLong(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigLongBuffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getLong(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLongBuffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleLong(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleLongBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigLong(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigLongBuffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getLong(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLongBuffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getLittleSInt24(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleSInt24Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getBigSInt24(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigSInt24Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getSInt24(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getSInt24Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static int getLittleSInt24(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleSInt24Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getBigSInt24(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigSInt24Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getSInt24(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getSInt24Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleSLong40(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong40Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong40(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong40Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getSLong40(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong40Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleSLong40(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong40Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong40(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong40Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getSLong40(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong40Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleSLong48(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong48Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong48(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong48Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getSLong48(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong48Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleSLong48(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong48Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong48(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong48Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getSLong48(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong48Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleSLong56(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong56Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong56(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong56Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getSLong56(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong56Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleSLong56(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleSLong56Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigSLong56(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigSLong56Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getSLong56(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getSLong56Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getLittleUInt24(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleUInt24Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getBigUInt24(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigUInt24Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static int getUInt24(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getUInt24Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static int getLittleUInt24(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getLittleUInt24Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getBigUInt24(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getBigUInt24Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static int getUInt24(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		int rv;
+		try
+		{
+			rv = getUInt24Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong40(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong40Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong40(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong40Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getULong40(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong40Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleULong40(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong40Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong40(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong40Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getULong40(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong40Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong48(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong48Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong48(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong48Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getULong48(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong48Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleULong48(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong48Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong48(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong48Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getULong48(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong48Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static long getLittleULong56(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong56Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong56(ByteBuffer source)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong56Buffermodifying(source);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	public static long getULong56(ByteBuffer source, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong56Buffermodifying(source, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+		return rv;
+	}
+	
+	
+	public static long getLittleULong56(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getLittleULong56Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getBigULong56(ByteBuffer source, int offset)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getBigULong56Buffermodifying(source, offset);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	public static long getULong56(ByteBuffer source, int offset, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		long rv;
+		try
+		{
+			rv = getULong56Buffermodifying(source, offset, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+		return rv;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// >>>
+				
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:char,short,int,long,float,double,uint24,ulong40,ulong48,ulong56$$_
+	
+	
+	public static void putLittle_$$SLPrim$$_(ByteBuffer source, _$$litprim$$_ value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittle_$$SLPrim$$_Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBig_$$SLPrim$$_(ByteBuffer source, _$$litprim$$_ value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBig_$$SLPrim$$_Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void put_$$SLPrim$$_(ByteBuffer source, _$$litprim$$_ value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			put_$$SLPrim$$_Buffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittle_$$SLPrim$$_(ByteBuffer source, int offset, _$$litprim$$_ value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittle_$$SLPrim$$_Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBig_$$SLPrim$$_(ByteBuffer source, int offset, _$$litprim$$_ value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBig_$$SLPrim$$_Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBig_$$SLPrim$$_(ByteBuffer source, int offset, _$$litprim$$_ value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			put_$$SLPrim$$_Buffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	 */
+	
+	
+	
+	public static void putLittleChar(ByteBuffer source, char value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleCharBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigChar(ByteBuffer source, char value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigCharBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putChar(ByteBuffer source, char value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putCharBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleChar(ByteBuffer source, int offset, char value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleCharBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigChar(ByteBuffer source, int offset, char value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigCharBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigChar(ByteBuffer source, int offset, char value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putCharBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleShort(ByteBuffer source, short value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleShortBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigShort(ByteBuffer source, short value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigShortBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putShort(ByteBuffer source, short value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putShortBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleShort(ByteBuffer source, int offset, short value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleShortBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigShort(ByteBuffer source, int offset, short value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigShortBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigShort(ByteBuffer source, int offset, short value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putShortBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleFloat(ByteBuffer source, float value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleFloatBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigFloat(ByteBuffer source, float value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigFloatBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putFloat(ByteBuffer source, float value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putFloatBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleFloat(ByteBuffer source, int offset, float value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleFloatBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigFloat(ByteBuffer source, int offset, float value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigFloatBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigFloat(ByteBuffer source, int offset, float value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putFloatBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleInt(ByteBuffer source, int value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleIntBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigInt(ByteBuffer source, int value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigIntBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putInt(ByteBuffer source, int value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putIntBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleInt(ByteBuffer source, int offset, int value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleIntBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigInt(ByteBuffer source, int offset, int value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigIntBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigInt(ByteBuffer source, int offset, int value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putIntBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleDouble(ByteBuffer source, double value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleDoubleBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigDouble(ByteBuffer source, double value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigDoubleBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putDouble(ByteBuffer source, double value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putDoubleBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleDouble(ByteBuffer source, int offset, double value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleDoubleBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigDouble(ByteBuffer source, int offset, double value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigDoubleBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigDouble(ByteBuffer source, int offset, double value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putDoubleBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleLong(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLongBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigLong(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLongBuffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putLong(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLongBuffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleLong(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLongBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLongBuffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLongBuffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleInt24(ByteBuffer source, int value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleInt24Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigInt24(ByteBuffer source, int value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigInt24Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putInt24(ByteBuffer source, int value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putInt24Buffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleInt24(ByteBuffer source, int offset, int value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleInt24Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigInt24(ByteBuffer source, int offset, int value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigInt24Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigInt24(ByteBuffer source, int offset, int value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putInt24Buffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleLong40(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong40Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigLong40(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong40Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putLong40(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong40Buffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleLong40(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong40Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong40(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong40Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong40(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong40Buffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleLong48(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong48Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigLong48(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong48Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putLong48(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong48Buffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleLong48(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong48Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong48(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong48Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong48(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong48Buffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void putLittleLong56(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong56Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putBigLong56(ByteBuffer source, long value)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong56Buffermodifying(source, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	public static void putLong56(ByteBuffer source, long value, ByteOrder endianness)
+	{
+		int originalPosition = source.position();
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong56Buffermodifying(source, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+			source.position(originalPosition);
+		}
+	}
+	
+	
+	public static void putLittleLong56(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLittleLong56Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong56(ByteBuffer source, int offset, long value)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putBigLong56Buffermodifying(source, offset, value);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	public static void putBigLong56(ByteBuffer source, int offset, long value, ByteOrder endianness)
+	{
+		ByteOrder originalByteOrder = source.order();
+		try
+		{
+			putLong56Buffermodifying(source, offset, value, endianness);
+		}
+		finally
+		{
+			source.order(originalByteOrder);
+		}
+	}
+	
+	
+	
 	
 	// >>>
 }

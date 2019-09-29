@@ -1,13 +1,13 @@
 package rebound.util.collections.prim;
 
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.math.BigInteger;
 import java.util.List;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.OverflowException;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities;
@@ -207,7 +207,7 @@ extends List<Boolean>
 	 */
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue byte[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(int destBitOffset, @ReadonlyValue byte[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 8;
 		
@@ -310,7 +310,7 @@ extends List<Boolean>
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue char[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(int destBitOffset, @ReadonlyValue char[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 16;
 		
@@ -413,7 +413,7 @@ extends List<Boolean>
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue short[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(int destBitOffset, @ReadonlyValue short[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 16;
 		
@@ -516,7 +516,7 @@ extends List<Boolean>
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue int[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(int destBitOffset, @ReadonlyValue int[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 32;
 		
@@ -619,7 +619,7 @@ extends List<Boolean>
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue long[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(int destBitOffset, @ReadonlyValue long[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 64;
 		

@@ -18,6 +18,13 @@ extends Interval<Slice<A>>
 		this.underlying = underlying;
 	}
 	
+	public static <E> Slice<E> fromRange(E underlying, int startInclusive, int endExclusive)
+	{
+		return new Slice<E>(underlying, startInclusive, endExclusive - startInclusive);
+	}
+	
+	
+	
 	@Nonnull
 	public A getUnderlying()
 	{

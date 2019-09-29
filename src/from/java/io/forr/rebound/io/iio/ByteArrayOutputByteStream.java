@@ -229,4 +229,13 @@ implements OutputByteStream   //TODO also implement RandomAccessOutputByteStream
 	public void close() throws IOException
 	{
 	}
+	
+	
+	
+	
+	
+	@Override
+	public void flush() throws IOException
+	{
+	}
 }

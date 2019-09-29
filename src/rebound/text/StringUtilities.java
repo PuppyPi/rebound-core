@@ -7,9 +7,11 @@ package rebound.text;
 import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -36,13 +38,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Signed;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.NonnullKeys;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
+import rebound.bits.BitfieldSafeCasts;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.Endianness;
 import rebound.bits.Unsigned;
@@ -50,6 +57,7 @@ import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NonSingletonException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.ReturnPath.SingletonReturnPath;
+import rebound.exceptions.StopIterationReturnPath;
 import rebound.exceptions.TextSyntaxCheckedException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.exceptions.UnreachableCodeException;
@@ -58,6 +66,8 @@ import rebound.io.ucs4.UCS4Reader;
 import rebound.io.ucs4.UCS4ReaderFromNormalUTF16Reader;
 import rebound.io.ucs4.UCS4Writer;
 import rebound.io.util.TextIOUtilities;
+import rebound.math.Direction1D;
+import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.CharacterPredicates.NaiveCharacterSequencePattern;
 import rebound.text.StringUtilities.RPBasicNaiveParsingSyntaxDescription.RPBasicNaiveParsingSyntaxStateDescription;
@@ -67,19 +77,26 @@ import rebound.util.Primitives;
 import rebound.util.ScanDirection;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.BasicCollectionUtilities;
+import rebound.util.collections.FilterAwayReturnPath;
 import rebound.util.collections.IdentityHashSet;
 import rebound.util.collections.Interval;
+import rebound.util.collections.Mapper;
 import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
+import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.functional.FunctionInterfaces.CharEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToObject;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
@@ -1302,6 +1319,13 @@ implements JavaNamespace
 	}
 	
 	@Nullable
+	public static String splitonceReturnSucceedingOrWhole(String s, char del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? s : s.substring(i+1);
+	}
+	
+	@Nullable
 	public static String splitonceReturnSucceedingOrNull(String s, char del)
 	{
 		int i = s.indexOf(del);
@@ -1322,6 +1346,13 @@ implements JavaNamespace
 	{
 		int i = s.indexOf(del);
 		return i == -1 ? null : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String splitonceReturnSucceedingOrWhole(String s, String del)
+	{
+		int i = s.indexOf(del);
+		return i == -1 ? s : s.substring(i+del.length());
 	}
 	
 	@Nullable
@@ -1396,6 +1427,13 @@ implements JavaNamespace
 	}
 	
 	@Nullable
+	public static String rsplitonceReturnSucceedingOrWhole(String s, char del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? s : s.substring(i+1);
+	}
+	
+	@Nullable
 	public static String rsplitonceReturnSucceedingOrNull(String s, char del)
 	{
 		int i = s.lastIndexOf(del);
@@ -1416,6 +1454,13 @@ implements JavaNamespace
 	{
 		int i = s.lastIndexOf(del);
 		return i == -1 ? null : s.substring(0, i);
+	}
+	
+	@Nullable
+	public static String rsplitonceReturnSucceedingOrWhole(String s, String del)
+	{
+		int i = s.lastIndexOf(del);
+		return i == -1 ? s : s.substring(i+del.length());
 	}
 	
 	@Nullable
@@ -1657,102 +1702,352 @@ implements JavaNamespace
 	
 	
 	
-	/**
-	 * -finds the unique String index identified by the given Line and Column numbers.
-	 * Note that while String indices start at 0, Line and Column numbers start at 1.
-	 */
-	public static int getStringIndex(int line, int col, String text)
-	{
-		int pos = 0;
-		
-		int l = 0;
-		while (++l < line)
-		{
-			pos = text.indexOf(SYSTEM_EOL, pos+1);
-		}
-		pos += (col - 1);
-		
-		return pos;
-	}
+	
+	
+	
 	
 	/**
-	 * Converts a one-dimensional string index into a Line and Column number.
-	 * Note that while String indices start at 0, Line and Column numbers start at 1.
-	 * @param pos The string index
+	 * -finds the unique String index identified by the given Line and Column indexes (which start at zero).
+	 * + Note that this uses '\n' as the newline character (see {@link #universalNewlines(String)})
+	 */
+	@Nonnegative
+	public static int getLinearIndexFromLineAndColumnIndex(@Nonnegative int line, @Nonnegative int col, String text) throws IndexOutOfBoundsException
+	{
+		return getLinearIndexFromLineAndColumnIndex(line, col, text, '\n');
+	}
+	
+	@Nonnegative
+	public static int getLinearIndexFromLineAndColumnIndex(@Nonnegative int line, @Nonnegative int col, String text, char newline) throws IndexOutOfBoundsException
+	{
+		if (line < 0)
+			throw new IndexOutOfBoundsException();
+		if (col < 0)
+			throw new IndexOutOfBoundsException();
+		
+		int n = text.length();
+		
+		int lastLineStart = 0;
+		
+		int l = 0;
+		while (l < line)
+		{
+			asrt(lastLineStart <= n);
+			if (lastLineStart == n)
+				throw new IndexOutOfBoundsException();  //because l < line; l would have to be == line (and col == 0) for this to be okay!
+			
+			int p = text.indexOf(newline, lastLineStart);
+			
+			if (p == -1)
+			{
+				throw new IndexOutOfBoundsException();  //because l < line; l would have to be == line (and col == 0) for this to be okay!
+			}
+			else
+			{
+				lastLineStart = p+1;
+				l++;
+			}
+		}
+		
+		asrt(lastLineStart >= 0);
+		
+		int position = lastLineStart + col;
+		
+		if (position > n)
+			throw new IndexOutOfBoundsException();
+		
+		int p = text.indexOf(newline, lastLineStart);
+		
+		if (p == -1)
+		{
+			//checking pos <= n took care of it :>
+		}
+		else
+		{
+			int nextLineStart = p + 1;
+			
+			if (position >= nextLineStart)
+				throw new IndexOutOfBoundsException();
+		}
+		
+		return position;
+	}
+	
+	
+	/**
+	 * Converts a one-dimensional string index into a Line and Column indexes (which start at zero!)
+	 * + Note that this uses '\n' as the newline character (see {@link #universalNewlines(String)})
+	 * @param position The string index (can be the eof index, str.length()!)
 	 * @param text The string
 	 * @return new int[]{line, col}
 	 */
-	public static int[] getLineAndCol(int pos, String text)
+	@Nonnegative
+	public static int[] getLineAndColumnIndexes(@Nonnegative int position, String text) throws IndexOutOfBoundsException
 	{
-		int line = 1;
-		int col = 1;
+		return getLineAndColumnIndexes(position, text, '\n');
+	}
+	
+	@Nonnegative
+	public static int[] getLineAndColumnIndexes(@Nonnegative int position, String text, char newline) throws IndexOutOfBoundsException
+	{
+		if (position < 0)  throw new IndexOutOfBoundsException();
+		if (position > text.length())  throw new IndexOutOfBoundsException();
 		
+		int line = 0;
 		
-		int cpos = text.indexOf(SYSTEM_EOL);
-		int lpos = -1;
-		while (cpos != -1 && cpos < pos)
+		int currentLineStart = text.indexOf(newline);  currentLineStart += (currentLineStart != -1) ? 1 : 0;
+		int lastLineStart = 0;
+		while (currentLineStart != -1)
 		{
-			lpos = cpos;
-			cpos = text.indexOf(SYSTEM_EOL, cpos+1);
-			line++;
+			if (currentLineStart < position)
+			{
+				lastLineStart = currentLineStart;
+				currentLineStart = text.indexOf(newline, currentLineStart);  currentLineStart += (currentLineStart != -1) ? 1 : 0;
+				line++;
+			}
+			else if (currentLineStart == position)
+			{
+				lastLineStart = currentLineStart;
+				line++;
+				break;
+			}
+			else
+			{
+				break;
+			}
 		}
 		
-		col = cpos - lpos;
+		int col = position - lastLineStart;
 		
 		return new int[]{line, col};
 	}
 	
-	/**
-	 * Converts a one-dimensional string index (0-based, of course) into a Line and Column number.
-	 * @param pos The string index
-	 * @param text The string
-	 * @return Just the line number (1-based)
-	 */
-	public static int getLineNumber(int pos, String text)
+	
+	@Nonnegative
+	public static int getLineIndex(@Nonnegative int position, String text) throws IndexOutOfBoundsException
 	{
-		int line = 1;
-		//		int col = 1;
-		
-		
-		int cpos = text.indexOf(SYSTEM_EOL);
-		//		int lpos = -1;
-		while (cpos != -1 && cpos < pos)
-		{
-			//			lpos = cpos;
-			cpos = text.indexOf(SYSTEM_EOL, cpos+1);
-			line++;
-		}
-		
-		//		col = cpos - lpos;
-		
-		return line;
+		return getLineAndColumnIndexes(position, text)[0];
+	}
+	
+	@Nonnegative
+	public static int getColumnIndex(@Nonnegative int position, String text) throws IndexOutOfBoundsException
+	{
+		return getLineAndColumnIndexes(position, text)[1];
 	}
 	
 	/**
 	 * Converts a one-dimensional string index (0-based, of course) into a Line and Column number.
-	 * @param pos The string index
+	 * + Note that this uses '\n' as the newline character (see {@link #universalNewlines(String)})
+	 * @param position The string index
+	 * @param text The string
+	 * @return Just the line number (1-based)
+	 */
+	@Positive
+	public static int getLineNumber(@Nonnegative int position, String text) throws IndexOutOfBoundsException
+	{
+		return getLineIndex(position, text) + 1;
+	}
+	
+	/**
+	 * Converts a one-dimensional string index (0-based, of course) into a Line and Column number.
+	 * + Note that this uses '\n' as the newline character (see {@link #universalNewlines(String)})
+	 * @param position The string index
 	 * @param text The string
 	 * @return Just the column number (1-based)
 	 */
-	public static int getColumnNumber(int pos, String text)
+	@Positive
+	public static int getColumnNumber(@Nonnegative int position, String text) throws IndexOutOfBoundsException
 	{
-		//		int line = 1;
-		int col = 1;
+		return getColumnIndex(position, text) + 1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * -finds the unique IntegerList index identified by the given Line and Column indexes (which start at zero).
+	 * + Note that this uses '\n' as the newline integer (see {@link #universalNewlines(String)})
+	 */
+	@Nonnegative
+	public static int getLinearIndexFromLineAndColumnIndexUCS4(@Nonnegative int line, @Nonnegative int col, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getLinearIndexFromLineAndColumnIndexUCS4(line, col, text, '\n');
+	}
+	
+	@Nonnegative
+	public static int getLinearIndexFromLineAndColumnIndexUCS4(@Nonnegative int line, @Nonnegative int col, IntegerList text, int newline) throws IndexOutOfBoundsException
+	{
+		if (line < 0)
+			throw new IndexOutOfBoundsException();
+		if (col < 0)
+			throw new IndexOutOfBoundsException();
 		
+		int n = text.size();
 		
-		int cpos = text.indexOf(SYSTEM_EOL);
-		int lpos = -1;
-		while (cpos != -1 && cpos < pos)
+		int lastLineStart = 0;
+		
+		int l = 0;
+		while (l < line)
 		{
-			lpos = cpos;
-			cpos = text.indexOf(SYSTEM_EOL, cpos+1);
-			//			line++;
+			asrt(lastLineStart <= n);
+			if (lastLineStart == n)
+				throw new IndexOutOfBoundsException();  //because l < line; l would have to be == line (and col == 0) for this to be okay!
+			
+			int p = text.indexOfInt(newline, lastLineStart);
+			
+			if (p == -1)
+			{
+				throw new IndexOutOfBoundsException();  //because l < line; l would have to be == line (and col == 0) for this to be okay!
+			}
+			else
+			{
+				lastLineStart = p+1;
+				l++;
+			}
 		}
 		
-		col = cpos - lpos;
+		asrt(lastLineStart >= 0);
 		
-		return col;
+		int position = lastLineStart + col;
+		
+		if (position > n)
+			throw new IndexOutOfBoundsException();
+		
+		int p = text.indexOfInt(newline, lastLineStart);
+		
+		if (p == -1)
+		{
+			//checking pos <= n took care of it :>
+		}
+		else
+		{
+			int nextLineStart = p + 1;
+			
+			if (position >= nextLineStart)
+				throw new IndexOutOfBoundsException();
+		}
+		
+		return position;
 	}
+	
+	
+	/**
+	 * Converts a one-dimensional string index into a Line and Column indexes (which start at zero!)
+	 * + Note that this uses '\n' as the newline integer (see {@link #universalNewlines(String)})
+	 * @param position The string index (can be the eof index, str.length()!)
+	 * @param text The string
+	 * @return new int[]{line, col}
+	 */
+	@Nonnegative
+	public static int[] getLineAndColumnIndexesUCS4(@Nonnegative int position, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getLineAndColumnIndexesUCS4(position, text, '\n');
+	}
+	
+	@Nonnegative
+	public static int[] getLineAndColumnIndexesUCS4(@Nonnegative int position, IntegerList text, int newline) throws IndexOutOfBoundsException
+	{
+		if (position < 0)  throw new IndexOutOfBoundsException();
+		if (position > text.size())  throw new IndexOutOfBoundsException();
+		
+		int line = 0;
+		
+		int currentLineStart = text.indexOfInt(newline);  currentLineStart += (currentLineStart != -1) ? 1 : 0;
+		int lastLineStart = 0;
+		while (currentLineStart != -1)
+		{
+			if (currentLineStart < position)
+			{
+				lastLineStart = currentLineStart;
+				currentLineStart = text.indexOfInt(newline, currentLineStart);  currentLineStart += (currentLineStart != -1) ? 1 : 0;
+				line++;
+			}
+			else if (currentLineStart == position)
+			{
+				lastLineStart = currentLineStart;
+				line++;
+				break;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		int col = position - lastLineStart;
+		
+		return new int[]{line, col};
+	}
+	
+	
+	@Nonnegative
+	public static int getLineIndexUCS4(@Nonnegative int position, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getLineAndColumnIndexesUCS4(position, text)[0];
+	}
+	
+	@Nonnegative
+	public static int getColumnIndexUCS4(@Nonnegative int position, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getLineAndColumnIndexesUCS4(position, text)[1];
+	}
+	
+	/**
+	 * Converts a one-dimensional string index (0-based, of course) into a Line and Column number.
+	 * + Note that this uses '\n' as the newline integer (see {@link #universalNewlines(String)})
+	 * @param position The string index
+	 * @param text The string
+	 * @return Just the line number (1-based)
+	 */
+	@Positive
+	public static int getLineNumberUCS4(@Nonnegative int position, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getLineIndexUCS4(position, text) + 1;
+	}
+	
+	/**
+	 * Converts a one-dimensional string index (0-based, of course) into a Line and Column number.
+	 * + Note that this uses '\n' as the newline integer (see {@link #universalNewlines(String)})
+	 * @param position The string index
+	 * @param text The string
+	 * @return Just the column number (1-based)
+	 */
+	@Positive
+	public static int getColumnNumberUCS4(@Nonnegative int position, IntegerList text) throws IndexOutOfBoundsException
+	{
+		return getColumnIndexUCS4(position, text) + 1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/**
@@ -2697,28 +2992,66 @@ implements JavaNamespace
 			out.append(c);
 	}
 	
-	public static String mul(char c, int count)
+	public static String mulneg(char c, @Signed int count)
 	{
 		if (count <= 0)
 			return "";
-		
-		char[] a = new char[count];
-		for (int i = 0; i < count; i++)
-			a[i] = c;
-		return new String(a);
+		else
+		{
+			char[] a = new char[count];
+			for (int i = 0; i < count; i++)
+				a[i] = c;
+			return new String(a);
+		}
 	}
 	
-	public static String mul(String s, int count)
+	public static String mulneg(String s, @Signed int count)
 	{
 		if (count <= 0)
 			return "";
-		
-		char[] c = s.toCharArray();
-		
-		char[] a = new char[c.length * count];
-		for (int i = 0; i < count; i++)
-			System.arraycopy(c, 0, a, i*c.length, c.length);
-		return new String(a);
+		else
+		{
+			char[] c = s.toCharArray();
+			
+			char[] a = new char[c.length * count];
+			for (int i = 0; i < count; i++)
+				System.arraycopy(c, 0, a, i*c.length, c.length);
+			return new String(a);
+		}
+	}
+	
+	
+	
+	public static String mulnn(char c, @Nonnegative int count)
+	{
+		if (count < 0)
+			throw new AssertionError(String.valueOf(count));
+		else if (count == 0)
+			return "";
+		else
+		{
+			char[] a = new char[count];
+			for (int i = 0; i < count; i++)
+				a[i] = c;
+			return new String(a);
+		}
+	}
+	
+	public static String mulnn(String s, @Nonnegative int count)
+	{
+		if (count < 0)
+			throw new AssertionError(String.valueOf(count));
+		else if (count == 0)
+			return "";
+		else
+		{
+			char[] c = s.toCharArray();
+			
+			char[] a = new char[c.length * count];
+			for (int i = 0; i < count; i++)
+				System.arraycopy(c, 0, a, i*c.length, c.length);
+			return new String(a);
+		}
 	}
 	
 	
@@ -3374,6 +3707,18 @@ implements JavaNamespace
 		return decodeTextToString(bytes, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
 	}
 	
+	public static String decodeTextToStringReportingUnchecked(byte[] bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToStringReporting(bytes, encoding);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
 	
 	
 	public static String decodeTextToString(Slice<byte[]> bytes, Charset encoding, CodingErrorAction onUnmappableCharacter, CodingErrorAction onMalformedInput) throws CharacterCodingException
@@ -3386,6 +3731,18 @@ implements JavaNamespace
 		return decodeTextToString(bytes, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
 	}
 	
+	public static String decodeTextToStringReportingUnchecked(Slice<byte[]> bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToStringReporting(bytes, encoding);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
 	
 	
 	public static String decodeTextToString(ByteList bytes, Charset encoding, CodingErrorAction onUnmappableCharacter, CodingErrorAction onMalformedInput) throws CharacterCodingException
@@ -3396,6 +3753,18 @@ implements JavaNamespace
 	public static String decodeTextToStringReporting(ByteList bytes, Charset encoding) throws CharacterCodingException
 	{
 		return decodeTextToString(bytes, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
+	}
+	
+	public static String decodeTextToStringReportingUnchecked(ByteList bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToStringReporting(bytes, encoding);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
 	}
 	
 	
@@ -3442,12 +3811,12 @@ implements JavaNamespace
 	 * This is a very elementary number parsing utility, it is designed to be used to make more complicated syntaxes (like in script parsers).<br>
 	 * <br>
 	 * It reads integer digits in the given radix, moves along the given {@link Cursor}, and stops on the first invalid character or at the EOF (which will set the cursor to <code>length</code>).<br>
-	 * The long it reads to is treated as a 64-bit <b>un</b>signed integer, which you can ensure fits in a signed one with {@link Unsigned#safeCastU64toS64(long)} :><br>
+	 * The long it reads to is treated as a 64-bit <b>un</b>signed integer, which you can ensure fits in a signed one with {@link BitfieldSafeCasts#safeCastU64toS64(long)} :><br>
 	 * <br>
 	 * There are no safeties (like <code>data != null</code>), so don't give any invalid parameters.<br>
 	 * If, while parsing, the number becomes to great, it will simply stop at 2<sup>64</sup>-1<br>
 	 */
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static long parseBasicNumber(char[] data, int offset, int length, Cursor cursor, int radix)
 	{
 		long value = 0;
@@ -3504,12 +3873,12 @@ implements JavaNamespace
 	 * This is a very elementary number parsing utility, it is designed to be used to make more complicated syntaxes (like in script parsers).<br>
 	 * <br>
 	 * It reads integer digits in the given radix, and stops on the first invalid character or at the EOF.<br>
-	 * The long it reads to is treated as a 64-bit <b>un</b>signed integer, which you can ensure fits in a signed one with {@link Unsigned#safeCastU64toS64(long)} :><br>
+	 * The long it reads to is treated as a 64-bit <b>un</b>signed integer, which you can ensure fits in a signed one with {@link BitfieldSafeCasts#safeCastU64toS64(long)} :><br>
 	 * <br>
 	 * There are no safeties (like <code>data != null</code>), so don't give any invalid parameters.<br>
 	 * If, while parsing, the number becomes to great, it will simply stop at 2<sup>64</sup>-1<br>
 	 */
-	@ActuallyUnsignedValue
+	@ActuallyUnsigned
 	public static long parseBasicNumber(char[] data, int offset, int length, int radix)
 	{
 		long value = 0;
@@ -5693,6 +6062,7 @@ implements JavaNamespace
 	/**
 	 * This escapes a string so that non-space whitespace characters, quotes, and backspaces are escaped in the C-style (useful for debugging)
 	 * Control chars are escaped in the \x<i>##</i> syntax, other escapes are the Java standard sequences (backslash, CR, LF, tab, backspace, form-feed, single-quote, double-quote)
+	 * Non-ASCII Unicode characters are left unaltered, so that we aren't specifying a particular {@link Charset unicode encoding}.
 	 */
 	public static String cescape(String raw)
 	{
@@ -5774,7 +6144,7 @@ implements JavaNamespace
 	 */
 	public static String repr(CharSequence s)
 	{
-		return "\""+escapeJavaStandard(s.toString())+"\"";
+		return s == null ? "null" : "\""+escapeJavaStandard(s.toString())+"\"";
 	}
 	
 	
@@ -6215,7 +6585,7 @@ implements JavaNamespace
 			return integer < 0 ? '-'+normal : normal;
 		else
 		{
-			String lz = mul('0', minDigits - normalLength);
+			String lz = mulneg('0', minDigits - normalLength);
 			return integer < 0 ? '-'+lz+normal : lz+normal;
 		}
 	}
@@ -6232,6 +6602,8 @@ implements JavaNamespace
 	
 	
 	
+	//TODO Deduplicate toFixedLengthHexStringLowercase with hexint() and make..binint()'s?  :>
+	
 	public static String toFixedLengthBinaryString(boolean v)
 	{
 		return v ? "1" : "0";
@@ -6241,7 +6613,7 @@ implements JavaNamespace
 	{
 		String s = Integer.toBinaryString(v & 0xFF);
 		if (s.length() < 8)
-			s = StringUtilities.mul('0', 8 - s.length()) + s;
+			s = StringUtilities.mulnn('0', 8 - s.length()) + s;
 		return s;
 	}
 	
@@ -6249,7 +6621,7 @@ implements JavaNamespace
 	{
 		String s = Integer.toBinaryString(v & 0xFFFF);
 		if (s.length() < 16)
-			s = StringUtilities.mul('0', 16 - s.length()) + s;
+			s = StringUtilities.mulnn('0', 16 - s.length()) + s;
 		return s;
 	}
 	
@@ -6257,7 +6629,7 @@ implements JavaNamespace
 	{
 		String s = Integer.toBinaryString(v & 0xFFFF);
 		if (s.length() < 16)
-			s = StringUtilities.mul('0', 16 - s.length()) + s;
+			s = StringUtilities.mulnn('0', 16 - s.length()) + s;
 		return s;
 	}
 	
@@ -6265,7 +6637,7 @@ implements JavaNamespace
 	{
 		String s = Integer.toBinaryString(v);
 		if (s.length() < 32)
-			s = StringUtilities.mul('0', 32 - s.length()) + s;
+			s = StringUtilities.mulnn('0', 32 - s.length()) + s;
 		return s;
 	}
 	
@@ -6273,7 +6645,24 @@ implements JavaNamespace
 	{
 		String s = Long.toBinaryString(v);
 		if (s.length() < 64)
-			s = StringUtilities.mul('0', 64 - s.length()) + s;
+			s = StringUtilities.mulnn('0', 64 - s.length()) + s;
+		return s;
+	}
+	
+	
+	public static String toFixedLengthBinaryString(int v, int l)
+	{
+		String s = Integer.toBinaryString(v);
+		if (s.length() < l)
+			s = StringUtilities.mulnn('0', l - s.length()) + s;
+		return s;
+	}
+	
+	public static String toFixedLengthBinaryString(long v, int l)
+	{
+		String s = Long.toBinaryString(v);
+		if (s.length() < l)
+			s = StringUtilities.mulnn('0', l - s.length()) + s;
 		return s;
 	}
 	
@@ -6356,6 +6745,76 @@ implements JavaNamespace
 		
 		return new String(c);
 	}
+	
+	
+	
+	
+	
+	public static String hexint(byte b)
+	{
+		String s = Integer.toHexString(upcast(b)).toUpperCase();
+		return "0x"+mulnn('0', 2 - s.length()) + s;
+	}
+	
+	public static String hexint(short b)
+	{
+		String s = Integer.toHexString(upcast(b)).toUpperCase();
+		return "0x"+mulnn('0', 4 - s.length()) + s;
+	}
+	
+	public static String hexint(int b)
+	{
+		String s = Integer.toHexString(b).toUpperCase();
+		return "0x"+mulnn('0', 8 - s.length()) + s;
+	}
+	
+	public static String hexint(long b)
+	{
+		String s = Long.toHexString(b).toUpperCase();
+		return "0x"+mulnn('0', 16 - s.length()) + s;
+	}
+	
+	
+	public static String hexint(int b, int l)
+	{
+		String s = Integer.toHexString(b).toUpperCase();
+		return "0x"+mulnn('0', l - s.length()) + s;
+	}
+	
+	public static String hexint(long b, int l)
+	{
+		String s = Long.toHexString(b).toUpperCase();
+		return "0x"+mulnn('0', l - s.length()) + s;
+	}
+	
+	
+	
+	public static String hexint24(int b)
+	{
+		String s = Integer.toHexString(b & 0x00FFFFFF).toUpperCase();
+		return "0x"+mulnn('0', 6 - s.length()) + s;
+	}
+	
+	public static String hexint40(long b)
+	{
+		String s = Long.toHexString(b & 0x000000FF_FFFFFFFFl).toUpperCase();
+		return "0x"+mulnn('0', 10 - s.length()) + s;
+	}
+	
+	public static String hexint48(long b)
+	{
+		String s = Long.toHexString(b & 0x0000FFFF_FFFFFFFFl).toUpperCase();
+		return "0x"+mulnn('0', 12 - s.length()) + s;
+	}
+	
+	public static String hexint56(long b)
+	{
+		String s = Long.toHexString(b & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
+		return "0x"+mulnn('0', 14 - s.length()) + s;
+	}
+	
+	
+	
 	
 	
 	
@@ -6633,6 +7092,10 @@ implements JavaNamespace
 		
 		UCS4Reader utf16Decoder = new UCS4ReaderFromNormalUTF16Reader(new StringReader(unicodeString));
 		
+		//edit, Java 8: now there is! :D
+		//unicodeString.codePoints().toArray();  ;D
+		//TODO Unit test the crap out of this!! 8> XD
+		
 		try
 		{
 			return TextIOUtilities.readAll(utf16Decoder);
@@ -6642,6 +7105,13 @@ implements JavaNamespace
 			throw new ImpossibleException("java.lang.String's containing illegal UTF-16 encoded chars is best to consider a RuntimeException (bug), I think!    (but apparently that's what happened here x\"D )", exc);
 		}
 	}
+	
+	
+	public static String newStringFromUCS4(Slice<int[]> codepoints)
+	{
+		return new String(codepoints.getUnderlying(), codepoints.getOffset(), codepoints.getLength());
+	}
+	
 	
 	
 	
@@ -6724,7 +7194,7 @@ implements JavaNamespace
 	
 	
 	
-	public static String toStringU64(@ActuallyUnsignedValue long value, int radix)
+	public static String toStringU64(@ActuallyUnsigned long value, int radix)
 	{
 		if (value == 0)
 			return "0";
@@ -6752,7 +7222,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static String toStringU32(@ActuallyUnsignedValue int value, int radix)
+	public static String toStringU32(@ActuallyUnsigned int value, int radix)
 	{
 		if (value == 0)
 			return "0";
@@ -6787,19 +7257,19 @@ implements JavaNamespace
 		return toStringU32(value, radix);
 	}
 	
-	public static String toStringU8(@ActuallyUnsignedValue byte value, int radix)
+	public static String toStringU8(@ActuallyUnsigned byte value, int radix)
 	{
 		return toStringU32(upcast(value), radix);
 	}
 	
 	
 	
-	public static String toStringU64(@ActuallyUnsignedValue long value)
+	public static String toStringU64(@ActuallyUnsigned long value)
 	{
 		return toStringU64(value, 10);
 	}
 	
-	public static String toStringU32(@ActuallyUnsignedValue int value)
+	public static String toStringU32(@ActuallyUnsigned int value)
 	{
 		return toStringU32(value, 10);
 	}
@@ -6812,7 +7282,7 @@ implements JavaNamespace
 		return toStringU16(value, 10);
 	}
 	
-	public static String toStringU8(@ActuallyUnsignedValue byte value)
+	public static String toStringU8(@ActuallyUnsigned byte value)
 	{
 		return toStringU8(value, 10);
 	}
@@ -7308,7 +7778,7 @@ primxp
 	public static String zeroPad(String s, int minDigits)
 	{
 		int n = minDigits - s.length();
-		return n > 0 ? mul('0', n) + s : s;
+		return n > 0 ? mulneg('0', n) + s : s;
 	}
 	
 	
@@ -7953,4 +8423,158 @@ primxp
 		else
 			return container.contains(containee);
 	}
+	
+	
+	
+	
+	public static <T extends CharSequence> T requireNonEmpty(@NonnullKeys T s)
+	{
+		if (s.length() <= 0)
+			throw new IllegalArgumentException();
+		return s;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <I> String mapToString(Mapper<I, Character> mapper, SimpleIterator<I> input)
+	{
+		StringBuilder b = new StringBuilder();
+		
+		while (true)
+		{
+			I i;
+			try
+			{
+				i = input.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			char o;
+			try
+			{
+				o = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			b.append(o);
+		}
+		
+		return b.toString();
+	}
+	
+	
+	public static <I> String mapToString(Mapper<I, Character> mapper, Iterable<I> input)
+	{
+		return mapToString(mapper, simpleIterator(input));
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Guaranteed to be in order :>
+	 */
+	public static void forEach(UnaryProcedureChar observer, CharSequence input)
+	{
+		int n = input.length();
+		for (int i = 0; i < n; i++)
+			observer.f(input.charAt(i));
+	}
+	
+	
+	
+	
+	@Nullable
+	public static Integer binarySearchString(UnaryFunctionCharToObject<Direction1D> predicate, CharSequence list)
+	{
+		return MathUtilities.binarySearchS32(i -> predicate.f(list.charAt(i)), 0, list.length());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String listToString(List<Character> list)
+	{
+		if (list instanceof CharacterList)
+			return sliceToString(((CharacterList) list).toCharArraySlicePossiblyLive());
+		else
+			return mapToString(c -> c, list);
+	}
+	
+	
+	public static String sliceToString(Slice<char[]> slice)
+	{
+		return new String(slice.getUnderlying(), slice.getOffset(), slice.getLength());
+	}
+	
+	
+	//Alternate name (as if it were a constructor of String :>> )
+	public static String newString(List<Character> list)
+	{
+		return listToString(list);
+	}
+	
+	//Alternate name (as if it were a constructor of String :>> )
+	public static String newString(Slice<char[]> slice)
+	{
+		return sliceToString(slice);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean ifStartsWithThenTrimAndDo(String string, String prefixCandidate, UnaryProcedure<String> action)
+	{
+		String v = ltrimstrOrNull(string, prefixCandidate);
+		
+		if (v != null)
+		{
+			action.f(v);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static boolean startsWithWhitespace(String string)
+	{
+		return !string.isEmpty() && Character.isWhitespace(string.charAt(0));
+	}
+	
+	public static boolean endsWithWhitespace(String string)
+	{
+		return !string.isEmpty() && Character.isWhitespace(string.charAt(string.length()-1));
+	}
+	
+	
+	
 }

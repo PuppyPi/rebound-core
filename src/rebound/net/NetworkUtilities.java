@@ -7,6 +7,7 @@ package rebound.net;
 import static rebound.bits.Unsigned.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.bits.Bytes;
+import rebound.bits.DataEncodingUtilities;
+import rebound.bits.InvalidInputCharacterException;
 import rebound.bits.Unsigned;
 import rebound.exceptions.AddressLengthException;
 import rebound.exceptions.ImpossibleException;
@@ -32,6 +35,8 @@ import rebound.exceptions.TextSyntaxCheckedException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.text.StringUtilities;
 import rebound.util.BasicExceptionUtilities;
+import rebound.util.collections.ArrayUtilities;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -85,13 +90,15 @@ implements JavaNamespace
 			if (src.length == 4)
 			{
 				byte[] v6 = new byte[16];
-				//0-9] = 0;
+				
+				//[0:10] = 0;
 				v6[10] = (byte)0xFF;
 				v6[11] = (byte)0xFF;
 				v6[12] = src[0];
 				v6[13] = src[1];
 				v6[14] = src[2];
 				v6[15] = src[3];
+				
 				return v6;
 			}
 			else if (src.length == 16)
@@ -136,6 +143,22 @@ implements JavaNamespace
 	}
 	
 	
+	
+	/**
+	 * Convert IPv6 addresses that are actually IPv4 addresses into the actual IPv4 format :>
+	 * @return -1 if the IPv6 address doesn't map to an IPv4 one!
+	 */
+	public static long unmapToIPv4(long ipv6HighBE, long ipv6LowBE)
+	{
+		if (ipv6HighBE == 0 && ((ipv6LowBE & 0x0000FFFF_00000000l) == 0x0000FFFF_00000000l))
+		{
+			return ipv6LowBE & 0xFFFFFFFFl;
+		}
+		else
+		{
+			return -1;
+		}
+	}
 	
 	
 	
@@ -307,6 +330,23 @@ implements JavaNamespace
 			throw TextSyntaxCheckedException.inst(c+" is not a valid digit in base "+radix);
 		return (byte)v;
 	}
+	
+	
+	
+	public static int parseIPv4ToU32BE(@Nonnull String str) throws TextSyntaxCheckedException
+	{
+		byte[] ip = parseIP(str);
+		
+		if (ip.length == 4)
+			return Bytes.getBigInt(ip);
+		else if (ip.length == 16)
+			throw TextSyntaxCheckedException.inst("IPv6 was given but IPv4 was requested");
+		else
+			throw new AssertionError();
+	}
+	
+	
+	
 	
 	
 	
@@ -530,7 +570,7 @@ implements JavaNamespace
 	
 	/**
 	 * Formats an IP address in the standard fashion.<br>
-	 * Note: 4-byte addresses will be formatted as IPv4, but IPv6 mapped IPv4 addresses will be formatted in the IPv6 fashion (ie ::ffff:f700:1).<br>
+	 * Note: 4-byte addresses will be formatted as IPv4, but IPv6 mapped IPv4 addresses will be formatted in the IPv6 fashion (eg, ::ffff:f700:1).<br>
 	 */
 	public static String formatIP(byte[] ip) throws NullPointerException
 	{
@@ -543,6 +583,64 @@ implements JavaNamespace
 			return formatIP(ip, false, true, false, false);
 		}
 	}
+	
+	public static String formatIPv4(int addrBigEndian)
+	{
+		return formatIP(Bytes.packBigInt(addrBigEndian));
+	}
+	
+	public static String formatIPv6(long addrBigEndianHigh, long addrBigEndianLow)
+	{
+		return formatIP(ArrayUtilities.concatArrays(Bytes.packBigLong(addrBigEndianHigh), Bytes.packBigLong(addrBigEndianLow)));
+	}
+	
+	
+	public static String formatMAC(byte[] addr)
+	{
+		return DataEncodingUtilities.encodeHex(addr, DataEncodingUtilities.HEX_UPPERCASE, ":");
+	}
+	
+	public static String formatMAC(ByteList addr)
+	{
+		return DataEncodingUtilities.encodeHex(addr, DataEncodingUtilities.HEX_UPPERCASE, ":");
+	}
+	
+	public static String formatMAC(long addrBigEndian)
+	{
+		return formatMAC(Bytes.packBigLong48(addrBigEndian));
+	}
+	
+	
+	public static @Nonnull byte[] parseMAC(String str) throws TextSyntaxCheckedException
+	{
+		if (str.length() != 17)
+		{
+			throw TextSyntaxCheckedException.inst("Length is wrong, MACs are 17 characters");
+		}
+		else
+		{
+			try
+			{
+				return DataEncodingUtilities.decodeHex(str, 1);
+			}
+			catch (EOFException exc)
+			{
+				throw TextSyntaxCheckedException.inst(exc);
+			}
+			catch (InvalidInputCharacterException exc)
+			{
+				throw TextSyntaxCheckedException.inst(exc);
+			}
+		}
+	}
+	
+	
+	public static long parseMACToBitfield(String str) throws TextSyntaxCheckedException
+	{
+		return Bytes.getBigULong48(parseMAC(str));
+	}
+	
+	
 	
 	
 	

@@ -1,5 +1,6 @@
 package rebound.io.iio;
 
+import java.io.Closeable;
 import java.io.IOException;
 
 /**
@@ -7,6 +8,7 @@ import java.io.IOException;
  * @author Puppy Pie ^w^
  */
 public interface InputByteStream
+extends Closeable
 {
 	public int read() throws IOException;
 	

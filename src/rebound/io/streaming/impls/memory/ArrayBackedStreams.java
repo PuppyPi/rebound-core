@@ -1,7 +1,7 @@
 package rebound.io.streaming.impls.memory;
 
 import static java.util.Objects.*;
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import java.io.EOFException;
 import java.io.Flushable;
 import java.io.IOException;

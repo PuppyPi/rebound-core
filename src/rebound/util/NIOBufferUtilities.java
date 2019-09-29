@@ -9,6 +9,7 @@ import static rebound.util.PlatformNIOBufferUtilities.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
@@ -18,9 +19,12 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
+import rebound.annotations.semantic.simpledata.DirectBuffer;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
+import rebound.exceptions.DirectBufferException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.collections.ArrayUtilities;
@@ -31,6 +35,86 @@ import rebound.util.objectutil.PubliclyCloneable;
 public class NIOBufferUtilities
 implements JavaNamespace
 {
+	public static void advance(Buffer b, int amount)
+	{
+		b.position(b.position() + amount);
+	}
+	
+	
+	public static @DirectBuffer ByteBuffer allocateDirectNativeEndianness(int capacityInBytes)
+	{
+		ByteBuffer b = ByteBuffer.allocateDirect(capacityInBytes);
+		b.order(ByteOrder.nativeOrder());
+		return b;
+	}
+	
+	
+	
+	// I noticed these only being useful in a programming paradigm where I don't necessarily guarantee that the buffer won't be garbage collected and its underlying pointer become invalid after the pointer has been extracted from the Buffer and given to native code X'D
+	//  withMallocXyz() using @UnmanagedBuffer and handling the free()ing explicitly is a safer way, I think, for JVM's that might garbage-collect things you think are on the stack but have been elided away and nulled out after the last use! :3
+	//	
+	//	@ThrowAwayValue
+	//	@ManagedBuffer
+	//	public static ByteBuffer toNewDirect(@ReadonlyValue ByteList heap)
+	//	{
+	//		return toNewDirect(heap.toByteArraySlicePossiblyLive());
+	//	}
+	//	
+	//	@ThrowAwayValue
+	//	@ManagedBuffer
+	//	public static ByteBuffer toNewDirect(@ReadonlyValue Slice<byte[]> heap)
+	//	{
+	//		return toNewDirect(heap.getUnderlying(), heap.getOffset(), heap.getLength());
+	//	}
+	//	
+	//	@ThrowAwayValue
+	//	@ManagedBuffer
+	//	public static ByteBuffer toNewDirect(@ReadonlyValue byte[] heap)
+	//	{
+	//		return toNewDirect(heap, 0, heap.length);
+	//	}
+	//	
+	//	@ThrowAwayValue
+	//	@ManagedBuffer
+	//	public static ByteBuffer toNewDirect(@ReadonlyValue byte[] heap, int offset, int length)
+	//	{
+	//		ByteBuffer buffer = ByteBuffer.allocateDirect(length);
+	//		buffer.put(heap, offset, length);
+	//		buffer.rewind();
+	//		return buffer;
+	//	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static int getBufferBitlength(Buffer buffer) throws IllegalArgumentException
 	{
 		if (buffer instanceof ByteBuffer) return 8;
@@ -248,6 +332,49 @@ implements JavaNamespace
 		return rv;
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@LiveValue
+	public static Slice getUnderlyingArrayOrThrowIfDirect(Buffer buffer) throws DirectBufferException
+	{
+		if (buffer == null)
+			throw new NullPointerException();
+		
+		if (buffer.hasArray())
+		{
+			Object array = buffer.array();
+			return new Slice(array, buffer.arrayOffset(), buffer.remaining());
+		}
+		else
+		{
+			throw new DirectBufferException();
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice getUnderlyingArrayOrCopyIfDirect(Buffer buffer) throws DirectBufferException
+	{
+		if (buffer == null)
+			throw new NullPointerException();
+		
+		if (buffer.hasArray())
+		{
+			Object array = buffer.array();
+			return new Slice(array, buffer.arrayOffset(), buffer.remaining());
+		}
+		else
+		{
+			return new Slice(copyToNewArray(buffer), 0, buffer.remaining());
+		}
+	}
 	
 	
 	
@@ -552,7 +679,7 @@ implements JavaNamespace
 	{
 		_$$prim$$_[] array = new _$$prim$$_[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -564,7 +691,7 @@ implements JavaNamespace
 	{
 		byte[] array = new byte[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -574,7 +701,7 @@ implements JavaNamespace
 	{
 		char[] array = new char[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -584,7 +711,7 @@ implements JavaNamespace
 	{
 		short[] array = new short[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -594,7 +721,7 @@ implements JavaNamespace
 	{
 		float[] array = new float[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -604,7 +731,7 @@ implements JavaNamespace
 	{
 		int[] array = new int[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -614,7 +741,7 @@ implements JavaNamespace
 	{
 		double[] array = new double[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -624,7 +751,7 @@ implements JavaNamespace
 	{
 		long[] array = new long[buffer.remaining()];
 		buffer.get(array);
-		buffer.position(buffer.position() - array.length);
+		advance(buffer, -array.length);
 		return array;
 	}
 	
@@ -2307,5 +2434,309 @@ implements JavaNamespace
 	public static void putWithoutMovingDoubleIntoFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue Slice<double[]> array)
 	{
 		putWithoutMovingDoubleIntoFloat(buffer, array.getUnderlying(), array.getOffset(), array.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void withoutMovingBuffer(Buffer buffer, Runnable r)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			r.run();
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * Does NOT alter position()!
+	 */
+	public static void setAllToZero(ByteBuffer b)
+	{
+		setAll(b, (byte)0);
+	}
+	
+	/**
+	 * Does NOT alter position()!
+	 */
+	public static void setAll(ByteBuffer b, byte value)
+	{
+		//This should really have been included in the api, then DirectByteBuffer could include a call to Unsafe.setMemory()  X'D
+		
+		//Todo detect directness and do the Unsafe.setMemory() thing ourselves ^^'
+		
+		withoutMovingBuffer(b, () ->
+		{
+			while (b.hasRemaining())
+				b.put((byte)0);
+		});
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <B extends Buffer> B sliceNonmodifying(B buffer)
+	{
+		/* <<<
+primxp
+_$$primxpconf:noboolean$$_
+		if (buffer instanceof _$$Prim$$_Buffer)
+			return (B)((_$$Prim$$_Buffer)buffer).slice();
+		 */
+		
+		if (buffer instanceof ByteBuffer)
+			return (B)((ByteBuffer)buffer).slice();
+		
+		if (buffer instanceof CharBuffer)
+			return (B)((CharBuffer)buffer).slice();
+		
+		if (buffer instanceof ShortBuffer)
+			return (B)((ShortBuffer)buffer).slice();
+		
+		if (buffer instanceof FloatBuffer)
+			return (B)((FloatBuffer)buffer).slice();
+		
+		if (buffer instanceof IntBuffer)
+			return (B)((IntBuffer)buffer).slice();
+		
+		if (buffer instanceof DoubleBuffer)
+			return (B)((DoubleBuffer)buffer).slice();
+		
+		if (buffer instanceof LongBuffer)
+			return (B)((LongBuffer)buffer).slice();
+		
+		// >>>
+		
+		throw newClassCastExceptionOrNullPointerException(buffer);
+	}
+	
+	
+	
+	
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceNonmodifying(B buffer, int offset, int length)
+	{
+		int p = buffer.position();
+		int l = buffer.limit();
+		
+		Buffer u;
+		
+		if (offset != p || length != l - p)
+		{
+			if (offset + p + length > l)
+				throw new IndexOutOfBoundsException();
+			
+			buffer.position(p+offset);
+			buffer.limit(p+offset+length);
+			u = sliceNonmodifying(buffer);
+			buffer.position(p);
+			buffer.limit(l);
+		}
+		else
+		{
+			u = sliceNonmodifying(buffer);
+		}
+		
+		return (B)u;
+	}
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceAdvancing(B buffer, int offset, int length)
+	{
+		B u = sliceNonmodifying(buffer);
+		advance(buffer, length);
+		return u;
+	}
+	
+	
+	
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceNonmodifying(Slice<B> bufferImmutablepositionslice)
+	{
+		return sliceNonmodifying(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
+	}
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceAdvancing(Slice<B> bufferImmutablepositionslice)
+	{
+		return sliceAdvancing(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:noboolean$$_
+	public static _$$Prim$$_Buffer sliceNonmodifying(_$$Prim$$_Buffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceNonmodifying(B buffer, int offset, int length)
+	{
+		int p = buffer.position();
+		int l = buffer.limit();
+		
+		_$$Prim$$_Buffer u;
+		
+		if (offset != p || length != l - p)
+		{
+			if (offset + p + length > l)
+				throw new IndexOutOfBoundsException();
+			
+			buffer.position(p+offset);
+			buffer.limit(p+offset+length);
+			u = sliceNonmodifying(buffer);
+			buffer.position(p);
+			buffer.limit(l);
+		}
+		else
+		{
+			u = sliceNonmodifying(buffer);
+		}
+		
+		return u;
+	}
+	
+	//@NotThreadSafe
+	public static _$$Prim$$_Buffer sliceAdvancing(_$$Prim$$_Buffer buffer, int offset, int length)
+	{
+		_$$Prim$$_Buffer u = sliceNonmodifying(buffer);
+		advance(buffer, length);
+		return u;
+	}
+	
+	//@NotThreadSafe
+	public static <B extends Buffer> B sliceNonmodifying(Slice<B> bufferImmutablepositionslice)
+	{
+		
+	}
+	
+	//@NotThreadSafe
+	public static _$$Prim$$_Buffer sliceAdvancing(Slice<B> bufferImmutablepositionslice)
+	{
+		return sliceAdvancing(bufferImmutablepositionslice, 
+	}
+	 */
+	
+	public static ByteBuffer sliceNonmodifying(ByteBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static CharBuffer sliceNonmodifying(CharBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static ShortBuffer sliceNonmodifying(ShortBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static FloatBuffer sliceNonmodifying(FloatBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static IntBuffer sliceNonmodifying(IntBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static DoubleBuffer sliceNonmodifying(DoubleBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	public static LongBuffer sliceNonmodifying(LongBuffer buffer)
+	{
+		return buffer.slice();
+	}
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void slicecopyBuffers(Slice source, Slice dest)
+	{
+		if (source.getLength() != dest.getLength())
+			throw new IndexOutOfBoundsException();
+		
+		Object sourceUnderlying = source.getUnderlying();
+		Object destUnderlying = dest.getUnderlying();
+		
+		if (sourceUnderlying instanceof Buffer)
+		{
+			if (destUnderlying instanceof Buffer)
+			{
+				
+			}
+			else
+			{
+				
+			}
+		}
+		else
+		{
+			if (destUnderlying instanceof Buffer)
+			{
+				
+			}
+			else
+			{
+				ArrayUtilities.slicecopy(source, dest);
+			}
+		}
 	}
 }

@@ -5,7 +5,8 @@
 package rebound.exceptions;
 
 /**
- * Just like it says, we wanteds a direct buffer..but we didn't get one ;_;
+ * Just like it says, we wanted a direct buffer..but we didn't get one ;_;
+ * @see DirectBufferException
  * @author RProgrammer
  */
 public class NondirectBufferException

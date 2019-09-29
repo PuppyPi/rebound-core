@@ -28,6 +28,8 @@ import rebound.math.SmallIntegerMathUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.objectutil.Trimmable;
 
+//TODO Make sure we got the signedness right for nonnatively typed primitives (Int24, Long48, ..)  XD''
+
 //Todo support offset binary decoding in the integer decoders :3
 //Todo more encoders!! XD'''
 
@@ -39,7 +41,7 @@ public class NumberFormatConversion
 	primsForFloats = [
 		["byte", "byte", 8],
 		["short", "short", 16],
-		["int24", "int", 24],
+		["sint24", "int", 24],
 		["int", "int", 32],
 	]
 	
@@ -66,23 +68,23 @@ public class NumberFormatConversion
 		["short", "long", "signed", 16],
 		["short", "long", "unsigned", 16],
 		
-		["int24", "int", "signed", 24],
-		["int24", "int", "unsigned", 24],
-		["int24", "long", "signed", 24],
-		["int24", "long", "unsigned", 24],
+		["sint24", "int", "signed", 24],
+		["uint24", "int", "unsigned", 24],
+		["sint24", "long", "signed", 24],
+		["uint24", "long", "unsigned", 24],
 		
 		["int", "int", "signed", 32],
 		["int", "long", "signed", 32],
 		["int", "long", "unsigned", 32],
 		
-		["long40", "long", "signed", 40],
-		["long40", "long", "unsigned", 40],
+		["slong40", "long", "signed", 40],
+		["ulong40", "long", "unsigned", 40],
 		
-		["long48", "long", "signed", 48],
-		["long48", "long", "unsigned", 48],
+		["slong48", "long", "signed", 48],
+		["ulong48", "long", "unsigned", 48],
 		
-		["long56", "long", "signed", 56],
-		["long56", "long", "unsigned", 56],
+		["slong56", "long", "signed", 56],
+		["ulong56", "long", "unsigned", 56],
 		
 		["long", "long", "signed", 64],
 	]
@@ -119,7 +121,12 @@ public class NumberFormatConversion
 	
 	
 	
-	
+	def primcap(s):
+		nn = (s.startswith("u") or s.startswith("s")) and s[-1].isdigit()
+		if (nn):
+			return s[:2].upper() + s[2:]
+		else:
+			return s.capitalize()
 	
 	
 	
@@ -129,8 +136,8 @@ public class NumberFormatConversion
 		out = ""
 		
 		for logiprim, physprim, signedness, bitlen in intprims:
-			LogiPrim = logiprim.capitalize()
-			PhysPrim = physprim.capitalize()
+			LogiPrim = primcap(logiprim)
+			PhysPrim = primcap(physprim)
 			bytelen = bitlen / 8
 			
 			S = signedness[0].upper()
@@ -203,8 +210,8 @@ public class NumberFormatConversion
 		out = ""
 		
 		for logiprim, physprim, bitlen in reverseIntprims:
-			LogiPrim = logiprim.capitalize()
-			PhysPrim = physprim.capitalize()
+			LogiPrim = primcap(logiprim)
+			PhysPrim = primcap(physprim)
 			bytelen = bitlen / 8
 			
 			mask = "0x"+("F" * (bytelen * 2))
@@ -268,8 +275,8 @@ public class NumberFormatConversion
 			destfloatprim = DestFloatPrim.lower()
 			
 			for logiprim, physprim, bitlen in primsForFloats:
-				LogiPrim = logiprim.capitalize()
-				PhysPrim = physprim.capitalize()
+				LogiPrim = primcap(logiprim)
+				PhysPrim = primcap(physprim)
 				bytelen = bitlen / 8
 				
 				
@@ -1384,7 +1391,7 @@ public class NumberFormatConversion
 	
 	
 	public static class _$$Signedness$$_Integer_$$bytelen$$_Bytes_$$E$$_To_$$PhysPrim$$_ReadStream
-	extends AbstractDecoratorStream<ByteBlockReadStream>
+	extends AbstractStreamDecorator<ByteBlockReadStream>
 	implements _$$PhysPrim$$_BlockReadStream, Trimmable
 	{
 		protected boolean eof;  //us keeping our own 'eof' is important so we don't read partial bytes in case become eof, then cease to be eof (eg, the underlying store expands!!)
@@ -1536,7 +1543,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -1545,9 +1552,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -1558,7 +1565,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -1574,7 +1581,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -1583,7 +1590,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				short v = (tempBuffer[0]);
+				short v = (short)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -1597,7 +1604,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -1612,7 +1619,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -1621,7 +1628,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				short v = (tempBuffer[i * 1]);
+				short v = (short)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -1665,7 +1672,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -1674,9 +1681,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -1687,7 +1694,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -1703,7 +1710,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -1712,7 +1719,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				short v = (tempBuffer[0]);
+				short v = (short)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -1726,7 +1733,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -1741,7 +1748,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -1750,7 +1757,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				short v = (tempBuffer[i * 1]);
+				short v = (short)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -1794,7 +1801,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -1803,9 +1810,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -1816,7 +1823,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -1832,7 +1839,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -1855,7 +1862,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -1870,7 +1877,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -1923,7 +1930,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -1932,9 +1939,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -1945,7 +1952,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -1961,7 +1968,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -1984,7 +1991,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -1999,7 +2006,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2052,7 +2059,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2061,9 +2068,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2074,7 +2081,7 @@ public class NumberFormatConversion
 		@Override
 		public char read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2090,7 +2097,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2113,7 +2120,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(char[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2128,7 +2135,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2181,7 +2188,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2190,9 +2197,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2203,7 +2210,7 @@ public class NumberFormatConversion
 		@Override
 		public char read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2219,7 +2226,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2242,7 +2249,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(char[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2257,7 +2264,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2310,7 +2317,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2319,9 +2326,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2332,7 +2339,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2348,7 +2355,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2357,7 +2364,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = (tempBuffer[0]);
+				int v = (int)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -2371,7 +2378,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2386,7 +2393,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2395,7 +2402,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = (tempBuffer[i * 1]);
+				int v = (int)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -2439,7 +2446,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2448,9 +2455,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2461,7 +2468,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2477,7 +2484,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2486,7 +2493,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = (tempBuffer[0]);
+				int v = (int)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -2500,7 +2507,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2515,7 +2522,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2524,7 +2531,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = (tempBuffer[i * 1]);
+				int v = (int)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -2568,7 +2575,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2577,9 +2584,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2590,7 +2597,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2606,7 +2613,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2615,7 +2622,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = tempBuffer[0] & 0xFF;
+				int v = (int)(tempBuffer[0] & 0xFF);
 				
 				return v;
 			}
@@ -2629,7 +2636,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2644,7 +2651,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2653,7 +2660,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = tempBuffer[i * 1] & 0xFF;
+				int v = (int)(tempBuffer[i * 1] & 0xFF);
 				
 				buffer[i] = v;
 			}
@@ -2697,7 +2704,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2706,9 +2713,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2719,7 +2726,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2735,7 +2742,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2744,7 +2751,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = tempBuffer[0] & 0xFF;
+				int v = (int)(tempBuffer[0] & 0xFF);
 				
 				return v;
 			}
@@ -2758,7 +2765,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2773,7 +2780,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2782,7 +2789,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = tempBuffer[i * 1] & 0xFF;
+				int v = (int)(tempBuffer[i * 1] & 0xFF);
 				
 				buffer[i] = v;
 			}
@@ -2826,7 +2833,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2835,9 +2842,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2848,7 +2855,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2864,7 +2871,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -2873,7 +2880,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = (tempBuffer[0]);
+				long v = (long)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -2887,7 +2894,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -2902,7 +2909,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -2911,7 +2918,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = (tempBuffer[i * 1]);
+				long v = (long)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -2955,7 +2962,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -2964,9 +2971,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -2977,7 +2984,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -2993,7 +3000,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3002,7 +3009,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = (tempBuffer[0]);
+				long v = (long)(tempBuffer[0]);
 				
 				return v;
 			}
@@ -3016,7 +3023,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -3031,7 +3038,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3040,7 +3047,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = (tempBuffer[i * 1]);
+				long v = (long)(tempBuffer[i * 1]);
 				
 				buffer[i] = v;
 			}
@@ -3084,7 +3091,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3093,9 +3100,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3106,7 +3113,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3122,7 +3129,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3131,7 +3138,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = tempBuffer[0] & 0xFF;
+				long v = (long)(tempBuffer[0] & 0xFF);
 				
 				return v;
 			}
@@ -3145,7 +3152,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -3160,7 +3167,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3169,7 +3176,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = tempBuffer[i * 1] & 0xFF;
+				long v = (long)(tempBuffer[i * 1] & 0xFF);
 				
 				buffer[i] = v;
 			}
@@ -3213,7 +3220,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3222,9 +3229,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3235,7 +3242,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3251,7 +3258,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3260,7 +3267,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = tempBuffer[0] & 0xFF;
+				long v = (long)(tempBuffer[0] & 0xFF);
 				
 				return v;
 			}
@@ -3274,7 +3281,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -3289,7 +3296,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3298,7 +3305,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = tempBuffer[i * 1] & 0xFF;
+				long v = (long)(tempBuffer[i * 1] & 0xFF);
 				
 				buffer[i] = v;
 			}
@@ -3342,7 +3349,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3351,9 +3358,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3364,7 +3371,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3380,7 +3387,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3403,7 +3410,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -3418,7 +3425,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3471,7 +3478,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3480,9 +3487,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3493,7 +3500,7 @@ public class NumberFormatConversion
 		@Override
 		public short read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3509,7 +3516,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3532,7 +3539,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(short[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -3547,7 +3554,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3600,7 +3607,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3609,9 +3616,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3622,7 +3629,7 @@ public class NumberFormatConversion
 		@Override
 		public char read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3638,7 +3645,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3661,7 +3668,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(char[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -3676,7 +3683,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3729,7 +3736,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3738,9 +3745,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3751,7 +3758,7 @@ public class NumberFormatConversion
 		@Override
 		public char read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3767,7 +3774,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3790,7 +3797,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(char[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -3805,7 +3812,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3858,7 +3865,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3867,9 +3874,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -3880,7 +3887,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -3896,7 +3903,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -3919,7 +3926,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -3934,7 +3941,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -3987,7 +3994,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -3996,9 +4003,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4009,7 +4016,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4025,7 +4032,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4048,7 +4055,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4063,7 +4070,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4116,7 +4123,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4125,9 +4132,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4138,7 +4145,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4154,7 +4161,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4177,7 +4184,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4192,7 +4199,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4245,7 +4252,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4254,9 +4261,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4267,7 +4274,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4283,7 +4290,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4306,7 +4313,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4321,7 +4328,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4374,7 +4381,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4383,9 +4390,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4396,7 +4403,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4412,7 +4419,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4435,7 +4442,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4450,7 +4457,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4503,7 +4510,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4512,9 +4519,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4525,7 +4532,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4541,7 +4548,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4564,7 +4571,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4579,7 +4586,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4632,7 +4639,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4641,9 +4648,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4654,7 +4661,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4670,7 +4677,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4693,7 +4700,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4708,7 +4715,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4761,7 +4768,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4770,9 +4777,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4783,7 +4790,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4799,7 +4806,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4822,7 +4829,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -4837,7 +4844,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4890,7 +4897,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -4899,9 +4906,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -4912,7 +4919,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -4928,7 +4935,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -4937,7 +4944,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = reinterpretLowBitsAsS24(Bytes.getLittleInt24(tempBuffer, 0));
+				int v = reinterpretLowBitsAsS24(Bytes.getLittleSInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -4951,7 +4958,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -4966,7 +4973,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -4975,7 +4982,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = reinterpretLowBitsAsS24(Bytes.getLittleInt24(tempBuffer, i * 3));
+				int v = reinterpretLowBitsAsS24(Bytes.getLittleSInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5019,7 +5026,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5028,9 +5035,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5041,7 +5048,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5057,7 +5064,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5066,7 +5073,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = reinterpretLowBitsAsS24(Bytes.getBigInt24(tempBuffer, 0));
+				int v = reinterpretLowBitsAsS24(Bytes.getBigSInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5080,7 +5087,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5095,7 +5102,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5104,7 +5111,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = reinterpretLowBitsAsS24(Bytes.getBigInt24(tempBuffer, i * 3));
+				int v = reinterpretLowBitsAsS24(Bytes.getBigSInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5148,7 +5155,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5157,9 +5164,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5170,7 +5177,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5186,7 +5193,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5195,7 +5202,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = reinterpretLowBitsAsU24(Bytes.getLittleInt24(tempBuffer, 0));
+				int v = reinterpretLowBitsAsU24(Bytes.getLittleUInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5209,7 +5216,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5224,7 +5231,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5233,7 +5240,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = reinterpretLowBitsAsU24(Bytes.getLittleInt24(tempBuffer, i * 3));
+				int v = reinterpretLowBitsAsU24(Bytes.getLittleUInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5277,7 +5284,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5286,9 +5293,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5299,7 +5306,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5315,7 +5322,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5324,7 +5331,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = reinterpretLowBitsAsU24(Bytes.getBigInt24(tempBuffer, 0));
+				int v = reinterpretLowBitsAsU24(Bytes.getBigUInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5338,7 +5345,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5353,7 +5360,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5362,7 +5369,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = reinterpretLowBitsAsU24(Bytes.getBigInt24(tempBuffer, i * 3));
+				int v = reinterpretLowBitsAsU24(Bytes.getBigUInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5406,7 +5413,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5415,9 +5422,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5428,7 +5435,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5444,7 +5451,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5453,7 +5460,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS24(Bytes.getLittleInt24(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS24(Bytes.getLittleSInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5467,7 +5474,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5482,7 +5489,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5491,7 +5498,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS24(Bytes.getLittleInt24(tempBuffer, i * 3));
+				long v = reinterpretLowBitsAsS24(Bytes.getLittleSInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5535,7 +5542,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5544,9 +5551,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5557,7 +5564,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5573,7 +5580,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5582,7 +5589,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS24(Bytes.getBigInt24(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS24(Bytes.getBigSInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5596,7 +5603,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5611,7 +5618,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5620,7 +5627,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS24(Bytes.getBigInt24(tempBuffer, i * 3));
+				long v = reinterpretLowBitsAsS24(Bytes.getBigSInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5664,7 +5671,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5673,9 +5680,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5686,7 +5693,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5702,7 +5709,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5711,7 +5718,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU24(Bytes.getLittleInt24(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU24(Bytes.getLittleUInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5725,7 +5732,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5740,7 +5747,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5749,7 +5756,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU24(Bytes.getLittleInt24(tempBuffer, i * 3));
+				long v = reinterpretLowBitsAsU24(Bytes.getLittleUInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5793,7 +5800,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5802,9 +5809,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5815,7 +5822,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5831,7 +5838,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5840,7 +5847,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU24(Bytes.getBigInt24(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU24(Bytes.getBigUInt24(tempBuffer, 0));
 				
 				return v;
 			}
@@ -5854,7 +5861,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -5869,7 +5876,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -5878,7 +5885,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU24(Bytes.getBigInt24(tempBuffer, i * 3));
+				long v = reinterpretLowBitsAsU24(Bytes.getBigUInt24(tempBuffer, i * 3));
 				
 				buffer[i] = v;
 			}
@@ -5922,7 +5929,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -5931,9 +5938,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -5944,7 +5951,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -5960,7 +5967,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -5983,7 +5990,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -5998,7 +6005,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6051,7 +6058,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6060,9 +6067,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6073,7 +6080,7 @@ public class NumberFormatConversion
 		@Override
 		public int read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6089,7 +6096,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6112,7 +6119,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(int[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -6127,7 +6134,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6180,7 +6187,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6189,9 +6196,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6202,7 +6209,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6218,7 +6225,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6241,7 +6248,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -6256,7 +6263,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6309,7 +6316,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6318,9 +6325,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6331,7 +6338,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6347,7 +6354,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6370,7 +6377,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -6385,7 +6392,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6438,7 +6445,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6447,9 +6454,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6460,7 +6467,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6476,7 +6483,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6499,7 +6506,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -6514,7 +6521,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6567,7 +6574,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6576,9 +6583,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6589,7 +6596,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6605,7 +6612,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6628,7 +6635,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -6643,7 +6650,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6696,7 +6703,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6705,9 +6712,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 5;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 5);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6718,7 +6725,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6734,7 +6741,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6743,7 +6750,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS40(Bytes.getLittleLong40(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS40(Bytes.getLittleSLong40(tempBuffer, 0));
 				
 				return v;
 			}
@@ -6757,7 +6764,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 5;
@@ -6772,7 +6779,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6781,7 +6788,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS40(Bytes.getLittleLong40(tempBuffer, i * 5));
+				long v = reinterpretLowBitsAsS40(Bytes.getLittleSLong40(tempBuffer, i * 5));
 				
 				buffer[i] = v;
 			}
@@ -6825,7 +6832,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6834,9 +6841,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 5;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 5);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6847,7 +6854,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6863,7 +6870,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -6872,7 +6879,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS40(Bytes.getBigLong40(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS40(Bytes.getBigSLong40(tempBuffer, 0));
 				
 				return v;
 			}
@@ -6886,7 +6893,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 5;
@@ -6901,7 +6908,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -6910,7 +6917,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS40(Bytes.getBigLong40(tempBuffer, i * 5));
+				long v = reinterpretLowBitsAsS40(Bytes.getBigSLong40(tempBuffer, i * 5));
 				
 				buffer[i] = v;
 			}
@@ -6954,7 +6961,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -6963,9 +6970,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 5;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 5);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -6976,7 +6983,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -6992,7 +6999,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7001,7 +7008,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU40(Bytes.getLittleLong40(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU40(Bytes.getLittleULong40(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7015,7 +7022,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 5;
@@ -7030,7 +7037,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7039,7 +7046,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU40(Bytes.getLittleLong40(tempBuffer, i * 5));
+				long v = reinterpretLowBitsAsU40(Bytes.getLittleULong40(tempBuffer, i * 5));
 				
 				buffer[i] = v;
 			}
@@ -7083,7 +7090,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7092,9 +7099,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 5;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 5);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7105,7 +7112,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7121,7 +7128,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7130,7 +7137,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU40(Bytes.getBigLong40(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU40(Bytes.getBigULong40(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7144,7 +7151,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 5;
@@ -7159,7 +7166,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7168,7 +7175,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU40(Bytes.getBigLong40(tempBuffer, i * 5));
+				long v = reinterpretLowBitsAsU40(Bytes.getBigULong40(tempBuffer, i * 5));
 				
 				buffer[i] = v;
 			}
@@ -7212,7 +7219,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7221,9 +7228,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 6;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 6);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7234,7 +7241,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7250,7 +7257,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7259,7 +7266,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS48(Bytes.getLittleLong48(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS48(Bytes.getLittleSLong48(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7273,7 +7280,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 6;
@@ -7288,7 +7295,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7297,7 +7304,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS48(Bytes.getLittleLong48(tempBuffer, i * 6));
+				long v = reinterpretLowBitsAsS48(Bytes.getLittleSLong48(tempBuffer, i * 6));
 				
 				buffer[i] = v;
 			}
@@ -7341,7 +7348,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7350,9 +7357,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 6;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 6);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7363,7 +7370,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7379,7 +7386,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7388,7 +7395,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS48(Bytes.getBigLong48(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS48(Bytes.getBigSLong48(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7402,7 +7409,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 6;
@@ -7417,7 +7424,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7426,7 +7433,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS48(Bytes.getBigLong48(tempBuffer, i * 6));
+				long v = reinterpretLowBitsAsS48(Bytes.getBigSLong48(tempBuffer, i * 6));
 				
 				buffer[i] = v;
 			}
@@ -7470,7 +7477,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7479,9 +7486,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 6;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 6);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7492,7 +7499,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7508,7 +7515,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7517,7 +7524,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU48(Bytes.getLittleLong48(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU48(Bytes.getLittleULong48(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7531,7 +7538,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 6;
@@ -7546,7 +7553,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7555,7 +7562,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU48(Bytes.getLittleLong48(tempBuffer, i * 6));
+				long v = reinterpretLowBitsAsU48(Bytes.getLittleULong48(tempBuffer, i * 6));
 				
 				buffer[i] = v;
 			}
@@ -7599,7 +7606,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7608,9 +7615,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 6;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 6);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7621,7 +7628,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7637,7 +7644,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7646,7 +7653,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU48(Bytes.getBigLong48(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU48(Bytes.getBigULong48(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7660,7 +7667,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 6;
@@ -7675,7 +7682,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7684,7 +7691,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU48(Bytes.getBigLong48(tempBuffer, i * 6));
+				long v = reinterpretLowBitsAsU48(Bytes.getBigULong48(tempBuffer, i * 6));
 				
 				buffer[i] = v;
 			}
@@ -7728,7 +7735,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7737,9 +7744,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 7;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 7);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7750,7 +7757,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7766,7 +7773,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7775,7 +7782,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS56(Bytes.getLittleLong56(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS56(Bytes.getLittleSLong56(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7789,7 +7796,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 7;
@@ -7804,7 +7811,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7813,7 +7820,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS56(Bytes.getLittleLong56(tempBuffer, i * 7));
+				long v = reinterpretLowBitsAsS56(Bytes.getLittleSLong56(tempBuffer, i * 7));
 				
 				buffer[i] = v;
 			}
@@ -7857,7 +7864,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7866,9 +7873,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 7;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 7);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -7879,7 +7886,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -7895,7 +7902,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -7904,7 +7911,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsS56(Bytes.getBigLong56(tempBuffer, 0));
+				long v = reinterpretLowBitsAsS56(Bytes.getBigSLong56(tempBuffer, 0));
 				
 				return v;
 			}
@@ -7918,7 +7925,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 7;
@@ -7933,7 +7940,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -7942,7 +7949,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsS56(Bytes.getBigLong56(tempBuffer, i * 7));
+				long v = reinterpretLowBitsAsS56(Bytes.getBigSLong56(tempBuffer, i * 7));
 				
 				buffer[i] = v;
 			}
@@ -7986,7 +7993,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -7995,9 +8002,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 7;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 7);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -8008,7 +8015,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -8024,7 +8031,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -8033,7 +8040,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU56(Bytes.getLittleLong56(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU56(Bytes.getLittleULong56(tempBuffer, 0));
 				
 				return v;
 			}
@@ -8047,7 +8054,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 7;
@@ -8062,7 +8069,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -8071,7 +8078,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU56(Bytes.getLittleLong56(tempBuffer, i * 7));
+				long v = reinterpretLowBitsAsU56(Bytes.getLittleULong56(tempBuffer, i * 7));
 				
 				buffer[i] = v;
 			}
@@ -8115,7 +8122,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -8124,9 +8131,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 7;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 7);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -8137,7 +8144,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -8153,7 +8160,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -8162,7 +8169,7 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				long v = reinterpretLowBitsAsU56(Bytes.getBigLong56(tempBuffer, 0));
+				long v = reinterpretLowBitsAsU56(Bytes.getBigULong56(tempBuffer, 0));
 				
 				return v;
 			}
@@ -8176,7 +8183,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 7;
@@ -8191,7 +8198,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -8200,7 +8207,7 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				long v = reinterpretLowBitsAsU56(Bytes.getBigLong56(tempBuffer, i * 7));
+				long v = reinterpretLowBitsAsU56(Bytes.getBigULong56(tempBuffer, i * 7));
 				
 				buffer[i] = v;
 			}
@@ -8244,7 +8251,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -8253,9 +8260,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 8;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 8);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -8266,7 +8273,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -8282,7 +8289,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -8305,7 +8312,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 8;
@@ -8320,7 +8327,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -8373,7 +8380,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -8382,9 +8389,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 8;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 8);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -8395,7 +8402,7 @@ public class NumberFormatConversion
 		@Override
 		public long read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -8411,7 +8418,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -8434,7 +8441,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(long[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 8;
@@ -8449,7 +8456,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -8536,7 +8543,7 @@ public class NumberFormatConversion
 	
 	
 	public static class _$$PhysPrim$$_To_$$bytelen$$_Bytes_$$E$$_ReadStream
-	extends AbstractDecoratorStream<_$$PhysPrim$$_BlockReadStream>
+	extends AbstractStreamDecorator<_$$PhysPrim$$_BlockReadStream>
 	implements ByteBlockReadStream, Trimmable
 	{
 		public _$$PhysPrim$$_To_$$bytelen$$_Bytes_$$E$$_ReadStream(_$$PhysPrim$$_BlockReadStream underlying)
@@ -8640,7 +8647,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -8670,7 +8677,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -8723,7 +8730,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -8753,7 +8760,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -8806,7 +8813,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -8836,7 +8843,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -8889,7 +8896,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -8919,7 +8926,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -8972,7 +8979,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -9002,7 +9009,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9055,7 +9062,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -9085,7 +9092,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9138,7 +9145,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -9168,7 +9175,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9221,7 +9228,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 1);
+			return underlying.skip(amount / 1);
 		}
 		
 		
@@ -9251,7 +9258,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9304,7 +9311,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9334,12 +9341,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				short v = tempBuffer[i];
-				Bytes.putLittleShort(buffer, offset + i * 2, v);
+				Bytes.putLittleShort(buffer, offset + i * 2, (short)v);
 			}
 			
 			return a * 2;
@@ -9387,7 +9394,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9417,12 +9424,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				short v = tempBuffer[i];
-				Bytes.putBigShort(buffer, offset + i * 2, v);
+				Bytes.putBigShort(buffer, offset + i * 2, (short)v);
 			}
 			
 			return a * 2;
@@ -9470,7 +9477,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9500,7 +9507,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9553,7 +9560,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9583,7 +9590,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9636,7 +9643,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9666,7 +9673,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9719,7 +9726,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9749,7 +9756,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9802,7 +9809,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9832,7 +9839,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9885,7 +9892,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 2);
+			return underlying.skip(amount / 2);
 		}
 		
 		
@@ -9915,7 +9922,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -9968,7 +9975,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 3);
+			return underlying.skip(amount / 3);
 		}
 		
 		
@@ -9998,12 +10005,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				int v = tempBuffer[i];
-				Bytes.putLittleInt24(buffer, offset + i * 3, v);
+				Bytes.putLittleInt24(buffer, offset + i * 3, (int)v);
 			}
 			
 			return a * 3;
@@ -10051,7 +10058,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 3);
+			return underlying.skip(amount / 3);
 		}
 		
 		
@@ -10081,12 +10088,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				int v = tempBuffer[i];
-				Bytes.putBigInt24(buffer, offset + i * 3, v);
+				Bytes.putBigInt24(buffer, offset + i * 3, (int)v);
 			}
 			
 			return a * 3;
@@ -10134,7 +10141,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 3);
+			return underlying.skip(amount / 3);
 		}
 		
 		
@@ -10164,7 +10171,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -10217,7 +10224,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 3);
+			return underlying.skip(amount / 3);
 		}
 		
 		
@@ -10247,7 +10254,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -10300,7 +10307,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 4);
+			return underlying.skip(amount / 4);
 		}
 		
 		
@@ -10330,12 +10337,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				int v = tempBuffer[i];
-				Bytes.putLittleInt(buffer, offset + i * 4, v);
+				Bytes.putLittleInt(buffer, offset + i * 4, (int)v);
 			}
 			
 			return a * 4;
@@ -10383,7 +10390,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 4);
+			return underlying.skip(amount / 4);
 		}
 		
 		
@@ -10413,12 +10420,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				int v = tempBuffer[i];
-				Bytes.putBigInt(buffer, offset + i * 4, v);
+				Bytes.putBigInt(buffer, offset + i * 4, (int)v);
 			}
 			
 			return a * 4;
@@ -10466,7 +10473,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 4);
+			return underlying.skip(amount / 4);
 		}
 		
 		
@@ -10496,7 +10503,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -10549,7 +10556,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 4);
+			return underlying.skip(amount / 4);
 		}
 		
 		
@@ -10579,7 +10586,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
@@ -10632,7 +10639,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 5);
+			return underlying.skip(amount / 5);
 		}
 		
 		
@@ -10662,12 +10669,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putLittleLong40(buffer, offset + i * 5, v);
+				Bytes.putLittleLong40(buffer, offset + i * 5, (long)v);
 			}
 			
 			return a * 5;
@@ -10715,7 +10722,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 5);
+			return underlying.skip(amount / 5);
 		}
 		
 		
@@ -10745,12 +10752,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putBigLong40(buffer, offset + i * 5, v);
+				Bytes.putBigLong40(buffer, offset + i * 5, (long)v);
 			}
 			
 			return a * 5;
@@ -10798,7 +10805,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 6);
+			return underlying.skip(amount / 6);
 		}
 		
 		
@@ -10828,12 +10835,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putLittleLong48(buffer, offset + i * 6, v);
+				Bytes.putLittleLong48(buffer, offset + i * 6, (long)v);
 			}
 			
 			return a * 6;
@@ -10881,7 +10888,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 6);
+			return underlying.skip(amount / 6);
 		}
 		
 		
@@ -10911,12 +10918,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putBigLong48(buffer, offset + i * 6, v);
+				Bytes.putBigLong48(buffer, offset + i * 6, (long)v);
 			}
 			
 			return a * 6;
@@ -10964,7 +10971,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 7);
+			return underlying.skip(amount / 7);
 		}
 		
 		
@@ -10994,12 +11001,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putLittleLong56(buffer, offset + i * 7, v);
+				Bytes.putLittleLong56(buffer, offset + i * 7, (long)v);
 			}
 			
 			return a * 7;
@@ -11047,7 +11054,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 7);
+			return underlying.skip(amount / 7);
 		}
 		
 		
@@ -11077,12 +11084,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putBigLong56(buffer, offset + i * 7, v);
+				Bytes.putBigLong56(buffer, offset + i * 7, (long)v);
 			}
 			
 			return a * 7;
@@ -11130,7 +11137,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 8);
+			return underlying.skip(amount / 8);
 		}
 		
 		
@@ -11160,12 +11167,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putLittleLong(buffer, offset + i * 8, v);
+				Bytes.putLittleLong(buffer, offset + i * 8, (long)v);
 			}
 			
 			return a * 8;
@@ -11213,7 +11220,7 @@ public class NumberFormatConversion
 		@Override
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
-			return this.underlying.skip(amount / 8);
+			return underlying.skip(amount / 8);
 		}
 		
 		
@@ -11243,12 +11250,12 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, lengthInElements);
+			int a = underlying.read(tempBuffer, 0, lengthInElements);
 			
 			for (int i = 0; i < a; i++)
 			{
 				long v = tempBuffer[i];
-				Bytes.putBigLong(buffer, offset + i * 8, v);
+				Bytes.putBigLong(buffer, offset + i * 8, (long)v);
 			}
 			
 			return a * 8;
@@ -11332,7 +11339,7 @@ public class NumberFormatConversion
 	
 	
 	public static class _$$Normalizedness$$__$$SignednessFormat$$_Integer_$$bytelen$$_Bytes_$$E$$_To_$$DestFloatPrim$$_ReadStream
-	extends AbstractDecoratorStream<ByteBlockReadStream>
+	extends AbstractStreamDecorator<ByteBlockReadStream>
 	implements _$$DestFloatPrim$$_BlockReadStream, Trimmable
 	{
 		protected boolean eof;  //us keeping our own 'eof' is important so we don't read partial bytes in case become eof, then cease to be eof (eg, the underlying store expands!!)
@@ -11488,7 +11495,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -11497,9 +11504,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -11510,7 +11517,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -11526,7 +11533,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -11539,7 +11546,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -11551,7 +11558,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -11566,7 +11573,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -11579,7 +11586,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -11621,7 +11628,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -11630,9 +11637,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -11643,7 +11650,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -11659,7 +11666,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -11672,7 +11679,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 128f;
+				return ((float)v) / 128f;
 			}
 		}
 		
@@ -11684,7 +11691,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -11699,7 +11706,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -11712,7 +11719,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 128f;
+				buffer[i] = ((float)v) / 128f;
 			}
 			
 			return fullRead;
@@ -11754,7 +11761,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -11763,9 +11770,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -11776,7 +11783,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -11792,7 +11799,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -11805,7 +11812,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -11817,7 +11824,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -11832,7 +11839,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -11845,7 +11852,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -11887,7 +11894,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -11896,9 +11903,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -11909,7 +11916,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -11925,7 +11932,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -11938,7 +11945,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 128f;
+				return ((float)v) / 128f;
 			}
 		}
 		
@@ -11950,7 +11957,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -11965,7 +11972,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -11978,7 +11985,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 128f;
+				buffer[i] = ((float)v) / 128f;
 			}
 			
 			return fullRead;
@@ -12020,7 +12027,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12029,9 +12036,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12042,7 +12049,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12058,7 +12065,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12071,7 +12078,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -12083,7 +12090,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -12098,7 +12105,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12111,7 +12118,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -12153,7 +12160,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12162,9 +12169,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12175,7 +12182,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12191,7 +12198,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12204,7 +12211,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v) / 128f;
+				return ((float)v) / 128f;
 			}
 		}
 		
@@ -12216,7 +12223,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -12231,7 +12238,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12244,7 +12251,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v) / 128f;
+				buffer[i] = ((float)v) / 128f;
 			}
 			
 			return fullRead;
@@ -12286,7 +12293,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12295,9 +12302,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12308,7 +12315,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12324,7 +12331,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12337,7 +12344,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -12349,7 +12356,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -12364,7 +12371,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12377,7 +12384,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -12419,7 +12426,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12428,9 +12435,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12441,7 +12448,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12457,7 +12464,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12470,7 +12477,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v) / 128f;
+				return ((float)v) / 128f;
 			}
 		}
 		
@@ -12482,7 +12489,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -12497,7 +12504,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12510,7 +12517,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v) / 128f;
+				buffer[i] = ((float)v) / 128f;
 			}
 			
 			return fullRead;
@@ -12552,7 +12559,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12561,9 +12568,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12574,7 +12581,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12590,7 +12597,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12603,7 +12610,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -12615,7 +12622,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -12630,7 +12637,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12643,7 +12650,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -12685,7 +12692,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12694,9 +12701,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12707,7 +12714,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12723,7 +12730,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12736,7 +12743,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 32768f;
+				return ((float)v) / 32768f;
 			}
 		}
 		
@@ -12748,7 +12755,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -12763,7 +12770,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12776,7 +12783,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 32768f;
+				buffer[i] = ((float)v) / 32768f;
 			}
 			
 			return fullRead;
@@ -12818,7 +12825,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12827,9 +12834,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12840,7 +12847,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12856,7 +12863,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -12869,7 +12876,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -12881,7 +12888,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -12896,7 +12903,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -12909,7 +12916,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -12951,7 +12958,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -12960,9 +12967,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -12973,7 +12980,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -12989,7 +12996,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13002,7 +13009,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 32768f;
+				return ((float)v) / 32768f;
 			}
 		}
 		
@@ -13014,7 +13021,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -13029,7 +13036,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13042,7 +13049,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 32768f;
+				buffer[i] = ((float)v) / 32768f;
 			}
 			
 			return fullRead;
@@ -13084,7 +13091,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13093,9 +13100,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13106,7 +13113,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13122,7 +13129,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13135,7 +13142,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -13147,7 +13154,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -13162,7 +13169,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13175,7 +13182,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -13217,7 +13224,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13226,9 +13233,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13239,7 +13246,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13255,7 +13262,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13268,7 +13275,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v) / 32768f;
+				return ((float)v) / 32768f;
 			}
 		}
 		
@@ -13280,7 +13287,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -13295,7 +13302,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13308,7 +13315,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v) / 32768f;
+				buffer[i] = ((float)v) / 32768f;
 			}
 			
 			return fullRead;
@@ -13350,7 +13357,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13359,9 +13366,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13372,7 +13379,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13388,7 +13395,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13401,7 +13408,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -13413,7 +13420,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -13428,7 +13435,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13441,7 +13448,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -13483,7 +13490,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13492,9 +13499,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13505,7 +13512,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13521,7 +13528,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13534,7 +13541,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v) / 32768f;
+				return ((float)v) / 32768f;
 			}
 		}
 		
@@ -13546,7 +13553,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -13561,7 +13568,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13574,7 +13581,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v) / 32768f;
+				buffer[i] = ((float)v) / 32768f;
 			}
 			
 			return fullRead;
@@ -13616,7 +13623,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13625,9 +13632,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13638,7 +13645,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13654,7 +13661,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13663,11 +13670,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -13679,7 +13686,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -13694,7 +13701,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13703,11 +13710,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -13749,7 +13756,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13758,9 +13765,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13771,7 +13778,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13787,7 +13794,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13796,11 +13803,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v) / 8388608f;
+				return ((float)v) / 8388608f;
 			}
 		}
 		
@@ -13812,7 +13819,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -13827,7 +13834,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13836,11 +13843,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v) / 8388608f;
+				buffer[i] = ((float)v) / 8388608f;
 			}
 			
 			return fullRead;
@@ -13882,7 +13889,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -13891,9 +13898,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -13904,7 +13911,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -13920,7 +13927,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -13929,11 +13936,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -13945,7 +13952,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -13960,7 +13967,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -13969,11 +13976,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -14015,7 +14022,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14024,9 +14031,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14037,7 +14044,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14053,7 +14060,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14062,11 +14069,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v) / 8388608f;
+				return ((float)v) / 8388608f;
 			}
 		}
 		
@@ -14078,7 +14085,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -14093,7 +14100,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14102,11 +14109,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v) / 8388608f;
+				buffer[i] = ((float)v) / 8388608f;
 			}
 			
 			return fullRead;
@@ -14148,7 +14155,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14157,9 +14164,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14170,7 +14177,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14186,7 +14193,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14195,11 +14202,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -14211,7 +14218,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -14226,7 +14233,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14235,11 +14242,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -14281,7 +14288,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14290,9 +14297,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14303,7 +14310,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14319,7 +14326,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14328,11 +14335,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v) / 8388608f;
+				return ((float)v) / 8388608f;
 			}
 		}
 		
@@ -14344,7 +14351,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -14359,7 +14366,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14368,11 +14375,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v) / 8388608f;
+				buffer[i] = ((float)v) / 8388608f;
 			}
 			
 			return fullRead;
@@ -14414,7 +14421,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14423,9 +14430,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14436,7 +14443,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14452,7 +14459,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14461,11 +14468,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -14477,7 +14484,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -14492,7 +14499,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14501,11 +14508,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -14547,7 +14554,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14556,9 +14563,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14569,7 +14576,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14585,7 +14592,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14594,11 +14601,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v) / 8388608f;
+				return ((float)v) / 8388608f;
 			}
 		}
 		
@@ -14610,7 +14617,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -14625,7 +14632,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14634,11 +14641,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v) / 8388608f;
+				buffer[i] = ((float)v) / 8388608f;
 			}
 			
 			return fullRead;
@@ -14680,7 +14687,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14689,9 +14696,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14702,7 +14709,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14718,7 +14725,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14731,7 +14738,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -14743,7 +14750,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -14758,7 +14765,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14771,7 +14778,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -14813,7 +14820,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14822,9 +14829,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14835,7 +14842,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14851,7 +14858,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14864,7 +14871,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 2147483648f;
+				return ((float)v) / 2147483648f;
 			}
 		}
 		
@@ -14876,7 +14883,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -14891,7 +14898,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -14904,7 +14911,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 2147483648f;
+				buffer[i] = ((float)v) / 2147483648f;
 			}
 			
 			return fullRead;
@@ -14946,7 +14953,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -14955,9 +14962,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -14968,7 +14975,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -14984,7 +14991,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -14997,7 +15004,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -15009,7 +15016,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15024,7 +15031,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15037,7 +15044,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -15079,7 +15086,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15088,9 +15095,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15101,7 +15108,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15117,7 +15124,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15130,7 +15137,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 2147483648f;
+				return ((float)v) / 2147483648f;
 			}
 		}
 		
@@ -15142,7 +15149,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15157,7 +15164,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15170,7 +15177,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 2147483648f;
+				buffer[i] = ((float)v) / 2147483648f;
 			}
 			
 			return fullRead;
@@ -15212,7 +15219,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15221,9 +15228,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15234,7 +15241,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15250,7 +15257,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15263,7 +15270,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -15275,7 +15282,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15290,7 +15297,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15303,7 +15310,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -15345,7 +15352,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15354,9 +15361,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15367,7 +15374,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15383,7 +15390,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15396,7 +15403,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v) / 2147483648f;
+				return ((float)v) / 2147483648f;
 			}
 		}
 		
@@ -15408,7 +15415,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15423,7 +15430,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15436,7 +15443,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v) / 2147483648f;
+				buffer[i] = ((float)v) / 2147483648f;
 			}
 			
 			return fullRead;
@@ -15478,7 +15485,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15487,9 +15494,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15500,7 +15507,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15516,7 +15523,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15529,7 +15536,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v);
+				return ((float)v);
 			}
 		}
 		
@@ -15541,7 +15548,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15556,7 +15563,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15569,7 +15576,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((float)v);
 			}
 			
 			return fullRead;
@@ -15611,7 +15618,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15620,9 +15627,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15633,7 +15640,7 @@ public class NumberFormatConversion
 		@Override
 		public float read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15649,7 +15656,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15662,7 +15669,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v) / 2147483648f;
+				return ((float)v) / 2147483648f;
 			}
 		}
 		
@@ -15674,7 +15681,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(float[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -15689,7 +15696,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15702,7 +15709,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v) / 2147483648f;
+				buffer[i] = ((float)v) / 2147483648f;
 			}
 			
 			return fullRead;
@@ -15744,7 +15751,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15753,9 +15760,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15766,7 +15773,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15782,7 +15789,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15795,7 +15802,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -15807,7 +15814,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -15822,7 +15829,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15835,7 +15842,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -15877,7 +15884,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -15886,9 +15893,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -15899,7 +15906,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -15915,7 +15922,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -15928,7 +15935,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 128d;
+				return ((double)v) / 128d;
 			}
 		}
 		
@@ -15940,7 +15947,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -15955,7 +15962,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -15968,7 +15975,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 128d;
+				buffer[i] = ((double)v) / 128d;
 			}
 			
 			return fullRead;
@@ -16010,7 +16017,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16019,9 +16026,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16032,7 +16039,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16048,7 +16055,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16061,7 +16068,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -16073,7 +16080,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16088,7 +16095,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16101,7 +16108,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -16143,7 +16150,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16152,9 +16159,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16165,7 +16172,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16181,7 +16188,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16194,7 +16201,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 128d;
+				return ((double)v) / 128d;
 			}
 		}
 		
@@ -16206,7 +16213,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16221,7 +16228,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16234,7 +16241,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 128d;
+				buffer[i] = ((double)v) / 128d;
 			}
 			
 			return fullRead;
@@ -16276,7 +16283,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16285,9 +16292,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16298,7 +16305,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16314,7 +16321,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16327,7 +16334,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -16339,7 +16346,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16354,7 +16361,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16367,7 +16374,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -16409,7 +16416,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16418,9 +16425,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16431,7 +16438,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16447,7 +16454,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16460,7 +16467,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v) / 128d;
+				return ((double)v) / 128d;
 			}
 		}
 		
@@ -16472,7 +16479,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16487,7 +16494,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16500,7 +16507,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v) / 128d;
+				buffer[i] = ((double)v) / 128d;
 			}
 			
 			return fullRead;
@@ -16542,7 +16549,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16551,9 +16558,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16564,7 +16571,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16580,7 +16587,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16593,7 +16600,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -16605,7 +16612,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16620,7 +16627,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16633,7 +16640,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -16675,7 +16682,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16684,9 +16691,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 1;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 1);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16697,7 +16704,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16713,7 +16720,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16726,7 +16733,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				return (v) / 128d;
+				return ((double)v) / 128d;
 			}
 		}
 		
@@ -16738,7 +16745,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 1;
@@ -16753,7 +16760,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16766,7 +16773,7 @@ public class NumberFormatConversion
 				
 				v -= (byte)128l;
 				
-				buffer[i] = (v) / 128d;
+				buffer[i] = ((double)v) / 128d;
 			}
 			
 			return fullRead;
@@ -16808,7 +16815,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16817,9 +16824,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16830,7 +16837,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16846,7 +16853,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16859,7 +16866,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -16871,7 +16878,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -16886,7 +16893,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -16899,7 +16906,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -16941,7 +16948,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -16950,9 +16957,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -16963,7 +16970,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -16979,7 +16986,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -16992,7 +16999,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 32768d;
+				return ((double)v) / 32768d;
 			}
 		}
 		
@@ -17004,7 +17011,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17019,7 +17026,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17032,7 +17039,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 32768d;
+				buffer[i] = ((double)v) / 32768d;
 			}
 			
 			return fullRead;
@@ -17074,7 +17081,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17083,9 +17090,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17096,7 +17103,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17112,7 +17119,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17125,7 +17132,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -17137,7 +17144,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17152,7 +17159,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17165,7 +17172,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -17207,7 +17214,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17216,9 +17223,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17229,7 +17236,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17245,7 +17252,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17258,7 +17265,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 32768d;
+				return ((double)v) / 32768d;
 			}
 		}
 		
@@ -17270,7 +17277,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17285,7 +17292,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17298,7 +17305,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 32768d;
+				buffer[i] = ((double)v) / 32768d;
 			}
 			
 			return fullRead;
@@ -17340,7 +17347,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17349,9 +17356,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17362,7 +17369,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17378,7 +17385,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17391,7 +17398,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -17403,7 +17410,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17418,7 +17425,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17431,7 +17438,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -17473,7 +17480,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17482,9 +17489,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17495,7 +17502,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17511,7 +17518,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17524,7 +17531,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v) / 32768d;
+				return ((double)v) / 32768d;
 			}
 		}
 		
@@ -17536,7 +17543,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17551,7 +17558,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17564,7 +17571,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v) / 32768d;
+				buffer[i] = ((double)v) / 32768d;
 			}
 			
 			return fullRead;
@@ -17606,7 +17613,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17615,9 +17622,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17628,7 +17635,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17644,7 +17651,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17657,7 +17664,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -17669,7 +17676,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17684,7 +17691,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17697,7 +17704,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -17739,7 +17746,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17748,9 +17755,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 2;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 2);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17761,7 +17768,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17777,7 +17784,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17790,7 +17797,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				return (v) / 32768d;
+				return ((double)v) / 32768d;
 			}
 		}
 		
@@ -17802,7 +17809,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 2;
@@ -17817,7 +17824,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17830,7 +17837,7 @@ public class NumberFormatConversion
 				
 				v -= (short)32768l;
 				
-				buffer[i] = (v) / 32768d;
+				buffer[i] = ((double)v) / 32768d;
 			}
 			
 			return fullRead;
@@ -17872,7 +17879,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -17881,9 +17888,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -17894,7 +17901,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -17910,7 +17917,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -17919,11 +17926,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -17935,7 +17942,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -17950,7 +17957,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -17959,11 +17966,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -18005,7 +18012,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18014,9 +18021,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18027,7 +18034,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18043,7 +18050,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18052,11 +18059,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v) / 8388608d;
+				return ((double)v) / 8388608d;
 			}
 		}
 		
@@ -18068,7 +18075,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18083,7 +18090,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18092,11 +18099,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v) / 8388608d;
+				buffer[i] = ((double)v) / 8388608d;
 			}
 			
 			return fullRead;
@@ -18138,7 +18145,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18147,9 +18154,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18160,7 +18167,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18176,7 +18183,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18185,11 +18192,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -18201,7 +18208,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18216,7 +18223,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18225,11 +18232,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -18271,7 +18278,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18280,9 +18287,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18293,7 +18300,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18309,7 +18316,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18318,11 +18325,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				
 				
-				return (v) / 8388608d;
+				return ((double)v) / 8388608d;
 			}
 		}
 		
@@ -18334,7 +18341,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18349,7 +18356,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18358,11 +18365,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				
 				
-				buffer[i] = (v) / 8388608d;
+				buffer[i] = ((double)v) / 8388608d;
 			}
 			
 			return fullRead;
@@ -18404,7 +18411,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18413,9 +18420,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18426,7 +18433,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18442,7 +18449,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18451,11 +18458,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -18467,7 +18474,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18482,7 +18489,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18491,11 +18498,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -18537,7 +18544,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18546,9 +18553,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18559,7 +18566,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18575,7 +18582,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18584,11 +18591,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, 0);
+				int v = Bytes.getLittleSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v) / 8388608d;
+				return ((double)v) / 8388608d;
 			}
 		}
 		
@@ -18600,7 +18607,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18615,7 +18622,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18624,11 +18631,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getLittleInt24(tempBuffer, i * 3);
+				int v = Bytes.getLittleSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v) / 8388608d;
+				buffer[i] = ((double)v) / 8388608d;
 			}
 			
 			return fullRead;
@@ -18670,7 +18677,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18679,9 +18686,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18692,7 +18699,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18708,7 +18715,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18717,11 +18724,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -18733,7 +18740,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18748,7 +18755,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18757,11 +18764,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -18803,7 +18810,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18812,9 +18819,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 3;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 3);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18825,7 +18832,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18841,7 +18848,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18850,11 +18857,11 @@ public class NumberFormatConversion
 			}
 			else
 			{
-				int v = Bytes.getBigInt24(tempBuffer, 0);
+				int v = Bytes.getBigSInt24(tempBuffer, 0);
 				
 				v -= (int)8388608l;
 				
-				return (v) / 8388608d;
+				return ((double)v) / 8388608d;
 			}
 		}
 		
@@ -18866,7 +18873,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 3;
@@ -18881,7 +18888,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -18890,11 +18897,11 @@ public class NumberFormatConversion
 			
 			for (int i = 0; i < fullRead; i++)
 			{
-				int v = Bytes.getBigInt24(tempBuffer, i * 3);
+				int v = Bytes.getBigSInt24(tempBuffer, i * 3);
 				
 				v -= (int)8388608l;
 				
-				buffer[i] = (v) / 8388608d;
+				buffer[i] = ((double)v) / 8388608d;
 			}
 			
 			return fullRead;
@@ -18936,7 +18943,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -18945,9 +18952,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -18958,7 +18965,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -18974,7 +18981,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -18987,7 +18994,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -18999,7 +19006,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19014,7 +19021,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19027,7 +19034,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -19069,7 +19076,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19078,9 +19085,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19091,7 +19098,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19107,7 +19114,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19120,7 +19127,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 2147483648d;
+				return ((double)v) / 2147483648d;
 			}
 		}
 		
@@ -19132,7 +19139,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19147,7 +19154,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19160,7 +19167,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 2147483648d;
+				buffer[i] = ((double)v) / 2147483648d;
 			}
 			
 			return fullRead;
@@ -19202,7 +19209,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19211,9 +19218,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19224,7 +19231,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19240,7 +19247,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19253,7 +19260,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -19265,7 +19272,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19280,7 +19287,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19293,7 +19300,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -19335,7 +19342,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19344,9 +19351,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19357,7 +19364,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19373,7 +19380,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19386,7 +19393,7 @@ public class NumberFormatConversion
 				
 				
 				
-				return (v) / 2147483648d;
+				return ((double)v) / 2147483648d;
 			}
 		}
 		
@@ -19398,7 +19405,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19413,7 +19420,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19426,7 +19433,7 @@ public class NumberFormatConversion
 				
 				
 				
-				buffer[i] = (v) / 2147483648d;
+				buffer[i] = ((double)v) / 2147483648d;
 			}
 			
 			return fullRead;
@@ -19468,7 +19475,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19477,9 +19484,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19490,7 +19497,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19506,7 +19513,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19519,7 +19526,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -19531,7 +19538,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19546,7 +19553,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19559,7 +19566,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -19601,7 +19608,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19610,9 +19617,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19623,7 +19630,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19639,7 +19646,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19652,7 +19659,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v) / 2147483648d;
+				return ((double)v) / 2147483648d;
 			}
 		}
 		
@@ -19664,7 +19671,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19679,7 +19686,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19692,7 +19699,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v) / 2147483648d;
+				buffer[i] = ((double)v) / 2147483648d;
 			}
 			
 			return fullRead;
@@ -19734,7 +19741,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19743,9 +19750,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19756,7 +19763,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19772,7 +19779,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19785,7 +19792,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v);
+				return ((double)v);
 			}
 		}
 		
@@ -19797,7 +19804,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19812,7 +19819,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19825,7 +19832,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v);
+				buffer[i] = ((double)v);
 			}
 			
 			return fullRead;
@@ -19867,7 +19874,7 @@ public class NumberFormatConversion
 		@Override
 		public boolean isEOF() throws IOException, ClosedStreamException
 		{
-			return this.eof || this.underlying.isEOF();
+			return eof || underlying.isEOF();
 		}
 		
 		
@@ -19876,9 +19883,9 @@ public class NumberFormatConversion
 		public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
 		{
 			long r = amount * 4;  //todo: check for overflow.     ..but when is that gonna happen with a long!? XDD
-			long a = this.underlying.skip(r);
+			long a = underlying.skip(r);
 			if (a < r)
-				this.eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
+				eof = true;  //don't read partial bytes if they cease to be eof (eg, the underlying store expands!!)
 			
 			return SmallIntegerMathUtilities.floorDivision(a, 4);  //partial bytes only happen on eof, so do floor not ceiling so it won't look like we read the last byte fully if the last one is the one we partially read and stopped at!!!
 		}
@@ -19889,7 +19896,7 @@ public class NumberFormatConversion
 		@Override
 		public double read() throws EOFException, IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				throw new EOFException();
 			
 			
@@ -19905,7 +19912,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 			{
@@ -19918,7 +19925,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				return (v) / 2147483648d;
+				return ((double)v) / 2147483648d;
 			}
 		}
 		
@@ -19930,7 +19937,7 @@ public class NumberFormatConversion
 		@Override
 		public int read(double[] buffer, int offset, int length) throws IOException, ClosedStreamException
 		{
-			if (this.eof)
+			if (eof)
 				return 0;
 			
 			int byteLength = length * 4;
@@ -19945,7 +19952,7 @@ public class NumberFormatConversion
 			}
 			
 			
-			int a = this.underlying.read(tempBuffer, 0, byteLength);
+			int a = underlying.read(tempBuffer, 0, byteLength);
 			
 			if (a < byteLength)
 				this.eof = true;
@@ -19958,7 +19965,7 @@ public class NumberFormatConversion
 				
 				v -= (int)2147483648l;
 				
-				buffer[i] = (v) / 2147483648d;
+				buffer[i] = ((double)v) / 2147483648d;
 			}
 			
 			return fullRead;

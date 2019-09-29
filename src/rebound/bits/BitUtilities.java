@@ -5657,7 +5657,7 @@ for primA in intprims:
 	
 	
 	
-	
+	//Todo use BooleanLists XD'
 	
 	public static boolean[] toBooleanArrayFrom8(byte bits32, int numBits)
 	{
@@ -5724,5 +5724,69 @@ for primA in intprims:
 	public static boolean[] toBooleanArray64(long bits64)
 	{
 		return toBooleanArrayFrom64(bits64, 64);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO Test this! :D
+	public static boolean isPowerOf2(int x)
+	{
+        int m = x - 1;
+        return (x & m) == 0;
+	}
+	
+	public static boolean isPowerOf2(long x)
+	{
+        long m = x - 1;
+        return (x & m) == 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int signedUpcast24(int x)
+	{
+		int m = 0xFF00_0000;
+		int bit = (x >> 23) & 1;
+		return x | (m * bit);
+	}
+	
+	public static long signedUpcast40(long x)
+	{
+		long m = 0xFFFF_FF00_0000_0000l;
+		long bit = (x >> 39) & 1;
+		return x | (m * bit);
+	}
+	
+	public static long signedUpcast48(long x)
+	{
+		long m = 0xFFFF_0000_0000_0000l;
+		long bit = (x >> 47) & 1;
+		return x | (m * bit);
+	}
+	
+	public static long signedUpcast56(long x)
+	{
+		long m = 0xFF00_0000_0000_0000l;
+		long bit = (x >> 55) & 1;
+		return x | (m * bit);
 	}
 }

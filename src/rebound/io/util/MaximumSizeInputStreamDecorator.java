@@ -1,6 +1,6 @@
 package rebound.io.util;
 
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.io.FilterInputStream;
 import java.io.IOException;

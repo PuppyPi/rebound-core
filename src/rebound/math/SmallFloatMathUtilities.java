@@ -2,7 +2,7 @@ package rebound.math;
 
 import static java.lang.Math.*;
 import static rebound.GlobalCodeMetastuffContext.*;
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -14,6 +14,8 @@ import rebound.exceptions.OutOfDomainArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.TruncationException;
 import rebound.util.Primitives;
+import rebound.util.collections.prim.PrimitiveCollections.DoubleList;
+import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToDouble;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToFloat;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToLong;
@@ -496,7 +498,10 @@ public class SmallFloatMathUtilities
 		return x;
 	}
 	
-	public static double least(double[] values, int offset, int length)
+	
+	
+	
+	public static double least(double[] values, int offset, int length)  //Todo make orthogonal with greatest() and float  x'D
 	{
 		if (length == 0)
 			throw new IllegalArgumentException();
@@ -512,30 +517,6 @@ public class SmallFloatMathUtilities
 		}
 		
 		return e;
-	}
-	
-	public static int leastIndex(double[] values, int offset, int length)
-	{
-		if (length == 0)
-			throw new IllegalArgumentException();
-		
-		double leastSoFar = values[offset+0];
-		int indexOfLeastSoFar = 0;
-		checkNotNaN(leastSoFar);
-		
-		for (int i = 1; i < length; i++)
-		{
-			int o = offset+i;
-			double v = values[o];
-			checkNotNaN(v);
-			if (v < leastSoFar)
-			{
-				leastSoFar = v;
-				indexOfLeastSoFar = o;
-			}
-		}
-		
-		return indexOfLeastSoFar;
 	}
 	
 	public static float least(float... values)
@@ -612,16 +593,141 @@ public class SmallFloatMathUtilities
 	
 	
 	
+	
+	
+	
+	
+	public static double least(DoubleList values, int offset, int length)  //Todo make orthogonal with greatest() and float  x'D
+	{
+		if (length == 0)
+			throw new IllegalArgumentException();
+		
+		double e = values.getDouble(offset+0);
+		checkNotNaN(e);
+		
+		for (int i = 1; i < length; i++)
+		{
+			checkNotNaN(values.getDouble(offset+i));
+			if (values.getDouble(offset+i) < e)
+				e = values.getDouble(offset+i);
+		}
+		
+		return e;
+	}
+	
+	
+	public static float least(FloatList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		float e = values.get(0);
+		checkNotNaN(e);
+		
+		for (int i = 1; i < values.size(); i++)
+		{
+			checkNotNaN(values.getFloat(i));
+			if (values.getFloat(i) < e)
+				e = values.getFloat(i);
+		}
+		
+		return e;
+	}
+	
+	public static float greatest(FloatList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		float e = values.get(0);
+		checkNotNaN(e);
+		
+		for (int i = 1; i < values.size(); i++)
+		{
+			checkNotNaN(values.getFloat(i));
+			if (values.getFloat(i) > e)
+				e = values.getFloat(i);
+		}
+		
+		return e;
+	}
+	
+	public static double least(DoubleList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		double e = values.get(0);
+		checkNotNaN(e);
+		
+		for (int i = 1; i < values.size(); i++)
+		{
+			checkNotNaN(values.getDouble(i));
+			if (values.getDouble(i) < e)
+				e = values.getDouble(i);
+		}
+		
+		return e;
+	}
+	
+	public static double greatest(DoubleList values)
+	{
+		if (values.size() == 0)
+			throw new IllegalArgumentException();
+		
+		double e = values.get(0);
+		checkNotNaN(e);
+		
+		for (int i = 1; i < values.size(); i++)
+		{
+			checkNotNaN(values.getDouble(i));
+			if (values.getDouble(i) > e)
+				e = values.getDouble(i);
+		}
+		
+		return e;
+	}
+	
+	
+	
+	
+	
+	
+	public static int leastIndex(double[] values, int offset, int length)  //Todo make this orthogonal with the greatestIndex's ^^''
+	{
+		if (length == 0)
+			throw new IllegalArgumentException();
+		
+		double leastSoFar = values[offset+0];
+		int indexOfLeastSoFar = 0;
+		checkNotNaN(leastSoFar);
+		
+		for (int i = 1; i < length; i++)
+		{
+			int o = offset+i;
+			double v = values[o];
+			checkNotNaN(v);
+			if (v < leastSoFar)
+			{
+				leastSoFar = v;
+				indexOfLeastSoFar = o;
+			}
+		}
+		
+		return indexOfLeastSoFar;
+	}
+	
+	
+	
+	
 	public static int greatestIndexDouble(double[] values, int offset, int length)
 	{
-		return greatestIndexDouble(new UnaryFunctionIntToDouble()
-		{
-			@Override
-			public double f(int i)
-			{
-				return values[i];
-			}
-		}, offset, length);
+		return greatestIndexDouble(i -> values[i], offset, length);
+	}
+	
+	public static int greatestIndexDouble(DoubleList values, int offset, int length)
+	{
+		return greatestIndexDouble(i -> values.getDouble(i), offset, length);
 	}
 	
 	public static int greatestIndexDouble(UnaryFunctionIntToDouble values, int offset, int length)
@@ -652,14 +758,12 @@ public class SmallFloatMathUtilities
 	
 	public static int greatestIndexFloat(float[] values, int offset, int length)
 	{
-		return greatestIndexDouble(new UnaryFunctionIntToDouble()
-		{
-			@Override
-			public double f(int i)
-			{
-				return values[i];
-			}
-		}, offset, length);
+		return greatestIndexFloat(i -> values[i], offset, length);
+	}
+	
+	public static int greatestIndexFloat(FloatList values, int offset, int length)
+	{
+		return greatestIndexFloat(i -> values.getFloat(i), offset, length);
 	}
 	
 	public static int greatestIndexFloat(UnaryFunctionIntToFloat values, int offset, int length)

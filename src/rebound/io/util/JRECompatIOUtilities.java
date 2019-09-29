@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
@@ -26,6 +28,7 @@ import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
 
 public class JRECompatIOUtilities
@@ -933,6 +936,42 @@ implements JavaNamespace
 					}
 				}
 			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static byte[] writeAllToMemory(UnaryProcedureThrowingIOException<OutputStream> write)
+	{
+		try (ByteArrayOutputStream buff = new ByteArrayOutputStream())
+		{
+			write.f(buff);
+			return buff.toByteArray();
+		}
+		catch (IOException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
+	
+	public static String writeAllTextToMemory(UnaryProcedureThrowingIOException<Writer> write)
+	{
+		try (StringWriter buff = new StringWriter())
+		{
+			write.f(buff);
+			return buff.toString();
+		}
+		catch (IOException exc)
+		{
+			throw new ImpossibleException(exc);
 		}
 	}
 }

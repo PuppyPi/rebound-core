@@ -53,6 +53,23 @@ public class ArithmeticIntegerInterval
 		return value >= 0 && value < this.size;
 	}
 	
+	/**
+	 * @return {@link Direction1D#Zero} if 'value' is {@link #containsPoint(long) inside} this interval, {@link Direction1D#LowerDown} if 'value' is below the start of this interval, and {@link Direction1D#HigherUp} if it's >= the {@link #getPastEnd() high bound} :>
+	 */
+	public Direction1D comparePoint(long value)
+	{
+		//return value >= start && value < start + size;
+		
+		value -= this.start;
+		
+		if (value < 0)
+			return Direction1D.LowerDown;
+		else if (value >= this.size)
+			return Direction1D.HigherUp;
+		else
+			return Direction1D.Zero;
+	}
+	
 	
 	
 	

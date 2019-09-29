@@ -4,7 +4,7 @@
  */
 package rebound.util;
 
-import rebound.annotations.semantic.simpledata.ActuallyUnsignedValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.DoubleFreeException;
 import rebound.exceptions.ImpossibleException;
 import rebound.util.collections.prim.PrimitiveCollections.SortedLongSetBackedByList;
@@ -148,7 +148,7 @@ implements JavaNamespace
 		 * Note: it will be exhausted at (unsigned) overflow to 0!
 		 * (so take care to understand that 'negatives' count as really large values (after which there aren't so many remaining ids!)  )
 		 */
-		public SimpleSinglePassUniqueLongIdProvider(@ActuallyUnsignedValue long nextId)
+		public SimpleSinglePassUniqueLongIdProvider(@ActuallyUnsigned long nextId)
 		{
 			this.nextId = nextId;
 		}

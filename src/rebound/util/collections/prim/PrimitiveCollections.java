@@ -1,13 +1,25 @@
 package rebound.util.collections.prim;
 
 import static java.util.Objects.*;
-import static rebound.bits.Unsigned.*;
+import static rebound.bits.BitfieldSafeCasts.*;
+import static rebound.bits.DataEncodingUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
+import static rebound.util.NIOBufferUtilities.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import static rebound.util.objectutil.LintingCircumvinting.*;
+import static rebound.util.objectutil.ObjectUtilities.*;
 import java.io.Serializable;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
@@ -16,12 +28,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+import java.util.RandomAccess;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -29,7 +44,9 @@ import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenBy
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.SignalType;
+import rebound.annotations.semantic.allowedoperations.FixedLengthValue;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.VariableLengthValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
@@ -38,14 +55,17 @@ import rebound.annotations.semantic.temporal.ImmutableValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.ReadonlyUnsupportedOperationException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.exceptions.StructuredClassCastException;
+import rebound.util.NIOBufferUtilities;
 import rebound.util.collections.AbstractReadonlyList;
 import rebound.util.collections.AbstractReadonlySet;
 import rebound.util.collections.ArrayUtilities;
+import rebound.util.collections.CollectionUtilities;
+import rebound.util.collections.DelegatingListIterator;
+import rebound.util.collections.Equivalenceable;
 import rebound.util.collections.KnowsLengthFixedness;
 import rebound.util.collections.ListWithRemoveRange;
 import rebound.util.collections.ListWithSetAll;
@@ -59,77 +79,27 @@ import rebound.util.collections.Slice;
 import rebound.util.collections.SortingUtilities;
 import rebound.util.collections.Sublist;
 import rebound.util.collections.TransparentContiguousArrayBackedCollection;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.growth.Grower.GrowerComputationallyUnreducedPurelyRecursive;
 import rebound.util.growth.TranslatedExponentialGrower;
+import rebound.util.objectutil.Copyable;
 import rebound.util.objectutil.PubliclyCloneable;
 import rebound.util.objectutil.Trimmable;
 import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
+//TODO Make FixedLengthBufferWrapperXyzList support efficient setAll()/etc. between array-backed primitive lists and other buffer-backed lists! :D
+
 //Todo primitive iterators with remove(), then we can add a default retainAll() into the collection interface!  :D
 
-//TODO TEST THEM ALL! X'D :D
+//TODO READWRITE-TEST THEM ALL! X'D :D
 
 public class PrimitiveCollections
 {
-	@LiveValue
-	public static List asListObjectOrPrimitiveArray(Object array)
+	@SignalType
+	public static interface PrimitiveCollection<T>
+	extends Collection<T>
 	{
-		if (array instanceof Object[])
-			return Arrays.asList(array);
-		
-		
-		/* <<<
-		primxp
-		
-		else if (array instanceof _$$prim$$_[])
-			return _$$prim$$_ArrayAsList((_$$prim$$_[])array);
-		 */
-
-else if (array instanceof boolean[])
-	return booleanArrayAsList((boolean[])array);
- 
-else if (array instanceof byte[])
-	return byteArrayAsList((byte[])array);
- 
-else if (array instanceof char[])
-	return charArrayAsList((char[])array);
- 
-else if (array instanceof short[])
-	return shortArrayAsList((short[])array);
- 
-else if (array instanceof float[])
-	return floatArrayAsList((float[])array);
- 
-else if (array instanceof int[])
-	return intArrayAsList((int[])array);
- 
-else if (array instanceof double[])
-	return doubleArrayAsList((double[])array);
- 
-else if (array instanceof long[])
-	return longArrayAsList((long[])array);
- 
-// >>>
-		
-		
-		else
-			throw newClassCastExceptionOrNullPointerException(array);
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
@@ -148,26 +118,16 @@ else if (array instanceof long[])
 	
 	
 	
-	public static BooleanList newDefaultBooleanList()
+	@ReadonlyValue
+	public static @Nonnull CharacterList charSequenceToList(@Nonnull CharSequence s)
 	{
-		return new BitSetBackedBooleanList();
+		return new CharSequenceBackedReadonlyCharacterList(s);
 	}
 	
-	public static BooleanList newDefaultBooleanListPresizedZeros(int size)
+	@ReadonlyValue
+	public static @Nonnull CharacterList stringToList(@Nonnull String s)
 	{
-		return new BitSetBackedBooleanList(new BitSet(), size);
-	}
-	
-	
-	
-	
-	
-	
-	
-	@SignalType
-	public static interface PrimitiveCollection<T>
-	extends Collection<T>
-	{
+		return charSequenceToList(s);
 	}
 	
 	
@@ -175,20 +135,46 @@ else if (array instanceof long[])
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * See {@link PrimitiveCollections#booleanListToByteList(List)} and {@link PrimitiveCollections#booleanListToNewByteList(List)} for grandparenting functions that work for all runtime types :>
+	 */
 	@SignalType
 	public static interface BooleanListWithByteListConversion  //Todo move these into NonuniformMethodsForBooleanList ^^'
 	extends BooleanList
 	{
+		/**
+		 * Zero-padded on the last byte :3
+		 */
 		@PossiblySnapshotPossiblyLiveValue
+		@ReadonlyValue
 		public ByteList byteList();
 		
+		
+		/**
+		 * Zero-padded on the last byte :3
+		 */
 		@ThrowAwayValue
 		public ByteList toNewByteList();
 	}
 	
 	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
 	@PossiblySnapshotPossiblyLiveValue
-	public static ByteList booleanListToByteList(BooleanList bits)
+	public static ByteList booleanListToByteList(List<Boolean> bits)
 	{
 		if (bits instanceof BooleanListWithByteListConversion)
 			return ((BooleanListWithByteListConversion)bits).byteList();
@@ -197,8 +183,11 @@ else if (array instanceof long[])
 	}
 	
 	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
 	@ThrowAwayValue
-	public static ByteList booleanListToNewByteList(BooleanList bits)
+	public static ByteList booleanListToNewByteList(List<Boolean> bits)
 	{
 		if (bits instanceof BooleanListWithByteListConversion)
 			return ((BooleanListWithByteListConversion)bits).toNewByteList();
@@ -207,10 +196,34 @@ else if (array instanceof long[])
 	}
 	
 	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
+	@ThrowAwayValue
+	public static byte[] defaultBooleanListToNewByteArray(List<Boolean> bits)
+	{
+		if (bits instanceof BooleanList)
+			return defaultBooleanListToNewByteArray((BooleanList)bits);
+		else
+			return defaultBooleanListToNewByteArray(bits.size(), i -> bits.get(i));
+	}
+	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
 	@ThrowAwayValue
 	public static byte[] defaultBooleanListToNewByteArray(BooleanList bits)
 	{
-		int nBits = bits.size();
+		return defaultBooleanListToNewByteArray(bits.size(), i -> bits.getBoolean(i));
+	}
+	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
+	@ThrowAwayValue
+	public static byte[] defaultBooleanListToNewByteArray(int size, UnaryFunctionIntToBoolean getBit)
+	{
+		int nBits = size;
 		int nBytes = ceilingDivision(nBits, 8);
 		int lastByteLength = nBits - ((nBytes - 1) * 8);
 		
@@ -227,7 +240,7 @@ else if (array instanceof long[])
 				b = 0;
 				for (int j = 0; j < nb; j++)
 				{
-					b |= (bits.getBoolean(base+j) ? 1 : 0) << j;
+					b |= (getBit.f(base+j) ? 1 : 0) << j;
 				}
 			}
 			
@@ -238,6 +251,9 @@ else if (array instanceof long[])
 	}
 	
 	
+	/**
+	 * Zero-padded on the last byte :3
+	 */
 	@PossiblySnapshotPossiblyLiveValue
 	public static Slice<byte[]> booleanListToByteArray(BooleanList bits)
 	{
@@ -296,6 +312,88 @@ else if (array instanceof long[])
 	
 	
 	
+	
+	
+	
+	public static BooleanList byteListToBooleanList(List<Byte> bytes, int nBits)
+	{
+		if (TransparentContiguousArrayBackedCollection.is(bytes))
+		{
+			Slice s = ((TransparentContiguousArrayBackedCollection)bytes).getLiveContiguousArrayBackingUNSAFE();
+			Object u = s.getUnderlying();
+			
+			if (u instanceof byte[])
+			{
+				return byteArrayToBooleanList(s, nBits);
+			}
+		}
+		
+		//Todo a better fallback algorithm than this?  ^^'
+		return byteArrayToBooleanList(PolymorphicCollectionUtilities.anyToArrayByte(bytes), nBits);
+	}
+	
+	
+	
+	
+	public static BooleanList byteArrayToBooleanList(Slice<byte[]> bytes, int nBits)
+	{
+		return BitSetBackedBooleanList.newFromBytesArraySlice(bytes, nBits);
+	}
+	
+	public static BooleanList byteArrayToBooleanList(byte[] bytes, int nBits)
+	{
+		return BitSetBackedBooleanList.newFromBytesArray(bytes, nBits);
+	}
+	
+	public static BooleanList byteArrayToBooleanList(byte[] bytes, int offset, int length, int nBits)
+	{
+		return BitSetBackedBooleanList.newFromBytesArraySlice(new Slice<byte[]>(bytes, offset, length), nBits);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String defaultToString(Iterable<?> c)
+	{
+		boolean list = c instanceof List;
+		
+		StringBuilder b = new StringBuilder(list ? "[" : "{");
+		
+		if (c instanceof BooleanCollection)
+		{
+			b.append(encodeBinary((BooleanCollection)c));
+		}
+		else
+		{
+			boolean first = true;
+			
+			for (Object e : c)
+			{
+				//Notice this comes after the possible 'break'!  ^_~
+				if (first)
+					first = false;
+				else
+					b.append(", ");
+				
+				b.append(e);
+			}
+		}
+		
+		b.append(list ? ']' : '}');
+		
+		return b.toString();
+	}
 	
 	
 	
@@ -416,6 +514,701 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	/**
+	 * + This is meant to be called by wrappers like {@link CollectionUtilities#concatenateManyListsOPC(Collection)} that check for things like, eg, is lists.isEmpty() XD
+	 * @return null if we can't merge them into a single primitive collection (eg, because they contain different types of members!)
+	 */
+	@ImplementationTransparency
+	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
+	public static @Nullable <P> List<P> concatenateManyPrimitiveListsOP(@ReadonlyValue Collection<? extends Iterable<P>> lists)
+	{
+		Class primitiveType = null;
+		
+		for (Iterable<P> list : lists)
+		{
+			if (never());
+			/* <<<
+primxp
+			else if (list instanceof _$$Primitive$$_Collection)
+			{
+				if (primitiveType == null)
+					primitiveType = _$$prim$$_.class;
+				else if (primitiveType != _$$prim$$_.class)
+					return null;
+				//else: keep going :>
+			}
+			 */
+			else if (list instanceof BooleanCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = boolean.class;
+				else if (primitiveType != boolean.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof ByteCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = byte.class;
+				else if (primitiveType != byte.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof CharacterCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = char.class;
+				else if (primitiveType != char.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof ShortCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = short.class;
+				else if (primitiveType != short.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof FloatCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = float.class;
+				else if (primitiveType != float.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof IntegerCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = int.class;
+				else if (primitiveType != int.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof DoubleCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = double.class;
+				else if (primitiveType != double.class)
+					return null;
+				//else: keep going :>
+			}
+			else if (list instanceof LongCollection)
+			{
+				if (primitiveType == null)
+					primitiveType = long.class;
+				else if (primitiveType != long.class)
+					return null;
+				//else: keep going :>
+			}
+			// >>>
+		}
+		
+		return primitiveType == null ? null : concatenateManyPrimitiveListsToGivenTypeOP(lists, primitiveType);
+	}
+	
+	
+	
+	@ImplementationTransparency
+	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
+	public static @Nullable <P> List<P> concatenateManyPrimitiveListsToGivenTypeOP(@ReadonlyValue Collection<? extends Iterable<P>> lists, Class primitiveType)
+	{
+		/* <<<
+primxp
+
+		if (primitiveType == _$$prim$$_.class)
+		{
+			List<P> rv = (List<P>) new_$$Primitive$$_List();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof _$$Primitive$$_Collection)
+				{
+					rv.addAll((Collection<P>)(_$$Primitive$$_Collection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof _$$Primitive$$_, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		 */
+		
+		if (primitiveType == boolean.class)
+		{
+			List<P> rv = (List<P>) newBooleanList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof BooleanCollection)
+				{
+					rv.addAll((Collection<P>)(BooleanCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Boolean, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == byte.class)
+		{
+			List<P> rv = (List<P>) newByteList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof ByteCollection)
+				{
+					rv.addAll((Collection<P>)(ByteCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Byte, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == char.class)
+		{
+			List<P> rv = (List<P>) newCharacterList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof CharacterCollection)
+				{
+					rv.addAll((Collection<P>)(CharacterCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Character, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == short.class)
+		{
+			List<P> rv = (List<P>) newShortList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof ShortCollection)
+				{
+					rv.addAll((Collection<P>)(ShortCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Short, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == float.class)
+		{
+			List<P> rv = (List<P>) newFloatList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof FloatCollection)
+				{
+					rv.addAll((Collection<P>)(FloatCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Float, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == int.class)
+		{
+			List<P> rv = (List<P>) newIntegerList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof IntegerCollection)
+				{
+					rv.addAll((Collection<P>)(IntegerCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Integer, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == double.class)
+		{
+			List<P> rv = (List<P>) newDoubleList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof DoubleCollection)
+				{
+					rv.addAll((Collection<P>)(DoubleCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Double, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		
+		if (primitiveType == long.class)
+		{
+			List<P> rv = (List<P>) newLongList();
+			
+			for (Iterable<P> list : lists)
+			{
+				if (never());
+				
+				if (list instanceof Collection && ((Collection)list).isEmpty())
+				{
+					//Nothing XD
+				}
+				else if (list instanceof LongCollection)
+				{
+					rv.addAll((Collection<P>)(LongCollection)list);
+				}
+				else
+				{
+					if (forAll(e -> e instanceof Long, list))
+					{
+						addAll(rv, list);
+					}
+					else
+					{
+						return null;  //incompatible! D:
+					}
+				}
+			}
+			
+			return rv;
+		}
+		
+		// >>>
+		
+		
+		throw new IllegalArgumentException(toStringNT(primitiveType));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@LiveValue
+	public static List asListObjectOrPrimitiveArray(Object array)
+	{
+		if (array instanceof Object[])
+			return Arrays.asList(array);
+		
+		
+		/* <<<
+		primxp
+		
+		else if (array instanceof _$$prim$$_[])
+			return _$$prim$$_ArrayAsList((_$$prim$$_[])array);
+		 */
+		
+		else if (array instanceof boolean[])
+			return booleanArrayAsList((boolean[])array);
+		
+		else if (array instanceof byte[])
+			return byteArrayAsList((byte[])array);
+		
+		else if (array instanceof char[])
+			return charArrayAsList((char[])array);
+		
+		else if (array instanceof short[])
+			return shortArrayAsList((short[])array);
+		
+		else if (array instanceof float[])
+			return floatArrayAsList((float[])array);
+		
+		else if (array instanceof int[])
+			return intArrayAsList((int[])array);
+		
+		else if (array instanceof double[])
+			return doubleArrayAsList((double[])array);
+		
+		else if (array instanceof long[])
+			return longArrayAsList((long[])array);
+		// >>>
+		
+		
+		else
+			throw newClassCastExceptionOrNullPointerException(array);
+	}
+	
+	
+	
+	
+	
+	@WritableValue
+	public static BooleanList newBooleanList()
+	{
+		return new BitSetBackedBooleanList();
+	}
+	
+	/**
+	 * • By "zero" we mean "false" ^^'
+	 */
+	@WritableValue
+	public static BooleanList newBooleanListZerofilled(int size)
+	{
+		return new BitSetBackedBooleanList(new BitSet(), size);
+	}
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:noboolean$$_
+	
+	@WritableValue
+	public static _$$Primitive$$_List new_$$Primitive$$_List()
+	{
+		return new _$$Primitive$$_ArrayList();
+	}
+	
+	@WritableValue
+	public static _$$Primitive$$_List new_$$Primitive$$_ListZerofilled(int size)
+	{
+		return new _$$Primitive$$_ArrayList(new _$$prim$$_[size], size);
+	}
+	 */
+	
+	
+	@WritableValue
+	public static ByteList newByteList()
+	{
+		return new ByteArrayList();
+	}
+	
+	@WritableValue
+	public static ByteList newByteListZerofilled(int size)
+	{
+		return new ByteArrayList(new byte[size], size);
+	}
+	
+	
+	@WritableValue
+	public static CharacterList newCharacterList()
+	{
+		return new CharacterArrayList();
+	}
+	
+	@WritableValue
+	public static CharacterList newCharacterListZerofilled(int size)
+	{
+		return new CharacterArrayList(new char[size], size);
+	}
+	
+	
+	@WritableValue
+	public static ShortList newShortList()
+	{
+		return new ShortArrayList();
+	}
+	
+	@WritableValue
+	public static ShortList newShortListZerofilled(int size)
+	{
+		return new ShortArrayList(new short[size], size);
+	}
+	
+	
+	@WritableValue
+	public static FloatList newFloatList()
+	{
+		return new FloatArrayList();
+	}
+	
+	@WritableValue
+	public static FloatList newFloatListZerofilled(int size)
+	{
+		return new FloatArrayList(new float[size], size);
+	}
+	
+	
+	@WritableValue
+	public static IntegerList newIntegerList()
+	{
+		return new IntegerArrayList();
+	}
+	
+	@WritableValue
+	public static IntegerList newIntegerListZerofilled(int size)
+	{
+		return new IntegerArrayList(new int[size], size);
+	}
+	
+	
+	@WritableValue
+	public static DoubleList newDoubleList()
+	{
+		return new DoubleArrayList();
+	}
+	
+	@WritableValue
+	public static DoubleList newDoubleListZerofilled(int size)
+	{
+		return new DoubleArrayList(new double[size], size);
+	}
+	
+	
+	@WritableValue
+	public static LongList newLongList()
+	{
+		return new LongArrayList();
+	}
+	
+	@WritableValue
+	public static LongList newLongListZerofilled(int size)
+	{
+		return new LongArrayList(new long[size], size);
+	}
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@WritableValue
+	public static List newPrimitiveList(Class primitiveType)
+	{
+		/* <<<
+primxp
+		if (primitiveType == _$$prim$$_.class)
+			return new_$$Primitive$$_List();
+		 */
+		if (primitiveType == boolean.class)
+			return newBooleanList();
+		if (primitiveType == byte.class)
+			return newByteList();
+		if (primitiveType == char.class)
+			return newCharacterList();
+		if (primitiveType == short.class)
+			return newShortList();
+		if (primitiveType == float.class)
+			return newFloatList();
+		if (primitiveType == int.class)
+			return newIntegerList();
+		if (primitiveType == double.class)
+			return newDoubleList();
+		if (primitiveType == long.class)
+			return newLongList();
+		// >>>
+		
+		throw new IllegalArgumentException(toStringNT(primitiveType));
+	}
+	
+	
+	
+	
+	@WritableValue
+	public static List newPrimitiveListZerofilled(Class primitiveType, int size)
+	{
+		/* <<<
+primxp
+		if (primitiveType == _$$prim$$_.class)
+			return new_$$Primitive$$_ListZerofilled(size);
+		 */
+		if (primitiveType == boolean.class)
+			return newBooleanListZerofilled(size);
+		if (primitiveType == byte.class)
+			return newByteListZerofilled(size);
+		if (primitiveType == char.class)
+			return newCharacterListZerofilled(size);
+		if (primitiveType == short.class)
+			return newShortListZerofilled(size);
+		if (primitiveType == float.class)
+			return newFloatListZerofilled(size);
+		if (primitiveType == int.class)
+			return newIntegerListZerofilled(size);
+		if (primitiveType == double.class)
+			return newDoubleListZerofilled(size);
+		if (primitiveType == long.class)
+			return newLongListZerofilled(size);
+		// >>>
+		
+		throw new IllegalArgumentException(toStringNT(primitiveType));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/* <<<
 primxp
 	
@@ -452,6 +1245,16 @@ primxp
 			Simple_$$Primitive$$_Iterator i = this.newSimple_$$Primitive$$_Iterator();
 			return () -> i.nextrp_$$Prim$$_();
 		}
+		
+		public static Simple_$$Primitive$$_Iterator defaultNewSimple_$$Primitive$$_Iterator(SimpleIterator<_$$Primitive$$_> i)
+		{
+			return i instanceof Simple_$$Primitive$$_Iterator ? (Simple_$$Primitive$$_Iterator)i : (() -> i.nextrp());
+		}
+		
+		public static Simple_$$Primitive$$_Iterator defaultNewSimple_$$Primitive$$_Iterator(Iterator<_$$Primitive$$_> i)
+		{
+			return i instanceof Simple_$$Primitive$$_Iterator ? (Simple_$$Primitive$$_Iterator)i : defaultNewSimple_$$Primitive$$_Iterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -472,7 +1275,7 @@ primxp
 	
 	@SignalType
 	public static interface _$$Primitive$$_Collection
-	extends PrimitiveCollection<_$$Primitive$$_>, Simple_$$Primitive$$_Iterable
+	extends PrimitiveCollection<_$$Primitive$$_>, Simple_$$Primitive$$_Iterable, Copyable
 	{
 		public boolean add_$$Prim$$_(_$$prim$$_ value);
 		
@@ -796,41 +1599,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			Simple_$$Primitive$$_Iterator i = newSimple_$$Primitive$$_Iterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof _$$Primitive$$_Collection)
 			{
-				_$$prim$$_ e;
+				//Works correctly even for lists! :D
+				_$$Primitive$$_Collection s = (_$$Primitive$$_Collection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				Simple_$$Primitive$$_Iterator i = s.newSimple_$$Primitive$$_Iterator();
+				while (true)
 				{
-					e = i.nextrp_$$Prim$$_();
+					_$$prim$$_ e;
+					try
+					{
+						e = i.nextrp_$$Prim$$_();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.add_$$Prim$$_(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<_$$Primitive$$_> s = (Collection<_$$Primitive$$_>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (_$$Primitive$$_ e : s)
+					this.add_$$Prim$$_(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -888,6 +1715,7 @@ primxp
 	
 	@SignalType
 	public static interface _$$Primitive$$_ListRO
+	extends Equivalenceable
 	{
 		public _$$prim$$_ get_$$Prim$$_(int index);
 		
@@ -897,16 +1725,26 @@ primxp
 		
 		public default int indexOf_$$Prim$$_(_$$prim$$_ value)
 		{
+			return indexOf_$$Prim$$_(value, 0);
+		}
+		
+		public default int lastIndexOf_$$Prim$$_(_$$prim$$_ value)
+		{
+			return lastIndexOf_$$Prim$$_(value, this.size()-1);
+		}
+		
+		public default int indexOf_$$Prim$$_(_$$prim$$_ value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.get_$$Prim$$_(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOf_$$Prim$$_(_$$prim$$_ value)
+		public default int lastIndexOf_$$Prim$$_(_$$prim$$_ value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.get_$$Prim$$_(i), value))
@@ -918,27 +1756,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<_$$Primitive$$_> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof _$$Primitive$$_ListRO)  //All _$$Primitive$$_Lists will implement this interface too so this accounts for them as well :3
+			if (o instanceof _$$Primitive$$_ListRO)  //All _$$Primitive$$_Lists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((_$$Primitive$$_ListRO)other);
+				return equivalentFixedRO((_$$Primitive$$_ListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof _$$Primitive$$_)
+					{
+						if (!eqSane(this.get_$$Prim$$_(i), ((_$$Primitive$$_)e)._$$prim$$_Value()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.get_$$Prim$$_(i), other.get(i)._$$prim$$_Value()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -956,6 +1809,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				_$$prim$$_ e = this.get_$$Prim$$_(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -1423,6 +2292,17 @@ primxp
 		}
 
 		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof _$$Primitive$$_ ? indexOf_$$Prim$$_((_$$Primitive$$_)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof _$$Primitive$$_ ? lastIndexOf_$$Prim$$_((_$$Primitive$$_)o, start) : -1;
+		}
+
+		
 		
 		@Override
 		public default ListIterator<_$$Primitive$$_> listIterator()
@@ -1433,8 +2313,8 @@ primxp
 		@Override
 		public default ListIterator<_$$Primitive$$_> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make _$$Primitive$$_ListIterator ^^'
+			return new DelegatingListIterator<_$$Primitive$$_>(this, index);
 		}
 		
 		@Override
@@ -1789,7 +2669,7 @@ primxp
 	
 	
 	public static class _$$Primitive$$_ArrayList
-	implements DefaultShiftingBased_$$Primitive$$_List, ListWithSetSize<_$$Primitive$$_>, Trimmable, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness
+	implements DefaultShiftingBased_$$Primitive$$_List, ListWithSetSize<_$$Primitive$$_>, Trimmable, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected _$$prim$$_[] data;
@@ -2007,6 +2887,14 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
 	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 ⎋a/
@@ -2058,8 +2946,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a _$$prim$$_[]!  :D
+ 	 ⎋a/
 	public static class FixedLengthArrayWrapper_$$Primitive$$_List
-	implements _$$Primitive$$_List, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness
+	implements _$$Primitive$$_List, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final _$$prim$$_[] underlying;
 		protected final int offset, length;
@@ -2075,7 +2966,9 @@ primxp
 		
 		public FixedLengthArrayWrapper_$$Primitive$$_List(_$$prim$$_[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapper_$$Primitive$$_List(Slice<_$$prim$$_[]> underlying)
@@ -2118,30 +3011,6 @@ primxp
 		
 		
 		@Override
-		public Simple_$$Primitive$$_Iterator newSimple_$$Primitive$$_Iterator()
-		{
-			return new Simple_$$Primitive$$_Iterator()
-			{
-				int index = 0;
-				
-				public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public _$$Primitive$$_List subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -2165,11 +3034,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -2193,53 +3068,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue _$$prim$$_[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapper_$$Primitive$$_List(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue _$$prim$$_... array)
 	{
-		return _$$prim$$_ArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapper_$$Primitive$$_List(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue Slice<_$$prim$$_[]> arraySlice)
 	{
-		return _$$prim$$_ArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapper_$$Primitive$$_List(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsMutableList(@SnapshotValue @ReadonlyValue _$$prim$$_[] array, int offset, int length)
 	{
 		return new _$$Primitive$$_ArrayList(new FixedLengthArrayWrapper_$$Primitive$$_List(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsMutableList(@SnapshotValue @ReadonlyValue _$$prim$$_... array)
 	{
 		return _$$prim$$_ArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<_$$prim$$_[]> arraySlice)
 	{
 		return _$$prim$$_ArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -2254,10 +3131,20 @@ primxp
 	
 	
 	
+	public static final _$$Primitive$$_List empty_$$Primitive$$_List()
+	{
+		return Immutable_$$Primitive$$_ArrayList.Empty;
+	}
+	
+	public static final _$$Primitive$$_List singleton_$$Primitive$$_List(_$$prim$$_ v)
+	{
+		return Immutable_$$Primitive$$_ArrayList.newLIVE(new _$$prim$$_[]{v});
+	}
+	
 	
 	@Immutable
 	public static class Immutable_$$Primitive$$_ArrayList
-	implements Serializable, Comparable<Immutable_$$Primitive$$_ArrayList>, _$$Primitive$$_List, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<Immutable_$$Primitive$$_ArrayList>, _$$Primitive$$_List, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -2300,7 +3187,7 @@ primxp
 		
 		public static Immutable_$$Primitive$$_ArrayList newCopying(@SnapshotValue List<_$$Primitive$$_> data)
 		{
-			if (data instanceof Immutable_$$Primitive$$_ArrayList)
+			if (data instanceof Immutable_$$Primitive$$_ArrayList)  //No need to make a new copy X3
 				return (Immutable_$$Primitive$$_ArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -2314,7 +3201,7 @@ primxp
 			
 			if (data instanceof _$$Primitive$$_List)
 			{
-				return newLIVE(((_$$Primitive$$_List)data).to_$$Prim$$_Array());
+				return newLIVE(((_$$Primitive$$_List)data).to_$$Prim$$_Array());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -2891,7 +3778,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -3189,6 +4076,16 @@ primxp
 			SimpleBooleanIterator i = this.newSimpleBooleanIterator();
 			return () -> i.nextrpBoolean();
 		}
+		
+		public static SimpleBooleanIterator defaultNewSimpleBooleanIterator(SimpleIterator<Boolean> i)
+		{
+			return i instanceof SimpleBooleanIterator ? (SimpleBooleanIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleBooleanIterator defaultNewSimpleBooleanIterator(Iterator<Boolean> i)
+		{
+			return i instanceof SimpleBooleanIterator ? (SimpleBooleanIterator)i : defaultNewSimpleBooleanIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -3209,7 +4106,7 @@ primxp
 	
 	@SignalType
 	public static interface BooleanCollection
-	extends PrimitiveCollection<Boolean>, SimpleBooleanIterable
+	extends PrimitiveCollection<Boolean>, SimpleBooleanIterable, Copyable
 	{
 		public boolean addBoolean(boolean value);
 		
@@ -3492,9 +4389,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -3533,41 +4430,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleBooleanIterator i = newSimpleBooleanIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof BooleanCollection)
 			{
-				boolean e;
+				//Works correctly even for lists! :D
+				BooleanCollection s = (BooleanCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleBooleanIterator i = s.newSimpleBooleanIterator();
+				while (true)
 				{
-					e = i.nextrpBoolean();
+					boolean e;
+					try
+					{
+						e = i.nextrpBoolean();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addBoolean(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Boolean> s = (Collection<Boolean>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Boolean e : s)
+					this.addBoolean(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -3625,6 +4546,7 @@ primxp
 	
 	@SignalType
 	public static interface BooleanListRO
+	extends Equivalenceable
 	{
 		public boolean getBoolean(int index);
 		
@@ -3634,16 +4556,26 @@ primxp
 		
 		public default int indexOfBoolean(boolean value)
 		{
+			return indexOfBoolean(value, 0);
+		}
+		
+		public default int lastIndexOfBoolean(boolean value)
+		{
+			return lastIndexOfBoolean(value, this.size()-1);
+		}
+		
+		public default int indexOfBoolean(boolean value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getBoolean(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfBoolean(boolean value)
+		public default int lastIndexOfBoolean(boolean value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getBoolean(i), value))
@@ -3655,27 +4587,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Boolean> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof BooleanListRO)  //All BooleanLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof BooleanListRO)  //All BooleanLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((BooleanListRO)other);
+				return equivalentFixedRO((BooleanListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Boolean)
+					{
+						if (!eqSane(this.getBoolean(i), ((Boolean)e).booleanValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getBoolean(i), other.get(i).booleanValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -3693,6 +4640,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				boolean e = this.getBoolean(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -3724,17 +4687,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public BooleanList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addBoolean(boolean)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addBoolean(boolean)}  :D
+		 */
 		public void setSizeBoolean(int newSize, boolean elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Boolean elementToAddIfGrowing)
@@ -3874,7 +4837,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllBooleans(int start, @WritableValue boolean[] array, int offset, int length)
 		{
@@ -4037,7 +5000,7 @@ primxp
 			{
 				int index = 0;
 				
-						public boolean nextrpBoolean() throws StopIterationReturnPath
+				public boolean nextrpBoolean() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -4116,7 +5079,7 @@ primxp
 		{
 			insertAllBooleans(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -4158,7 +5121,18 @@ primxp
 		{
 			return o instanceof Boolean ? lastIndexOfBoolean((Boolean)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Boolean ? indexOfBoolean((Boolean)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Boolean ? lastIndexOfBoolean((Boolean)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -4170,8 +5144,8 @@ primxp
 		@Override
 		public default ListIterator<Boolean> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make BooleanListIterator ^^'
+			return new DelegatingListIterator<Boolean>(this, index);
 		}
 		
 		@Override
@@ -4526,7 +5500,7 @@ primxp
 	
 	
 	public static class BooleanArrayList
-	implements DefaultShiftingBasedBooleanList, ListWithSetSize<Boolean>, Trimmable, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedBooleanList, ListWithSetSize<Boolean>, Trimmable, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected boolean[] data;
@@ -4542,9 +5516,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public BooleanArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -4744,8 +5718,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -4763,9 +5745,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue boolean[] array)
@@ -4795,8 +5777,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a boolean[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperBooleanList
-	implements BooleanList, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness
+	implements BooleanList, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final boolean[] underlying;
 		protected final int offset, length;
@@ -4812,7 +5797,9 @@ primxp
 		
 		public FixedLengthArrayWrapperBooleanList(boolean[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperBooleanList(Slice<boolean[]> underlying)
@@ -4855,30 +5842,6 @@ primxp
 		
 		
 		@Override
-		public SimpleBooleanIterator newSimpleBooleanIterator()
-		{
-			return new SimpleBooleanIterator()
-			{
-				int index = 0;
-				
-				public boolean nextrpBoolean() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public BooleanList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -4902,11 +5865,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -4930,53 +5899,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue boolean[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperBooleanList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue boolean... array)
 	{
-		return booleanArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperBooleanList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue Slice<boolean[]> arraySlice)
 	{
-		return booleanArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperBooleanList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static BooleanList booleanArrayAsMutableList(@SnapshotValue @ReadonlyValue boolean[] array, int offset, int length)
 	{
 		return new BooleanArrayList(new FixedLengthArrayWrapperBooleanList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static BooleanList booleanArrayAsMutableList(@SnapshotValue @ReadonlyValue boolean... array)
 	{
 		return booleanArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static BooleanList booleanArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<boolean[]> arraySlice)
 	{
 		return booleanArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -4991,10 +5962,20 @@ primxp
 	
 	
 	
+	public static final BooleanList emptyBooleanList()
+	{
+		return ImmutableBooleanArrayList.Empty;
+	}
+	
+	public static final BooleanList singletonBooleanList(boolean v)
+	{
+		return ImmutableBooleanArrayList.newLIVE(new boolean[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableBooleanArrayList
-	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -5015,9 +5996,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableBooleanArrayList newLIVE(@LiveValue boolean[] LIVEDATA)
@@ -5037,7 +6018,7 @@ primxp
 		
 		public static ImmutableBooleanArrayList newCopying(@SnapshotValue List<Boolean> data)
 		{
-			if (data instanceof ImmutableBooleanArrayList)
+			if (data instanceof ImmutableBooleanArrayList)  //No need to make a new copy X3
 				return (ImmutableBooleanArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -5051,7 +6032,7 @@ primxp
 			
 			if (data instanceof BooleanList)
 			{
-				return newLIVE(((BooleanList)data).toBooleanArray());
+				return newLIVE(((BooleanList)data).toBooleanArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -5135,8 +6116,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -5628,7 +6609,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -5891,7 +6872,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static byte getByte(List<Byte> list, int index)
 	{
@@ -5925,6 +6906,16 @@ primxp
 			SimpleByteIterator i = this.newSimpleByteIterator();
 			return () -> i.nextrpByte();
 		}
+		
+		public static SimpleByteIterator defaultNewSimpleByteIterator(SimpleIterator<Byte> i)
+		{
+			return i instanceof SimpleByteIterator ? (SimpleByteIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleByteIterator defaultNewSimpleByteIterator(Iterator<Byte> i)
+		{
+			return i instanceof SimpleByteIterator ? (SimpleByteIterator)i : defaultNewSimpleByteIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -5945,7 +6936,7 @@ primxp
 	
 	@SignalType
 	public static interface ByteCollection
-	extends PrimitiveCollection<Byte>, SimpleByteIterable
+	extends PrimitiveCollection<Byte>, SimpleByteIterable, Copyable
 	{
 		public boolean addByte(byte value);
 		
@@ -6228,9 +7219,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -6269,41 +7260,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleByteIterator i = newSimpleByteIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof ByteCollection)
 			{
-				byte e;
+				//Works correctly even for lists! :D
+				ByteCollection s = (ByteCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleByteIterator i = s.newSimpleByteIterator();
+				while (true)
 				{
-					e = i.nextrpByte();
+					byte e;
+					try
+					{
+						e = i.nextrpByte();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addByte(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Byte> s = (Collection<Byte>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Byte e : s)
+					this.addByte(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -6361,6 +7376,7 @@ primxp
 	
 	@SignalType
 	public static interface ByteListRO
+	extends Equivalenceable
 	{
 		public byte getByte(int index);
 		
@@ -6370,16 +7386,26 @@ primxp
 		
 		public default int indexOfByte(byte value)
 		{
+			return indexOfByte(value, 0);
+		}
+		
+		public default int lastIndexOfByte(byte value)
+		{
+			return lastIndexOfByte(value, this.size()-1);
+		}
+		
+		public default int indexOfByte(byte value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getByte(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfByte(byte value)
+		public default int lastIndexOfByte(byte value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getByte(i), value))
@@ -6391,27 +7417,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Byte> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof ByteListRO)  //All ByteLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof ByteListRO)  //All ByteLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((ByteListRO)other);
+				return equivalentFixedRO((ByteListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Byte)
+					{
+						if (!eqSane(this.getByte(i), ((Byte)e).byteValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getByte(i), other.get(i).byteValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -6429,6 +7470,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				byte e = this.getByte(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -6460,17 +7517,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public ByteList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addByte(byte)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addByte(byte)}  :D
+		 */
 		public void setSizeByte(int newSize, byte elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Byte elementToAddIfGrowing)
@@ -6610,7 +7667,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllBytes(int start, @WritableValue byte[] array, int offset, int length)
 		{
@@ -6773,7 +7830,7 @@ primxp
 			{
 				int index = 0;
 				
-						public byte nextrpByte() throws StopIterationReturnPath
+				public byte nextrpByte() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -6852,7 +7909,7 @@ primxp
 		{
 			insertAllBytes(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -6894,7 +7951,18 @@ primxp
 		{
 			return o instanceof Byte ? lastIndexOfByte((Byte)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Byte ? indexOfByte((Byte)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Byte ? lastIndexOfByte((Byte)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -6906,8 +7974,8 @@ primxp
 		@Override
 		public default ListIterator<Byte> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make ByteListIterator ^^'
+			return new DelegatingListIterator<Byte>(this, index);
 		}
 		
 		@Override
@@ -7262,7 +8330,7 @@ primxp
 	
 	
 	public static class ByteArrayList
-	implements DefaultShiftingBasedByteList, ListWithSetSize<Byte>, Trimmable, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedByteList, ListWithSetSize<Byte>, Trimmable, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected byte[] data;
@@ -7278,9 +8346,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public ByteArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -7480,8 +8548,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -7499,9 +8575,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue byte[] array)
@@ -7531,8 +8607,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a byte[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperByteList
-	implements ByteList, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness
+	implements ByteList, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final byte[] underlying;
 		protected final int offset, length;
@@ -7548,7 +8627,9 @@ primxp
 		
 		public FixedLengthArrayWrapperByteList(byte[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperByteList(Slice<byte[]> underlying)
@@ -7591,30 +8672,6 @@ primxp
 		
 		
 		@Override
-		public SimpleByteIterator newSimpleByteIterator()
-		{
-			return new SimpleByteIterator()
-			{
-				int index = 0;
-				
-				public byte nextrpByte() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public ByteList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -7638,11 +8695,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -7666,53 +8729,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ByteList byteArrayAsList(@LiveValue @WritableValue byte[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperByteList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ByteList byteArrayAsList(@LiveValue @WritableValue byte... array)
 	{
-		return byteArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperByteList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ByteList byteArrayAsList(@LiveValue @WritableValue Slice<byte[]> arraySlice)
 	{
-		return byteArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperByteList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ByteList byteArrayAsMutableList(@SnapshotValue @ReadonlyValue byte[] array, int offset, int length)
 	{
 		return new ByteArrayList(new FixedLengthArrayWrapperByteList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ByteList byteArrayAsMutableList(@SnapshotValue @ReadonlyValue byte... array)
 	{
 		return byteArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ByteList byteArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<byte[]> arraySlice)
 	{
 		return byteArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -7727,10 +8792,20 @@ primxp
 	
 	
 	
+	public static final ByteList emptyByteList()
+	{
+		return ImmutableByteArrayList.Empty;
+	}
+	
+	public static final ByteList singletonByteList(byte v)
+	{
+		return ImmutableByteArrayList.newLIVE(new byte[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableByteArrayList
-	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -7751,9 +8826,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableByteArrayList newLIVE(@LiveValue byte[] LIVEDATA)
@@ -7773,7 +8848,7 @@ primxp
 		
 		public static ImmutableByteArrayList newCopying(@SnapshotValue List<Byte> data)
 		{
-			if (data instanceof ImmutableByteArrayList)
+			if (data instanceof ImmutableByteArrayList)  //No need to make a new copy X3
 				return (ImmutableByteArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -7787,7 +8862,7 @@ primxp
 			
 			if (data instanceof ByteList)
 			{
-				return newLIVE(((ByteList)data).toByteArray());
+				return newLIVE(((ByteList)data).toByteArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -7871,8 +8946,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -8364,7 +9439,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -8627,7 +9702,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static char getChar(List<Character> list, int index)
 	{
@@ -8661,6 +9736,16 @@ primxp
 			SimpleCharacterIterator i = this.newSimpleCharacterIterator();
 			return () -> i.nextrpChar();
 		}
+		
+		public static SimpleCharacterIterator defaultNewSimpleCharacterIterator(SimpleIterator<Character> i)
+		{
+			return i instanceof SimpleCharacterIterator ? (SimpleCharacterIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleCharacterIterator defaultNewSimpleCharacterIterator(Iterator<Character> i)
+		{
+			return i instanceof SimpleCharacterIterator ? (SimpleCharacterIterator)i : defaultNewSimpleCharacterIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -8681,7 +9766,7 @@ primxp
 	
 	@SignalType
 	public static interface CharacterCollection
-	extends PrimitiveCollection<Character>, SimpleCharacterIterable
+	extends PrimitiveCollection<Character>, SimpleCharacterIterable, Copyable
 	{
 		public boolean addChar(char value);
 		
@@ -8964,9 +10049,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -9005,41 +10090,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleCharacterIterator i = newSimpleCharacterIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof CharacterCollection)
 			{
-				char e;
+				//Works correctly even for lists! :D
+				CharacterCollection s = (CharacterCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleCharacterIterator i = s.newSimpleCharacterIterator();
+				while (true)
 				{
-					e = i.nextrpChar();
+					char e;
+					try
+					{
+						e = i.nextrpChar();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addChar(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Character> s = (Collection<Character>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Character e : s)
+					this.addChar(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -9097,6 +10206,7 @@ primxp
 	
 	@SignalType
 	public static interface CharacterListRO
+	extends Equivalenceable
 	{
 		public char getChar(int index);
 		
@@ -9106,16 +10216,26 @@ primxp
 		
 		public default int indexOfChar(char value)
 		{
+			return indexOfChar(value, 0);
+		}
+		
+		public default int lastIndexOfChar(char value)
+		{
+			return lastIndexOfChar(value, this.size()-1);
+		}
+		
+		public default int indexOfChar(char value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getChar(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfChar(char value)
+		public default int lastIndexOfChar(char value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getChar(i), value))
@@ -9127,27 +10247,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Character> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof CharacterListRO)  //All CharacterLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof CharacterListRO)  //All CharacterLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((CharacterListRO)other);
+				return equivalentFixedRO((CharacterListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Character)
+					{
+						if (!eqSane(this.getChar(i), ((Character)e).charValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getChar(i), other.get(i).charValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -9165,6 +10300,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				char e = this.getChar(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -9196,17 +10347,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public CharacterList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addChar(char)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addChar(char)}  :D
+		 */
 		public void setSizeChar(int newSize, char elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Character elementToAddIfGrowing)
@@ -9346,7 +10497,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllChars(int start, @WritableValue char[] array, int offset, int length)
 		{
@@ -9509,7 +10660,7 @@ primxp
 			{
 				int index = 0;
 				
-						public char nextrpChar() throws StopIterationReturnPath
+				public char nextrpChar() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -9588,7 +10739,7 @@ primxp
 		{
 			insertAllChars(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -9630,7 +10781,18 @@ primxp
 		{
 			return o instanceof Character ? lastIndexOfChar((Character)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Character ? indexOfChar((Character)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Character ? lastIndexOfChar((Character)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -9642,8 +10804,8 @@ primxp
 		@Override
 		public default ListIterator<Character> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make CharacterListIterator ^^'
+			return new DelegatingListIterator<Character>(this, index);
 		}
 		
 		@Override
@@ -9998,7 +11160,7 @@ primxp
 	
 	
 	public static class CharacterArrayList
-	implements DefaultShiftingBasedCharacterList, ListWithSetSize<Character>, Trimmable, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedCharacterList, ListWithSetSize<Character>, Trimmable, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected char[] data;
@@ -10014,9 +11176,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public CharacterArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -10216,8 +11378,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -10235,9 +11405,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue char[] array)
@@ -10267,8 +11437,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a char[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperCharacterList
-	implements CharacterList, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness
+	implements CharacterList, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final char[] underlying;
 		protected final int offset, length;
@@ -10284,7 +11457,9 @@ primxp
 		
 		public FixedLengthArrayWrapperCharacterList(char[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperCharacterList(Slice<char[]> underlying)
@@ -10327,30 +11502,6 @@ primxp
 		
 		
 		@Override
-		public SimpleCharacterIterator newSimpleCharacterIterator()
-		{
-			return new SimpleCharacterIterator()
-			{
-				int index = 0;
-				
-				public char nextrpChar() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public CharacterList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -10374,11 +11525,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -10402,53 +11559,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static CharacterList charArrayAsList(@LiveValue @WritableValue char[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperCharacterList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static CharacterList charArrayAsList(@LiveValue @WritableValue char... array)
 	{
-		return charArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperCharacterList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static CharacterList charArrayAsList(@LiveValue @WritableValue Slice<char[]> arraySlice)
 	{
-		return charArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperCharacterList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static CharacterList charArrayAsMutableList(@SnapshotValue @ReadonlyValue char[] array, int offset, int length)
 	{
 		return new CharacterArrayList(new FixedLengthArrayWrapperCharacterList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static CharacterList charArrayAsMutableList(@SnapshotValue @ReadonlyValue char... array)
 	{
 		return charArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static CharacterList charArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<char[]> arraySlice)
 	{
 		return charArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -10463,10 +11622,20 @@ primxp
 	
 	
 	
+	public static final CharacterList emptyCharacterList()
+	{
+		return ImmutableCharacterArrayList.Empty;
+	}
+	
+	public static final CharacterList singletonCharacterList(char v)
+	{
+		return ImmutableCharacterArrayList.newLIVE(new char[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableCharacterArrayList
-	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -10487,9 +11656,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableCharacterArrayList newLIVE(@LiveValue char[] LIVEDATA)
@@ -10509,7 +11678,7 @@ primxp
 		
 		public static ImmutableCharacterArrayList newCopying(@SnapshotValue List<Character> data)
 		{
-			if (data instanceof ImmutableCharacterArrayList)
+			if (data instanceof ImmutableCharacterArrayList)  //No need to make a new copy X3
 				return (ImmutableCharacterArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -10523,7 +11692,7 @@ primxp
 			
 			if (data instanceof CharacterList)
 			{
-				return newLIVE(((CharacterList)data).toCharArray());
+				return newLIVE(((CharacterList)data).toCharArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -10607,8 +11776,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -11100,7 +12269,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -11363,7 +12532,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static short getShort(List<Short> list, int index)
 	{
@@ -11397,6 +12566,16 @@ primxp
 			SimpleShortIterator i = this.newSimpleShortIterator();
 			return () -> i.nextrpShort();
 		}
+		
+		public static SimpleShortIterator defaultNewSimpleShortIterator(SimpleIterator<Short> i)
+		{
+			return i instanceof SimpleShortIterator ? (SimpleShortIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleShortIterator defaultNewSimpleShortIterator(Iterator<Short> i)
+		{
+			return i instanceof SimpleShortIterator ? (SimpleShortIterator)i : defaultNewSimpleShortIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -11417,7 +12596,7 @@ primxp
 	
 	@SignalType
 	public static interface ShortCollection
-	extends PrimitiveCollection<Short>, SimpleShortIterable
+	extends PrimitiveCollection<Short>, SimpleShortIterable, Copyable
 	{
 		public boolean addShort(short value);
 		
@@ -11700,9 +12879,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -11741,41 +12920,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleShortIterator i = newSimpleShortIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof ShortCollection)
 			{
-				short e;
+				//Works correctly even for lists! :D
+				ShortCollection s = (ShortCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleShortIterator i = s.newSimpleShortIterator();
+				while (true)
 				{
-					e = i.nextrpShort();
+					short e;
+					try
+					{
+						e = i.nextrpShort();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addShort(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Short> s = (Collection<Short>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Short e : s)
+					this.addShort(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -11833,6 +13036,7 @@ primxp
 	
 	@SignalType
 	public static interface ShortListRO
+	extends Equivalenceable
 	{
 		public short getShort(int index);
 		
@@ -11842,16 +13046,26 @@ primxp
 		
 		public default int indexOfShort(short value)
 		{
+			return indexOfShort(value, 0);
+		}
+		
+		public default int lastIndexOfShort(short value)
+		{
+			return lastIndexOfShort(value, this.size()-1);
+		}
+		
+		public default int indexOfShort(short value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getShort(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfShort(short value)
+		public default int lastIndexOfShort(short value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getShort(i), value))
@@ -11863,27 +13077,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Short> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof ShortListRO)  //All ShortLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof ShortListRO)  //All ShortLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((ShortListRO)other);
+				return equivalentFixedRO((ShortListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Short)
+					{
+						if (!eqSane(this.getShort(i), ((Short)e).shortValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getShort(i), other.get(i).shortValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -11901,6 +13130,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				short e = this.getShort(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -11932,17 +13177,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public ShortList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addShort(short)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addShort(short)}  :D
+		 */
 		public void setSizeShort(int newSize, short elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Short elementToAddIfGrowing)
@@ -12082,7 +13327,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllShorts(int start, @WritableValue short[] array, int offset, int length)
 		{
@@ -12245,7 +13490,7 @@ primxp
 			{
 				int index = 0;
 				
-						public short nextrpShort() throws StopIterationReturnPath
+				public short nextrpShort() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -12324,7 +13569,7 @@ primxp
 		{
 			insertAllShorts(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -12366,7 +13611,18 @@ primxp
 		{
 			return o instanceof Short ? lastIndexOfShort((Short)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Short ? indexOfShort((Short)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Short ? lastIndexOfShort((Short)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -12378,8 +13634,8 @@ primxp
 		@Override
 		public default ListIterator<Short> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make ShortListIterator ^^'
+			return new DelegatingListIterator<Short>(this, index);
 		}
 		
 		@Override
@@ -12734,7 +13990,7 @@ primxp
 	
 	
 	public static class ShortArrayList
-	implements DefaultShiftingBasedShortList, ListWithSetSize<Short>, Trimmable, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedShortList, ListWithSetSize<Short>, Trimmable, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected short[] data;
@@ -12750,9 +14006,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public ShortArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -12952,8 +14208,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -12971,9 +14235,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue short[] array)
@@ -13003,8 +14267,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a short[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperShortList
-	implements ShortList, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness
+	implements ShortList, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final short[] underlying;
 		protected final int offset, length;
@@ -13020,7 +14287,9 @@ primxp
 		
 		public FixedLengthArrayWrapperShortList(short[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperShortList(Slice<short[]> underlying)
@@ -13063,30 +14332,6 @@ primxp
 		
 		
 		@Override
-		public SimpleShortIterator newSimpleShortIterator()
-		{
-			return new SimpleShortIterator()
-			{
-				int index = 0;
-				
-				public short nextrpShort() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public ShortList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -13110,11 +14355,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -13138,53 +14389,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ShortList shortArrayAsList(@LiveValue @WritableValue short[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperShortList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ShortList shortArrayAsList(@LiveValue @WritableValue short... array)
 	{
-		return shortArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperShortList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static ShortList shortArrayAsList(@LiveValue @WritableValue Slice<short[]> arraySlice)
 	{
-		return shortArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperShortList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ShortList shortArrayAsMutableList(@SnapshotValue @ReadonlyValue short[] array, int offset, int length)
 	{
 		return new ShortArrayList(new FixedLengthArrayWrapperShortList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ShortList shortArrayAsMutableList(@SnapshotValue @ReadonlyValue short... array)
 	{
 		return shortArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static ShortList shortArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<short[]> arraySlice)
 	{
 		return shortArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -13199,10 +14452,20 @@ primxp
 	
 	
 	
+	public static final ShortList emptyShortList()
+	{
+		return ImmutableShortArrayList.Empty;
+	}
+	
+	public static final ShortList singletonShortList(short v)
+	{
+		return ImmutableShortArrayList.newLIVE(new short[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableShortArrayList
-	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -13223,9 +14486,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableShortArrayList newLIVE(@LiveValue short[] LIVEDATA)
@@ -13245,7 +14508,7 @@ primxp
 		
 		public static ImmutableShortArrayList newCopying(@SnapshotValue List<Short> data)
 		{
-			if (data instanceof ImmutableShortArrayList)
+			if (data instanceof ImmutableShortArrayList)  //No need to make a new copy X3
 				return (ImmutableShortArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -13259,7 +14522,7 @@ primxp
 			
 			if (data instanceof ShortList)
 			{
-				return newLIVE(((ShortList)data).toShortArray());
+				return newLIVE(((ShortList)data).toShortArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -13343,8 +14606,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -13836,7 +15099,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -14099,7 +15362,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static float getFloat(List<Float> list, int index)
 	{
@@ -14133,6 +15396,16 @@ primxp
 			SimpleFloatIterator i = this.newSimpleFloatIterator();
 			return () -> i.nextrpFloat();
 		}
+		
+		public static SimpleFloatIterator defaultNewSimpleFloatIterator(SimpleIterator<Float> i)
+		{
+			return i instanceof SimpleFloatIterator ? (SimpleFloatIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleFloatIterator defaultNewSimpleFloatIterator(Iterator<Float> i)
+		{
+			return i instanceof SimpleFloatIterator ? (SimpleFloatIterator)i : defaultNewSimpleFloatIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -14153,7 +15426,7 @@ primxp
 	
 	@SignalType
 	public static interface FloatCollection
-	extends PrimitiveCollection<Float>, SimpleFloatIterable
+	extends PrimitiveCollection<Float>, SimpleFloatIterable, Copyable
 	{
 		public boolean addFloat(float value);
 		
@@ -14436,9 +15709,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -14477,41 +15750,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleFloatIterator i = newSimpleFloatIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof FloatCollection)
 			{
-				float e;
+				//Works correctly even for lists! :D
+				FloatCollection s = (FloatCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleFloatIterator i = s.newSimpleFloatIterator();
+				while (true)
 				{
-					e = i.nextrpFloat();
+					float e;
+					try
+					{
+						e = i.nextrpFloat();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addFloat(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Float> s = (Collection<Float>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Float e : s)
+					this.addFloat(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -14569,6 +15866,7 @@ primxp
 	
 	@SignalType
 	public static interface FloatListRO
+	extends Equivalenceable
 	{
 		public float getFloat(int index);
 		
@@ -14578,16 +15876,26 @@ primxp
 		
 		public default int indexOfFloat(float value)
 		{
+			return indexOfFloat(value, 0);
+		}
+		
+		public default int lastIndexOfFloat(float value)
+		{
+			return lastIndexOfFloat(value, this.size()-1);
+		}
+		
+		public default int indexOfFloat(float value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getFloat(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfFloat(float value)
+		public default int lastIndexOfFloat(float value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getFloat(i), value))
@@ -14599,27 +15907,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Float> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof FloatListRO)  //All FloatLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof FloatListRO)  //All FloatLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((FloatListRO)other);
+				return equivalentFixedRO((FloatListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Float)
+					{
+						if (!eqSane(this.getFloat(i), ((Float)e).floatValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getFloat(i), other.get(i).floatValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -14637,6 +15960,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				float e = this.getFloat(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -14668,17 +16007,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public FloatList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addFloat(float)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addFloat(float)}  :D
+		 */
 		public void setSizeFloat(int newSize, float elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Float elementToAddIfGrowing)
@@ -14818,7 +16157,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllFloats(int start, @WritableValue float[] array, int offset, int length)
 		{
@@ -14981,7 +16320,7 @@ primxp
 			{
 				int index = 0;
 				
-						public float nextrpFloat() throws StopIterationReturnPath
+				public float nextrpFloat() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -15060,7 +16399,7 @@ primxp
 		{
 			insertAllFloats(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -15102,7 +16441,18 @@ primxp
 		{
 			return o instanceof Float ? lastIndexOfFloat((Float)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Float ? indexOfFloat((Float)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Float ? lastIndexOfFloat((Float)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -15114,8 +16464,8 @@ primxp
 		@Override
 		public default ListIterator<Float> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make FloatListIterator ^^'
+			return new DelegatingListIterator<Float>(this, index);
 		}
 		
 		@Override
@@ -15470,7 +16820,7 @@ primxp
 	
 	
 	public static class FloatArrayList
-	implements DefaultShiftingBasedFloatList, ListWithSetSize<Float>, Trimmable, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedFloatList, ListWithSetSize<Float>, Trimmable, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected float[] data;
@@ -15486,9 +16836,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public FloatArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -15688,8 +17038,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -15707,9 +17065,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue float[] array)
@@ -15739,8 +17097,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a float[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperFloatList
-	implements FloatList, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness
+	implements FloatList, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final float[] underlying;
 		protected final int offset, length;
@@ -15756,7 +17117,9 @@ primxp
 		
 		public FixedLengthArrayWrapperFloatList(float[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperFloatList(Slice<float[]> underlying)
@@ -15799,30 +17162,6 @@ primxp
 		
 		
 		@Override
-		public SimpleFloatIterator newSimpleFloatIterator()
-		{
-			return new SimpleFloatIterator()
-			{
-				int index = 0;
-				
-				public float nextrpFloat() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public FloatList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -15846,11 +17185,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -15874,53 +17219,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static FloatList floatArrayAsList(@LiveValue @WritableValue float[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperFloatList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static FloatList floatArrayAsList(@LiveValue @WritableValue float... array)
 	{
-		return floatArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperFloatList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static FloatList floatArrayAsList(@LiveValue @WritableValue Slice<float[]> arraySlice)
 	{
-		return floatArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperFloatList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static FloatList floatArrayAsMutableList(@SnapshotValue @ReadonlyValue float[] array, int offset, int length)
 	{
 		return new FloatArrayList(new FixedLengthArrayWrapperFloatList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static FloatList floatArrayAsMutableList(@SnapshotValue @ReadonlyValue float... array)
 	{
 		return floatArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static FloatList floatArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<float[]> arraySlice)
 	{
 		return floatArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -15935,10 +17282,20 @@ primxp
 	
 	
 	
+	public static final FloatList emptyFloatList()
+	{
+		return ImmutableFloatArrayList.Empty;
+	}
+	
+	public static final FloatList singletonFloatList(float v)
+	{
+		return ImmutableFloatArrayList.newLIVE(new float[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableFloatArrayList
-	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -15959,9 +17316,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableFloatArrayList newLIVE(@LiveValue float[] LIVEDATA)
@@ -15981,7 +17338,7 @@ primxp
 		
 		public static ImmutableFloatArrayList newCopying(@SnapshotValue List<Float> data)
 		{
-			if (data instanceof ImmutableFloatArrayList)
+			if (data instanceof ImmutableFloatArrayList)  //No need to make a new copy X3
 				return (ImmutableFloatArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -15995,7 +17352,7 @@ primxp
 			
 			if (data instanceof FloatList)
 			{
-				return newLIVE(((FloatList)data).toFloatArray());
+				return newLIVE(((FloatList)data).toFloatArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -16079,8 +17436,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -16572,7 +17929,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -16835,7 +18192,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static int getInt(List<Integer> list, int index)
 	{
@@ -16869,6 +18226,16 @@ primxp
 			SimpleIntegerIterator i = this.newSimpleIntegerIterator();
 			return () -> i.nextrpInt();
 		}
+		
+		public static SimpleIntegerIterator defaultNewSimpleIntegerIterator(SimpleIterator<Integer> i)
+		{
+			return i instanceof SimpleIntegerIterator ? (SimpleIntegerIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleIntegerIterator defaultNewSimpleIntegerIterator(Iterator<Integer> i)
+		{
+			return i instanceof SimpleIntegerIterator ? (SimpleIntegerIterator)i : defaultNewSimpleIntegerIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -16889,7 +18256,7 @@ primxp
 	
 	@SignalType
 	public static interface IntegerCollection
-	extends PrimitiveCollection<Integer>, SimpleIntegerIterable
+	extends PrimitiveCollection<Integer>, SimpleIntegerIterable, Copyable
 	{
 		public boolean addInt(int value);
 		
@@ -17172,9 +18539,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -17213,41 +18580,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleIntegerIterator i = newSimpleIntegerIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof IntegerCollection)
 			{
-				int e;
+				//Works correctly even for lists! :D
+				IntegerCollection s = (IntegerCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleIntegerIterator i = s.newSimpleIntegerIterator();
+				while (true)
 				{
-					e = i.nextrpInt();
+					int e;
+					try
+					{
+						e = i.nextrpInt();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addInt(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Integer> s = (Collection<Integer>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Integer e : s)
+					this.addInt(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -17305,6 +18696,7 @@ primxp
 	
 	@SignalType
 	public static interface IntegerListRO
+	extends Equivalenceable
 	{
 		public int getInt(int index);
 		
@@ -17314,16 +18706,26 @@ primxp
 		
 		public default int indexOfInt(int value)
 		{
+			return indexOfInt(value, 0);
+		}
+		
+		public default int lastIndexOfInt(int value)
+		{
+			return lastIndexOfInt(value, this.size()-1);
+		}
+		
+		public default int indexOfInt(int value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getInt(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfInt(int value)
+		public default int lastIndexOfInt(int value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getInt(i), value))
@@ -17335,27 +18737,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Integer> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof IntegerListRO)  //All IntegerLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof IntegerListRO)  //All IntegerLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((IntegerListRO)other);
+				return equivalentFixedRO((IntegerListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Integer)
+					{
+						if (!eqSane(this.getInt(i), ((Integer)e).intValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getInt(i), other.get(i).intValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -17373,6 +18790,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				int e = this.getInt(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -17404,17 +18837,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public IntegerList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addInt(int)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addInt(int)}  :D
+		 */
 		public void setSizeInt(int newSize, int elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Integer elementToAddIfGrowing)
@@ -17554,7 +18987,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllInts(int start, @WritableValue int[] array, int offset, int length)
 		{
@@ -17717,7 +19150,7 @@ primxp
 			{
 				int index = 0;
 				
-						public int nextrpInt() throws StopIterationReturnPath
+				public int nextrpInt() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -17796,7 +19229,7 @@ primxp
 		{
 			insertAllInts(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -17838,7 +19271,18 @@ primxp
 		{
 			return o instanceof Integer ? lastIndexOfInt((Integer)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Integer ? indexOfInt((Integer)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Integer ? lastIndexOfInt((Integer)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -17850,8 +19294,8 @@ primxp
 		@Override
 		public default ListIterator<Integer> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make IntegerListIterator ^^'
+			return new DelegatingListIterator<Integer>(this, index);
 		}
 		
 		@Override
@@ -18206,7 +19650,7 @@ primxp
 	
 	
 	public static class IntegerArrayList
-	implements DefaultShiftingBasedIntegerList, ListWithSetSize<Integer>, Trimmable, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedIntegerList, ListWithSetSize<Integer>, Trimmable, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected int[] data;
@@ -18222,9 +19666,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public IntegerArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -18424,8 +19868,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -18443,9 +19895,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue int[] array)
@@ -18475,8 +19927,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a int[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperIntegerList
-	implements IntegerList, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness
+	implements IntegerList, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final int[] underlying;
 		protected final int offset, length;
@@ -18492,7 +19947,9 @@ primxp
 		
 		public FixedLengthArrayWrapperIntegerList(int[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperIntegerList(Slice<int[]> underlying)
@@ -18535,30 +19992,6 @@ primxp
 		
 		
 		@Override
-		public SimpleIntegerIterator newSimpleIntegerIterator()
-		{
-			return new SimpleIntegerIterator()
-			{
-				int index = 0;
-				
-				public int nextrpInt() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public IntegerList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -18582,11 +20015,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -18610,53 +20049,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static IntegerList intArrayAsList(@LiveValue @WritableValue int[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperIntegerList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static IntegerList intArrayAsList(@LiveValue @WritableValue int... array)
 	{
-		return intArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperIntegerList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static IntegerList intArrayAsList(@LiveValue @WritableValue Slice<int[]> arraySlice)
 	{
-		return intArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperIntegerList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static IntegerList intArrayAsMutableList(@SnapshotValue @ReadonlyValue int[] array, int offset, int length)
 	{
 		return new IntegerArrayList(new FixedLengthArrayWrapperIntegerList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static IntegerList intArrayAsMutableList(@SnapshotValue @ReadonlyValue int... array)
 	{
 		return intArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static IntegerList intArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<int[]> arraySlice)
 	{
 		return intArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -18671,10 +20112,20 @@ primxp
 	
 	
 	
+	public static final IntegerList emptyIntegerList()
+	{
+		return ImmutableIntegerArrayList.Empty;
+	}
+	
+	public static final IntegerList singletonIntegerList(int v)
+	{
+		return ImmutableIntegerArrayList.newLIVE(new int[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableIntegerArrayList
-	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -18695,9 +20146,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableIntegerArrayList newLIVE(@LiveValue int[] LIVEDATA)
@@ -18717,7 +20168,7 @@ primxp
 		
 		public static ImmutableIntegerArrayList newCopying(@SnapshotValue List<Integer> data)
 		{
-			if (data instanceof ImmutableIntegerArrayList)
+			if (data instanceof ImmutableIntegerArrayList)  //No need to make a new copy X3
 				return (ImmutableIntegerArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -18731,7 +20182,7 @@ primxp
 			
 			if (data instanceof IntegerList)
 			{
-				return newLIVE(((IntegerList)data).toIntArray());
+				return newLIVE(((IntegerList)data).toIntArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -18815,8 +20266,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -19308,7 +20759,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -19571,7 +21022,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static double getDouble(List<Double> list, int index)
 	{
@@ -19605,6 +21056,16 @@ primxp
 			SimpleDoubleIterator i = this.newSimpleDoubleIterator();
 			return () -> i.nextrpDouble();
 		}
+		
+		public static SimpleDoubleIterator defaultNewSimpleDoubleIterator(SimpleIterator<Double> i)
+		{
+			return i instanceof SimpleDoubleIterator ? (SimpleDoubleIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleDoubleIterator defaultNewSimpleDoubleIterator(Iterator<Double> i)
+		{
+			return i instanceof SimpleDoubleIterator ? (SimpleDoubleIterator)i : defaultNewSimpleDoubleIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -19625,7 +21086,7 @@ primxp
 	
 	@SignalType
 	public static interface DoubleCollection
-	extends PrimitiveCollection<Double>, SimpleDoubleIterable
+	extends PrimitiveCollection<Double>, SimpleDoubleIterable, Copyable
 	{
 		public boolean addDouble(double value);
 		
@@ -19908,9 +21369,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -19949,41 +21410,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleDoubleIterator i = newSimpleDoubleIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof DoubleCollection)
 			{
-				double e;
+				//Works correctly even for lists! :D
+				DoubleCollection s = (DoubleCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleDoubleIterator i = s.newSimpleDoubleIterator();
+				while (true)
 				{
-					e = i.nextrpDouble();
+					double e;
+					try
+					{
+						e = i.nextrpDouble();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addDouble(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Double> s = (Collection<Double>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Double e : s)
+					this.addDouble(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -20041,6 +21526,7 @@ primxp
 	
 	@SignalType
 	public static interface DoubleListRO
+	extends Equivalenceable
 	{
 		public double getDouble(int index);
 		
@@ -20050,16 +21536,26 @@ primxp
 		
 		public default int indexOfDouble(double value)
 		{
+			return indexOfDouble(value, 0);
+		}
+		
+		public default int lastIndexOfDouble(double value)
+		{
+			return lastIndexOfDouble(value, this.size()-1);
+		}
+		
+		public default int indexOfDouble(double value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getDouble(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfDouble(double value)
+		public default int lastIndexOfDouble(double value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getDouble(i), value))
@@ -20071,27 +21567,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Double> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof DoubleListRO)  //All DoubleLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof DoubleListRO)  //All DoubleLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((DoubleListRO)other);
+				return equivalentFixedRO((DoubleListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Double)
+					{
+						if (!eqSane(this.getDouble(i), ((Double)e).doubleValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getDouble(i), other.get(i).doubleValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -20109,6 +21620,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				double e = this.getDouble(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -20140,17 +21667,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public DoubleList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addDouble(double)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addDouble(double)}  :D
+		 */
 		public void setSizeDouble(int newSize, double elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Double elementToAddIfGrowing)
@@ -20290,7 +21817,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllDoubles(int start, @WritableValue double[] array, int offset, int length)
 		{
@@ -20453,7 +21980,7 @@ primxp
 			{
 				int index = 0;
 				
-						public double nextrpDouble() throws StopIterationReturnPath
+				public double nextrpDouble() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -20532,7 +22059,7 @@ primxp
 		{
 			insertAllDoubles(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -20574,7 +22101,18 @@ primxp
 		{
 			return o instanceof Double ? lastIndexOfDouble((Double)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Double ? indexOfDouble((Double)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Double ? lastIndexOfDouble((Double)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -20586,8 +22124,8 @@ primxp
 		@Override
 		public default ListIterator<Double> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make DoubleListIterator ^^'
+			return new DelegatingListIterator<Double>(this, index);
 		}
 		
 		@Override
@@ -20942,7 +22480,7 @@ primxp
 	
 	
 	public static class DoubleArrayList
-	implements DefaultShiftingBasedDoubleList, ListWithSetSize<Double>, Trimmable, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedDoubleList, ListWithSetSize<Double>, Trimmable, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected double[] data;
@@ -20958,9 +22496,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public DoubleArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -21160,8 +22698,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -21179,9 +22725,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue double[] array)
@@ -21211,8 +22757,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a double[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperDoubleList
-	implements DoubleList, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness
+	implements DoubleList, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final double[] underlying;
 		protected final int offset, length;
@@ -21228,7 +22777,9 @@ primxp
 		
 		public FixedLengthArrayWrapperDoubleList(double[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperDoubleList(Slice<double[]> underlying)
@@ -21271,30 +22822,6 @@ primxp
 		
 		
 		@Override
-		public SimpleDoubleIterator newSimpleDoubleIterator()
-		{
-			return new SimpleDoubleIterator()
-			{
-				int index = 0;
-				
-				public double nextrpDouble() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public DoubleList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -21318,11 +22845,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -21346,53 +22879,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue double[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperDoubleList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue double... array)
 	{
-		return doubleArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperDoubleList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue Slice<double[]> arraySlice)
 	{
-		return doubleArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperDoubleList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static DoubleList doubleArrayAsMutableList(@SnapshotValue @ReadonlyValue double[] array, int offset, int length)
 	{
 		return new DoubleArrayList(new FixedLengthArrayWrapperDoubleList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static DoubleList doubleArrayAsMutableList(@SnapshotValue @ReadonlyValue double... array)
 	{
 		return doubleArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static DoubleList doubleArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<double[]> arraySlice)
 	{
 		return doubleArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -21407,10 +22942,20 @@ primxp
 	
 	
 	
+	public static final DoubleList emptyDoubleList()
+	{
+		return ImmutableDoubleArrayList.Empty;
+	}
+	
+	public static final DoubleList singletonDoubleList(double v)
+	{
+		return ImmutableDoubleArrayList.newLIVE(new double[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableDoubleArrayList
-	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -21431,9 +22976,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableDoubleArrayList newLIVE(@LiveValue double[] LIVEDATA)
@@ -21453,7 +22998,7 @@ primxp
 		
 		public static ImmutableDoubleArrayList newCopying(@SnapshotValue List<Double> data)
 		{
-			if (data instanceof ImmutableDoubleArrayList)
+			if (data instanceof ImmutableDoubleArrayList)  //No need to make a new copy X3
 				return (ImmutableDoubleArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -21467,7 +23012,7 @@ primxp
 			
 			if (data instanceof DoubleList)
 			{
-				return newLIVE(((DoubleList)data).toDoubleArray());
+				return newLIVE(((DoubleList)data).toDoubleArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -21551,8 +23096,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -22044,7 +23589,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -22307,7 +23852,7 @@ primxp
 	
 	
 	
-	 	
+	
 	
 	public static long getLong(List<Long> list, int index)
 	{
@@ -22341,6 +23886,16 @@ primxp
 			SimpleLongIterator i = this.newSimpleLongIterator();
 			return () -> i.nextrpLong();
 		}
+		
+		public static SimpleLongIterator defaultNewSimpleLongIterator(SimpleIterator<Long> i)
+		{
+			return i instanceof SimpleLongIterator ? (SimpleLongIterator)i : (() -> i.nextrp());
+		}
+		
+		public static SimpleLongIterator defaultNewSimpleLongIterator(Iterator<Long> i)
+		{
+			return i instanceof SimpleLongIterator ? (SimpleLongIterator)i : defaultNewSimpleLongIterator(SimpleIterator.simpleIterator(i));
+		}
 	}
 	
 	
@@ -22361,7 +23916,7 @@ primxp
 	
 	@SignalType
 	public static interface LongCollection
-	extends PrimitiveCollection<Long>, SimpleLongIterable
+	extends PrimitiveCollection<Long>, SimpleLongIterable, Copyable
 	{
 		public boolean addLong(long value);
 		
@@ -22644,9 +24199,9 @@ primxp
 				return changedAtAll;
 			}
 		}
-
-
-
+		
+		
+		
 		@Override
 		public default boolean removeAll(Collection<?> c)
 		{
@@ -22685,41 +24240,65 @@ primxp
 		
 		
 		
-		public default String _toString()
+		@Override
+		public default void setFrom(final Object source)
 		{
-			StringBuilder b = new StringBuilder("[");
+			if (source == this)
+				return;
 			
-			SimpleLongIterator i = newSimpleLongIterator();
-			
-			boolean first = true;
-			
-			while (true)
+			else if (source instanceof LongCollection)
 			{
-				long e;
+				//Works correctly even for lists! :D
+				LongCollection s = (LongCollection) source;
 				
-				try
+				this.clearHinting(s.size());
+				
+				SimpleLongIterator i = s.newSimpleLongIterator();
+				while (true)
 				{
-					e = i.nextrpLong();
+					long e;
+					try
+					{
+						e = i.nextrpLong();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						break;
+					}
+					
+					this.addLong(e);
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					break;
-				}
-				
-				
-				
-				//Notice this comes after the possible 'break'!  ^_~
-				if (first)
-					first = false;
-				else
-					b.append(", ");
-				
-				b.append(e);
 			}
 			
-			b.append(']');
+			else if (source instanceof Collection)
+			{
+				//Works correctly even for lists! :D
+				Collection<Long> s = (Collection<Long>) source;
+				
+				this.clearHinting(s.size());
+				
+				for (Long e : s)
+					this.addLong(e);
+			}
 			
-			return b.toString();
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(source);
+			}
+		}
+		
+		public default void clearHinting(int newCapacity)
+		{
+			this.clear();
+		}
+		
+		
+		
+		
+		
+		public default String _toString()
+		{
+			return defaultToString(this);
 		}
 	}
 	
@@ -22777,6 +24356,7 @@ primxp
 	
 	@SignalType
 	public static interface LongListRO
+	extends Equivalenceable
 	{
 		public long getLong(int index);
 		
@@ -22786,16 +24366,26 @@ primxp
 		
 		public default int indexOfLong(long value)
 		{
+			return indexOfLong(value, 0);
+		}
+		
+		public default int lastIndexOfLong(long value)
+		{
+			return lastIndexOfLong(value, this.size()-1);
+		}
+		
+		public default int indexOfLong(long value, int start)
+		{
 			int n = this.size();
-			for (int i = 0; i < n; i++)
+			for (int i = start; i < n; i++)
 				if (eqSane(this.getLong(i), value))
 					return i;
 			return -1;
 		}
 		
-		public default int lastIndexOfLong(long value)
+		public default int lastIndexOfLong(long value, int start)
 		{
-			int i = this.size()-1;
+			int i = start;
 			while (i >= 0)
 			{
 				if (eqSane(this.getLong(i), value))
@@ -22807,27 +24397,42 @@ primxp
 		
 		
 		
-		public default boolean equivalent(List<Long> other)
+		@Override
+		public default boolean equivalent(Object o)
 		{
-			int size = this.size();
-			if (other.size() != size)
-				return false;
-			
-			
-			if (other instanceof LongListRO)  //All LongLists will implement this interface too so this accounts for them as well :3
+			if (o instanceof LongListRO)  //All LongLists will implement this interface too so this accounts for them as well :3
 			{
-				return equivalentFixedRO((LongListRO)other);
+				return equivalentFixedRO((LongListRO)o);
+			}
+			else if (o instanceof List)
+			{
+				List other = (List)o;
+				
+				int size = this.size();
+				if (other.size() != size)
+					return false;
+				
+				for (int i = 0; i < size; i++)
+				{
+					Object e = other.get(i);
+					
+					if (e instanceof Long)
+					{
+						if (!eqSane(this.getLong(i), ((Long)e).longValue()))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
 			}
 			else
 			{
-				for (int i = 0; i < size; i++)
-				{
-					if (!eqSane(this.getLong(i), other.get(i).longValue()))
-						return false;
-				}
+				return false;
 			}
-			
-			return true;
 		}
 		
 		
@@ -22845,6 +24450,22 @@ primxp
 			}
 			
 			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			int size = this.size();
+			for (int i = 0; i < size; i++)
+			{
+				long e = this.getLong(i);
+				r = 31*r + hashprim(e);
+			}
+			
+			return r;
 		}
 	}
 	
@@ -22876,17 +24497,17 @@ primxp
 		
 		
 		/**
-	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
-	 	*/
+		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+		 */
 		public LongList clone();
 		
 		
 		/**
-	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addLong(long)}  :D
-	 	*/
+		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addLong(long)}  :D
+		 */
 		public void setSizeLong(int newSize, long elementToAddIfGrowing);
 		
 		public default void setSize(int newSize, Long elementToAddIfGrowing)
@@ -23026,7 +24647,7 @@ primxp
 		
 		
 		/**
-	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+		 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 		 */
 		public default void getAllLongs(int start, @WritableValue long[] array, int offset, int length)
 		{
@@ -23189,7 +24810,7 @@ primxp
 			{
 				int index = 0;
 				
-						public long nextrpLong() throws StopIterationReturnPath
+				public long nextrpLong() throws StopIterationReturnPath
 				{
 					int i = index;
 					
@@ -23268,7 +24889,7 @@ primxp
 		{
 			insertAllLongs(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 		}
-
+		
 		
 		
 		@Override
@@ -23310,7 +24931,18 @@ primxp
 		{
 			return o instanceof Long ? lastIndexOfLong((Long)o) : -1;
 		}
-
+		
+		
+		public default int indexOf(Object o, int start)
+		{
+			return o instanceof Long ? indexOfLong((Long)o, start) : -1;
+		}
+		
+		public default int lastIndexOf(Object o, int start)
+		{
+			return o instanceof Long ? lastIndexOfLong((Long)o, start) : -1;
+		}
+		
 		
 		
 		@Override
@@ -23322,8 +24954,8 @@ primxp
 		@Override
 		public default ListIterator<Long> listIterator(int index)
 		{
-			//Todo
-			throw new NotYetImplementedException();
+			//Todo make LongListIterator ^^'
+			return new DelegatingListIterator<Long>(this, index);
 		}
 		
 		@Override
@@ -23678,7 +25310,7 @@ primxp
 	
 	
 	public static class LongArrayList
-	implements DefaultShiftingBasedLongList, ListWithSetSize<Long>, Trimmable, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness
+	implements DefaultShiftingBasedLongList, ListWithSetSize<Long>, Trimmable, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected long[] data;
@@ -23694,9 +25326,9 @@ primxp
 		
 		
 		/**
-	 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
-	 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
-	 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
+		 * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
+		 * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
+		 * @param grower This can be anything.  The only downside is performance: all methods will add at least the minimum amount required regardless of what this specifies.
 		 */
 		public LongArrayList(int initialCapacity, GrowerComputationallyUnreducedPurelyRecursive grower)
 		{
@@ -23896,8 +25528,16 @@ primxp
 			}
 		}
 		
+		@Override
+		public void clearHinting(int newCapacity)
+		{
+			this.clear();
+			this.ensureCapacity(newCapacity);
+		}
+		
+		
 		/**
-	 * This is also guaranteed not to return a capacity smaller than the provided minimum.
+		 * This is also guaranteed not to return a capacity smaller than the provided minimum.
 		 */
 		@ImplementationTransparency
 		public int getNewCapacity(int minCapacity)
@@ -23915,9 +25555,9 @@ primxp
 		
 		
 		/**
-	 * sets the underlying array that backs the array list.
-	 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
-	 * Note, also, that only up to {@link #size()} elements will be used.
+		 * sets the underlying array that backs the array list.
+		 * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
+		 * Note, also, that only up to {@link #size()} elements will be used.
 		 */
 		@ImplementationTransparency
 		public void setDirectBuffer(@LiveValue long[] array)
@@ -23947,8 +25587,11 @@ primxp
 	
 	
 	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a long[]!  :D
+	 */
 	public static class FixedLengthArrayWrapperLongList
-	implements LongList, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness
+	implements LongList, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected final long[] underlying;
 		protected final int offset, length;
@@ -23964,7 +25607,9 @@ primxp
 		
 		public FixedLengthArrayWrapperLongList(long[] underlying)
 		{
-			this(underlying, 0, underlying.length);
+			this.underlying = underlying;
+			this.offset = 0;
+			this.length = underlying.length;
 		}
 		
 		public FixedLengthArrayWrapperLongList(Slice<long[]> underlying)
@@ -24007,30 +25652,6 @@ primxp
 		
 		
 		@Override
-		public SimpleLongIterator newSimpleLongIterator()
-		{
-			return new SimpleLongIterator()
-			{
-				int index = 0;
-				
-				public long nextrpLong() throws StopIterationReturnPath
-				{
-					int i = index;
-					
-					if (i >= size())
-					{
-						throw StopIterationReturnPath.I;
-					}
-					else
-					{
-						index = i + 1;
-						return underlying[offset+i];
-					}
-				}
-			};
-		}
-		
-		@Override
 		public LongList subList(int fromIndex, int toIndex)
 		{
 			rangeCheckInterval(this.size(), fromIndex, toIndex);
@@ -24054,11 +25675,17 @@ primxp
 		
 		
 		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
 		
 		
 		
-		//Unallowed Dim-altering Methods!
 		
+		
+		//Disallowed length-altering methods!
 		@Override
 		public void clear()
 		{
@@ -24082,53 +25709,55 @@ primxp
 		{
 			throw new UnsupportedOperationException();
 		}
-		
-		
-		@Override
-		public String toString()
-		{
-			return this._toString();
-		}
 	}
 	
 	
 	
 	
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static LongList longArrayAsList(@LiveValue @WritableValue long[] array, int offset, int length)
 	{
 		return new FixedLengthArrayWrapperLongList(array, offset, length);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static LongList longArrayAsList(@LiveValue @WritableValue long... array)
 	{
-		return longArrayAsList(array, 0, array.length);
+		return new FixedLengthArrayWrapperLongList(array);
 	}
 	
-	@ReadonlyValue
+	@WritableValue
+	@FixedLengthValue
 	public static LongList longArrayAsList(@LiveValue @WritableValue Slice<long[]> arraySlice)
 	{
-		return longArrayAsList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return new FixedLengthArrayWrapperLongList(arraySlice);
 	}
 	
 	
 	
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static LongList longArrayAsMutableList(@SnapshotValue @ReadonlyValue long[] array, int offset, int length)
 	{
 		return new LongArrayList(new FixedLengthArrayWrapperLongList(array, offset, length));
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static LongList longArrayAsMutableList(@SnapshotValue @ReadonlyValue long... array)
 	{
 		return longArrayAsMutableList(array, 0, array.length);
 	}
 	
 	@ThrowAwayValue
+	@WritableValue
+	@VariableLengthValue
 	public static LongList longArrayAsMutableList(@SnapshotValue @ReadonlyValue Slice<long[]> arraySlice)
 	{
 		return longArrayAsMutableList(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
@@ -24143,10 +25772,20 @@ primxp
 	
 	
 	
+	public static final LongList emptyLongList()
+	{
+		return ImmutableLongArrayList.Empty;
+	}
+	
+	public static final LongList singletonLongList(long v)
+	{
+		return ImmutableLongArrayList.newLIVE(new long[]{v});
+	}
+	
 	
 	@Immutable
 	public static class ImmutableLongArrayList
-	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness, RandomAccess     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -24167,9 +25806,9 @@ primxp
 		
 		
 		/**
-	 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
-	 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
+		 * DO NOT *EVER* MODIFY THE ARRAY YOU PASSED HERE AFTER CALLING THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * @see #getREADONLYLiveWholeArrayBackingUNSAFE()
 		 */
 		@ImplementationTransparency
 		public static ImmutableLongArrayList newLIVE(@LiveValue long[] LIVEDATA)
@@ -24189,7 +25828,7 @@ primxp
 		
 		public static ImmutableLongArrayList newCopying(@SnapshotValue List<Long> data)
 		{
-			if (data instanceof ImmutableLongArrayList)
+			if (data instanceof ImmutableLongArrayList)  //No need to make a new copy X3
 				return (ImmutableLongArrayList)data;
 			
 			if (TransparentContiguousArrayBackedCollection.is(data))
@@ -24203,7 +25842,7 @@ primxp
 			
 			if (data instanceof LongList)
 			{
-				return newLIVE(((LongList)data).toLongArray());
+				return newLIVE(((LongList)data).toLongArray());  //This implicitly handles Buffer-backed lists efficiently, because we need to create a new array anyway! :D
 			}
 			else
 			{
@@ -24287,8 +25926,8 @@ primxp
 		}
 		
 		/**
-	 * DO NOT MODIFY THIS X"D
-	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
 		 */
 		@ImplementationTransparency
 		@LiveValue
@@ -24780,7 +26419,7 @@ primxp
 		
 		public boolean equals(Object o)
 		{
-			return underlying.equals(o);
+			return o == this || underlying.equals(o);
 		}
 		
 		public int hashCode()
@@ -25043,8 +26682,7 @@ primxp
 	
 	
 	
-	 
-//>>>
+	//>>>
 	
 	
 	
@@ -25100,7 +26738,7 @@ _$$primxpconf:noboolean$$_
 	 * the collection is always sorted (ascending).
 	 ⎋a/
 	public static class Sorted_$$Primitive$$_SetBackedByList
-	implements DefaultToArrays_$$Primitive$$_Collection, UnderlyingInstanceAccessible<_$$Primitive$$_List>, KnowsLengthFixedness
+	implements Set<_$$Primitive$$_>, DefaultToArrays_$$Primitive$$_Collection, UnderlyingInstanceAccessible<_$$Primitive$$_List>, KnowsLengthFixedness
 	{
 		protected _$$Primitive$$_List underlying;
 		
@@ -25301,6 +26939,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(_$$Primitive$$_ e)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends _$$Primitive$$_> c)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<_$$Primitive$$_> iterator()
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArrays_$$Primitive$$_Collection.super.toArray(a);
+		}
 	}
 	
 	
@@ -25321,14 +27031,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	 */
-
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedByteSetBackedByList
-	implements DefaultToArraysByteCollection, UnderlyingInstanceAccessible<ByteList>, KnowsLengthFixedness
+	implements Set<Byte>, DefaultToArraysByteCollection, UnderlyingInstanceAccessible<ByteList>, KnowsLengthFixedness
 	{
 		protected ByteList underlying;
 		
@@ -25338,7 +27048,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedByteSetBackedByList(@LiveValue ByteList presortedOrEmptyUnderlying)
 		{
@@ -25422,7 +27132,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedByteSetBackedByList other)
 		{
@@ -25444,8 +27154,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toByteArray()} which should probably be used in preference to {@link #toByteArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toByteArray()} which should probably be used in preference to {@link #toByteArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public byte[] toSortedByteArray()
@@ -25486,8 +27196,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -25529,6 +27239,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysByteCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysByteCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysByteCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysByteCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Byte e)
+		{
+			return DefaultToArraysByteCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Byte> c)
+		{
+			return DefaultToArraysByteCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysByteCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Byte> iterator()
+		{
+			return DefaultToArraysByteCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysByteCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysByteCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -25548,14 +27330,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedCharacterSetBackedByList
-	implements DefaultToArraysCharacterCollection, UnderlyingInstanceAccessible<CharacterList>, KnowsLengthFixedness
+	implements Set<Character>, DefaultToArraysCharacterCollection, UnderlyingInstanceAccessible<CharacterList>, KnowsLengthFixedness
 	{
 		protected CharacterList underlying;
 		
@@ -25565,7 +27347,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedCharacterSetBackedByList(@LiveValue CharacterList presortedOrEmptyUnderlying)
 		{
@@ -25649,7 +27431,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedCharacterSetBackedByList other)
 		{
@@ -25671,8 +27453,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toCharArray()} which should probably be used in preference to {@link #toCharArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toCharArray()} which should probably be used in preference to {@link #toCharArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public char[] toSortedCharArray()
@@ -25713,8 +27495,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -25756,6 +27538,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysCharacterCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysCharacterCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysCharacterCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysCharacterCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Character e)
+		{
+			return DefaultToArraysCharacterCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Character> c)
+		{
+			return DefaultToArraysCharacterCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysCharacterCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Character> iterator()
+		{
+			return DefaultToArraysCharacterCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysCharacterCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysCharacterCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -25775,14 +27629,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedShortSetBackedByList
-	implements DefaultToArraysShortCollection, UnderlyingInstanceAccessible<ShortList>, KnowsLengthFixedness
+	implements Set<Short>, DefaultToArraysShortCollection, UnderlyingInstanceAccessible<ShortList>, KnowsLengthFixedness
 	{
 		protected ShortList underlying;
 		
@@ -25792,7 +27646,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedShortSetBackedByList(@LiveValue ShortList presortedOrEmptyUnderlying)
 		{
@@ -25876,7 +27730,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedShortSetBackedByList other)
 		{
@@ -25898,8 +27752,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toShortArray()} which should probably be used in preference to {@link #toShortArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toShortArray()} which should probably be used in preference to {@link #toShortArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public short[] toSortedShortArray()
@@ -25940,8 +27794,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -25983,6 +27837,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysShortCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysShortCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysShortCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysShortCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Short e)
+		{
+			return DefaultToArraysShortCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Short> c)
+		{
+			return DefaultToArraysShortCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysShortCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Short> iterator()
+		{
+			return DefaultToArraysShortCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysShortCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysShortCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -26002,14 +27928,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedFloatSetBackedByList
-	implements DefaultToArraysFloatCollection, UnderlyingInstanceAccessible<FloatList>, KnowsLengthFixedness
+	implements Set<Float>, DefaultToArraysFloatCollection, UnderlyingInstanceAccessible<FloatList>, KnowsLengthFixedness
 	{
 		protected FloatList underlying;
 		
@@ -26019,7 +27945,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedFloatSetBackedByList(@LiveValue FloatList presortedOrEmptyUnderlying)
 		{
@@ -26103,7 +28029,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedFloatSetBackedByList other)
 		{
@@ -26125,8 +28051,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toFloatArray()} which should probably be used in preference to {@link #toFloatArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toFloatArray()} which should probably be used in preference to {@link #toFloatArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public float[] toSortedFloatArray()
@@ -26167,8 +28093,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26210,6 +28136,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysFloatCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysFloatCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysFloatCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysFloatCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Float e)
+		{
+			return DefaultToArraysFloatCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Float> c)
+		{
+			return DefaultToArraysFloatCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysFloatCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Float> iterator()
+		{
+			return DefaultToArraysFloatCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysFloatCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysFloatCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -26229,14 +28227,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedIntegerSetBackedByList
-	implements DefaultToArraysIntegerCollection, UnderlyingInstanceAccessible<IntegerList>, KnowsLengthFixedness
+	implements Set<Integer>, DefaultToArraysIntegerCollection, UnderlyingInstanceAccessible<IntegerList>, KnowsLengthFixedness
 	{
 		protected IntegerList underlying;
 		
@@ -26246,7 +28244,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedIntegerSetBackedByList(@LiveValue IntegerList presortedOrEmptyUnderlying)
 		{
@@ -26330,7 +28328,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedIntegerSetBackedByList other)
 		{
@@ -26352,8 +28350,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toIntArray()} which should probably be used in preference to {@link #toIntArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toIntArray()} which should probably be used in preference to {@link #toIntArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public int[] toSortedIntArray()
@@ -26394,8 +28392,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26437,6 +28435,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysIntegerCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysIntegerCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysIntegerCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysIntegerCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Integer e)
+		{
+			return DefaultToArraysIntegerCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Integer> c)
+		{
+			return DefaultToArraysIntegerCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysIntegerCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Integer> iterator()
+		{
+			return DefaultToArraysIntegerCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysIntegerCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysIntegerCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -26456,14 +28526,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedDoubleSetBackedByList
-	implements DefaultToArraysDoubleCollection, UnderlyingInstanceAccessible<DoubleList>, KnowsLengthFixedness
+	implements Set<Double>, DefaultToArraysDoubleCollection, UnderlyingInstanceAccessible<DoubleList>, KnowsLengthFixedness
 	{
 		protected DoubleList underlying;
 		
@@ -26473,7 +28543,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedDoubleSetBackedByList(@LiveValue DoubleList presortedOrEmptyUnderlying)
 		{
@@ -26557,7 +28627,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedDoubleSetBackedByList other)
 		{
@@ -26579,8 +28649,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toDoubleArray()} which should probably be used in preference to {@link #toDoubleArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toDoubleArray()} which should probably be used in preference to {@link #toDoubleArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public double[] toSortedDoubleArray()
@@ -26621,8 +28691,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26664,6 +28734,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysDoubleCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysDoubleCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysDoubleCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysDoubleCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Double e)
+		{
+			return DefaultToArraysDoubleCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Double> c)
+		{
+			return DefaultToArraysDoubleCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysDoubleCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Double> iterator()
+		{
+			return DefaultToArraysDoubleCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysDoubleCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysDoubleCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -26683,14 +28825,14 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedLongSetBackedByList
-	implements DefaultToArraysLongCollection, UnderlyingInstanceAccessible<LongList>, KnowsLengthFixedness
+	implements Set<Long>, DefaultToArraysLongCollection, UnderlyingInstanceAccessible<LongList>, KnowsLengthFixedness
 	{
 		protected LongList underlying;
 		
@@ -26700,7 +28842,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
 		 */
 		public SortedLongSetBackedByList(@LiveValue LongList presortedOrEmptyUnderlying)
 		{
@@ -26784,7 +28926,7 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
 		 */
 		public boolean equivalent(SortedLongSetBackedByList other)
 		{
@@ -26806,8 +28948,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * This is a synonym to {@link #toLongArray()} which should probably be used in preference to {@link #toLongArray()} if your code relies on its sorted-ness, at least for clarity :>
-	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 * This is a synonym to {@link #toLongArray()} which should probably be used in preference to {@link #toLongArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
 		 */
 		@ThrowAwayValue
 		public long[] toSortedLongArray()
@@ -26848,8 +28990,8 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		/**
-	 * Remove all elements in the range (exclusive, like String).<br>
-	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
 		 */
 		public void removeRange(int start, int end)
 		{
@@ -26891,6 +29033,78 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public boolean removeAll(Collection<?> c)
+		{
+			return DefaultToArraysLongCollection.super.removeAll(c);
+		}
+		
+		@Override
+		public boolean remove(Object o)
+		{
+			return DefaultToArraysLongCollection.super.remove(o);
+		}
+		
+		@Override
+		public boolean containsAll(Collection<?> c)
+		{
+			return DefaultToArraysLongCollection.super.containsAll(c);
+		}
+		
+		@Override
+		public boolean contains(Object o)
+		{
+			return DefaultToArraysLongCollection.super.contains(o);
+		}
+		
+		@Override
+		public boolean add(Long e)
+		{
+			return DefaultToArraysLongCollection.super.add(e);
+		}
+		
+		@Override
+		public boolean addAll(Collection<? extends Long> c)
+		{
+			return DefaultToArraysLongCollection.super.addAll(c);
+		}
+		
+		@Override
+		public boolean isEmpty()
+		{
+			return DefaultToArraysLongCollection.super.isEmpty();
+		}
+		
+		@Override
+		public Iterator<Long> iterator()
+		{
+			return DefaultToArraysLongCollection.super.iterator();
+		}
+		
+		@Override
+		public Object[] toArray()
+		{
+			return DefaultToArraysLongCollection.super.toArray();
+		}
+		
+		@Override
+		public <T> T[] toArray(T[] a)
+		{
+			return DefaultToArraysLongCollection.super.toArray(a);
+		}
 	}
 	
 	
@@ -26910,8 +29124,7 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	 
-// >>>
+	// >>>
 	
 	
 	
@@ -26955,7 +29168,7 @@ _$$primxpconf:noboolean$$_
 	
 	private static char scintervalChar(int x)
 	{
-		return safeCastS32toU16(x);
+		return (char)safeCastS32toU16(x);
 	}
 	
 	private static int scintervalInt(int x)
@@ -27386,7 +29599,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	 */
-
+	
 	
 	
 	
@@ -27798,7 +30011,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	 
+	
 	
 	
 	
@@ -28210,7 +30423,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	 
+	
 	
 	
 	
@@ -28622,7 +30835,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	 
+	
 	
 	
 	
@@ -29034,7 +31247,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	 
+	
 	
 	
 	
@@ -29446,1013 +31659,4395 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	 
-// >>>
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///////////////////////////////   Basement/Closet   ///////////////////////////////
-
-
-
-
-
-
-/*
-	public static class _$$Primitive$$_ArrayListFreezable
-	extends _$$Primitive$$_ArrayCollection
-	implements PubliclyCloneable, RuntimeReadabilityCollection, RuntimeWriteabilityCollection
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+	
+	
+	
+	public static _$$Primitive$$_Collection wrapped_$$Primitive$$_Collection(Collection<_$$Primitive$$_> underlying)
 	{
-		protected boolean immutable;
-		protected transient int hashCodeCacheIfImmutable;
-		protected transient boolean hasHashcodeCacheIfImmutable;
+		return underlying instanceof _$$Primitive$$_Collection ? (_$$Primitive$$_Collection)underlying : new UnboxingWrapper_$$Primitive$$_Collection(underlying);
+	}
+	
+	public static _$$Primitive$$_List wrapped_$$Primitive$$_List(List<_$$Primitive$$_> underlying)
+	{
+		return underlying instanceof _$$Primitive$$_List ? (_$$Primitive$$_List)underlying : new UnboxingWrapper_$$Primitive$$_List(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapper_$$Primitive$$_Collection
+	implements _$$Primitive$$_Collection
+	{
+		protected final Collection<_$$Primitive$$_> underlying;
 		
-		
-		//@Deprecated  //maybe nottt??
-		public _$$Primitive$$_ArrayListFreezable()
+		public UnboxingWrapper_$$Primitive$$_Collection(Collection<_$$Primitive$$_> underlying)
 		{
-			this(16);
-			this.immutable = false;
+			this.underlying = underlying;
 		}
-		
-		//@Deprecated  //maybe nottt??
-		public _$$Primitive$$_ArrayListFreezable(int initialCapacity)
-		{
-			super(initialCapacity);
-			this.immutable = false;
-		}
-		
-		/**
- * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
- * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
- * @param capacityIncrement This can be anything (aside from NaN and ∞) the only downside is performance; all methods will add at least the minimum amount required regardless of capacityIncrement
-		 ⎋a/
-		//@Deprecated  //maybe nottt??
-		public _$$Primitive$$_ArrayListFreezable(int initialCapacity, float capacityIncrement)
-		{
-			super(initialCapacity, capacityIncrement);
-			this.immutable = false;
-		}
-		
-		
-		protected _$$Primitive$$_ArrayListFreezable(boolean immutable)
-		{
-			super((Void)null);
-			this.immutable = immutable;
-		}
-		
-		
-		
-		
-		public static _$$Primitive$$_ArrayListFreezable newMutable()
-		{
-			return newMutable(16);
-		}
-		
-		public static _$$Primitive$$_ArrayListFreezable newMutable(int initialCapacity)
-		{
-			return newMutable(initialCapacity, 16);
-		}
-		
-		public static _$$Primitive$$_ArrayListFreezable newMutable(int initialCapacity, float capacityIncrement)
-		{
-			return new _$$Primitive$$_ArrayListFreezable(initialCapacity, capacityIncrement);
-		}
-		
-		
-		
-		
-		
-		
-		public static _$$Primitive$$_ArrayListFreezable newImmutable(@SnapshotValue @ReadonlyValue _$$prim$$_[] array)
-		{
-			return newImmutable(array, 0, array.length);
-		}
-		
-		public static _$$Primitive$$_ArrayListFreezable newImmutable(@SnapshotValue @ReadonlyValue _$$prim$$_[] array, int offset, int length)
-		{
-			_$$prim$$_[] c;
-			{
-				if (offset == 0 && length == array.length)
-					c = array.clone();
-				else
-				{
-					c = new _$$prim$$_[length];
-					System.arraycopy(array, offset, c, 0, length);
-				}
-			}
-			
-			return newImmutableUNSAFELIVE(c);
-		}
-		
-		
-		
-		public static _$$Primitive$$_ArrayListFreezable newImmutableUNSAFELIVE(@TreatAsImmutableValue _$$prim$$_[] array)
-		{
-			return newImmutableUNSAFELIVE(array, 0, array.length);
-		}
-		
-		public static _$$Primitive$$_ArrayListFreezable newImmutableUNSAFELIVE(@TreatAsImmutableValue _$$prim$$_[] array, int offset, int length)
-		{
-			if (offset < 0) throw new IndexOutOfBoundsException();
-			if (length < 0) throw new IllegalArgumentException();
-			if (length + offset > array.length) throw new IndexOutOfBoundsException();
-			
-			if (offset != 0)
-				return newImmutable(array, offset, length);
-			else
-			{
-				_$$Primitive$$_ArrayListFreezable l = new _$$Primitive$$_ArrayListFreezable(true);
-				l.data = array;
-				l.size = length;
-				return l;
-			}
-		}
-		
-		
 		
 		
 		
 		@Override
-		public boolean isReadableCollection()
+		public _$$Primitive$$_Collection clone()
 		{
-			return true;
+			return _$$prim$$_ArrayAsMutableList(this.to_$$Prim$$_Array());  //NOT possibly-live! XD
 		}
 		
 		@Override
-		public boolean isWritableCollection()
+		public boolean add_$$Prim$$_(_$$prim$$_ value)
 		{
-			return !immutable;
+			return underlying.add(value);
+		}
+		
+		@Override
+		public Simple_$$Primitive$$_Iterator newSimple_$$Primitive$$_Iterator()
+		{
+			return Simple_$$Primitive$$_Iterable.defaultNewSimple_$$Primitive$$_Iterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean remove_$$Prim$$_(_$$prim$$_ value)
+		{
+			return underlying.remove((Object)value);
 		}
 		
 		
 		
 		
-		@Override
+		
+		
+		
+		
+		public void forEach(Consumer<? super _$$Primitive$$_> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<_$$Primitive$$_> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(_$$Primitive$$_ e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends _$$Primitive$$_> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super _$$Primitive$$_> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
 		public int hashCode()
 		{
-			if (immutable)
-			{
-				if (hasHashcodeCacheIfImmutable)
-				{
-					return hashCodeCacheIfImmutable;
-				}
-				else
-				{
-					int hashCode = 1;
-					
-					int n = this.size();
-					for (int i = 0; i < n; i++)
-					{
-						hashCode = 31*hashCode + _$$Primitive$$_.hashCode(this.get_$$Prim$$_(i));
-					}
-					
-					this.hashCodeCacheIfImmutable = hashCode;
-					this.hasHashcodeCacheIfImmutable = true;
-					
-					return hashCode;
-				}
-			}
-			else
-			{
-				return super.hashCode();  //hashcodes must be immutable!  use freeze() if you need to switch from mutable to immutable! ;D
-			}
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<_$$Primitive$$_> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<_$$Primitive$$_> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<_$$Primitive$$_> parallelStream()
+		{
+			return underlying.parallelStream();
 		}
 		
 		
 		
-		public void freeze()
+		
+		
+		
+		@Override
+		public String toString()
 		{
-			this.immutable = true;
-			//hashcode/etc. caches will be already set to their needed defaults :333
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapper_$$Primitive$$_Set
+	extends UnboxingWrapper_$$Primitive$$_Collection
+	implements _$$Primitive$$_Collection, Set<_$$Primitive$$_>
+	{
+		public UnboxingWrapper_$$Primitive$$_Set(Set<_$$Primitive$$_> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapper_$$Primitive$$_List
+	implements _$$Primitive$$_List
+	{
+		protected final List<_$$Primitive$$_> underlying;
+		
+		public UnboxingWrapper_$$Primitive$$_List(List<_$$Primitive$$_> underlying)
+		{
+			this.underlying = underlying;
 		}
 		
 		
 		
 		
 		@Override
-		public boolean add_$$Prim$$_(_$$prim$$_ v)
+		public _$$prim$$_ get_$$Prim$$_(int index)
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			return super.add_$$Prim$$_(v);
-		}
-		
-		@Override
-		public void addAll_$$Prim$$_s(_$$Primitive$$_ArrayCollection collection)
-		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.addAll_$$Prim$$_s(collection);
-		}
-		
-		@Override
-		public void addAll_$$Prim$$_s(_$$prim$$_[] array)
-		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			addAll_$$Prim$$_s(array, 0, array.length);
-		}
-		
-		@Override
-		public void addAll_$$Prim$$_s(_$$prim$$_[] array, int offset, int length)
-		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.addAll_$$Prim$$_s(array, 0, array.length);
-		}
-		
-		@Override
-		public void addAll_$$Prim$$_s(Slice<_$$prim$$_[]> arraySlice)
-		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.addAll_$$Prim$$_s(arraySlice);
+			return underlying.get(index);
 		}
 		
 		@Override
 		public void set_$$Prim$$_(int index, _$$prim$$_ value)
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.set_$$Prim$$_(index, value);
+			underlying.set(index, value);
 		}
 		
 		@Override
-		public void setAll_$$Prim$$_s(int index, _$$prim$$_[] array)
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.setAll_$$Prim$$_s(index, array);
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
 		}
 		
-		/**
- * Truncate to shrink, or expand with 0's to expand.
-		 ⎋a/
+		@Override
+		public void insert_$$Prim$$_(int index, _$$prim$$_ value)
+		{
+			underlying.add(index, value);
+		}
+		
 		@Override
 		public void setSize(int newSize)
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.setSize(newSize);
+			CollectionUtilities.setListSize(this.underlying, newSize);
 		}
 		
-		
-		/**
- * @return The removed element
-		 ⎋a/
 		@Override
-		public _$$prim$$_ remove_$$Prim$$_ByIndex(int index)
+		public void setSize_$$Prim$$_(int newSize, _$$prim$$_ elementToAddIfGrowing)
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			return super.remove_$$Prim$$_ByIndex(index);
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
 		}
 		
-		/**
- * Remove all elements in the range (exclusive, like String).<br>
- * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size of the block removed to 'fill the void'.<br>
-		 ⎋a/
+		
 		@Override
-		public void removeRange(int start, int end)
+		public _$$Primitive$$_List clone()
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.removeRange(start, end);
+			return _$$prim$$_ArrayAsMutableList(this.to_$$Prim$$_Array());  //NOT possibly-live! XD
 		}
 		
 		
-		@Override
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super _$$Primitive$$_> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<_$$Primitive$$_> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(_$$Primitive$$_ e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends _$$Primitive$$_> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends _$$Primitive$$_> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<_$$Primitive$$_> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super _$$Primitive$$_> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super _$$Primitive$$_> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public _$$Primitive$$_ get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public _$$Primitive$$_ set(int index, _$$Primitive$$_ element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, _$$Primitive$$_ element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<_$$Primitive$$_> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public _$$Primitive$$_ remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<_$$Primitive$$_> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<_$$Primitive$$_> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<_$$Primitive$$_> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<_$$Primitive$$_> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
 		public void clear()
 		{
-			if (immutable)
-				throw new ReadonlyUnsupportedOperationException();
-			super.clear();
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	 */
+	
+	
+	
+	public static BooleanCollection wrappedBooleanCollection(Collection<Boolean> underlying)
+	{
+		return underlying instanceof BooleanCollection ? (BooleanCollection)underlying : new UnboxingWrapperBooleanCollection(underlying);
+	}
+	
+	public static BooleanList wrappedBooleanList(List<Boolean> underlying)
+	{
+		return underlying instanceof BooleanList ? (BooleanList)underlying : new UnboxingWrapperBooleanList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperBooleanCollection
+	implements BooleanCollection
+	{
+		protected final Collection<Boolean> underlying;
+		
+		public UnboxingWrapperBooleanCollection(Collection<Boolean> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public BooleanCollection clone()
+		{
+			return booleanArrayAsMutableList(this.toBooleanArray());  //NOT possibly-live! XD
 		}
 		
 		@Override
-		public void trimToSize()
+		public boolean addBoolean(boolean value)
 		{
-			super.trimToSize();
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleBooleanIterator newSimpleBooleanIterator()
+		{
+			return SimpleBooleanIterable.defaultNewSimpleBooleanIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeBoolean(boolean value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Boolean> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Boolean> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Boolean e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Boolean> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Boolean> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Boolean> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Boolean> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Boolean> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperBooleanSet
+	extends UnboxingWrapperBooleanCollection
+	implements BooleanCollection, Set<Boolean>
+	{
+		public UnboxingWrapperBooleanSet(Set<Boolean> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperBooleanList
+	implements BooleanList
+	{
+		protected final List<Boolean> underlying;
+		
+		public UnboxingWrapperBooleanList(List<Boolean> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public boolean getBoolean(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setBoolean(int index, boolean value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertBoolean(int index, boolean value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeBoolean(int newSize, boolean elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public BooleanList clone()
+		{
+			return booleanArrayAsMutableList(this.toBooleanArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Boolean> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Boolean> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Boolean e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Boolean> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Boolean> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Boolean> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Boolean> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Boolean> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Boolean get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Boolean set(int index, Boolean element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Boolean element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Boolean> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Boolean remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Boolean> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Boolean> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Boolean> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Boolean> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static ByteCollection wrappedByteCollection(Collection<Byte> underlying)
+	{
+		return underlying instanceof ByteCollection ? (ByteCollection)underlying : new UnboxingWrapperByteCollection(underlying);
+	}
+	
+	public static ByteList wrappedByteList(List<Byte> underlying)
+	{
+		return underlying instanceof ByteList ? (ByteList)underlying : new UnboxingWrapperByteList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperByteCollection
+	implements ByteCollection
+	{
+		protected final Collection<Byte> underlying;
+		
+		public UnboxingWrapperByteCollection(Collection<Byte> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public ByteCollection clone()
+		{
+			return byteArrayAsMutableList(this.toByteArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addByte(byte value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleByteIterator newSimpleByteIterator()
+		{
+			return SimpleByteIterable.defaultNewSimpleByteIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeByte(byte value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Byte> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Byte> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Byte e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Byte> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Byte> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Byte> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Byte> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Byte> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperByteSet
+	extends UnboxingWrapperByteCollection
+	implements ByteCollection, Set<Byte>
+	{
+		public UnboxingWrapperByteSet(Set<Byte> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperByteList
+	implements ByteList
+	{
+		protected final List<Byte> underlying;
+		
+		public UnboxingWrapperByteList(List<Byte> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public byte getByte(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setByte(int index, byte value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertByte(int index, byte value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeByte(int newSize, byte elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public ByteList clone()
+		{
+			return byteArrayAsMutableList(this.toByteArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Byte> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Byte> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Byte e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Byte> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Byte> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Byte> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Byte> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Byte> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Byte get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Byte set(int index, Byte element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Byte element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Byte> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Byte remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Byte> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Byte> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Byte> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Byte> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static CharacterCollection wrappedCharacterCollection(Collection<Character> underlying)
+	{
+		return underlying instanceof CharacterCollection ? (CharacterCollection)underlying : new UnboxingWrapperCharacterCollection(underlying);
+	}
+	
+	public static CharacterList wrappedCharacterList(List<Character> underlying)
+	{
+		return underlying instanceof CharacterList ? (CharacterList)underlying : new UnboxingWrapperCharacterList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperCharacterCollection
+	implements CharacterCollection
+	{
+		protected final Collection<Character> underlying;
+		
+		public UnboxingWrapperCharacterCollection(Collection<Character> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public CharacterCollection clone()
+		{
+			return charArrayAsMutableList(this.toCharArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addChar(char value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleCharacterIterator newSimpleCharacterIterator()
+		{
+			return SimpleCharacterIterable.defaultNewSimpleCharacterIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeChar(char value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Character> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Character> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Character e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Character> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Character> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Character> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Character> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Character> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperCharacterSet
+	extends UnboxingWrapperCharacterCollection
+	implements CharacterCollection, Set<Character>
+	{
+		public UnboxingWrapperCharacterSet(Set<Character> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperCharacterList
+	implements CharacterList
+	{
+		protected final List<Character> underlying;
+		
+		public UnboxingWrapperCharacterList(List<Character> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public char getChar(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setChar(int index, char value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertChar(int index, char value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeChar(int newSize, char elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public CharacterList clone()
+		{
+			return charArrayAsMutableList(this.toCharArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Character> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Character> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Character e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Character> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Character> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Character> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Character> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Character> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Character get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Character set(int index, Character element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Character element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Character> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Character remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Character> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Character> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Character> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Character> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static ShortCollection wrappedShortCollection(Collection<Short> underlying)
+	{
+		return underlying instanceof ShortCollection ? (ShortCollection)underlying : new UnboxingWrapperShortCollection(underlying);
+	}
+	
+	public static ShortList wrappedShortList(List<Short> underlying)
+	{
+		return underlying instanceof ShortList ? (ShortList)underlying : new UnboxingWrapperShortList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperShortCollection
+	implements ShortCollection
+	{
+		protected final Collection<Short> underlying;
+		
+		public UnboxingWrapperShortCollection(Collection<Short> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public ShortCollection clone()
+		{
+			return shortArrayAsMutableList(this.toShortArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addShort(short value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleShortIterator newSimpleShortIterator()
+		{
+			return SimpleShortIterable.defaultNewSimpleShortIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeShort(short value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Short> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Short> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Short e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Short> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Short> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Short> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Short> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Short> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperShortSet
+	extends UnboxingWrapperShortCollection
+	implements ShortCollection, Set<Short>
+	{
+		public UnboxingWrapperShortSet(Set<Short> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperShortList
+	implements ShortList
+	{
+		protected final List<Short> underlying;
+		
+		public UnboxingWrapperShortList(List<Short> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public short getShort(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setShort(int index, short value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertShort(int index, short value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeShort(int newSize, short elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public ShortList clone()
+		{
+			return shortArrayAsMutableList(this.toShortArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Short> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Short> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Short e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Short> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Short> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Short> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Short> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Short> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Short get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Short set(int index, Short element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Short element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Short> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Short remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Short> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Short> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Short> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Short> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static FloatCollection wrappedFloatCollection(Collection<Float> underlying)
+	{
+		return underlying instanceof FloatCollection ? (FloatCollection)underlying : new UnboxingWrapperFloatCollection(underlying);
+	}
+	
+	public static FloatList wrappedFloatList(List<Float> underlying)
+	{
+		return underlying instanceof FloatList ? (FloatList)underlying : new UnboxingWrapperFloatList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperFloatCollection
+	implements FloatCollection
+	{
+		protected final Collection<Float> underlying;
+		
+		public UnboxingWrapperFloatCollection(Collection<Float> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public FloatCollection clone()
+		{
+			return floatArrayAsMutableList(this.toFloatArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addFloat(float value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleFloatIterator newSimpleFloatIterator()
+		{
+			return SimpleFloatIterable.defaultNewSimpleFloatIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeFloat(float value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Float> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Float> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Float e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Float> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Float> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Float> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Float> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Float> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperFloatSet
+	extends UnboxingWrapperFloatCollection
+	implements FloatCollection, Set<Float>
+	{
+		public UnboxingWrapperFloatSet(Set<Float> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperFloatList
+	implements FloatList
+	{
+		protected final List<Float> underlying;
+		
+		public UnboxingWrapperFloatList(List<Float> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public float getFloat(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setFloat(int index, float value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertFloat(int index, float value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeFloat(int newSize, float elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public FloatList clone()
+		{
+			return floatArrayAsMutableList(this.toFloatArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Float> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Float> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Float e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Float> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Float> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Float> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Float> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Float> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Float get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Float set(int index, Float element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Float element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Float> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Float remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Float> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Float> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Float> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Float> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static IntegerCollection wrappedIntegerCollection(Collection<Integer> underlying)
+	{
+		return underlying instanceof IntegerCollection ? (IntegerCollection)underlying : new UnboxingWrapperIntegerCollection(underlying);
+	}
+	
+	public static IntegerList wrappedIntegerList(List<Integer> underlying)
+	{
+		return underlying instanceof IntegerList ? (IntegerList)underlying : new UnboxingWrapperIntegerList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperIntegerCollection
+	implements IntegerCollection
+	{
+		protected final Collection<Integer> underlying;
+		
+		public UnboxingWrapperIntegerCollection(Collection<Integer> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public IntegerCollection clone()
+		{
+			return intArrayAsMutableList(this.toIntArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addInt(int value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleIntegerIterator newSimpleIntegerIterator()
+		{
+			return SimpleIntegerIterable.defaultNewSimpleIntegerIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeInt(int value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Integer> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Integer> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Integer e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Integer> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Integer> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Integer> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Integer> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Integer> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperIntegerSet
+	extends UnboxingWrapperIntegerCollection
+	implements IntegerCollection, Set<Integer>
+	{
+		public UnboxingWrapperIntegerSet(Set<Integer> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperIntegerList
+	implements IntegerList
+	{
+		protected final List<Integer> underlying;
+		
+		public UnboxingWrapperIntegerList(List<Integer> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public int getInt(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setInt(int index, int value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertInt(int index, int value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeInt(int newSize, int elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public IntegerList clone()
+		{
+			return intArrayAsMutableList(this.toIntArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Integer> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Integer> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Integer e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Integer> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Integer> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Integer> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Integer> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Integer> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Integer get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Integer set(int index, Integer element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Integer element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Integer> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Integer remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Integer> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Integer> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Integer> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Integer> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static DoubleCollection wrappedDoubleCollection(Collection<Double> underlying)
+	{
+		return underlying instanceof DoubleCollection ? (DoubleCollection)underlying : new UnboxingWrapperDoubleCollection(underlying);
+	}
+	
+	public static DoubleList wrappedDoubleList(List<Double> underlying)
+	{
+		return underlying instanceof DoubleList ? (DoubleList)underlying : new UnboxingWrapperDoubleList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperDoubleCollection
+	implements DoubleCollection
+	{
+		protected final Collection<Double> underlying;
+		
+		public UnboxingWrapperDoubleCollection(Collection<Double> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public DoubleCollection clone()
+		{
+			return doubleArrayAsMutableList(this.toDoubleArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addDouble(double value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleDoubleIterator newSimpleDoubleIterator()
+		{
+			return SimpleDoubleIterable.defaultNewSimpleDoubleIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeDouble(double value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Double> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Double> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Double e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Double> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Double> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Double> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Double> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Double> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperDoubleSet
+	extends UnboxingWrapperDoubleCollection
+	implements DoubleCollection, Set<Double>
+	{
+		public UnboxingWrapperDoubleSet(Set<Double> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperDoubleList
+	implements DoubleList
+	{
+		protected final List<Double> underlying;
+		
+		public UnboxingWrapperDoubleList(List<Double> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public double getDouble(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setDouble(int index, double value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertDouble(int index, double value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeDouble(int newSize, double elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public DoubleList clone()
+		{
+			return doubleArrayAsMutableList(this.toDoubleArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Double> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Double> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Double e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Double> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Double> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Double> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Double> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Double> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Double get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Double set(int index, Double element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Double element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Double> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Double remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Double> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Double> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Double> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Double> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static LongCollection wrappedLongCollection(Collection<Long> underlying)
+	{
+		return underlying instanceof LongCollection ? (LongCollection)underlying : new UnboxingWrapperLongCollection(underlying);
+	}
+	
+	public static LongList wrappedLongList(List<Long> underlying)
+	{
+		return underlying instanceof LongList ? (LongList)underlying : new UnboxingWrapperLongList(underlying);
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperLongCollection
+	implements LongCollection
+	{
+		protected final Collection<Long> underlying;
+		
+		public UnboxingWrapperLongCollection(Collection<Long> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		@Override
+		public LongCollection clone()
+		{
+			return longArrayAsMutableList(this.toLongArray());  //NOT possibly-live! XD
+		}
+		
+		@Override
+		public boolean addLong(long value)
+		{
+			return underlying.add(value);
+		}
+		
+		@Override
+		public SimpleLongIterator newSimpleLongIterator()
+		{
+			return SimpleLongIterable.defaultNewSimpleLongIterator(underlying.iterator());
+		}
+		
+		@Override
+		public boolean removeLong(long value)
+		{
+			return underlying.remove((Object)value);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Long> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Long> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Long e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Long> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean removeIf(Predicate<? super Long> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Spliterator<Long> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public Stream<Long> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Stream<Long> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	public static class UnboxingWrapperLongSet
+	extends UnboxingWrapperLongCollection
+	implements LongCollection, Set<Long>
+	{
+		public UnboxingWrapperLongSet(Set<Long> underlying)
+		{
+			super(underlying);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static class UnboxingWrapperLongList
+	implements LongList
+	{
+		protected final List<Long> underlying;
+		
+		public UnboxingWrapperLongList(List<Long> underlying)
+		{
+			this.underlying = underlying;
+		}
+		
+		
+		
+		
+		@Override
+		public long getLong(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		@Override
+		public void setLong(int index, long value)
+		{
+			underlying.set(index, value);
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			CollectionUtilities.removeRange(underlying, start, pastEnd);
+		}
+		
+		@Override
+		public void insertLong(int index, long value)
+		{
+			underlying.add(index, value);
+		}
+		
+		@Override
+		public void setSize(int newSize)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize);
+		}
+		
+		@Override
+		public void setSizeLong(int newSize, long elementToAddIfGrowing)
+		{
+			CollectionUtilities.setListSize(this.underlying, newSize, elementToAddIfGrowing);
+		}
+		
+		
+		@Override
+		public LongList clone()
+		{
+			return longArrayAsMutableList(this.toLongArray());  //NOT possibly-live! XD
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		public void forEach(Consumer<? super Long> action)
+		{
+			underlying.forEach(action);
+		}
+		
+		public boolean isEmpty()
+		{
+			return underlying.isEmpty();
+		}
+		
+		public boolean contains(Object o)
+		{
+			return underlying.contains(o);
+		}
+		
+		public Iterator<Long> iterator()
+		{
+			return underlying.iterator();
+		}
+		
+		public Object[] toArray()
+		{
+			return underlying.toArray();
+		}
+		
+		public <T> T[] toArray(T[] a)
+		{
+			return underlying.toArray(a);
+		}
+		
+		public boolean add(Long e)
+		{
+			return underlying.add(e);
+		}
+		
+		public boolean remove(Object o)
+		{
+			return underlying.remove(o);
+		}
+		
+		public boolean containsAll(Collection<?> c)
+		{
+			return underlying.containsAll(c);
+		}
+		
+		public boolean addAll(Collection<? extends Long> c)
+		{
+			return underlying.addAll(c);
+		}
+		
+		public boolean addAll(int index, Collection<? extends Long> c)
+		{
+			return underlying.addAll(index, c);
+		}
+		
+		public boolean removeAll(Collection<?> c)
+		{
+			return underlying.removeAll(c);
+		}
+		
+		public boolean retainAll(Collection<?> c)
+		{
+			return underlying.retainAll(c);
+		}
+		
+		public void replaceAll(UnaryOperator<Long> operator)
+		{
+			underlying.replaceAll(operator);
+		}
+		
+		public boolean removeIf(Predicate<? super Long> filter)
+		{
+			return underlying.removeIf(filter);
+		}
+		
+		public void sort(Comparator<? super Long> c)
+		{
+			underlying.sort(c);
+		}
+		
+		public boolean equals(Object o)
+		{
+			return o == this || underlying.equals(o);
+		}
+		
+		public int hashCode()
+		{
+			return underlying.hashCode();
+		}
+		
+		public Long get(int index)
+		{
+			return underlying.get(index);
+		}
+		
+		public Long set(int index, Long element)
+		{
+			return underlying.set(index, element);
+		}
+		
+		public void add(int index, Long element)
+		{
+			underlying.add(index, element);
+		}
+		
+		public Stream<Long> stream()
+		{
+			return underlying.stream();
+		}
+		
+		public Long remove(int index)
+		{
+			return underlying.remove(index);
+		}
+		
+		public Stream<Long> parallelStream()
+		{
+			return underlying.parallelStream();
+		}
+		
+		public int indexOf(Object o)
+		{
+			return underlying.indexOf(o);
+		}
+		
+		public int lastIndexOf(Object o)
+		{
+			return underlying.lastIndexOf(o);
+		}
+		
+		public ListIterator<Long> listIterator()
+		{
+			return underlying.listIterator();
+		}
+		
+		public ListIterator<Long> listIterator(int index)
+		{
+			return underlying.listIterator(index);
+		}
+		
+		public Spliterator<Long> spliterator()
+		{
+			return underlying.spliterator();
+		}
+		
+		public int size()
+		{
+			return underlying.size();
+		}
+		
+		public void clear()
+		{
+			underlying.clear();
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return _toString();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:noboolean$$_
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link _$$Prim$$_Buffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link _$$Prim$$_Buffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapper_$$Primitive$$_List
+ 	 ⎋a/
+	public static class FixedLengthBufferWrapper_$$Primitive$$_List
+	implements _$$Primitive$$_List, TransparentContiguousArrayBackedCollection<_$$Prim$$_Buffer>, KnowsLengthFixedness, RandomAccess
+	{
+		protected final _$$Prim$$_Buffer underlying;
+		
+		public FixedLengthBufferWrapper_$$Primitive$$_List(@SnapshotValue @LiveValue _$$Prim$$_Buffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapper_$$Primitive$$_List(@SnapshotValue @LiveValue _$$Prim$$_Buffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapper_$$Primitive$$_List(@SnapshotValue @LiveValue Slice<_$$Prim$$_Buffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public _$$Primitive$$_List clone()
+		{
+			return new FixedLengthArrayWrapper_$$Primitive$$_List(to_$$Prim$$_Array());
+		}
+		
+		
+		
+		@Override
+		public _$$prim$$_[] to_$$Prim$$_Array()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public _$$prim$$_[] to_$$Prim$$_ArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<_$$prim$$_[]> to_$$Prim$$_ArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<_$$Prim$$_Buffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public _$$Primitive$$_List subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapper_$$Primitive$$_List(this.underlying, fromIndex, toIndex-fromIndex);
 		}
 		
 		@Override
 		public _$$prim$$_ get_$$Prim$$_(int index)
 		{
-			return super.get_$$Prim$$_(index);
+			return underlying.get(index);  //doesn't alter position() :>
 		}
 		
 		@Override
-		public _$$prim$$_[] getAll_$$Prim$$_s(int start, int end)
+		public void set_$$Prim$$_(int index, _$$prim$$_ value)
 		{
-			return super.getAll_$$Prim$$_s(start, end);
-		}
-		
-		/**
- * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
-		 ⎋a/
-		@Override
-		public void getAll_$$Prim$$_s(int start, _$$prim$$_[] array, int offset, int length)
-		{
-			super.getAll_$$Prim$$_s(start, array, offset, length);
-		}
-		
-		@Override
-		public int getCapacity()
-		{
-			return super.getCapacity();
-		}
-		
-		@ThrowAwayValue
-		@Override
-		public _$$prim$$_[] to_$$Prim$$_Array()
-		{
-			return getAll_$$Prim$$_s(0, size);
-		}
-		
-		@Override
-		public int indexOf_$$Prim$$_(_$$prim$$_ value)
-		{
-			return super.indexOf_$$Prim$$_(value);
-		}
-		
-		public boolean contains_$$Prim$$_(_$$prim$$_ value)
-		{
-			return super.contains_$$Prim$$_(value);
+			underlying.put(index, value);  //doesn't alter position() :>
 		}
 		
 		
-		/**
- * sets the underlying array that backs the array list.
- * Be careful, though, as updates can cause a new array to be creates, obsoleting this one.
- * Note, also, that only up to {@link #size()} elements will be used.
- * @throws IllegalArgumentException if the provided array is too small!  (array.length < {@link #size()})
-		 ⎋a/
-		public void setLiveContiguousArrayBacking(_$$prim$$_[] array) throws IllegalArgumentException
-		{
-			if (array.length < size)
-				throw new IllegalArgumentException("Array is too small; size="+size+", capacity="+array.length);
-			
-			this.data = array;
-		}
+		
 		
 		
 		
 		@Override
-		public _$$Primitive$$_ArrayListFreezable clone()
+		public String toString()
 		{
-			_$$Primitive$$_ArrayListFreezable clone = new _$$Primitive$$_ArrayListFreezable();
-			super.setupClone(clone);
-			return clone;
+			return this._toString();
 		}
-	}
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* << <
-primxp
-_$$primxpconf:noboolean$$_
-
-/**
- * An ArrayCollection of primitives with the constraint that no two elements are duplicates and that
- * the collection is always sorted (ascending).<br>
- ⎋a/
-public static class Sorted_$$Primitive$$_ArraySet
-extends _$$Primitive$$_ArrayCollection
-{
-	public Sorted_$$Primitive$$_ArraySet()
-	{
-		this(16);
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSize_$$Prim$$_(int newSize, _$$prim$$_ elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insert_$$Prim$$_(int index, _$$prim$$_ value)
+		{
+			throw new UnsupportedOperationException();
+		}
 	}
 	
-	public Sorted_$$Primitive$$_ArraySet(int initialCapacity)
+	
+	@WritableValue
+	@FixedLengthValue
+	public static _$$Primitive$$_List _$$prim$$_BufferAsList(@LiveValue @WritableValue _$$Prim$$_Buffer buffer, int offset, int length)
 	{
-		super(initialCapacity);
+		return new FixedLengthBufferWrapper_$$Primitive$$_List(buffer, offset, length);
 	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static _$$Primitive$$_List _$$prim$$_BufferAsList(@LiveValue @WritableValue _$$Prim$$_Buffer buffer)
+	{
+		return new FixedLengthBufferWrapper_$$Primitive$$_List(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static _$$Primitive$$_List _$$prim$$_BufferAsList(@LiveValue @WritableValue Slice<_$$Prim$$_Buffer> bufferSlice)
+	{
+		return _$$prim$$_BufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	 */
+	
 	
 	/**
- * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
- * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
- * @param capacityIncrement This can be anything (aside from NaN and ∞) the only downside is performance; all methods will add at least the minimum amount required regardless of capacityIncrement
-	 ⎋a/
-	public Sorted_$$Primitive$$_ArraySet(int initialCapacity, float capacityIncrement)
+	 * A writable, but fixed-length live view/wrapper of a {@link ByteBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link ByteBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperByteList
+	 */
+	public static class FixedLengthBufferWrapperByteList
+	implements ByteList, TransparentContiguousArrayBackedCollection<ByteBuffer>, KnowsLengthFixedness, RandomAccess
 	{
-		super(initialCapacity, capacityIncrement);
-	}
-	
-	
-	
-	
-	
-	public static Sorted_$$Primitive$$_ArraySet newByPresortedLiveBackingUNSAFE(@LiveValue _$$prim$$_[] backing, int size)
-	{
-		Sorted_$$Primitive$$_ArraySet set = new Sorted_$$Primitive$$_ArraySet(0);
-		set.data = backing;
-		set.size = size;
-		return set;
-	}
-	
-	
-	public static Sorted_$$Primitive$$_ArraySet newForRange(int inclusiveLowBound, int size)
-	{
-		_$$prim$$_[] d = new _$$prim$$_[size];
+		protected final ByteBuffer underlying;
 		
-		for (int i = 0; i < size; i++)
-			d[i] = (_$$prim$$_)(i + inclusiveLowBound);
-		
-		return newByPresortedLiveBackingUNSAFE(d, size);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//The super implementations of addAll() will only delegate to either add_$$Prim$$_() or to this!   So these are the only two we need to override to cause Set behavior! :3
-
-	
-	@Override
-	public boolean addAll_$$Prim$$_s(_$$prim$$_[] elements, int offset, int length)
-	{
-		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
-		
-		return _$$Primitive$$_Collection.defaultAddAll_$$Prim$$_s(this, elements, offset, length);
-	}
-	
-	@Override
-	public boolean add_$$Prim$$_(_$$prim$$_ value)
-	{
-		int insertionPoint = SortingUtilities.findInsertionPointInSet(data, 0, size, value);
-		
-		if (insertionPoint < 0)
-			//Duplicate
-			return false;
-		
-		if (data.length < size+1)
+		public FixedLengthBufferWrapperByteList(@SnapshotValue @LiveValue ByteBuffer underlying, int offset, int length)
 		{
-			_$$prim$$_[] newdata = new _$$prim$$_[getNewCapacity(size+1)];
-			System.arraycopy(data, 0, newdata, 0, insertionPoint);
-			newdata[insertionPoint] = value;
-			System.arraycopy(data, insertionPoint, newdata, insertionPoint+1, size-insertionPoint);
-			this.data = newdata;
-		}
-		else
-		{
-			System.arraycopy(data, insertionPoint, data, insertionPoint+1, size-insertionPoint);
-			data[insertionPoint] = value;
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
 		}
 		
-		size++;
-		
-		return true;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	@Override
-	public _$$prim$$_ remove_$$Prim$$_ByIndex(int index)
-	{
-		return super.remove_$$Prim$$_ByIndex(index);
-	}
-	
-	/**
- * Remove all elements in the range (exclusive, like String).<br>
- * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size of the block removed to 'fill the void'.<br>
-	 ⎋a/
-	@Override
-	public void removeRange(int start, int end)
-	{
-		super.removeRange(start, end);
-	}
-	
-	
-	@Override
-	public void clear()
-	{
-		super.clear();
-	}
-	
-	@Override
-	public void trimToSize()
-	{
-		super.trimToSize();
-	}
-	
-	@Override
-	public _$$prim$$_ get_$$Prim$$_(int index)
-	{
-		return super.get_$$Prim$$_(index);
-	}
-	
-	@Override
-	public _$$prim$$_[] getAll_$$Prim$$_s(int start, int end)
-	{
-		return super.getAll_$$Prim$$_s(start, end);
-	}
-	
-	@Override
-	public void getAll_$$Prim$$_s(int start, _$$prim$$_[] array, int offset, int length)
-	{
-		super.getAll_$$Prim$$_s(start, array, offset, length);
-	}
-	
-	@Override
-	public int getCapacity()
-	{
-		return super.getCapacity();
-	}
-	
-	@Override
-	public boolean isEmpty()
-	{
-		return super.isEmpty();
-	}
-	
-	@Override
-	public int indexOf_$$Prim$$_(_$$prim$$_ value)
-	{
-		//Better algorithm, no difference in API
-		return SortingUtilities.findIndexForValueInSortedSet(data, 0, size, value);
-	}
-	
-	@Override
-	public boolean contains_$$Prim$$_(_$$prim$$_ value)
-	{
-		return super.contains_$$Prim$$_(value);
-	}
-	
-	
-	@Override
-	public _$$prim$$_[] to_$$Prim$$_Array()
-	{
-		return getAll_$$Prim$$_s(0, size);
-	}
-	
-	/**
- * This is a synonym to {@link #to_$$Prim$$_Array()} which should probably be used in preference to {@link #to_$$Prim$$_Array()} if your code relies on its sorted-ness, at least for clarity :>
- * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
-	 ⎋a/
-	@ThrowAwayValue
-	public _$$prim$$_[] toSorted_$$Prim$$_Array()
-	{
-		return getAll_$$Prim$$_s(0, size);
-	}
-	
-	
-	
-	
-	
-	@Override
-	public Sorted_$$Primitive$$_ArraySet clone()
-	{
-		Sorted_$$Primitive$$_ArraySet clone = new Sorted_$$Primitive$$_ArraySet();
-		setupClone(clone);
-		return clone;
-	}
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*  Old way with ArrayCollection that was basically an array list, but didn't implement List (eg, for Sets or just bare Collections and etc.)   (and thus duplicated a bunch of code with the List defaults! X'D)      Especially unnecessary given in Java any List can easily function as a Collection! XD
-
-
-
-/**
- * This is a utility base class.  All the methods here are protected, the subclass will utilize what it wants, and not publish the rest.<br>
- * @author RProgrammer
- ⎋a/
-public static class _$$Primitive$$_ArrayCollection
-implements DefaultToArrays_$$Primitive$$_Collection, Trimmable, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>
-{
-	protected int size;
-	protected _$$prim$$_[] data;
-	protected float capacityIncrement;
-	
-	protected _$$Primitive$$_ArrayCollection()
-	{
-		this(16);
-	}
-	
-	protected _$$Primitive$$_ArrayCollection(int initialCapacity)
-	{
-		size = 0;
-		data = initialCapacity == 0 ? ArrayUtilities.Empty_$$Prim$$_Array : new _$$prim$$_[initialCapacity];
-		capacityIncrement = 0.10f; //10%
-	}
-	
-	/**
- * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
- * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
- * @param capacityIncrement This can be anything (aside from NaN and ∞) the only downside is performance; all methods will add at least the minimum amount required regardless of capacityIncrement
- 	 ⎋a/
-	protected _$$Primitive$$_ArrayCollection(int initialCapacity, float capacityIncrement)
-	{
-		size = 0;
-		data = initialCapacity == 0 ? ArrayUtilities.Empty_$$Prim$$_Array : new _$$prim$$_[initialCapacity];
-		this.capacityIncrement = capacityIncrement;
-	}
-	
-	protected _$$Primitive$$_ArrayCollection(Void thisiswhyyoushouldntusejavaconstructorsAlthoughIdontknowhowtomakeinheritanceworkwellwithoutinitmethodsorfactoriesorsomething)
-	{
-	}
-	
-	
-	
-	
-	
-	
-	@IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser
-	public boolean add_$$Prim$$_(_$$prim$$_ v)
-	{
-		ensureCapacity(size+1);
-		data[size] = v;
-		size++;
-		return true;
-	}
-	
-	@Override
-	public boolean addAll_$$Prim$$_s(_$$prim$$_[] array, int offset, int length)
-	{
-		ensureCapacity(size+length);
-		System.arraycopy(array, offset, data, size, length);
-		size += length;
-		return true;
-	}
-	
-	@Override
-	public boolean addAll(Collection<? extends _$$Primitive$$_> c)
-	{
-		if (TransparentContiguousArrayBackedCollection.is(c))
+		public FixedLengthBufferWrapperByteList(@SnapshotValue @LiveValue ByteBuffer underlying)
 		{
-			Slice<?> u = ((TransparentContiguousArrayBackedCollection<?>)c).getLiveContiguousArrayBackingUNSAFE();
-			
-			if (u.getUnderlying() instanceof _$$prim$$_[])
-			{
-				return this.addAll_$$Prim$$_s((Slice<_$$prim$$_[]>)u);
-			}
+			this.underlying = sliceNonmodifying(underlying);
 		}
 		
-		//else else
+		public FixedLengthBufferWrapperByteList(@SnapshotValue @LiveValue Slice<ByteBuffer> underlying)
 		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.addAll(c);
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
 		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	protected void setupClone(_$$Primitive$$_ArrayCollection freshClone)
-	{
-		freshClone.size = this.size;
 		
-		freshClone.capacityIncrement = this.capacityIncrement;
+		@Override
+		public ByteList clone()
+		{
+			return new FixedLengthArrayWrapperByteList(toByteArray());
+		}
 		
-		freshClone.data = new _$$prim$$_[size];
-		System.arraycopy(this.data, 0, freshClone.data, 0, size);
-	}
-
-
-
-
-
-	@IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser
-	@Override
-	public void clear()
-	{
-		size = 0;
-	}
-	
-	@ImplementationTransparency
-	public void trimToSize()
-	{
-		_$$prim$$_[] newdata = new _$$prim$$_[size];
-		System.arraycopy(data, 0, newdata, 0, size);
-		this.data = newdata;
-	}
-	
-	
-	@IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser
-	@Override
-	public int size()
-	{
-		return size;
-	}
-	
-	
-	
-	@ImplementationTransparency
-	@LiveValue
-	public Slice<_$$prim$$_[]> getLiveContiguousArrayBackingUNSAFE()
-	{
-		return new Slice(data, 0, size);
-	}
-	
-	@ThrowAwayValue
-	@Override
-	public _$$prim$$_[] to_$$Prim$$_Array()
-	{
-		return getAll_$$Prim$$_s(0, size);
-	}
-	
-	@Override
-	public boolean contains_$$Prim$$_(_$$prim$$_ value)
-	{
-		return indexOf_$$Prim$$_(value) != -1;
-	}
-	
-	
-	
-	@Override
-	public Simple_$$Primitive$$_Iterator newSimple_$$Primitive$$_Iterator()
-	{
-		return new Simple_$$Primitive$$_Iterator()
-		{
-			int index = 0;
-			
-			public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
-			{
-				int i = index;
-				
-				if (i >= size)
-				{
-					throw StopIterationReturnPath.I;
-				}
-				else
-				{
-					index = i + 1;
-					return data[i];
-				}
-			}
-		};
-	}
-	
-	
-	
-	
-	@Override
-	public Iterator<_$$Primitive$$_> iterator()
-	{
-		return new Iterator<_$$Primitive$$_>()
-		{
-			int index = 0;
-			
-			@Override
-			public boolean hasNext()
-			{
-				return index < size;
-			}
-			
-			@Override
-			public _$$Primitive$$_ next()
-			{
-				int i = index;
-				
-				if (i >= size)
-				{
-					throw new NoSuchElementException();
-				}
-				else
-				{
-					index = i + 1;
-					return data[i];
-				}
-			}
-		};
-	}
-	
-	
-	
-	@Override
-	public void storeBoxingIntoArray(Slice<Object[]> array)
-	{
-		int n = this.size();
-		for (int i = 0; i < n; i++)
-			ArrayUtilities.set_$$Prim$$_((Slice)array, i, this.get_$$Prim$$_(i));
-	}
-	
-	
-	@Override
-	public boolean remove_$$Prim$$_(_$$prim$$_ value)
-	{
-		int i = this.indexOf_$$Prim$$_(value);
 		
-		if (i != -1)
+		
+		@Override
+		public byte[] toByteArray()
 		{
-			this.remove_$$Prim$$_ByIndex(i);
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public byte[] toByteArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<byte[]> toByteArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<ByteBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
 			return true;
 		}
-		else
+		
+		
+		
+		@Override
+		public ByteList subList(int fromIndex, int toIndex)
 		{
-			return false;
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperByteList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public byte getByte(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setByte(int index, byte value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeByte(int newSize, byte elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertByte(int index, byte value)
+		{
+			throw new UnsupportedOperationException();
 		}
 	}
 	
 	
-	
-	
-	@Override
-	public boolean removeAll(Collection<?> c)
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList byteBufferAsList(@LiveValue @WritableValue ByteBuffer buffer, int offset, int length)
 	{
-		if (c instanceof _$$Primitive$$_Collection)
-		{
-			_$$Primitive$$_Collection cc = (_$$Primitive$$_Collection) c;
-			
-			boolean changedAtAll = false;
-			
-			for (int i = size() - 1; i >= 0; i--)
-			{
-				if (cc.contains_$$Prim$$_(data[i]))
-				{
-					remove_$$Prim$$_ByIndex(i);
-					changedAtAll = true;
-				}
-			}
-			
-			return changedAtAll;
-		}
-		else
-		{
-			boolean changedAtAll = false;
-			
-			for (int i = size() - 1; i >= 0; i--)
-			{
-				if (c.contains(data[i]))
-				{
-					remove_$$Prim$$_ByIndex(i);
-					changedAtAll = true;
-				}
-			}
-			
-			return changedAtAll;
-		}
+		return new FixedLengthBufferWrapperByteList(buffer, offset, length);
 	}
 	
-	
-	@Override
-	public boolean retainAll(Collection<?> c)
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList byteBufferAsList(@LiveValue @WritableValue ByteBuffer buffer)
 	{
-		if (c instanceof _$$Primitive$$_Collection)
-		{
-			_$$Primitive$$_Collection cc = (_$$Primitive$$_Collection) c;
-			
-			boolean changedAtAll = false;
-			
-			for (int i = size() - 1; i >= 0; i--)
-			{
-				if (!cc.contains_$$Prim$$_(data[i]))
-				{
-					remove_$$Prim$$_ByIndex(i);
-					changedAtAll = true;
-				}
-			}
-			
-			return changedAtAll;
-		}
-		else
-		{
-			boolean changedAtAll = false;
-			
-			for (int i = size() - 1; i >= 0; i--)
-			{
-				if (!c.contains(data[i]))
-				{
-					remove_$$Prim$$_ByIndex(i);
-					changedAtAll = true;
-				}
-			}
-			
-			return changedAtAll;
-		}
+		return new FixedLengthBufferWrapperByteList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList byteBufferAsList(@LiveValue @WritableValue Slice<ByteBuffer> bufferSlice)
+	{
+		return byteBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
 	}
 	
 	
@@ -30460,487 +36055,1001 @@ implements DefaultToArrays_$$Primitive$$_Collection, Trimmable, TransparentConti
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//List-like things that aren't exposed publicly except in actual List impl.s, but might be useful at least for internal workings even for non-List impl.s  :D
-	
-	protected int indexOf_$$Prim$$_(_$$prim$$_ value)
-	{
-		for (int i = 0; i < size; i++)
-			if (eqSane(data[i], value))
-				return i;
-		return -1;
-	}
-	
-	protected int lastIndexOf_$$Prim$$_(_$$prim$$_ value)
-	{
-		int i = size-1;
-		while (i >= 0)
-		{
-			if (eqSane(data[i], value))
-				return i;
-			break;
-		}
-		return i;   // ;D
-	}
-	
-	
-	@IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser
-	protected void insert_$$Prim$$_(int index, _$$prim$$_ v)
-	{
-		rangeCheckCursorPoint(this.size, index);
-		
-		if (index != size)
-		{
-			ensureCapacity(size+1);  //Todo more efficient expansion that minimizes the number of copies? ^^'
-			System.arraycopy(data, index, data, index+1, size-index);
-		}
-		else
-		{
-			ensureCapacity(size+1);  //Todo more efficient expansion that minimizes the number of copies? ^^'
-		}
-		
-		data[index] = v;
-		size++;
-	}
-	
-	protected void insertAll_$$Prim$$_s(int index, _$$prim$$_[] array, int offset, int length)
-	{
-		rangeCheckCursorPoint(this.size, index);
-		
-		if (index != size)
-		{
-			ensureCapacity(size+length);  //Todo more efficient expansion that minimizes the number of copies? ^^'
-			System.arraycopy(data, index, data, index+length, size-index);
-		}
-		else
-		{
-			ensureCapacity(size+length);  //Todo more efficient expansion that minimizes the number of copies? ^^'
-		}
-		
-		System.arraycopy(array, offset, data, index, length);
-		size += length;
-	}
-	
-	protected void set_$$Prim$$_(int index, _$$prim$$_ value)
-	{
-		rangeCheckMember(this.size, index);
-		data[index] = value;
-	}
-	
-	protected void setAll_$$Prim$$_s(int index, _$$prim$$_[] array)
-	{
-		setAll_$$Prim$$_s(index, array, 0, array.length);
-	}
-	
-	protected void setAll_$$Prim$$_s(int index, _$$prim$$_[] array, int offset, int length)
-	{
-		rangeCheckIntervalByLength(this.size(), index, length);
-		rangeCheckIntervalByLength(array.length, offset, length);
-		
-		System.arraycopy(array, offset, data, index, length);
-	}
-	
-	protected void setSize_$$Prim$$_(int newSize, _$$prim$$_ elementToAddIfGrowing)
-	{
-		if (newSize < 0)
-			throw new IllegalArgumentException("Negative size!: "+newSize);
-		
-		int oldSize = this.size;
-		
-		if (newSize == oldSize)
-			return;
-		
-		if (newSize > data.length)
-			ensureCapacity(newSize);
-		
-		size = newSize;
-		
-		if (newSize > oldSize)
-		{
-			for (int i = oldSize; i < newSize; i++)
-				this.data[i] = elementToAddIfGrowing;
-		}
-	}
-	
-	/**
- * @return The removed element
- 	 ⎋a/
-	protected _$$prim$$_ remove_$$Prim$$_ByIndex(int index)
-	{
-		rangeCheckMember(this.size(), index);
-		
-		_$$prim$$_ value = get_$$Prim$$_(index);
-		if (index+1 != size)
-			System.arraycopy(data, index+1, data, index, size-(index+1));
-		size--;
-		return value;
-	}
-	
-	/**
- * Remove all elements in the range (exclusive, like String).<br>
- * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size of the block removed to 'fill the void'.<br>
- 	 ⎋a/
-	protected void removeRange(int start, int end)  //This doesn't have a _$$Prim$$_ in it because neither the method signature nor semantics depends on the type! :D
-	{
-		rangeCheckInterval(this.size, start, end);
-		
-		if (start == end)
-			return;
-		if (end != size)
-			System.arraycopy(data, end, data, start, size-end);
-		size -= end - start;
-	}
-	
-	
-	protected _$$prim$$_ get_$$Prim$$_(int index)
-	{
-		rangeCheckMember(this.size(), index);
-		return data[index];
-	}
-	
-	@ThrowAwayValue
-	protected _$$prim$$_[] getAll_$$Prim$$_s(int start, int end)
-	{
-		rangeCheckInterval(this.size, start, end);
-		
-		_$$prim$$_[] buff = new _$$prim$$_[end-start];
-		System.arraycopy(data, start, buff, 0, end-start);
-		return buff;
-	}
-	
-	/**
- * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
- 	 ⎋a/
-	protected void getAll_$$Prim$$_s(int start, _$$prim$$_[] array, int offset, int length)
-	{
-		rangeCheckInterval(this.size, start, start+length);
-		
-		System.arraycopy(data, start, array, offset, length);
-	}
-	
-	protected int getCapacity()
-	{
-		return data.length;
-	}
-	
-	
-	
-	
-	
-	protected void ensureCapacity(int minCapacity)
-	{
-		if (data.length < minCapacity)
-		{
-			//Enlarge
-			int newCapacity = getNewCapacity(minCapacity);
-			_$$prim$$_[] newData = new _$$prim$$_[newCapacity];
-			System.arraycopy(data, 0, newData, 0, data.length);
-			this.data = newData;
-		}
-	}
 	
 	
 	/**
- * Applies capacity increment rules to an enlargement in capacity.
- * This is also guaranteed not to return a capacity smaller than the provided minimum.
- 	 ⎋a/
-	protected int getNewCapacity(int minCapacity)
+	 * A writable, but fixed-length live view/wrapper of a {@link CharBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link CharBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperCharacterList
+	 */
+	public static class FixedLengthBufferWrapperCharacterList
+	implements CharacterList, TransparentContiguousArrayBackedCollection<CharBuffer>, KnowsLengthFixedness, RandomAccess
 	{
-		return Math.max(minCapacity, data.length + (int)(data.length*capacityIncrement)); //Math.max ensures that the capacity increment can't break anything
+		protected final CharBuffer underlying;
+		
+		public FixedLengthBufferWrapperCharacterList(@SnapshotValue @LiveValue CharBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperCharacterList(@SnapshotValue @LiveValue CharBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperCharacterList(@SnapshotValue @LiveValue Slice<CharBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public CharacterList clone()
+		{
+			return new FixedLengthArrayWrapperCharacterList(toCharArray());
+		}
+		
+		
+		
+		@Override
+		public char[] toCharArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public char[] toCharArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<char[]> toCharArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<CharBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public CharacterList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperCharacterList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public char getChar(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setChar(int index, char value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeChar(int newSize, char elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertChar(int index, char value)
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static CharacterList charBufferAsList(@LiveValue @WritableValue CharBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperCharacterList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static CharacterList charBufferAsList(@LiveValue @WritableValue CharBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperCharacterList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static CharacterList charBufferAsList(@LiveValue @WritableValue Slice<CharBuffer> bufferSlice)
+	{
+		return charBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
 	}
 	
 	
 	
 	
 	
-	@Override
-	public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
+	
+	
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link ShortBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link ShortBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperShortList
+	 */
+	public static class FixedLengthBufferWrapperShortList
+	implements ShortList, TransparentContiguousArrayBackedCollection<ShortBuffer>, KnowsLengthFixedness, RandomAccess
 	{
-		this.trimToSize();
-		return TrimmableTrimRV.DontKeepInvoking;
+		protected final ShortBuffer underlying;
+		
+		public FixedLengthBufferWrapperShortList(@SnapshotValue @LiveValue ShortBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperShortList(@SnapshotValue @LiveValue ShortBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperShortList(@SnapshotValue @LiveValue Slice<ShortBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public ShortList clone()
+		{
+			return new FixedLengthArrayWrapperShortList(toShortArray());
+		}
+		
+		
+		
+		@Override
+		public short[] toShortArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public short[] toShortArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<short[]> toShortArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<ShortBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public ShortList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperShortList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public short getShort(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setShort(int index, short value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeShort(int newSize, short elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertShort(int index, short value)
+		{
+			throw new UnsupportedOperationException();
+		}
 	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static ShortList shortBufferAsList(@LiveValue @WritableValue ShortBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperShortList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static ShortList shortBufferAsList(@LiveValue @WritableValue ShortBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperShortList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static ShortList shortBufferAsList(@LiveValue @WritableValue Slice<ShortBuffer> bufferSlice)
+	{
+		return shortBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link FloatBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link FloatBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperFloatList
+	 */
+	public static class FixedLengthBufferWrapperFloatList
+	implements FloatList, TransparentContiguousArrayBackedCollection<FloatBuffer>, KnowsLengthFixedness, RandomAccess
+	{
+		protected final FloatBuffer underlying;
+		
+		public FixedLengthBufferWrapperFloatList(@SnapshotValue @LiveValue FloatBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperFloatList(@SnapshotValue @LiveValue FloatBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperFloatList(@SnapshotValue @LiveValue Slice<FloatBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public FloatList clone()
+		{
+			return new FixedLengthArrayWrapperFloatList(toFloatArray());
+		}
+		
+		
+		
+		@Override
+		public float[] toFloatArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public float[] toFloatArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<float[]> toFloatArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<FloatBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public FloatList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperFloatList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public float getFloat(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setFloat(int index, float value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeFloat(int newSize, float elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertFloat(int index, float value)
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static FloatList floatBufferAsList(@LiveValue @WritableValue FloatBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperFloatList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static FloatList floatBufferAsList(@LiveValue @WritableValue FloatBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperFloatList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static FloatList floatBufferAsList(@LiveValue @WritableValue Slice<FloatBuffer> bufferSlice)
+	{
+		return floatBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link IntBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link IntBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperIntegerList
+	 */
+	public static class FixedLengthBufferWrapperIntegerList
+	implements IntegerList, TransparentContiguousArrayBackedCollection<IntBuffer>, KnowsLengthFixedness, RandomAccess
+	{
+		protected final IntBuffer underlying;
+		
+		public FixedLengthBufferWrapperIntegerList(@SnapshotValue @LiveValue IntBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperIntegerList(@SnapshotValue @LiveValue IntBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperIntegerList(@SnapshotValue @LiveValue Slice<IntBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public IntegerList clone()
+		{
+			return new FixedLengthArrayWrapperIntegerList(toIntArray());
+		}
+		
+		
+		
+		@Override
+		public int[] toIntArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public int[] toIntArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<int[]> toIntArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<IntBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public IntegerList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperIntegerList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public int getInt(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setInt(int index, int value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeInt(int newSize, int elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertInt(int index, int value)
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static IntegerList intBufferAsList(@LiveValue @WritableValue IntBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperIntegerList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static IntegerList intBufferAsList(@LiveValue @WritableValue IntBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperIntegerList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static IntegerList intBufferAsList(@LiveValue @WritableValue Slice<IntBuffer> bufferSlice)
+	{
+		return intBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link DoubleBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link DoubleBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperDoubleList
+	 */
+	public static class FixedLengthBufferWrapperDoubleList
+	implements DoubleList, TransparentContiguousArrayBackedCollection<DoubleBuffer>, KnowsLengthFixedness, RandomAccess
+	{
+		protected final DoubleBuffer underlying;
+		
+		public FixedLengthBufferWrapperDoubleList(@SnapshotValue @LiveValue DoubleBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperDoubleList(@SnapshotValue @LiveValue DoubleBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperDoubleList(@SnapshotValue @LiveValue Slice<DoubleBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public DoubleList clone()
+		{
+			return new FixedLengthArrayWrapperDoubleList(toDoubleArray());
+		}
+		
+		
+		
+		@Override
+		public double[] toDoubleArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public double[] toDoubleArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<double[]> toDoubleArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<DoubleBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public DoubleList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperDoubleList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public double getDouble(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setDouble(int index, double value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeDouble(int newSize, double elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertDouble(int index, double value)
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static DoubleList doubleBufferAsList(@LiveValue @WritableValue DoubleBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperDoubleList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static DoubleList doubleBufferAsList(@LiveValue @WritableValue DoubleBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperDoubleList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static DoubleList doubleBufferAsList(@LiveValue @WritableValue Slice<DoubleBuffer> bufferSlice)
+	{
+		return doubleBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * A writable, but fixed-length live view/wrapper of a {@link LongBuffer}!  :D
+	 * 
+	 * The contents of the {@link Buffer} provided to our constructor will be used, but its {@link Buffer#position() position()} / {@link Buffer#limit() limit()} will be snapshotted.
+	 * Ie, a {@link LongBuffer#slice() slice()} is (at least conceptually) performed :>
+	 * @see FixedLengthArrayWrapperLongList
+	 */
+	public static class FixedLengthBufferWrapperLongList
+	implements LongList, TransparentContiguousArrayBackedCollection<LongBuffer>, KnowsLengthFixedness, RandomAccess
+	{
+		protected final LongBuffer underlying;
+		
+		public FixedLengthBufferWrapperLongList(@SnapshotValue @LiveValue LongBuffer underlying, int offset, int length)
+		{
+			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
+			this.underlying = sliceNonmodifying(underlying, offset, length);
+		}
+		
+		public FixedLengthBufferWrapperLongList(@SnapshotValue @LiveValue LongBuffer underlying)
+		{
+			this.underlying = sliceNonmodifying(underlying);
+		}
+		
+		public FixedLengthBufferWrapperLongList(@SnapshotValue @LiveValue Slice<LongBuffer> underlying)
+		{
+			this(underlying.getUnderlying(), underlying.getOffset(), underlying.getLength());
+		}
+		
+		@Override
+		public LongList clone()
+		{
+			return new FixedLengthArrayWrapperLongList(toLongArray());
+		}
+		
+		
+		
+		@Override
+		public long[] toLongArray()
+		{
+			return NIOBufferUtilities.copyToNewArray(underlying);
+		}
+		
+		@Override
+		public long[] toLongArrayPossiblyLive()
+		{
+			return NIOBufferUtilities.getArray(underlying);
+		}
+		
+		@Override
+		public Slice<long[]> toLongArraySlicePossiblyLive()
+		{
+			return NIOBufferUtilities.getUnderlyingArrayOrCopyIfDirect(underlying);
+		}
+		
+		@Override
+		public Slice<LongBuffer> getLiveContiguousArrayBackingUNSAFE()
+		{
+			return new Slice(underlying, 0, this.size());
+		}
+		
+		
+		
+		
+		@Override
+		public int size()
+		{
+			return underlying.remaining();
+		}
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		
+		
+		@Override
+		public LongList subList(int fromIndex, int toIndex)
+		{
+			rangeCheckInterval(this.size(), fromIndex, toIndex);
+			return new FixedLengthBufferWrapperLongList(this.underlying, fromIndex, toIndex-fromIndex);
+		}
+		
+		@Override
+		public long getLong(int index)
+		{
+			return underlying.get(index);  //doesn't alter position() :>
+		}
+		
+		@Override
+		public void setLong(int index, long value)
+		{
+			underlying.put(index, value);  //doesn't alter position() :>
+		}
+		
+		
+		
+		
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		
+		
+		
+		//Disallowed length-altering methods!
+		@Override
+		public void clear()
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void setSizeLong(int newSize, long elementToAddIfGrowing)
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void removeRange(int start, int pastEnd) throws IndexOutOfBoundsException
+		{
+			throw new UnsupportedOperationException();
+		}
+		
+		@Override
+		public void insertLong(int index, long value)
+		{
+			throw new UnsupportedOperationException();
+		}
+	}
+	
+	
+	@WritableValue
+	@FixedLengthValue
+	public static LongList longBufferAsList(@LiveValue @WritableValue LongBuffer buffer, int offset, int length)
+	{
+		return new FixedLengthBufferWrapperLongList(buffer, offset, length);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static LongList longBufferAsList(@LiveValue @WritableValue LongBuffer buffer)
+	{
+		return new FixedLengthBufferWrapperLongList(buffer);
+	}
+	
+	@WritableValue
+	@FixedLengthValue
+	public static LongList longBufferAsList(@LiveValue @WritableValue Slice<LongBuffer> bufferSlice)
+	{
+		return longBufferAsList(bufferSlice.getUnderlying(), bufferSlice.getOffset(), bufferSlice.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	// >>>
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-public static class _$$Primitive$$_ArrayList
-extends _$$Primitive$$_ArrayCollection
-implements _$$Primitive$$_List
-{
-	public _$$Primitive$$_ArrayList()
-	{
-		this(16);
-	}
-	
-	public _$$Primitive$$_ArrayList(int initialCapacity)
-	{
-		super(initialCapacity);
-	}
-	
-	/**
- * Capacity increment is different from Vector's.  It is the percentage of the capacity by which the capacity is increased.
- * The formula being: <code>newCapacity = capacity + (capacity * capacityIncrement)</code><br>
- * @param capacityIncrement This can be anything (aside from NaN and ∞) the only downside is performance; all methods will add at least the minimum amount required regardless of capacityIncrement
-	 ⎋a/
-	public _$$Primitive$$_ArrayList(int initialCapacity, float capacityIncrement)
-	{
-		super(initialCapacity, capacityIncrement);
-	}
-	
-	
-	
-	
-	
-	
-	@Override
-	public void setAll_$$Prim$$_s(int index, _$$prim$$_[] array, int offset, int length)
-	{
-		super.setAll_$$Prim$$_s(index, array, offset, length);
-	}
-	
-	@Override
-	public void setAll(int destIndex, List source, int sourceIndex, int amount) throws IndexOutOfBoundsException
-	{
-		if (TransparentContiguousArrayBackedCollection.is(source))
-		{
-			Slice<?> u = ((TransparentContiguousArrayBackedCollection<?>)source).getLiveContiguousArrayBackingUNSAFE();
-			
-			if (u.getUnderlying() instanceof _$$prim$$_[])
-			{
-				rangeCheckIntervalByLength(source.size(), sourceIndex, amount);
-				rangeCheckIntervalByLength(this.size(), destIndex, amount);
-				FixedLengthArrayWrapper_$$Primitive$$_MutableList
-				this.setAll_$$Prim$$_s(destIndex, (Slice<_$$prim$$_[]>)u);
-				return;
-			}
-		}
-		
-		_$$Primitive$$_List.super.setAll(destIndex, source, sourceIndex, amount);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	@Override
-	public void insertAll_$$Prim$$_s(int index, _$$prim$$_[] array, int offset, int length)
-	{
-		super.insertAll_$$Prim$$_s(index, array, offset, length);
-	}
-	
-	
-	
-	
-	
-	
-	
-	@Override
-	public int indexOf_$$Prim$$_(_$$prim$$_ value)
-	{
-		return super.indexOf_$$Prim$$_(value);  //equivalent but takes less JITting than the superinterface's default, so perhaps slightly better? ^^'
-	}
-	
-	@Override
-	public int lastIndexOf_$$Prim$$_(_$$prim$$_ value)
-	{
-		return super.lastIndexOf_$$Prim$$_(value);  //equivalent but takes less JITting than the superinterface's default, so perhaps slightly better? ^^'
-	}
-	
-	@Override
-	public Simple_$$Primitive$$_Iterator newSimple_$$Primitive$$_Iterator()
-	{
-		return super.newSimple_$$Primitive$$_Iterator();  //equivalent but takes less JITting than the superinterface's default, so perhaps slightly better? ^^'
-	}
-	
-	
-	@Override
-	public void insert_$$Prim$$_(int index, _$$prim$$_ v)
-	{
-		super.insert_$$Prim$$_(index, v);
-	}
-	
-	
-	@Override
-	public void set_$$Prim$$_(int index, _$$prim$$_ value)
-	{
-		super.set_$$Prim$$_(index, value);
-	}
-	
-	@Override
-	public void setAll_$$Prim$$_s(int index, _$$prim$$_[] array)
-	{
-		super.setAll_$$Prim$$_s(index, array);
-	}
-	
-	@Override
-	public void setSize_$$Prim$$_(int newSize, _$$prim$$_ elementToAddIfGrowing)
-	{
-		super.setSize_$$Prim$$_(newSize, elementToAddIfGrowing);
-	}
-	
-	
-	/**
- * @return The removed element
-	 ⎋a/
-	@Override
-	public _$$prim$$_ remove_$$Prim$$_ByIndex(int index)
-	{
-		return super.remove_$$Prim$$_ByIndex(index);
-	}
-	
-	/**
- * Remove all elements in the range (exclusive, like String).<br>
- * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size of the block removed to 'fill the void'.<br>
-	 ⎋a/
-	@Override
-	public void removeRange(int start, int pastEnd)
-	{
-		super.removeRange(start, pastEnd);
-	}
-	
-	
-	@Override
-	public _$$prim$$_ get_$$Prim$$_(int index)
-	{
-		return super.get_$$Prim$$_(index);
-	}
-	
-	@Override
-	public _$$prim$$_[] getAll_$$Prim$$_s(int start, int end)
-	{
-		return super.getAll_$$Prim$$_s(start, end);
-	}
-	
-	/**
- * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
-	 ⎋a/
-	@Override
-	public void getAll_$$Prim$$_s(int start, _$$prim$$_[] array, int offset, int length)
-	{
-		super.getAll_$$Prim$$_s(start, array, offset, length);
-	}
-	
-	@Override
-	public int getCapacity()
-	{
-		return super.getCapacity();
-	}
-	
-	
-	/**
- * returns the underlying array that backs the array list.
- * Be careful, though, as updates can cause a new array to be created, obsoleting this one.
- * Note, also, that only up to {@link #size()} elements should be used.
-	 ⎋a/
-	public _$$prim$$_[] getDirectBuffer()
-	{
-		return this.data;
-	}
-	
-	/**
- * sets the underlying array that backs the array list.
- * Be careful, though, as updates can cause a new array to be creates, obsoleting this one.
- * Note, also, that only up to {@link #size()} elements will be used.
-	 ⎋a/
-	public void setDirectBuffer(@LiveValue _$$prim$$_[] array)
-	{
-		if (array.length < size)
-			throw new IllegalArgumentException("Array is too small; size="+size+", capacity="+array.length);
-		
-		this.data = array;
-	}
-	
-	
-	
-	@Override
-	public _$$Primitive$$_ArrayList clone()
-	{
-		_$$Primitive$$_ArrayList clone = new _$$Primitive$$_ArrayList();
-		super.setupClone(clone);
-		return clone;
-	}
-}
- */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-		public default String _toString()
-		{
-			StringBuilder b = new StringBuilder("[");
-			
-			int size = this.size();
-			
-			for (int i = 0; i < size; i++)
-			{
-				b.append(this.get_$$Prim$$_(i));
-				
-				if (i < size-1)
-					b.append(", ");
-			}
-			
-			b.append(']');
-			
-			return b.toString();
-		}
- */

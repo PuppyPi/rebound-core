@@ -156,7 +156,7 @@ extends PubliclyCloneable<I>
 			//It's all intrinsically little-endian because red being first in the pixel format means it comes first in the sequence of bytes that represents each pixel!
 			// ( the endianness can easily be flipped by simply changing the pixel format! ^wwwwwwwwww^ )
 			
-			return (int)Bytes.getLittle(getUnderlyingBackingByteBuffer(), getUnderlyingBackingOffsetInBytes()+byteIndex, bytesPerPixel);
+			return (int)Bytes.getLittleUnsigned(getUnderlyingBackingByteBuffer(), getUnderlyingBackingOffsetInBytes()+byteIndex, bytesPerPixel);
 		}
 		
 		@Override
@@ -326,7 +326,7 @@ extends PubliclyCloneable<I>
 				//It's all intrinsically little-endian because red being first in the pixel format means it comes first in the sequence of bytes that represents each pixel!
 				// ( the endianness can easily be flipped by simply changing the pixel format! ^wwwwwwwwww^ )
 				
-				return (int)Bytes.getLittle(getUnderlyingBackingArrayByte(), getUnderlyingBackingOffsetInBytes()+byteIndex, bytesPerPixel);
+				return (int)Bytes.getLittleUnsigned(getUnderlyingBackingArrayByte(), getUnderlyingBackingOffsetInBytes()+byteIndex, bytesPerPixel);
 			}
 			
 			@Override

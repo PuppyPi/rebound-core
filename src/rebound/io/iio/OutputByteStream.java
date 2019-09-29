@@ -1,5 +1,7 @@
 package rebound.io.iio;
 
+import java.io.Closeable;
+import java.io.Flushable;
 import java.io.IOException;
 
 /**
@@ -7,6 +9,7 @@ import java.io.IOException;
  * @author Puppy Pie ^w^
  */
 public interface OutputByteStream
+extends Flushable, Closeable
 {
 	public void write(int b) throws IOException;
 	

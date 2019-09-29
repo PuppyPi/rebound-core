@@ -24,6 +24,11 @@ package rebound.exceptions;
  * 		}
  * }
  * </code>
+ * 
+ * 
+ * So if you see this in a stacktrace.  You should freak out XD
+ * (Unless someone just threw it to mess with you XD )
+ * 
  * @author RProgrammer
  */
 public class UnreachableCodeException
