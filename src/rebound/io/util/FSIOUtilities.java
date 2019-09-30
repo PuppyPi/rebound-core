@@ -5,6 +5,7 @@ import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +16,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.Reader;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -24,6 +26,11 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import javax.annotation.Nonnull;
+import rebound.annotations.semantic.allowedoperations.FixedLengthValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.SnapshotValue;
+import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
@@ -32,6 +39,7 @@ import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.RandomAccessFileBackedByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 
 public class FSIOUtilities
@@ -150,6 +158,56 @@ public class FSIOUtilities
 		
 		return buffer;
 	}
+	
+	
+	
+	@Nonnull
+	@ThrowAwayValue
+	public static byte[] readSome(File file, long start, int length) throws IOException
+	{
+		try (InputStream in = new FileInputStream(file))
+		{
+			if (start > 0)
+				skipFully(in, start);
+			
+			return JRECompatIOUtilities.readFullyToNew(in, length);
+		}
+	}
+	
+	@Nonnull
+	@SnapshotValue
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList readSomeToList(File file, long start, int length) throws IOException
+	{
+		return byteArrayAsList(readSome(file, start, length));
+	}
+	
+	
+	
+	
+	
+	
+	@Nonnull
+	@SnapshotValue
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList readAllToList(File file) throws IOException
+	{
+		return byteArrayAsList(readAll(file));
+	}
+	
+	@Nonnull
+	@LiveValue
+	@WritableValue
+	public static ByteList fileAsList(File file) throws IOException, UncheckedIOException
+	{
+		return new RandomAccessFileBackedByteList(new RandomAccessFile(file, "rw"));
+	}
+	
+	
+	
+	
 	
 	@Nonnull
 	public static String readAllText(File file, String encoding) throws IOException

@@ -8241,15 +8241,28 @@ _$$primxpconf:intsonly$$_
 	
 	public static <E> void fill(List<? super E> list, E e)
 	{
-		//TODO Provide a trait interface here for PrimitiveLists to implement to avoid boxing! :D
-		//fill(list, 0, list.size(), e);
-		Collections.fill(list, e);
+		fill(list, 0, list.size(), e);
+		//Collections.fill(list, e);
 	}
 	
-	public static <E> void fill(List<? super E> list, int offset, int length, E e)
+	public static <E> void fill(List<? super E> list, int start, int count, E value)
 	{
-		//TODO Provide a trait interface here for PrimitiveLists to implement to avoid boxing! :D
-		Collections.fill(offset == 0 && length == list.size() ? list : list.subList(offset, offset+length), e);
+		if (count != 0)
+		{
+			rangeCheckInterval(list.size(), start, start + count);
+			
+			if (list instanceof ListWithFill)
+			{
+				((ListWithFill)list).fill(start, count, value);
+			}
+			else
+			{
+				if (start == 0 && count == list.size())
+					Collections.fill(list, value);
+				else
+					Collections.fill(list.subList(start, start+count), value);
+			}
+		}
 	}
 	
 	
@@ -8520,7 +8533,7 @@ _$$primxpconf:intsonly$$_
 		
 		if (amount > 0)
 		{
-			//TODO Implementation for !isRandomAccess
+			//TODO Different implementation here for !isRandomAccess
 			
 			int pastEndToAdd = start + amount;
 			
@@ -8576,16 +8589,21 @@ _$$primxpconf:intsonly$$_
 		rangeCheckIntervalByLength(dest.size(), destOffset, amount);
 		
 		
-		if (source instanceof Sublist)
+		//Unwrap sublists! :D
 		{
-			sourceOffset += ((Sublist) source).getSublistStartingIndex();
-			source = ((Sublist) source).getUnderlying();
-		}
-		
-		if (dest instanceof Sublist)
-		{
-			destOffset += ((Sublist) dest).getSublistStartingIndex();
-			dest = ((Sublist) dest).getUnderlying();
+			while (source instanceof Sublist)
+			{
+				Sublist ss = (Sublist) source;
+				sourceOffset += ss.getSublistStartingIndex();
+				source = requireNonNull(ss.getUnderlying());
+			}
+			
+			while (dest instanceof Sublist)
+			{
+				Sublist ds = (Sublist) dest;
+				destOffset += ds.getSublistStartingIndex();
+				dest = requireNonNull(ds.getUnderlying());
+			}
 		}
 		
 		
