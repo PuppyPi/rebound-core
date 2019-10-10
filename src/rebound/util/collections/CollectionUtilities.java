@@ -8327,13 +8327,10 @@ _$$primxpconf:intsonly$$_
 		{
 			for (int xi = 0; xi < wi; xi++)
 			{
-				if (xi != yi)  //optimization :3
-				{
-					int xo = yi;
-					int yo = xi;
-					
-					output.setCellContents(xo, yo, input.getCellContents(xi, yi));
-				}
+				int xo = yi;
+				int yo = xi;
+				
+				output.setCellContents(xo, yo, input.getCellContents(xi, yi));
 			}
 		}
 		
@@ -9006,6 +9003,12 @@ _$$primxpconf:intsonly$$_
 		requireNonNullKeys(map);
 		requireNonNullValues(map);
 		return map;
+	}
+	
+	public static <T extends SimpleTable<?>> T requireNonNullCells(@NonnullElements T table)
+	{
+		table.apply(v -> requireNonNull(v));
+		return table;
 	}
 	
 	

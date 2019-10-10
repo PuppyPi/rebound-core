@@ -13,6 +13,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NonrectangularException;
+import rebound.exceptions.NotSupportedReturnPath;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
@@ -20,7 +21,7 @@ import rebound.util.objectutil.Copyable;
 
 // ^wwwwwwwwwww^
 public interface SimpleTable<E>
-extends Copyable
+extends Copyable, Equivalenceable
 {
 	@Nonnegative
 	public int getNumberOfColumns();
@@ -614,9 +615,20 @@ extends Copyable
 	
 	
 	
+	@Override
+	public default boolean equivalent(Object other) throws NotSupportedReturnPath
+	{
+		return other instanceof SimpleTable ? defaultEquivalent(this, (SimpleTable)other) : false;
+	}
+	
+	@Override
+	public default int hashCodeOfContents()
+	{
+		return defaultHashcodeOfContents(this);
+	}
 	
 	
-	public static boolean defaultEquals(SimpleTable<?> a, SimpleTable<?> b)
+	public static boolean defaultEquivalent(SimpleTable<?> a, SimpleTable<?> b)
 	{
 		int w = a.getNumberOfColumns();
 		int h = a.getNumberOfRows();
@@ -628,7 +640,7 @@ extends Copyable
 	}
 	
 	
-	public static int defaultHashcode(SimpleTable<?> t)
+	public static int defaultHashcodeOfContents(SimpleTable<?> t)
 	{
 		int hashCode = 1;
 		{

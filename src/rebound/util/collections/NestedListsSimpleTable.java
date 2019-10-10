@@ -1,5 +1,6 @@
 package rebound.util.collections;
 
+import static rebound.util.collections.CollectionUtilities.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -198,13 +199,13 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 	@Override
 	public boolean equals(Object obj)
 	{
-		return obj instanceof SimpleTable && SimpleTable.defaultEquals(this, (SimpleTable)obj);
+		return obj instanceof SimpleTable && eqv(this, (SimpleTable)obj);
 	}
 	
 	@Override
 	public int hashCode()
 	{
-		return SimpleTable.defaultHashcode(this);
+		return SimpleTable.defaultHashcodeOfContents(this);
 	}
 	
 	

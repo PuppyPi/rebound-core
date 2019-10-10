@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.nio.Buffer;
 
 /**
- * The native memory WILL be free()'d when the {@link Buffer} becomes garbage collected!
+ * The native memory WILL be free()'d (or the mmapped memory munmap()'d!) when the {@link Buffer} becomes garbage collected!
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -9,6 +9,7 @@ import static java.util.Objects.*;
 import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
+import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
@@ -30,7 +31,9 @@ import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -4438,5 +4441,37 @@ implements JavaNamespace
 	public static boolean eqDirTrees(Map<String, byte[]> a, Map<String, byte[]> b)
 	{
 		return CollectionUtilities.defaultMapsEquivalent(a, b, (byte[] av, byte[] bv) -> Arrays.equals(av, bv));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static MappedByteBuffer mmap(File f, long startInBytes, int sizeInBytes, boolean writeable) throws IOException
+	{
+		return mmap(f.toPath(), startInBytes, sizeInBytes, writeable);
+	}
+	
+	public static MappedByteBuffer mmap(Path p, long startInBytes, int sizeInBytes, boolean writeable) throws IOException
+	{
+		requireNonNegative(sizeInBytes);
+		requireNonNegative(sizeInBytes);
+		
+		/*
+		 * From FileChannel.map():
+		 * 
+		 * <p> A mapping, once established, is not dependent upon the file channel
+		 * that was used to create it.  Closing the channel, in particular, has no
+		 * effect upon the validity of the mapping.
+		 */
+		
+		try (FileChannel c = writeable ? FileChannel.open(p, StandardOpenOption.READ, StandardOpenOption.WRITE) : FileChannel.open(p, StandardOpenOption.READ))
+		{
+			return c.map(writeable ? MapMode.READ_WRITE : MapMode.READ_ONLY, startInBytes, sizeInBytes);
+		}
 	}
 }

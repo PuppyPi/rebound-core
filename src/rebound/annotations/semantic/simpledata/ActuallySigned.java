@@ -11,6 +11,7 @@ import javax.annotation.Signed;
  * Like {@link ActuallyUnsigned} but means signed :>
  * This is really only useful if you provide a non-standard {@link #value() bitlength} XD
  * Eg, for signed 24-bit integers in graphics or audio data! :D
+ * (Wherein it will be sign-extended to whatever number of bits it's actually stored in :3 )
  * 
  * Note: don't rename this Signed or it will conflict with {@link Signed} X'D
  * 

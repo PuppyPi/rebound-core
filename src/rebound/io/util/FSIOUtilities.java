@@ -185,6 +185,24 @@ public class FSIOUtilities
 	
 	
 	
+	@Nonnull
+	@ThrowAwayValue
+	public static byte[] readSome(File file, int length) throws IOException
+	{
+		return readSome(file, 0, length);
+	}
+	
+	@Nonnull
+	@SnapshotValue
+	@WritableValue
+	@FixedLengthValue
+	public static ByteList readSomeToList(File file, int length) throws IOException
+	{
+		return readSomeToList(file, 0, length);
+	}
+	
+	
+	
 	
 	
 	

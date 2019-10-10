@@ -5,6 +5,9 @@ import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.OverflowException;
 
+//TODO TESTTTTTTTTT
+// Especially the @ActuallyUnsigned ones that reinterpret Java primitives *as if they were* signed!!
+
 public class BitfieldSafeCasts
 {
 	/* <<<
@@ -2252,7 +2255,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56$$_
 	
 	/* <<<
 primxp
-_$$primxpconf:uint24,ulong40,ulong48,ulong56,ubyte,ushort,uint,ulong$$_
+_$$primxpconf:uint24,ulong40,ulong48,ulong56,ulong$$_
 	public static @ActuallyUnsigned long safeCast_$$PrimShort$$_toU64(_$$@litprim$$_ input) throws OverflowException
 	{
 		return input;
@@ -2279,24 +2282,29 @@ _$$primxpconf:uint24,ulong40,ulong48,ulong56,ubyte,ushort,uint,ulong$$_
 		return input;
 	}
 	
-	public static @ActuallyUnsigned long safeCastU8toU64(@ActuallyUnsigned byte input) throws OverflowException
-	{
-		return input;
-	}
-	
-	public static @ActuallyUnsigned long safeCastU16toU64(@ActuallyUnsigned short input) throws OverflowException
-	{
-		return input;
-	}
-	
-	public static @ActuallyUnsigned long safeCastU32toU64(@ActuallyUnsigned int input) throws OverflowException
-	{
-		return input;
-	}
-	
 	public static @ActuallyUnsigned long safeCastU64toU64(@ActuallyUnsigned long input) throws OverflowException
 	{
 		return input;
 	}
 	// >>>
+	
+	
+	
+	
+	
+	
+	public static @ActuallyUnsigned long safeCastU8toU64(@ActuallyUnsigned byte input) throws OverflowException
+	{
+		return Unsigned.upcastTo64(input);
+	}
+	
+	public static @ActuallyUnsigned long safeCastU16toU64(@ActuallyUnsigned short input) throws OverflowException
+	{
+		return Unsigned.upcastTo64(input);
+	}
+	
+	public static @ActuallyUnsigned long safeCastU32toU64(@ActuallyUnsigned int input) throws OverflowException
+	{
+		return Unsigned.upcastTo64(input);
+	}
 }
