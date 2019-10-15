@@ -30,7 +30,7 @@ extends Closeable, Flushable
 	
 	public default void write(String str) throws IOException
 	{
-		StringUtilities.defaultWriteStringToUCS4(str, this);
+		StringUtilities.defaultWriteUTF16ToUCS4(str, this);
 	}
 	
 	public default UCS4Writer append(CharSequence csq) throws IOException
@@ -38,7 +38,7 @@ extends Closeable, Flushable
 		if (csq == null)
 			write("null");  //to be compatible with java.io.Writer :3'
 		else
-			StringUtilities.defaultWriteStringToUCS4(csq.toString(), this);
+			StringUtilities.defaultWriteUTF16ToUCS4(csq.toString(), this);
 		
 		return this;
 	}

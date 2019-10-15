@@ -4359,7 +4359,7 @@ implements JavaNamespace
 				int n = rv.size();
 				
 				if (n >= entryCountLimit)
-					throw new WrappedThrowableRuntimeException(new IOException("Number of files ("+n+") exceeded limit ("+entryCountLimit+")"));
+					throw new WrappedThrowableRuntimeException(new IOException("Number of files ("+n+") exceeded limit ("+entryCountLimit+") inside "+repr(d.getAbsolutePath())));
 				
 				String relpath = getRelativePath(f, d);
 				
@@ -4368,7 +4368,7 @@ implements JavaNamespace
 				
 				long l = f.length();
 				if (l > fileSizeLimit)
-					throw new WrappedThrowableRuntimeException(new IOException("File size ("+l+" bytes) exceeded limit ("+fileSizeLimit+" bytes)"));
+					throw new WrappedThrowableRuntimeException(new IOException("File size ("+l+" bytes) exceeded limit ("+fileSizeLimit+" bytes) for "+repr(f.getAbsolutePath())));
 				
 				byte[] c;
 				try

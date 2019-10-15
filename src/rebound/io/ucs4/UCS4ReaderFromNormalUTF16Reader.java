@@ -55,7 +55,7 @@ extends AbstractUCS4Reader
 	
 	
 	@Override
-	public long read() throws IOException
+	public long read() throws IOException, UTF16EncodingException
 	{
 		// UTF-16 decoder!! \:D/
 		
@@ -76,7 +76,7 @@ extends AbstractUCS4Reader
 			
 			if (second == -1)
 				//EOF IN THE MIDDLE!! DECODING ERRORRR!!
-				throw new IOException("UTF-16 Decoding Error!!  High/Leading Surrogate followed by EOF!!");
+				throw new UTF16EncodingException("UTF-16 Decoding Error!!  High/Leading Surrogate followed by EOF!!");
 			
 			
 			
@@ -89,12 +89,12 @@ extends AbstractUCS4Reader
 			}
 			else
 			{
-				throw new IOException("UTF-16 Decoding Error!!  High/Leading Surrogate followed by something other than a Low/Trailing Surrogate!!");
+				throw new UTF16EncodingException("UTF-16 Decoding Error!!  High/Leading Surrogate followed by something other than a Low/Trailing Surrogate!!");
 			}
 		}
 		else if (isLowSurrogate(firstC))
 		{
-			throw new IOException("UTF-16 Decoding Error!!  Low/Trailing Surrogate preceded by BOF or something other than a High/Leading Surrogate!!");
+			throw new UTF16EncodingException("UTF-16 Decoding Error!!  Low/Trailing Surrogate preceded by BOF or something other than a High/Leading Surrogate!!");
 		}
 		else
 		{
@@ -131,6 +131,6 @@ extends AbstractUCS4Reader
 		int lowBits = lowSurrogate & 0b1111111111;
 		int highBits = highSurrogate & 0b1111111111;
 		
-		return lowBits | (highBits << 10);
+		return (lowBits | (highBits << 10)) + 0x10000;
 	}
 }

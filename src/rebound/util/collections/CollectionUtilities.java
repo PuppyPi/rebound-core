@@ -5281,16 +5281,14 @@ _$$primxpconf:intsonly$$_
 	{
 		int nElements = elements.size();
 		
-		if ((nElements % partitionSize) != 0)
-			throw new IllegalArgumentException();
-		
-		int nPartitions = nElements / partitionSize;
+		int nPartitions = ceilingDivision(nElements, partitionSize);
 		
 		List<E>[] partitions = new List[nPartitions];
 		
 		for (int i = 0; i < nPartitions; i++)
 		{
-			partitions[i] = elements.subList(i * partitionSize, (i + 1) * partitionSize);
+			int start = i * partitionSize;
+			partitions[i] = elements.subList(start, least(start + partitionSize, nElements));
 		}
 		
 		return asList(partitions);

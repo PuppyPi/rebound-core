@@ -12,6 +12,7 @@ import static rebound.text.CharacterPredicates.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.SimpleIterator.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.io.CharArrayReader;
 import java.io.IOException;
@@ -65,6 +66,7 @@ import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.io.ucs4.UCS4Reader;
 import rebound.io.ucs4.UCS4ReaderFromNormalUTF16Reader;
 import rebound.io.ucs4.UCS4Writer;
+import rebound.io.ucs4.UTF16EncodingException;
 import rebound.io.util.TextIOUtilities;
 import rebound.math.Direction1D;
 import rebound.math.MathUtilities;
@@ -7075,54 +7077,85 @@ implements JavaNamespace
 	
 	
 	
-	/**
-	 * @throws IOException on a UTF-16 decoding error!
-	 */
-	public static int[] UTF16ToUCS4(char[] utf16charsLikeNormalJava) throws IOException
+	public static int[] utf16ToUCS4Array(char[] utf16) throws UTF16EncodingException
 	{
-		UCS4Reader utf16Decoder = new UCS4ReaderFromNormalUTF16Reader(new CharArrayReader(utf16charsLikeNormalJava));
-		return TextIOUtilities.readAll(utf16Decoder);
-	}
-	
-	
-	@Nonnull
-	public static int[] toCodePointArray(@Nonnull String unicodeString)
-	{
-		//why can't there just be an int[] String.toCodepointArray()??  There's a new String(int[], ...)!!  X'D
+		UCS4Reader utf16Decoder = new UCS4ReaderFromNormalUTF16Reader(new CharArrayReader(utf16));
 		
-		UCS4Reader utf16Decoder = new UCS4ReaderFromNormalUTF16Reader(new StringReader(unicodeString));
-		
-		//edit, Java 8: now there is! :D
-		//unicodeString.codePoints().toArray();  ;D
-		//TODO Unit test the crap out of this!! 8> XD
-		
+		int[] a;
 		try
 		{
-			return TextIOUtilities.readAll(utf16Decoder);
+			a = TextIOUtilities.readAll(utf16Decoder);
 		}
 		catch (IOException exc)
 		{
-			throw new ImpossibleException("java.lang.String's containing illegal UTF-16 encoded chars is best to consider a RuntimeException (bug), I think!    (but apparently that's what happened here x\"D )", exc);
+			throw new ImpossibleException(exc);
 		}
+		
+		int[] b = new String(utf16).codePoints().toArray();
+		
+		asrt(Arrays.equals(a, b));  //Todo remove this after a lot of testing
+		
+		return b;
 	}
 	
-	
-	public static String newStringFromUCS4(Slice<int[]> codepoints)
+	public static int[] utf16ToUCS4Array(String utf16) throws UTF16EncodingException
 	{
-		return new String(codepoints.getUnderlying(), codepoints.getOffset(), codepoints.getLength());
+		UCS4Reader utf16Decoder = new UCS4ReaderFromNormalUTF16Reader(new StringReader(utf16));
+		
+		int[] a;
+		try
+		{
+			a = TextIOUtilities.readAll(utf16Decoder);
+		}
+		catch (IOException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+		
+		int[] b = utf16.codePoints().toArray();
+		
+		asrt(Arrays.equals(a, b));  //Todo remove this after a lot of testing
+		
+		return b;
 	}
 	
-	
-	
-	
-	
-	
-	public static void defaultWriteStringToUCS4(CharSequence source, UCS4Writer dest) throws IOException
+	public static IntegerList utf16ToUCS4List(String utf16) throws UTF16EncodingException
 	{
-		defaultWriteStringToUCS4(source.toString(), dest);
+		return intArrayAsList(utf16ToUCS4Array(utf16));
 	}
 	
-	public static void defaultWriteStringToUCS4(String source, UCS4Writer dest) throws IOException
+	
+	
+	public static String ucs4ToUTF16String(List<Integer> list)
+	{
+		return ucs4ToUTF16String(wrappedIntegerList(list).toIntArraySlicePossiblyLive());
+	}
+	
+	public static String ucs4ToUTF16String(Slice<int[]> slice)
+	{
+		return ucs4ToUTF16String(slice.getUnderlying(), slice.getOffset(), slice.getLength());
+	}
+	
+	public static String ucs4ToUTF16String(int[] array)
+	{
+		return ucs4ToUTF16String(array, 0, array.length);
+	}
+	
+	public static String ucs4ToUTF16String(int[] array, int offset, int length)
+	{
+		return new String(array, offset, length);
+	}
+	
+	
+	
+	
+	
+	public static void defaultWriteUTF16ToUCS4(CharSequence source, UCS4Writer dest) throws IOException
+	{
+		defaultWriteUTF16ToUCS4(source.toString(), dest);
+	}
+	
+	public static void defaultWriteUTF16ToUCS4(String source, UCS4Writer dest) throws IOException
 	{
 		defaultWriteUTF16toUCS4(new StringReader(source), dest);
 	}
@@ -7134,6 +7167,13 @@ implements JavaNamespace
 		
 		TextIOUtilities.pump(utf16Decoder, dest);
 	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -8537,6 +8577,7 @@ primxp
 	{
 		return sliceToString(slice);
 	}
+	
 	
 	
 	

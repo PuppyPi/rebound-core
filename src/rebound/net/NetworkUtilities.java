@@ -852,7 +852,7 @@ implements JavaNamespace
 	
 	public static String urlescapeRaw(@Nonnull String s, UnaryFunctionIntToBoolean shouldEscape)
 	{
-		int[] ucs4Chars = toCodePointArray(s);
+		int[] ucs4Chars = utf16ToUCS4Array(s);
 		
 		StringBuilder b = null;
 		
@@ -949,38 +949,38 @@ implements JavaNamespace
 	
 	public static boolean isValidURLPartProtocol(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartProtocol, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartProtocol, utf16ToUCS4Array(s));
 	}
 	
 	public static boolean isValidURLPartUser(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartUser, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartUser, utf16ToUCS4Array(s));
 	}
 	
 	public static boolean isValidURLPartPassword(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartPassword, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartPassword, utf16ToUCS4Array(s));
 	}
 	
 	public static boolean isValidURLPartHost(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartHost, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartHost, utf16ToUCS4Array(s));
 	}
 	
 	//Port is an integers and thus doesn't need to be escaped XD
 	
 	public static boolean isValidURLPartPath(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartPath, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartPath, utf16ToUCS4Array(s));
 	}
 	
 	public static boolean isValidURLPartQuery(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartQuery, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartQuery, utf16ToUCS4Array(s));
 	}
 	
 	public static boolean isValidURLPartFragment(@Nonnull String s)
 	{
-		return !forAny(InvalidCharsMinimallyForPartFragment, toCodePointArray(s));
+		return !forAny(InvalidCharsMinimallyForPartFragment, utf16ToUCS4Array(s));
 	}
 }

@@ -104,8 +104,16 @@ implements IndolentByteBlockReadStream
 	@Override
 	public long skipIndolent(long requestedLength) throws IOException, ClosedStreamException
 	{
+		//Todo improve this to discard the buffer properly, then skip over multiples, then read-by-discarding any remainder :3
 		return StreamImplUtilities.skipByDiscarding(this, requestedLength);
 	}
+	
+	@Override
+	public long skip(long amount) throws IOException, ClosedStreamException, IllegalArgumentException
+	{
+		return StreamImplUtilities.forceSkip(this, amount);
+	}
+	
 	
 	
 	
