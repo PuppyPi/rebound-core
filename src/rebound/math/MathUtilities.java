@@ -47,6 +47,7 @@ import rebound.util.collections.prim.PrimitiveCollections.LongArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
 import rebound.util.objectutil.JavaNamespace;
 
 public class MathUtilities
@@ -3760,4 +3761,57 @@ implements JavaNamespace
 			}
 		}
 	}
+
+	public static void placeValueStandard(@ActuallyUnsigned long value, @ActuallyUnsigned long radix, UnaryProcedureLong digitOutputted)
+	{
+		if (radix < 2)
+			throw new IllegalArgumentException();
+		
+		//Convert
+		while (greaterThanU64(value, 0)) //value > 0
+		{
+			long digit = modulusU64(value, radix); //value % radix
+			value = divideU64(value, radix); //value / radix
+			digitOutputted.f(digit);
+		}
+	}
+
+	public static void placeValueBijective(@ActuallyUnsigned long value, @ActuallyUnsigned long radix, UnaryProcedureLong digitOutputted)
+	{
+		if (radix < 2)
+			throw new IllegalArgumentException();
+		
+		//Convert
+		while (greaterThanU64(value, 0)) //value > 0
+		{
+			long digit = modulusU64(value - 1, radix);  //value % radix
+			value = divideU64(value - 1, radix);  //value / radix
+			digitOutputted.f(digit);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

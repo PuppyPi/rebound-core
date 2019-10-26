@@ -4,6 +4,7 @@ import static java.util.Collections.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -65,9 +66,8 @@ implements JavaNamespace
 	
 	
 	
-	public static <E> E getSingleElement(Iterator<E> collection) throws NonSingletonException
+	public static <E> E getSingleElement(Iterator<E> i) throws NonSingletonException
 	{
-		Iterator<E> i = collection;
 		if (!i.hasNext())
 			throw new NonSingletonException("no elements! ><");
 		E first = i.next();
@@ -76,9 +76,8 @@ implements JavaNamespace
 		return first;
 	}
 	
-	public static <E> E getSingleElementOrNone(Iterator<E> collection, @Nullable E sentinelIfNone) throws NonSingletonException
+	public static <E> E getSingleElementOrNone(Iterator<E> i, @Nullable E sentinelIfNone) throws NonSingletonException
 	{
-		Iterator<E> i = collection;
 		if (!i.hasNext())
 			return sentinelIfNone;
 		E first = i.next();
@@ -93,6 +92,39 @@ implements JavaNamespace
 	{
 		return getSingleElementOrNone(collection, null);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E getSingleElementOrNoneOrMoreThanOne(Iterator<E> i, @Nullable E sentinelIfNone, @Nullable E sentinelIfMoreThanOne) throws NonSingletonException
+	{
+		if (!i.hasNext())
+			return sentinelIfNone;
+		E first = i.next();
+		if (i.hasNext())
+			return sentinelIfMoreThanOne;
+		return first;
+	}
+	
+	
+	public static <E> E getSingleElementOrNoneOrMoreThanOne(Enumeration<E> e, @Nullable E sentinelIfNone, @Nullable E sentinelIfMoreThanOne) throws NonSingletonException
+	{
+		if (!e.hasMoreElements())
+			return sentinelIfNone;
+		E first = e.nextElement();
+		if (e.hasMoreElements())
+			return sentinelIfMoreThanOne;
+		return first;
+	}
+	
+	
+	
+	
+	
 	
 	
 	

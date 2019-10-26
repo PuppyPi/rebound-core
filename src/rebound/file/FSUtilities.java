@@ -103,6 +103,14 @@ import rebound.util.objectutil.JavaNamespace;
 public class FSUtilities
 implements JavaNamespace
 {
+	public static final File UserUUIDBase = new File(System.getProperty("user.home"), ".uuid");
+	
+	
+	
+	
+	
+	
+	
 	public static File fnull(String path)
 	{
 		return path == null ? null : new File(path);
@@ -3051,13 +3059,19 @@ implements JavaNamespace
 	@ImplementationTransparency
 	public static File _realpathThrowing_ourImpl(File f) throws IOException
 	{
+		return _realpathThrowing_ourImpl(f, (l, t) -> resolveSymlinkTarget(t, l));
+	}
+	
+	@ImplementationTransparency
+	public static File _realpathThrowing_ourImpl(File f, LinkDereferencer linkDereferencingPredicate) throws IOException
+	{
 		Stack<File> s = new Stack<>();
-		File r = _realpathThrowing_ourImpl(f, s);
+		File r = _realpathThrowing_ourImpl(f, s, linkDereferencingPredicate);
 		asrt(s.isEmpty());
 		return r;
 	}
 	
-	protected static File _realpathThrowing_ourImpl(File f, Stack<File> stack) throws IOException
+	protected static File _realpathThrowing_ourImpl(File f, Stack<File> stack, LinkDereferencer linkDereferencingPredicate) throws IOException
 	{
 		f = normpath(f);
 		
@@ -3069,29 +3083,44 @@ implements JavaNamespace
 		}
 		else
 		{
-			File d = _realpathThrowing_ourImpl(p, stack);
+			File d = _realpathThrowing_ourImpl(p, stack, linkDereferencingPredicate);
 			String n = f.getName();
 			f = eq(n, ".") ? d : new File(d, n);
 			
 			if (isSymlink(f))
 			{
-				if (stack.contains(f))  //we don't support case-insensitivity and symbolic links on the same filesystem ^^'
-					throw new SymlinkCycleIOException("Symbolic link cycle detected!!: "+repr(f.getPath()));
-				stack.add(f);  //do after checking contains of course! XD
+				File it = readlinkRaw(f);
 				
-				File t = readlinkAbsolute(f);
+				File t = linkDereferencingPredicate.dereference(f, it);
 				
-				File r = _realpathThrowing_ourImpl(t, stack);
-				
-				asrt(stack.pop() == f);
-				
-				return r;
+				if (t != null)
+				{
+					if (stack.contains(f))  //we don't support case-insensitivity and symbolic links on the same filesystem ^^'
+						throw new SymlinkCycleIOException("Symbolic link cycle detected!!: "+repr(f.getPath()));
+					stack.add(f);  //do after checking contains of course! XD
+					
+					File r = _realpathThrowing_ourImpl(t, stack, linkDereferencingPredicate);
+					
+					asrt(stack.pop() == f);
+					
+					return r;
+				}
+				else
+				{
+					return f;
+				}
 			}
 			else
 			{
 				return f;
 			}
 		}
+	}
+	
+	
+	public static interface LinkDereferencer
+	{
+		public @Nullable File dereference(@Nonnull File link, @Nonnull File immediateRawTarget) throws IOException;
 	}
 	
 	

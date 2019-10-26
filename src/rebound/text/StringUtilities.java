@@ -5,6 +5,7 @@
 package rebound.text;
 
 import static java.util.Objects.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
@@ -70,6 +71,7 @@ import rebound.io.ucs4.UTF16EncodingException;
 import rebound.io.util.TextIOUtilities;
 import rebound.math.Direction1D;
 import rebound.math.MathUtilities;
+import rebound.math.PlaceValueEncodingAlgorithm;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.CharacterPredicates.NaiveCharacterSequencePattern;
 import rebound.text.StringUtilities.RPBasicNaiveParsingSyntaxDescription.RPBasicNaiveParsingSyntaxStateDescription;
@@ -93,10 +95,13 @@ import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.container.ContainerInterfaces.IntegerContainer;
+import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
 import rebound.util.functional.FunctionInterfaces.CharEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToObject;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToChar;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
@@ -1519,23 +1524,160 @@ implements JavaNamespace
 	
 	
 	
-	public static int indexOf(Object originalString, UnaryFunctionCharToBoolean charTarget)
+	
+	public static int indexOf(CharSequence string, char v)
 	{
-		return indexOf(originalString, charTarget, 0, getLength(originalString));
+		if (string instanceof String)
+			return ((String)string).indexOf(v);
+		else if (string instanceof CharacterList)
+			return ((CharacterList)string).indexOfChar(v);
+		else
+			return indexOf(string, c -> c == v);
 	}
 	
-	public static int indexOf(Object originalString, UnaryFunctionCharToBoolean charTarget, int start)
+	public static int indexOf(CharSequence string, char v, int start)
 	{
-		return indexOf(originalString, charTarget, start, getLength(originalString) - start);
+		if (start == 0)
+			return indexOf(string, v);
+		
+		if (string instanceof String)
+			return ((String)string).indexOf(v, start);
+		else if (string instanceof CharacterList)
+			return ((CharacterList)string).indexOfChar(v, start);
+		else
+			return indexOf(string, c -> c == v, start);
 	}
 	
-	public static int indexOf(Object originalString, UnaryFunctionCharToBoolean charTarget, int start, int length)
+	public static int indexOf(CharSequence string, char v, int start, int length)
 	{
-		char[] ca = textthingToPossiblyUnclonedCharArray(originalString);
+		if (length + start == string.length())
+			return indexOf(string, v, start);
+		
+		if (string instanceof CharacterList)
+			return ((CharacterList)string).subListByLength(start, length).indexOfChar(v);
+		else
+			return indexOf(string, c -> c == v, start, length);
+	}
+	
+	
+	//TODO The UCS-4 int indexOf()s!
+	
+	
+	public static int indexOf(CharSequence string, CharSequence v)
+	{
+		if (string instanceof String)
+			return ((String)string).indexOf(v.toString());
+		else
+			return string.toString().indexOf(v.toString());  //TODO A proper one! XD'
+	}
+	
+	public static int indexOf(CharSequence string, CharSequence v, int start)
+	{
+		if (start == 0)
+			return indexOf(string, v);
+		
+		if (string instanceof String)
+			return ((String)string).indexOf(v.toString(), start);
+		else
+			return string.toString().indexOf(v.toString(), start);  //TODO A proper one! XD'
+	}
+	
+	public static int indexOf(CharSequence string, String v, int start, int length)
+	{
+		if (length + start == string.length())
+			return indexOf(string, v, start);
+		
+		return string.toString().substring(start, start + length).indexOf(v.toString());  //TODO A proper one! XD'
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int lastIndexOf(CharSequence string, char v)
+	{
+		if (string instanceof String)
+			return ((String)string).lastIndexOf(v);
+		else if (string instanceof CharacterList)
+			return ((CharacterList)string).lastIndexOfChar(v);
+		else
+			return lastIndexOf(string, c -> c == v);
+	}
+	
+	public static int lastIndexOf(CharSequence string, char v, int start)
+	{
+		if (start == 0)
+			return lastIndexOf(string, v);
+		
+		if (string instanceof String)
+			return ((String)string).lastIndexOf(v, start);
+		else if (string instanceof CharacterList)
+			return ((CharacterList)string).lastIndexOfChar(v, start);
+		else
+			return lastIndexOf(string, c -> c == v, start);
+	}
+	
+	//Todo public static int lastIndexOf(CharSequence string, char v, int start, int length)
+	
+	
+	//TODO The UCS-4 int lastIndexOf()s!
+	
+	
+	public static int lastIndexOf(CharSequence string, CharSequence v)
+	{
+		if (string instanceof String)
+			return ((String)string).lastIndexOf(v.toString());
+		else
+			return string.toString().lastIndexOf(v.toString());  //TODO A proper one! XD'
+	}
+	
+	public static int lastIndexOf(CharSequence string, CharSequence v, int start)
+	{
+		if (start == 0)
+			return lastIndexOf(string, v);
+		
+		if (string instanceof String)
+			return ((String)string).lastIndexOf(v.toString(), start);
+		else
+			return string.toString().lastIndexOf(v.toString(), start);  //TODO A proper one! XD'
+	}
+	
+	//Todo public static int lastIndexOf(CharSequence string, String v, int start, int length)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget)
+	{
+		return indexOf(string, charTarget, 0, string.length());
+	}
+	
+	public static int indexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget, int start)
+	{
+		return indexOf(string, charTarget, start, string.length() - start);
+	}
+	
+	public static int indexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget, int start, int length)
+	{
 		int e = start + length;
 		for (int i = start; i < e; i++)
 		{
-			if (charTarget.f(ca[i]))
+			if (charTarget.f(string.charAt(i)))
 				return i;
 		}
 		
@@ -1544,24 +1686,23 @@ implements JavaNamespace
 	
 	
 	
-	public static int rindexOf(Object originalString, UnaryFunctionCharToBoolean charTarget)
+	public static int lastIndexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget)
 	{
-		int n = getLength(originalString);
-		return rindexOf(originalString, charTarget, n-1, n);
+		int n = getLength(string);
+		return lastIndexOf(string, charTarget, n-1, n);
 	}
 	
-	public static int rindexOf(Object originalString, UnaryFunctionCharToBoolean charTarget, int indexOfFirstCharacterToTest)
+	public static int lastIndexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget, int indexOfFirstCharacterToTest)
 	{
-		return rindexOf(originalString, charTarget, indexOfFirstCharacterToTest, indexOfFirstCharacterToTest+1);
+		return lastIndexOf(string, charTarget, indexOfFirstCharacterToTest, indexOfFirstCharacterToTest+1);
 	}
 	
-	public static int rindexOf(Object originalString, UnaryFunctionCharToBoolean charTarget, int indexOfFirstCharacterToTest, int numberOfCharactersToTest)
+	public static int lastIndexOf(CharSequence string, UnaryFunctionCharToBoolean charTarget, int indexOfFirstCharacterToTest, int numberOfCharactersToTest)
 	{
-		char[] ca = textthingToPossiblyUnclonedCharArray(originalString);
 		int e = indexOfFirstCharacterToTest - numberOfCharactersToTest;
 		for (int i = indexOfFirstCharacterToTest; i > e; i--)
 		{
-			if (charTarget.f(ca[i]))
+			if (charTarget.f(string.charAt(i)))
 				return i;
 		}
 		
@@ -1571,15 +1712,14 @@ implements JavaNamespace
 	
 	
 	@ThrowAwayValue
-	public static IntegerList indexOfAllL(Object originalString, char target)
+	public static IntegerList indexOfAllL(CharSequence string, char target)
 	{
 		IntegerList indexes = new IntegerArrayList();
 		
-		char[] ca = textthingToPossiblyUnclonedCharArray(originalString);
-		int len = ca.length;
+		int len = string.length();
 		for (int i = 0; i < len; i++)
 		{
-			if (ca[i] == target)
+			if (string.charAt(i) == target)
 				indexes.addInt(i);
 		}
 		
@@ -1588,7 +1728,7 @@ implements JavaNamespace
 	
 	
 	@ThrowAwayValue
-	public static IntegerList indexOfAllL(String originalString, String target)
+	public static IntegerList indexOfAllL(CharSequence string, String target)
 	{
 		IntegerList indexes = new IntegerArrayList();
 		
@@ -1596,7 +1736,7 @@ implements JavaNamespace
 		int position = 0;
 		while (true)
 		{
-			position = originalString.indexOf(target, position+1);
+			position = indexOf(string, target, position+1);
 			
 			if (position == -1)
 				break;
@@ -1608,7 +1748,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static int[] indexOfAllA(Object originalString, char target)
+	public static int[] indexOfAllA(CharSequence originalString, char target)
 	{
 		return indexOfAllL(originalString, target).toIntArrayPossiblyLive();
 	}
@@ -7223,10 +7363,96 @@ implements JavaNamespace
 	
 	
 	
+	public static String toStringU64(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet)
+	{
+		if (value == 0)
+			return String.valueOf(alphabet.f(0));
+		
+		return toStringGenericU64(value, radix, alphabet, MathUtilities::placeValueStandard);
+	}
+	
+	public static String toStringU64LE(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet)
+	{
+		if (value == 0)
+			return String.valueOf(alphabet.f(0));
+		
+		return toStringU64GenericLE(value, radix, alphabet, MathUtilities::placeValueStandard);
+	}
+	
+	
+	public static String toStringU64Bijective(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet)
+	{
+		return toStringGenericU64(value, radix, alphabet, MathUtilities::placeValueBijective);
+	}
+	
+	public static String toStringU64BijectiveLE(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet)
+	{
+		return toStringU64GenericLE(value, radix, alphabet, MathUtilities::placeValueBijective);
+	}
 	
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static String toStringGenericU64(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet, PlaceValueEncodingAlgorithm encoder)
+	{
+		//Declare
+		char[] chars = new char[64];  //64 is the largest it could possibly be XD
+		IntegerContainer count_C = new SimpleIntegerContainer(0); //String size
+		
+		encoder.encode(value, radix, digit ->
+		{
+			int count = count_C.get();
+			count++;
+			chars[64-count] = alphabet.f(safeCastU64toS32(digit));
+			count_C.set(count);
+		});
+		
+		//Store
+		int count = count_C.get();
+		return new String(chars, 64-count, count);
+	}
+	
+	public static String toStringU64GenericLE(@ActuallyUnsigned long value, int radix, UnaryFunctionIntToChar alphabet, PlaceValueEncodingAlgorithm encoder)
+	{
+		//Declare
+		char[] chars = new char[64];  //64 is the largest it could possibly be XD
+		IntegerContainer count_C = new SimpleIntegerContainer(0); //String size
+		
+		encoder.encode(value, radix, digit ->
+		{
+			int count = count_C.get();
+			chars[count] = alphabet.f(safeCastU64toS32(digit));
+			count++;
+			count_C.set(count);
+		});
+		
+		//Store
+		int count = count_C.get();
+		return new String(chars, 0, count);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String toStringU64LEFromConcreteAlphabet(@ActuallyUnsigned long value, char[] digitsAlphabet)
+	{
+		return toStringU64LE(value, digitsAlphabet.length, d -> digitsAlphabet[d]);
+	}
+
+	public static String toStringU64LEFromContiguousAlphabet(@ActuallyUnsigned long value, char digitsStart, char digitsEndInclusive)
+	{
+		return toStringU64LE(value, digitsEndInclusive + 1 - digitsStart, d -> (char)(d + digitsStart));
+	}
 	
 	
 	
@@ -7236,29 +7462,7 @@ implements JavaNamespace
 	
 	public static String toStringU64(@ActuallyUnsigned long value, int radix)
 	{
-		if (value == 0)
-			return "0";
-		if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX)
-			radix = 10;
-		
-		//Declare
-		char[] chars = new char[64]; //Note: Backwards
-		int count = 0; //String size
-		int digit = 0; //238= 8  3  2
-		
-		//Convert
-		while (greaterThanU64(value, 0)) //value > 0
-		{
-			digit = (int)(modulusU64(value, radix)); //value % radix
-			value -= digit;
-			value = divideU64(value, radix); //value / radix
-			
-			count++;
-			chars[64-count] = Character.forDigit(digit, radix);
-		}
-		
-		//Store
-		return new String(chars, 64-count, count);
+		return toStringU64(value, radix, digit -> Character.forDigit(digit, radix));
 	}
 	
 	
@@ -8197,7 +8401,7 @@ primxp
 	@Nullable
 	public static PairOrdered<String, Integer> parseTrailingNonnegativeIntegerOrReturnNull(String s)
 	{
-		int beforeStart = rindexOf(s, c -> c < '0' || c > '9');
+		int beforeStart = lastIndexOf(s, c -> c < '0' || c > '9');
 		
 		if (beforeStart == s.length()-1)
 		{
@@ -8615,7 +8819,4 @@ primxp
 	{
 		return !string.isEmpty() && Character.isWhitespace(string.charAt(string.length()-1));
 	}
-	
-	
-	
 }

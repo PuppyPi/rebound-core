@@ -5742,10 +5742,17 @@ _$$primxpconf:intsonly$$_
 		return tableofArray(width, contents);
 	}
 	
-	@ReadonlyValue
+	@ThrowAwayValue
 	public static <E> SimpleTable<E> newTable(int width, E... contents)
 	{
 		return newTableArray(width, contents);
+	}
+	
+	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> newTableFromOneRow(List<E> contents)
+	{
+		return newTableList(contents.size(), contents);  //row major order allows this :3
 	}
 	
 	
@@ -5756,10 +5763,10 @@ _$$primxpconf:intsonly$$_
 		if (width == 0 || contents.length == 0)
 			return emptyTable();
 		else
-			return newTable(width, contents);
+			return newTableArray(width, contents);
 	}
 	
-	@ReadonlyValue
+	@ThrowAwayValue
 	public static <E> SimpleTable<E> newTableArray(int width, E[] contents)
 	{
 		if (contents.length % width != 0)
@@ -5777,6 +5784,39 @@ _$$primxpconf:intsonly$$_
 				int i = r * width + c;
 				
 				t.setCellContents(c, r, contents[i]);
+			}
+		}
+		
+		return t;
+	}
+	
+	@ReadonlyValue
+	public static <E> SimpleTable<E> tableofList(int width, List<E> contents)
+	{
+		if (width == 0 || contents.size() == 0)
+			return emptyTable();
+		else
+			return newTableList(width, contents);
+	}
+	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> newTableList(int width, List<E> contents)
+	{
+		if (contents.size() % width != 0)
+			throw new IllegalArgumentException();
+		
+		int height = contents.size() / width;
+		
+		
+		SimpleTable<E> t = newTableNullfilled(width, height);
+		
+		for (int r = 0; r < height; r++)
+		{
+			for (int c = 0; c < width; c++)
+			{
+				int i = r * width + c;
+				
+				t.setCellContents(c, r, contents.get(i));
 			}
 		}
 		
@@ -7534,13 +7574,21 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <K, V> Map<V, K> inverseMapOP(Set<K> keys, UnaryFunction<K, V> mapper) throws NonForwardInjectiveMapException
+	public static <K, V> Map<V, K> inverseMapOP(Set<K> keys, Mapper<K, V> mapper) throws NonForwardInjectiveMapException
 	{
 		Map<V, K> inverse = new HashMap<>();
 		
 		for (K key : keys)
 		{
-			V value = mapper.f(key);
+			V value;
+			try
+			{
+				value = mapper.f(key);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
 			
 			if (inverse.containsKey(value))
 				throw new NonForwardInjectiveMapException("Duplicates of value-in-input / key-in-output "+repr(value));
@@ -7564,13 +7612,19 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ThrowAwayValue
-	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Iterable<K> keys, UnaryFunction<K, V> mapper)
+	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Iterable<K> keys, Mapper<K, V> mapper)
 	{
 		Map<V, Set<K>> inverse = new HashMap<>();
 		
 		for (K key : keys)
 		{
-			getOrCreate(inverse, mapper.f(key), HashSet::new).add(key);
+			try
+			{
+				getOrCreate(inverse, mapper.f(key), HashSet::new).add(key);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+			}
 		}
 		
 		return inverse;
@@ -7589,13 +7643,23 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ThrowAwayValue
-	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Iterable<K> keys, UnaryFunction<K, Set<V>> mapper)
+	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Iterable<K> keys, Mapper<K, Set<V>> mapper)
 	{
 		Map<V, Set<K>> inverse = new HashMap<>();
 		
 		for (K key : keys)
 		{
-			for (V value : mapper.f(key))
+			Set<V> values;
+			try
+			{
+				values = mapper.f(key);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			for (V value : values)
 			{
 				getOrCreate(inverse, value, HashSet::new).add(key);
 			}
@@ -8237,13 +8301,13 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E> void fill(List<? super E> list, E e)
+	public static <E> void fillBySetting(List<? super E> list, E e)
 	{
-		fill(list, 0, list.size(), e);
+		fillBySetting(list, 0, list.size(), e);
 		//Collections.fill(list, e);
 	}
 	
-	public static <E> void fill(List<? super E> list, int start, int count, E value)
+	public static <E> void fillBySetting(List<? super E> list, int start, int count, E value)
 	{
 		if (count != 0)
 		{
@@ -8251,7 +8315,7 @@ _$$primxpconf:intsonly$$_
 			
 			if (list instanceof ListWithFill)
 			{
-				((ListWithFill)list).fill(start, count, value);
+				((ListWithFill)list).fillBySetting(start, count, value);
 			}
 			else
 			{
@@ -9606,5 +9670,135 @@ _$$primxpconf:intsonly$$_
 				return e.nextElement();
 			}
 		};
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> void redimTablePreservingContentsIP(@WritableValue SimpleTable<E> table, int newWidth, int newHeight, E elementToAddIfExpanding)
+	{
+		//Width!
+		{
+			int current = table.getNumberOfColumns();
+			if (newWidth < current)
+			{
+				while (current != newWidth)
+				{
+					current--;
+					table.deleteColumn(current);
+				}
+			}
+			else if (newWidth > current)
+			{
+				int h = table.getNumberOfRows();
+				
+				while (current != newWidth)
+				{
+					table.insertEmptyColumn(current);
+					
+					for (int y = 0; y < h; y++)
+						table.setCellContents(current, y, elementToAddIfExpanding);
+					
+					current++;
+				}
+			}
+			//else do nothing :D
+		}
+		
+		
+		//Height!
+		{
+			int current = table.getNumberOfRows();
+			if (newHeight < current)
+			{
+				while (current != newHeight)
+				{
+					current--;
+					table.deleteRow(current);
+				}
+			}
+			else if (newHeight > current)
+			{
+				int w = table.getNumberOfColumns();
+				
+				while (current != newHeight)
+				{
+					table.insertEmptyRow(current);
+					
+					for (int x = 0; x < w; x++)
+						table.setCellContents(x, current, elementToAddIfExpanding);
+					
+					current++;
+				}
+			}
+			//else do nothing :D
+		}
+	}
+	
+	
+	
+	
+	public static <E> void appendRowExpandingIP(@WritableValue SimpleTable<E> table, @ReadonlyValue List<E> row, E elementToAddIfExpanding)
+	{
+		int tableWidth = table.getNumberOfColumns();
+		int rowWidth = row.size();
+		
+		int h = table.getNumberOfRows();
+		
+		if (rowWidth > tableWidth)
+		{
+			redimTablePreservingContentsIP(table, rowWidth, h, elementToAddIfExpanding);
+		}
+		
+		
+		int y = h;
+		
+		table.appendEmptyRow();
+		
+		int x = 0;
+		while (x < rowWidth)
+		{
+			table.setCellContents(x, y, row.get(x));
+			x++;
+		}
+		
+		while (x < tableWidth)  //eg, in case rowWidth < tableWidth :3
+		{
+			table.setCellContents(x, y, elementToAddIfExpanding);
+			x++;
+		}
+	}
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> nonrectangularRowsToNewTable(List<List<E>> rows, E elementToAddIfExpanding)
+	{
+		if (rows.isEmpty())
+		{
+			return newTable();
+		}
+		else
+		{
+			SimpleTable<E> table = newTableFromOneRow(rows.get(0));
+			
+			for (List<E> row : rows.subList(1, rows.size()))
+				appendRowExpandingIP(table, row, elementToAddIfExpanding);
+			
+			return table;
+		}
 	}
 }

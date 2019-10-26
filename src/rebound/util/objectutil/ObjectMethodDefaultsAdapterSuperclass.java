@@ -1,11 +1,10 @@
 package rebound.util.objectutil;
 
 /**
- * The entire point of {@link ObjectMethodDefaultsAdapterSuperclass} and {@link ObjectMethodDefaultsSuperinterface} is to help overcome the Java 8 artificial restriction that interface default methods can override any method *other* than hashCode(), equals(), and toString()
- * @author Puppy Pie ^w^
+ * The entire point of {@link ObjectMethodDefaultsAdapterSuperclass} and the interfaces is to help overcome the Java 8 artificial restriction that interface default methods can override any method *other* than hashCode(), equals(), toString(), etc.
  */
 public abstract class ObjectMethodDefaultsAdapterSuperclass
-implements ObjectMethodDefaultsSuperinterface
+implements DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumvention, DefaultToStringRestrictionCircumvention
 {
 	@Override
 	public boolean equals(Object o)

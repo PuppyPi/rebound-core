@@ -3,11 +3,13 @@ package rebound.util.collections;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import rebound.annotations.semantic.operationspecification.HashableType;
 import rebound.text.StringUtilities.Reprable;
-import rebound.util.objectutil.ObjectMethodDefaultsSuperinterface;
+import rebound.util.objectutil.DefaultEqualsRestrictionCircumvention;
+import rebound.util.objectutil.DefaultHashCodeRestrictionCircumvention;
+import rebound.util.objectutil.DefaultToStringRestrictionCircumvention;
 
 @HashableType
 public interface PairOrdered<A, B>
-extends ObjectMethodDefaultsSuperinterface, Reprable
+extends DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumvention, DefaultToStringRestrictionCircumvention, Reprable
 {
 	public A getA();
 	public B getB();

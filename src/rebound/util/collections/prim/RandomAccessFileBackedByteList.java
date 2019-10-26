@@ -227,7 +227,7 @@ implements DefaultShiftingBasedByteList
 		}
 		
 		//"In this case, the contents of the extended portion of the file are not defined."
-		this.fillByte(oldSize, amount, elementToAddIfGrowing);
+		this.fillBySettingByte(oldSize, amount, elementToAddIfGrowing);
 	}
 	
 	

@@ -765,6 +765,14 @@ implements JavaNamespace
 	{
 		return decodeHexMandatory(source, 0);
 	}
+	
+	/**
+	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 */
+	public static ByteList decodeHexMandatoryNoDelimiterToList(String source) throws AssertionError
+	{
+		return decodeHexMandatoryToList(source, 0);
+	}
 	//Hex>
 	
 	

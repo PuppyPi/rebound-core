@@ -3,7 +3,6 @@ package rebound.util.collections.prim;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.math.BigInteger;
-import java.util.List;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -12,12 +11,15 @@ import rebound.exceptions.OverflowException;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
+import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBooleanCollection;
 
 @ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 public interface NonuniformMethodsForBooleanList
-extends List<Boolean>
+extends DefaultToArraysBooleanCollection
 {
 	public boolean getBoolean(int index);
+	public void setBoolean(int index, boolean value);
 	
 	
 	public default long getBitfield(int offset, int length)
@@ -26,7 +28,7 @@ extends List<Boolean>
 		
 		for (int i = 0; i < length; i++)
 		{
-			boolean bit = get(offset+i);
+			boolean bit = getBoolean(offset+i);
 			r |= (bit ? 1l : 0l) << i;
 		}
 		
@@ -38,7 +40,7 @@ extends List<Boolean>
 		for (int i = 0; i < length; i++)
 		{
 			boolean bit = ((1l << i) & bitfield) != 0;
-			set(offset+i, bit);
+			setBoolean(offset+i, bit);
 		}
 	}
 	
@@ -860,12 +862,8 @@ extends List<Boolean>
 	
 	
 	
-	//Todo X'D
-	//	public default String _toString()
-	//	{
-	//		if (size() == 0)
-	//			return "<empty bitarray>";
-	//		else
-	//			return toBinaryStringLE(new long[]{8, 64}, new String[]{" ", "    "}, "0", "1");
-	//	}
+	public default String _toString()
+	{
+		return PrimitiveCollections.defaultBooleanListToString((BooleanList) this);
+	}
 }

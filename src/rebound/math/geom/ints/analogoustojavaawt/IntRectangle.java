@@ -289,4 +289,12 @@ public class IntRectangle
 		intersect(a, b, r);
 		return r;
 	}
+	
+	
+
+	@Override
+	public String toString()
+	{
+		return "IntRectangle [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + "]";
+	}
 }

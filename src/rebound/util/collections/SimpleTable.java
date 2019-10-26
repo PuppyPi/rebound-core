@@ -64,14 +64,28 @@ extends Copyable, Equivalenceable
 	public void deleteColumn(int columnIndex);
 	public void deleteRow(int rowIndex);
 	
+	/**
+	 * "Empty" means nulls if reference-backed and 0 or '\u0000' or 0.0 or false if primitive-backed.
+	 */
 	public void insertEmptyColumn(int insertionColumnIndex);
+	
+	/**
+	 * "Empty" means nulls if reference-backed and 0 or '\u0000' or 0.0 or false if primitive-backed.
+	 */
 	public void insertEmptyRow(int insertionRowIndex);
 	
+	
+	/**
+	 * @see #insertEmptyColumn(int)
+	 */
 	public default void appendEmptyColumn()
 	{
 		insertEmptyColumn(getNumberOfColumns());
 	}
 	
+	/**
+	 * @see #insertEmptyRow(int)
+	 */
 	public default void appendEmptyRow()
 	{
 		insertEmptyRow(getNumberOfRows());

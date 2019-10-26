@@ -164,7 +164,7 @@ implements JavaNamespace
 	
 	
 	
-	public static int getWidthFailing(Image image) throws UnsupportedOptionException
+	public static int getWidthImmediately(Image image) throws UnsupportedOptionException
 	{
 		int v = image.getWidth(null);
 		if (v == -1)
@@ -175,7 +175,7 @@ implements JavaNamespace
 			return v;
 	}
 	
-	public static int getHeightFailing(Image image) throws UnsupportedOptionException
+	public static int getHeightImmediately(Image image) throws UnsupportedOptionException
 	{
 		int v = image.getHeight(null);
 		if (v == -1)
