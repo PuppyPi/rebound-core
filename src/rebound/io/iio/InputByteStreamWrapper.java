@@ -5,54 +5,82 @@ import java.io.InputStream;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.io.iio.unions.CloseableInputByteStreamInterface;
 
+//Todo support mark/reset
+
 public class InputByteStreamWrapper
+extends InputStream
 implements CloseableInputByteStreamInterface
 {
-	protected final InputStream underlying;
-	
-	
-	public static InputByteStream wrap(InputStream underlying)
+	public static InputStream wrap(InputByteStream underlying)
 	{
-		return underlying instanceof InputByteStream ? (InputByteStream)underlying : new InputByteStreamWrapper(underlying);
+		if (underlying instanceof InputByteStreamAdapter)
+			return ((InputByteStreamAdapter) underlying).getUnderlying();
+		else if (underlying instanceof InputStream)
+			return (InputStream) underlying;
+		else
+			return new InputByteStreamWrapper(underlying);
 	}
 	
-	protected InputByteStreamWrapper(InputStream underlying)
+	
+	
+	
+	
+	protected InputByteStream underlying;
+
+	@ImplementationTransparency
+	public InputByteStreamWrapper()
+	{
+	}
+
+	/**
+	 * Use {@link #wrap(InputByteStream)} in preference to this if you can :3
+	 */
+	@ImplementationTransparency
+	public InputByteStreamWrapper(InputByteStream underlying)
+	{
+		this.underlying = underlying;
+	}
+
+	@ImplementationTransparency
+	public InputByteStream getUnderlying()
+	{
+		return underlying;
+	}
+
+	@ImplementationTransparency
+	public void setUnderlying(InputByteStream underlying)
 	{
 		this.underlying = underlying;
 	}
 	
-	@ImplementationTransparency
-	public InputStream getUnderlying()
-	{
-		return this.underlying;
-	}
+	
+	
+	
+	
 	
 	
 	
 	@Override
 	public int read() throws IOException
 	{
-		return this.underlying.read();
+		return underlying.read();
+	}
+	
+	@Override
+	public void close() throws IOException
+	{
+		underlying.close();
 	}
 	
 	@Override
 	public int read(byte[] b, int off, int len) throws IOException
 	{
-		return this.underlying.read(b, off, len);
+		return underlying.read(b, off, len);
 	}
 	
-	
 	@Override
-	public void close() throws IOException
+	public long skip(long n) throws IOException
 	{
-		this.underlying.close();
-	}
-	
-	
-	
-	@Override
-	public long skip(long amount) throws IOException
-	{
-		return this.underlying.skip(amount);
+		return underlying.skip(n);
 	}
 }

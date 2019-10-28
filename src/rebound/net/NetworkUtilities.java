@@ -5,6 +5,7 @@
 package rebound.net;
 
 import static rebound.bits.Unsigned.*;
+import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import java.io.EOFException;
@@ -43,6 +44,22 @@ import rebound.util.objectutil.JavaNamespace;
 public class NetworkUtilities
 implements JavaNamespace
 {
+	public static byte[] getNetmaskForIPv4(int bitLength)
+	{
+		if (bitLength < 0 || bitLength > 32)
+			throw new IllegalArgumentException(repr(bitLength));
+		
+		int v = (truncatingShift32(1, bitLength) - 1) << (32 - bitLength);
+		
+		return Bytes.packBigInt(v);
+	}
+	
+	public static String getNetmaskForIPv4asString(int bitLength)
+	{
+		return formatIP(getNetmaskForIPv4(bitLength));
+	}
+	
+	
 	/**
 	 * Tests whether or not this IP address represents an IPv4 address.<br>
 	 */
@@ -982,5 +999,33 @@ implements JavaNamespace
 	public static boolean isValidURLPartFragment(@Nonnull String s)
 	{
 		return !forAny(InvalidCharsMinimallyForPartFragment, utf16ToUCS4Array(s));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static InetAddress parseIPToOOP(String s) throws TextSyntaxCheckedException
+	{
+		return ipToOOP(parseIP(s));
+	}
+	
+	public static InetAddress ipToOOP(byte[] s)
+	{
+		try
+		{
+			return InetAddress.getByAddress(s);
+		}
+		catch (UnknownHostException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
 	}
 }

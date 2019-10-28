@@ -1,2 +1,5 @@
 IIO (Interface IO) is made to be *exactly* like SIO (Java Standard IO; ie, java.io.InputStream, etc.), except that it uses interfaces :>
 So, for example, the equivalent of a RandomAccessFile can implement both the equivalent of the InputStream and OutputStream! :D
+
+An invariant is that you can always extend InputStream/OutputStream and implement InputByteStream/OutputByteStream simultaneously and everything will be fine! :D
+(But you can also implement both InputByteStream and OutputByteStream simultaneously like for random access file [ish] things, hence the rationale behind using interfaces 8> )

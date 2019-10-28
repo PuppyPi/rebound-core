@@ -2947,4 +2947,28 @@ _$$primxpconf:noboolean$$_
 		long r = n % d;
 		return r == 0 ? (n == 0 ? 0 : d) : r;
 	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * a << b = a << (b & 31)
+	 * Try it if you don't believe me! X'D
+	 * 
+	 * (x << 32) == x instead of always 0!
+	 */
+	public static int truncatingShift32(int value, @ActuallyUnsigned int bits)
+	{
+		boolean overflows = (bits & 31) != bits;
+		return overflows ? 0 : (value << bits);
+	}
+	
+	public static long truncatingShift64(long value, @ActuallyUnsigned long bits)
+	{
+		boolean overflows = (bits & 63) != bits;
+		return overflows ? 0 : (value << bits);
+	}
 }

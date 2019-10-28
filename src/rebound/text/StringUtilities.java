@@ -7448,7 +7448,7 @@ implements JavaNamespace
 	{
 		return toStringU64LE(value, digitsAlphabet.length, d -> digitsAlphabet[d]);
 	}
-
+	
 	public static String toStringU64LEFromContiguousAlphabet(@ActuallyUnsigned long value, char digitsStart, char digitsEndInclusive)
 	{
 		return toStringU64LE(value, digitsEndInclusive + 1 - digitsStart, d -> (char)(d + digitsStart));
@@ -8818,5 +8818,31 @@ primxp
 	public static boolean endsWithWhitespace(String string)
 	{
 		return !string.isEmpty() && Character.isWhitespace(string.charAt(string.length()-1));
+	}
+	
+	
+	
+	public static @Nonnull String emptyStringIfNull(@Nullable String x)
+	{
+		return x == null ? "" : x;
+	}
+	
+	
+	
+	
+	
+	public static List<String> mapTrimmingAndFilteringAwayEmpties(List<String> strs)
+	{
+		return mapToList(s ->
+		{
+			s = s.trim();
+			
+			if (s.isEmpty())  //*after* trimming :3
+				throw FilterAwayReturnPath.I;
+			else
+				return s;
+			
+			
+		}, strs);
 	}
 }

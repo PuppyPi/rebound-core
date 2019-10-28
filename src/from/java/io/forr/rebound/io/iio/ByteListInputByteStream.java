@@ -29,6 +29,7 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 import rebound.io.iio.RandomAccessInputByteStream;
 import rebound.io.iio.unions.CloseableInputByteStreamInterface;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 
 /**
  * A <code>ByteArrayInputStream</code> contains an internal buffer that contains
@@ -45,7 +46,7 @@ import rebound.io.iio.unions.CloseableInputByteStreamInterface;
  * @since JDK1.0
  */
 @NotThreadSafe
-public class ByteArrayInputByteStream
+public class ByteListInputByteStream
 extends InputStream
 implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 {
@@ -55,7 +56,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	 * only bytes that can ever be read from the stream; element
 	 * <code>buf[pos]</code> is the next byte to be read.
 	 */
-	protected byte buf[];
+	protected ByteList buf;
 	
 	/**
 	 * The index of the next character to read from the input stream buffer.
@@ -80,15 +81,6 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	protected int mark = 0;
 	
 	/**
-	 * The index one greater than the last valid character in the input stream
-	 * buffer. This value should always be nonnegative and not larger than the
-	 * length of <code>buf</code>. It is one greater than the position of the
-	 * last byte within <code>buf</code> that can ever be read from the input
-	 * stream buffer.
-	 */
-	protected int count;
-	
-	/**
 	 * Creates a <code>ByteArrayInputStream</code> so that it uses
 	 * <code>buf</code> as its buffer array. The buffer array is not copied. The
 	 * initial value of <code>pos</code> is <code>0</code> and the initial value
@@ -97,34 +89,10 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	 * @param buf
 	 *            the input buffer.
 	 */
-	public ByteArrayInputByteStream(byte buf[])
+	public ByteListInputByteStream(ByteList buf)
 	{
 		this.buf = buf;
 		this.pos = 0;
-		this.count = buf.length;
-	}
-	
-	/**
-	 * Creates <code>ByteArrayInputStream</code> that uses <code>buf</code> as
-	 * its buffer array. The initial value of <code>pos</code> is
-	 * <code>offset</code> and the initial value of <code>count</code> is the
-	 * minimum of <code>offset+length</code> and <code>buf.length</code>. The
-	 * buffer array is not copied. The buffer's mark is set to the specified
-	 * offset.
-	 *
-	 * @param buf
-	 *            the input buffer.
-	 * @param offset
-	 *            the offset in the buffer of the first byte to read.
-	 * @param length
-	 *            the maximum number of bytes to read from the buffer.
-	 */
-	public ByteArrayInputByteStream(byte buf[], int offset, int length)
-	{
-		this.buf = buf;
-		this.pos = offset;
-		this.count = Math.min(offset + length, buf.length);
-		this.mark = offset;
 	}
 	
 	/**
@@ -141,7 +109,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	@Override
 	public int read()
 	{
-		return (this.pos < this.count) ? (this.buf[this.pos++] & 0xff) : -1;
+		return (this.pos < this.buf.size()) ? (this.buf.getByte(this.pos++) & 0xff) : -1;
 	}
 	
 	/**
@@ -175,7 +143,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	 *                <code>b.length - off</code>
 	 */
 	@Override
-	public int read(byte b[], int off, int len)
+	public int read(byte[] b, int off, int len)
 	{
 		if (b == null)
 		{
@@ -186,22 +154,26 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 			throw new IndexOutOfBoundsException();
 		}
 		
-		if (this.pos >= this.count)
+		if (this.pos >= this.buf.size())
 		{
 			return -1;
 		}
 		
-		int avail = this.count - this.pos;
+		int avail = this.buf.size() - this.pos;
+		
 		if (len > avail)
 		{
 			len = avail;
 		}
+		
 		if (len <= 0)
 		{
 			return 0;
 		}
-		System.arraycopy(this.buf, this.pos, b, off, len);
+		
+		this.buf.getAllBytes(this.pos, b, off, len);
 		this.pos += len;
+		
 		return len;
 	}
 	
@@ -219,13 +191,15 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	@Override
 	public long skip(long n)
 	{
-		long k = this.count - this.pos;
+		long k = this.buf.size() - this.pos;
+		
 		if (n < k)
 		{
 			k = n < 0 ? 0 : n;
 		}
 		
 		this.pos += k;
+		
 		return k;
 	}
 	
@@ -241,7 +215,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	 */
 	public int available()
 	{
-		return this.count - this.pos;
+		return this.buf.size() - this.pos;
 	}
 	
 	/**
@@ -311,7 +285,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	@Override
 	public long length() throws IOException
 	{
-		return this.count;
+		return this.buf.size();
 	}
 	
 	@Override
@@ -319,7 +293,7 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	{
 		if (newFilePointerPosition < 0)
 			throw new IOException("Seek requested before beginning of buffer!");
-		if (newFilePointerPosition > this.count)
+		if (newFilePointerPosition > this.buf.size())
 			throw new IOException("Seek requested after end of buffer!");
 		
 		this.pos = (int)newFilePointerPosition;
@@ -327,6 +301,6 @@ implements RandomAccessInputByteStream, CloseableInputByteStreamInterface
 	
 	public boolean isAtEOF()
 	{
-		return this.pos == this.count;
+		return this.pos == this.buf.size();
 	}
 }

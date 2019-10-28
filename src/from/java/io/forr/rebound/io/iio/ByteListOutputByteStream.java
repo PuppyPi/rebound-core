@@ -26,10 +26,11 @@ package from.java.io.forr.rebound.io.iio;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import javax.annotation.concurrent.NotThreadSafe;
 import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
+import rebound.util.collections.prim.PrimitiveCollections.ByteArrayList;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 
 /**
  * This class implements an output stream in which the data is written into a
@@ -45,26 +46,20 @@ import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
  * @since JDK1.0
  */
 @NotThreadSafe
-public class ByteArrayOutputByteStream
+public class ByteListOutputByteStream
 extends OutputStream
 implements CloseableFlushableOutputByteStreamInterface   //TODO also implement RandomAccessOutputByteStream!
 {
-	
 	/**
 	 * The buffer where data is stored.
 	 */
-	protected byte buf[];
-	
-	/**
-	 * The number of valid bytes in the buffer.
-	 */
-	protected int count;
+	protected ByteList buf;
 	
 	/**
 	 * Creates a new byte array output stream. The buffer capacity is initially
 	 * 32 bytes, though its size increases if necessary.
 	 */
-	public ByteArrayOutputByteStream()
+	public ByteListOutputByteStream()
 	{
 		this(32);
 	}
@@ -78,65 +73,13 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 * @exception IllegalArgumentException
 	 *                if size is negative.
 	 */
-	public ByteArrayOutputByteStream(int size)
+	public ByteListOutputByteStream(int size)
 	{
 		if (size < 0)
 		{
 			throw new IllegalArgumentException("Negative initial size: " + size);
 		}
-		this.buf = new byte[size];
-	}
-	
-	/**
-	 * Increases the capacity if necessary to ensure that it can hold at least
-	 * the number of elements specified by the minimum capacity argument.
-	 *
-	 * @param minCapacity
-	 *            the desired minimum capacity
-	 * @throws OutOfMemoryError
-	 *             if {@code minCapacity < 0}. This is interpreted as a request
-	 *             for the unsatisfiably large capacity
-	 *             {@code (long) Integer.MAX_VALUE + (minCapacity - Integer.MAX_VALUE)}
-	 *             .
-	 */
-	private void ensureCapacity(int minCapacity)
-	{
-		// overflow-conscious code
-		if (minCapacity - this.buf.length > 0)
-			grow(minCapacity);
-	}
-	
-	/**
-	 * The maximum size of array to allocate. Some VMs reserve some header words
-	 * in an array. Attempts to allocate larger arrays may result in
-	 * OutOfMemoryError: Requested array size exceeds VM limit
-	 */
-	private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
-	
-	/**
-	 * Increases the capacity to ensure that it can hold at least the number of
-	 * elements specified by the minimum capacity argument.
-	 *
-	 * @param minCapacity
-	 *            the desired minimum capacity
-	 */
-	private void grow(int minCapacity)
-	{
-		// overflow-conscious code
-		int oldCapacity = this.buf.length;
-		int newCapacity = oldCapacity << 1;
-		if (newCapacity - minCapacity < 0)
-			newCapacity = minCapacity;
-		if (newCapacity - MAX_ARRAY_SIZE > 0)
-			newCapacity = hugeCapacity(minCapacity);
-		this.buf = Arrays.copyOf(this.buf, newCapacity);
-	}
-	
-	private static int hugeCapacity(int minCapacity)
-	{
-		if (minCapacity < 0) // overflow
-			throw new OutOfMemoryError();
-		return (minCapacity > MAX_ARRAY_SIZE) ? Integer.MAX_VALUE : MAX_ARRAY_SIZE;
+		this.buf = new ByteArrayList(size);
 	}
 	
 	/**
@@ -148,9 +91,7 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	@Override
 	public void write(int b)
 	{
-		ensureCapacity(this.count + 1);
-		this.buf[this.count] = (byte) b;
-		this.count += 1;
+		this.buf.addByte((byte) b);
 	}
 	
 	/**
@@ -168,12 +109,9 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	public void write(byte b[], int off, int len)
 	{
 		if ((off < 0) || (off > b.length) || (len < 0) || ((off + len) - b.length > 0))
-		{
 			throw new IndexOutOfBoundsException();
-		}
-		ensureCapacity(this.count + len);
-		System.arraycopy(b, off, this.buf, this.count, len);
-		this.count += len;
+		
+		this.buf.addAllBytes(b, off, len);
 	}
 	
 	/**
@@ -188,7 +126,7 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 */
 	public void writeTo(OutputByteStream out) throws IOException
 	{
-		out.write(this.buf, 0, this.count);
+		out.write(this.buf);
 	}
 	
 	/**
@@ -199,7 +137,7 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 */
 	public void reset()
 	{
-		this.count = 0;
+		this.buf.clear();
 	}
 	
 	/**
@@ -210,9 +148,14 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 * @return the current contents of this output stream, as a byte array.
 	 * @see java.io.ByteArrayOutputStream#size()
 	 */
-	public byte toByteArray()[]
+	public byte[] toByteArray()
 	{
-		return Arrays.copyOf(this.buf, this.count);
+		return this.buf.toByteArray();
+	}
+	
+	public ByteList getByteListLive()
+	{
+		return buf;
 	}
 	
 	/**
@@ -223,8 +166,11 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 */
 	public int size()
 	{
-		return this.count;
+		return this.buf.size();
 	}
+	
+	
+	
 	
 	/**
 	 * Closing a <tt>ByteArrayOutputStream</tt> has no effect. The methods in
@@ -234,10 +180,6 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	public void close() throws IOException
 	{
 	}
-	
-	
-	
-	
 	
 	@Override
 	public void flush() throws IOException

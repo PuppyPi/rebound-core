@@ -5,52 +5,81 @@ import java.io.OutputStream;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
 
+
+
 public class OutputByteStreamWrapper
+extends OutputStream
 implements CloseableFlushableOutputByteStreamInterface
 {
-	protected final OutputStream underlying;
-	
-	public static OutputByteStream wrap(OutputStream underlying)
+	public static OutputStream wrap(OutputByteStream underlying)
 	{
-		return underlying instanceof OutputByteStream ? (OutputByteStream)underlying : new OutputByteStreamWrapper(underlying);
+		if (underlying instanceof OutputByteStreamAdapter)
+			return ((OutputByteStreamAdapter) underlying).getUnderlying();
+		else if (underlying instanceof OutputStream)
+			return (OutputStream) underlying;
+		else
+			return new OutputByteStreamWrapper(underlying);
 	}
 	
-	protected OutputByteStreamWrapper(OutputStream underlying)
+	
+	
+	
+	
+	protected OutputByteStream underlying;
+	
+	@ImplementationTransparency
+	public OutputByteStreamWrapper()
+	{
+	}
+	
+	/**
+	 * Use {@link #wrap(OutputByteStream)} in preference to this if you can :3
+	 */
+	@ImplementationTransparency
+	public OutputByteStreamWrapper(OutputByteStream underlying)
 	{
 		this.underlying = underlying;
 	}
 	
 	@ImplementationTransparency
-	public OutputStream getUnderlying()
+	public OutputByteStream getUnderlying()
 	{
-		return this.underlying;
+		return underlying;
+	}
+	
+	@ImplementationTransparency
+	public void setUnderlying(OutputByteStream underlying)
+	{
+		this.underlying = underlying;
 	}
 	
 	
 	
-	@Override
-	public void write(int b) throws IOException
-	{
-		this.underlying.write(b);
-	}
 	
-	@Override
-	public void write(byte[] b, int off, int len) throws IOException
-	{
-		this.underlying.write(b, off, len);
-	}
+	
 	
 	
 	
 	@Override
 	public void close() throws IOException
 	{
-		this.underlying.close();
+		underlying.close();
+	}
+	
+	public void flush() throws IOException
+	{
+		underlying.flush();
 	}
 	
 	@Override
-	public void flush() throws IOException
+	public void write(int b) throws IOException
 	{
-		this.underlying.flush();
+		underlying.write(b);
+	}
+	
+	@Override
+	public void write(byte[] b, int off, int len) throws IOException
+	{
+		underlying.write(b, off, len);
 	}
 }
