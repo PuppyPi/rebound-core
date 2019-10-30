@@ -130,19 +130,22 @@ def isnew(logiprim):
 
 
 apis = [
-[  [ [["byte[]", "source"]], None, "source[byteIndex]"],                                     [ [["byte[]", "dest"]], None, "dest[byteIndex] = %"]                                   ],
-[  [ [["byte[]", "source"], ["int", "offset"]], None, "source[offset+byteIndex]"],           [ [["byte[]", "dest"], ["int", "offset"]], None, "dest[offset+byteIndex] = %"]         ],
-[  [ [["Slice<byte[]>", "source"], ["int", "offset"]], None, "source.getUnderlying()[source.getOffset()+offset+byteIndex]"],           [ [["Slice<byte[]>", "dest"], ["int", "offset"]], None, "dest.getUnderlying()[dest.getOffset()+offset+byteIndex] = %"]         ],
-[  [ [["ByteList", "source"], ["int", "offset"]], None, "source.getByte(offset+byteIndex)"],           [ [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
-[  None,                                                                                               [ [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
-[  [ [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
-[  [ [["InputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ [["OutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
-[  [ [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
+[  [ "get", "", [["byte[]", "source"]], None, "source[byteIndex]"],                                     [ "put", "", [["byte[]", "dest"]], None, "dest[byteIndex] = %"]                                   ],
+[  [ "get", "", [["byte[]", "source"], ["int", "offset"]], None, "source[offset+byteIndex]"],           [ "put", "", [["byte[]", "dest"], ["int", "offset"]], None, "dest[offset+byteIndex] = %"]         ],
+[  [ "get", "", [["Slice<byte[]>", "source"]], None, "source.getUnderlying()[source.getOffset()+byteIndex]"],           [ "put", "", [["Slice<byte[]>", "dest"]], None, "dest.getUnderlying()[dest.getOffset()+byteIndex] = %"]         ],
+[  [ "get", "", [["Slice<byte[]>", "source"], ["int", "offset"]], None, "source.getUnderlying()[source.getOffset()+offset+byteIndex]"],           [ "put", "", [["Slice<byte[]>", "dest"], ["int", "offset"]], None, "dest.getUnderlying()[dest.getOffset()+offset+byteIndex] = %"]         ],
+[  [ "get", "", [["ByteList", "source"]], None, "source.getByte(byteIndex)"],           [ "set", "", [["ByteList", "dest"]], None, "dest.setByte(byteIndex, %)"]         ],
+[  [ "get", "", [["ByteList", "source"], ["int", "offset"]], None, "source.getByte(offset+byteIndex)"],           [ "put", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
+[  None,                                                                    [ "add", "", [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
+[  None,                                                                    [ "add", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
+[  [ "get", "", [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ "put", "", [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
+[  [ "get", "", [["InputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ "put", "", [["OutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
+[  [ "get", "", [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ "put", "", [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 ];
 
 allapis = apis + [
-[  [ [["ByteBuffer", "source"]], None, "source.get(byteIndex)"],                             [ [["ByteBuffer", "dest"]], None, "dest.put(byteIndex, %)"]                            ],
-[  [ [["ByteBuffer", "source"], ["int", "offset"]], None, "source.get(offset+byteIndex)"],   [ [["ByteBuffer", "dest"], ["int", "offset"]], None, "dest.put(offset+byteIndex, %)"]  ],
+[  [ "get", "", [["ByteBuffer", "source"]], None, "source.get(byteIndex)"],                             [ "put", "", [["ByteBuffer", "dest"]], None, "dest.put(byteIndex, %)"]                            ],
+[  [ "get", "", [["ByteBuffer", "source"], ["int", "offset"]], None, "source.get(offset+byteIndex)"],   [ "put", "", [["ByteBuffer", "dest"], ["int", "offset"]], None, "dest.put(offset+byteIndex, %)"]  ],
 ]
 
 iapis = filter(lambda a: a != None, map(lambda (inform, outform): inform, apis));
@@ -178,9 +181,9 @@ _s = "";   #for disabling certain blocks ^_~
 for littleEndian in [True, False]:
 	
 	for logiprim, clogiprim, physprim, bitlen in iprims:
-		for args, throws, expr in iapis:
+		for namePrefix, nameSuffix, args, throws, expr in iapis:
 			s += """
-			public static """+physprim+" get"+("Little" if littleEndian else "Big")+clogiprim+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
+			public static """+physprim+" "+namePrefix+("Little" if littleEndian else "Big")+clogiprim+nameSuffix+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
 			{
 				"""+physprim+""" rv = 0;\n""";
 			for byteIndex in range(bitlen/8):
@@ -190,9 +193,9 @@ for littleEndian in [True, False]:
 			""";
 		
 	for logiprim, clogiprim, physprim, bitlen in oprims:
-		for args, throws, expr in oapis:
+		for namePrefix, nameSuffix, args, throws, expr in oapis:
 			s += """
-			public static void put"""+("Little" if littleEndian else "Big")+clogiprim+"("+argsdecl(args+[[physprim, "value"]])+")"+(" throws "+throws if throws != None else "")+"""
+			public static void """+namePrefix+("Little" if littleEndian else "Big")+clogiprim+nameSuffix+"("+argsdecl(args+[[physprim, "value"]])+")"+(" throws "+throws if throws != None else "")+"""
 			{
 			""";
 			for byteIndex in range(bitlen/8):
@@ -211,11 +214,11 @@ s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 for littleEndian in [True, False]:
 	
 	for logiprim, clogiprim, physprim, bitlen in primsExtras:
-		for args, throws, expr in iapis:
+		for namePrefix, nameSuffix, args, throws, expr in iapis:
 			s += """
-			public static """+physprim+" get"+("LittleS" if littleEndian else "BigS")+clogiprim+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
+			public static """+physprim+" "+namePrefix+("LittleS" if littleEndian else "BigS")+clogiprim+nameSuffix+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
 			{
-				return signedUpcast"""+str(bitlen)+"""(get"""+("LittleU" if littleEndian else "BigU")+clogiprim+"("+argslist(args)+"""));
+				return signedUpcast"""+str(bitlen)+"("+namePrefix+("LittleU" if littleEndian else "BigU")+clogiprim+nameSuffix+"("+argslist(args)+"""));
 			}
 			""";
 s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -230,19 +233,19 @@ s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 for littleEndian in [True, False]:
 	for floatprim, bitprim in [["float", "int"], ["double", "long"]]:
 		
-		for args, throws, expr in iapis:
+		for namePrefix, nameSuffix, args, throws, expr in iapis:
 			s += """
-			public static """+floatprim+" get"+("Little" if littleEndian else "Big")+capitalize(floatprim)+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
+			public static """+floatprim+" "+namePrefix+("Little" if littleEndian else "Big")+capitalize(floatprim)+nameSuffix+"("+argsdecl(args)+")"+(" throws "+throws if throws != None else "")+"""
 			{
-				return """+capitalize(floatprim)+"."+bitprim+"BitsTo"+capitalize(floatprim)+"(get"+("Little" if littleEndian else "Big")+capitalize(bitprim)+"("+argslist(args)+"""));
+				return """+capitalize(floatprim)+"."+bitprim+"BitsTo"+capitalize(floatprim)+"("+namePrefix+("Little" if littleEndian else "Big")+capitalize(bitprim)+nameSuffix+"("+argslist(args)+"""));
 			}
 			""";
 		
-		for args, throws, expr in oapis:
+		for namePrefix, nameSuffix, args, throws, expr in oapis:
 			s += """
-			public static void put"""+("Little" if littleEndian else "Big")+capitalize(floatprim)+"("+argsdecl(args+[[floatprim, "value"]])+")"+(" throws "+throws if throws != None else "")+"""
+			public static void """+namePrefix+("Little" if littleEndian else "Big")+capitalize(floatprim)+nameSuffix+"("+argsdecl(args+[[floatprim, "value"]])+")"+(" throws "+throws if throws != None else "")+"""
 			{
-				put"""+("Little" if littleEndian else "Big")+capitalize(bitprim)+"("+argslist(args+[[bitprim, capitalize(floatprim)+"."+floatprim+"ToRaw"+capitalize(bitprim)+"Bits"+"(value)"]])+""");
+				"""+namePrefix+("Little" if littleEndian else "Big")+capitalize(bitprim)+nameSuffix+"("+argslist(args+[[bitprim, capitalize(floatprim)+"."+floatprim+"ToRaw"+capitalize(bitprim)+"Bits"+"(value)"]])+""");
 			}
 			""";
 #
@@ -257,14 +260,14 @@ s += "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 
 for logiprim, clogiprim, physprim, bitlen in alliprims:
 		
-		for args, throws, expr in alliapis:
+		for namePrefix, nameSuffix, args, throws, expr in alliapis:
 			s += """
-				public static """+physprim+" get"+clogiprim+"("+argsdecl(args+[["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
+				public static """+physprim+" "+namePrefix+clogiprim+nameSuffix+"("+argsdecl(args+[["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 				{
 					if (endianness == Endianness.Little)
-						return getLittle"""+clogiprim+"("+argslist(args)+""");
+						return """+namePrefix+"Little"+clogiprim+nameSuffix+"("+argslist(args)+""");
 					else if (endianness == Endianness.Big)
-						return getBig"""+clogiprim+"("+argslist(args)+""");
+						return """+namePrefix+"Big"+clogiprim+nameSuffix+"("+argslist(args)+""");
 					else
 						throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 				}
@@ -273,14 +276,14 @@ for logiprim, clogiprim, physprim, bitlen in alliprims:
 
 for logiprim, clogiprim, physprim, bitlen in alloprims:
 		
-		for args, throws, expr in alloapis:
+		for namePrefix, nameSuffix, args, throws, expr in alloapis:
 			s += """
-				public static void put"""+clogiprim+"("+argsdecl(args+[[physprim, "value"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
+				public static void """+namePrefix+clogiprim+nameSuffix+"("+argsdecl(args+[[physprim, "value"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 				{
 					if (endianness == Endianness.Little)
-						putLittle"""+clogiprim+"("+argslist(args+[[physprim, "value"]])+""");
+						"""+namePrefix+"Little"+clogiprim+nameSuffix+"("+argslist(args+[[physprim, "value"]])+""");
 					else if (endianness == Endianness.Big)
-						putBig"""+clogiprim+"("+argslist(args+[[physprim, "value"]])+""");
+						"""+namePrefix+"Big"+clogiprim+nameSuffix+"("+argslist(args+[[physprim, "value"]])+""");
 					else
 						throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 				}
@@ -290,9 +293,9 @@ for logiprim, clogiprim, physprim, bitlen in alloprims:
 			public static byte[] pack"""+clogiprim+"("+argsdecl([[physprim, "value"], ["Endianness", "endianness"]])+""")
 			{
 				if (endianness == Endianness.Little)
-					return packLittle"""+clogiprim+"("+argslist([[physprim, "value"]])+""");
+					return packLittle"""+clogiprim+nameSuffix+"("+argslist([[physprim, "value"]])+""");
 				else if (endianness == Endianness.Big)
-					return packBig"""+clogiprim+"("+argslist([[physprim, "value"]])+""");
+					return packBig"""+clogiprim+nameSuffix+"("+argslist([[physprim, "value"]])+""");
 				else
 					throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 			}
@@ -313,7 +316,7 @@ for e in ["Little", "Big"]:
 			public static byte[] pack"""+e+clogiprim+"("+physprim+""" value)
 			{
 				byte[] dest = new byte["""+str(bitlen / 8)+"""];
-				put"""+e+clogiprim+"""(dest, value);
+				"""+namePrefix+e+clogiprim+nameSuffix+"""(dest, value);
 				return dest;
 			}
 		""";
@@ -326,127 +329,127 @@ for e in ["Little", "Big"]:
 
 # Dynamic number of bytes!
 
-for args, throws, expr in alliapis:
+for namePrefix, nameSuffix, args, throws, expr in alliapis:
 	s += """
-		public static long getLittleUnsigned("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long """+namePrefix+"LittleUnsigned"+nameSuffix+"("+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
 				case 1:
 					return """+(expr.replace("byteIndex", "0"))+""" & 0xFFl;
 				case 2:
-					return getLittleShort("""+argslist(args)+""") & 0xFFFFl;
+					return """+namePrefix+"LittleShort"+nameSuffix+"("+argslist(args)+""") & 0xFFFFl;
 				case 3:
-					return getLittleUInt24("""+argslist(args)+""") & 0xFF_FFFFl;
+					return """+namePrefix+"LittleUInt24"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFFl;
 				case 4:
-					return getLittleInt("""+argslist(args)+""") & 0xFFFF_FFFFl;
+					return """+namePrefix+"LittleInt"+nameSuffix+"("+argslist(args)+""") & 0xFFFF_FFFFl;
 				case 5:
-					return getLittleULong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
+					return """+namePrefix+"LittleULong40"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFF_FFFFl;
 				case 6:
-					return getLittleULong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
+					return """+namePrefix+"LittleULong48"+nameSuffix+"("+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
 				case 7:
-					return getLittleULong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
+					return """+namePrefix+"LittleULong56"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
 				case 8:
-					return getLittleLong("""+argslist(args)+""");
+					return """+namePrefix+"LittleLong"+nameSuffix+"("+argslist(args)+""");
 				default:
 					throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 			}
 		}
 		
-		public static long getBigUnsigned("""+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long """+namePrefix+"BigUnsigned"+nameSuffix+"("+argsdecl(args+[["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
 				case 1:
 					return """+(expr.replace("byteIndex", "0"))+""" & 0xFFl;
 				case 2:
-					return getBigShort("""+argslist(args)+""") & 0xFFFFl;
+					return """+namePrefix+"BigShort"+nameSuffix+"("+argslist(args)+""") & 0xFFFFl;
 				case 3:
-					return getBigUInt24("""+argslist(args)+""") & 0xFF_FFFFl;
+					return """+namePrefix+"BigUInt24"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFFl;
 				case 4:
-					return getBigInt("""+argslist(args)+""") & 0xFFFF_FFFFl;
+					return """+namePrefix+"BigInt"+nameSuffix+"("+argslist(args)+""") & 0xFFFF_FFFFl;
 				case 5:
-					return getBigULong40("""+argslist(args)+""") & 0xFF_FFFF_FFFFl;
+					return """+namePrefix+"BigULong40"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFF_FFFFl;
 				case 6:
-					return getBigULong48("""+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
+					return """+namePrefix+"BigULong48"+nameSuffix+"("+argslist(args)+""") & 0xFFFF_FFFF_FFFFl;
 				case 7:
-					return getBigULong56("""+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
+					return """+namePrefix+"BigULong56"+nameSuffix+"("+argslist(args)+""") & 0xFF_FFFF_FFFF_FFFFl;
 				case 8:
-					return getBigLong("""+argslist(args)+""");
+					return """+namePrefix+"BigLong"+nameSuffix+"("+argslist(args)+""");
 				default:
 					throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 			}
 		}
 		
-		public static long getUnsigned("""+argsdecl(args+[["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static long """+namePrefix+"Unsigned"+nameSuffix+"("+argsdecl(args+[["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			if (endianness == Endianness.Little)
-				return getLittleUnsigned("""+argslist(args+[["int", "numberOfBytes"]])+""");
+				return """+namePrefix+"LittleUnsigned"+nameSuffix+"("+argslist(args+[["int", "numberOfBytes"]])+""");
 			else if (endianness == Endianness.Big)
-				return getBigUnsigned("""+argslist(args+[["int", "numberOfBytes"]])+""");
+				return """+namePrefix+"BigUnsigned"+nameSuffix+"("+argslist(args+[["int", "numberOfBytes"]])+""");
 			else
 				throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 		}
 	""";
 
-for args, throws, expr in alloapis:
+for namePrefix, nameSuffix, args, throws, expr in alloapis:
 	s += """
-		public static void putLittle("""+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static void """+namePrefix+"Little"+nameSuffix+"("+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
 				case 1:
 					"""+(expr.replace("byteIndex", "0").replace("%", "(byte)value"))+"""; break;
 				case 2:
-					putLittleShort("""+argslist(args)+""", (short)value); break;
+					"""+namePrefix+"LittleShort"+nameSuffix+"("+argslist(args)+""", (short)value); break;
 				case 3:
-					putLittleInt24("""+argslist(args)+""", (int)value); break;
+					"""+namePrefix+"LittleInt24"+nameSuffix+"("+argslist(args)+""", (int)value); break;
 				case 4:
-					putLittleInt("""+argslist(args)+""", (int)value); break;
+					"""+namePrefix+"LittleInt"+nameSuffix+"("+argslist(args)+""", (int)value); break;
 				case 5:
-					putLittleLong40("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"LittleLong40"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 6:
-					putLittleLong48("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"LittleLong48"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 7:
-					putLittleLong56("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"LittleLong56"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 8:
-					putLittleLong("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"LittleLong"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				default:
 					throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 			}
 		}
 		
-		public static void putBig("""+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static void """+namePrefix+"Big"+nameSuffix+"("+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			switch (numberOfBytes)
 			{
 				case 1:
 					"""+(expr.replace("byteIndex", "0").replace("%", "(byte)value"))+"""; break;
 				case 2:
-					putBigShort("""+argslist(args)+""", (short)value); break;
+					"""+namePrefix+"BigShort"+nameSuffix+"("+argslist(args)+""", (short)value); break;
 				case 3:
-					putBigInt24("""+argslist(args)+""", (int)value); break;
+					"""+namePrefix+"BigInt24"+nameSuffix+"("+argslist(args)+""", (int)value); break;
 				case 4:
-					putBigInt("""+argslist(args)+""", (int)value); break;
+					"""+namePrefix+"BigInt"+nameSuffix+"("+argslist(args)+""", (int)value); break;
 				case 5:
-					putBigLong40("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"BigLong40"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 6:
-					putBigLong48("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"BigLong48"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 7:
-					putBigLong56("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"BigLong56"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				case 8:
-					putBigLong("""+argslist(args)+""", (long)value); break;
+					"""+namePrefix+"BigLong"+nameSuffix+"("+argslist(args)+""", (long)value); break;
 				default:
 					throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 			}
 		}
 		
-		public static void put("""+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
+		public static void """+namePrefix+nameSuffix+"("+argsdecl(args+[["long", "value"], ["int", "numberOfBytes"], ["Endianness", "endianness"]])+")"+(" throws "+throws if throws != None else "")+"""
 		{
 			if (endianness == Endianness.Little)
-				putLittle("""+argslist(args+[["long", "value"], ["int", "numberOfBytes"]])+""");
+				"""+namePrefix+"Little"+nameSuffix+"("+argslist(args+[["long", "value"], ["int", "numberOfBytes"]])+""");
 			else if (endianness == Endianness.Big)
-				putBig("""+argslist(args+[["long", "value"], ["int", "numberOfBytes"]])+""");
+				"""+namePrefix+"Big"+nameSuffix+"("+argslist(args+[["long", "value"], ["int", "numberOfBytes"]])+""");
 			else
 				throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 		}
@@ -505,11 +508,27 @@ p(s);
 		return rv;
 	}
 	
+	public static char getLittleChar(Slice<byte[]> source)
+	{
+		char rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 8;
+		return rv;
+	}
+	
 	public static char getLittleChar(Slice<byte[]> source, int offset)
 	{
 		char rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 8;
+		return rv;
+	}
+	
+	public static char getLittleChar(ByteList source)
+	{
+		char rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 0;
+		rv |= ((source.getByte(1)) & 0xFF) << 8;
 		return rv;
 	}
 	
@@ -561,11 +580,27 @@ p(s);
 		return rv;
 	}
 	
+	public static short getLittleShort(Slice<byte[]> source)
+	{
+		short rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 8;
+		return rv;
+	}
+	
 	public static short getLittleShort(Slice<byte[]> source, int offset)
 	{
 		short rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 8;
+		return rv;
+	}
+	
+	public static short getLittleShort(ByteList source)
+	{
+		short rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 0;
+		rv |= ((source.getByte(1)) & 0xFF) << 8;
 		return rv;
 	}
 	
@@ -619,12 +654,30 @@ p(s);
 		return rv;
 	}
 	
+	public static int getLittleUInt24(Slice<byte[]> source)
+	{
+		int rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFF) << 16;
+		return rv;
+	}
+	
 	public static int getLittleUInt24(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFF) << 16;
+		return rv;
+	}
+	
+	public static int getLittleUInt24(ByteList source)
+	{
+		int rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 0;
+		rv |= ((source.getByte(1)) & 0xFF) << 8;
+		rv |= ((source.getByte(2)) & 0xFF) << 16;
 		return rv;
 	}
 	
@@ -684,6 +737,16 @@ p(s);
 		return rv;
 	}
 	
+	public static int getLittleInt(Slice<byte[]> source)
+	{
+		int rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFF) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFF) << 24;
+		return rv;
+	}
+	
 	public static int getLittleInt(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
@@ -691,6 +754,16 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFF) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFF) << 24;
+		return rv;
+	}
+	
+	public static int getLittleInt(ByteList source)
+	{
+		int rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 0;
+		rv |= ((source.getByte(1)) & 0xFF) << 8;
+		rv |= ((source.getByte(2)) & 0xFF) << 16;
+		rv |= ((source.getByte(3)) & 0xFF) << 24;
 		return rv;
 	}
 	
@@ -756,6 +829,17 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleULong40(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 32;
+		return rv;
+	}
+	
 	public static long getLittleULong40(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -764,6 +848,17 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFFl) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFFl) << 24;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 32;
+		return rv;
+	}
+	
+	public static long getLittleULong40(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 0;
+		rv |= ((source.getByte(1)) & 0xFFl) << 8;
+		rv |= ((source.getByte(2)) & 0xFFl) << 16;
+		rv |= ((source.getByte(3)) & 0xFFl) << 24;
+		rv |= ((source.getByte(4)) & 0xFFl) << 32;
 		return rv;
 	}
 	
@@ -835,6 +930,18 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleULong48(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 40;
+		return rv;
+	}
+	
 	public static long getLittleULong48(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -844,6 +951,18 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFFl) << 24;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 32;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 40;
+		return rv;
+	}
+	
+	public static long getLittleULong48(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 0;
+		rv |= ((source.getByte(1)) & 0xFFl) << 8;
+		rv |= ((source.getByte(2)) & 0xFFl) << 16;
+		rv |= ((source.getByte(3)) & 0xFFl) << 24;
+		rv |= ((source.getByte(4)) & 0xFFl) << 32;
+		rv |= ((source.getByte(5)) & 0xFFl) << 40;
 		return rv;
 	}
 	
@@ -921,6 +1040,19 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleULong56(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 40;
+		rv |= ((source.getUnderlying()[source.getOffset()+6]) & 0xFFl) << 48;
+		return rv;
+	}
+	
 	public static long getLittleULong56(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -931,6 +1063,19 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 32;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 40;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+6]) & 0xFFl) << 48;
+		return rv;
+	}
+	
+	public static long getLittleULong56(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 0;
+		rv |= ((source.getByte(1)) & 0xFFl) << 8;
+		rv |= ((source.getByte(2)) & 0xFFl) << 16;
+		rv |= ((source.getByte(3)) & 0xFFl) << 24;
+		rv |= ((source.getByte(4)) & 0xFFl) << 32;
+		rv |= ((source.getByte(5)) & 0xFFl) << 40;
+		rv |= ((source.getByte(6)) & 0xFFl) << 48;
 		return rv;
 	}
 	
@@ -1014,6 +1159,20 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleLong(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 40;
+		rv |= ((source.getUnderlying()[source.getOffset()+6]) & 0xFFl) << 48;
+		rv |= ((source.getUnderlying()[source.getOffset()+7]) & 0xFFl) << 56;
+		return rv;
+	}
+	
 	public static long getLittleLong(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -1025,6 +1184,20 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 40;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+6]) & 0xFFl) << 48;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+7]) & 0xFFl) << 56;
+		return rv;
+	}
+	
+	public static long getLittleLong(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 0;
+		rv |= ((source.getByte(1)) & 0xFFl) << 8;
+		rv |= ((source.getByte(2)) & 0xFFl) << 16;
+		rv |= ((source.getByte(3)) & 0xFFl) << 24;
+		rv |= ((source.getByte(4)) & 0xFFl) << 32;
+		rv |= ((source.getByte(5)) & 0xFFl) << 40;
+		rv |= ((source.getByte(6)) & 0xFFl) << 48;
+		rv |= ((source.getByte(7)) & 0xFFl) << 56;
 		return rv;
 	}
 	
@@ -1096,10 +1269,22 @@ p(s);
 		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
 	}
 	
+	public static void putLittleChar(Slice<byte[]> dest, char value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
 	public static void putLittleChar(Slice<byte[]> dest, int offset, char value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void setLittleChar(ByteList dest, char value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleChar(ByteList dest, int offset, char value)
@@ -1108,10 +1293,16 @@ p(s);
 		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
-	public static void putLittleChar(ByteList dest, char value)
+	public static void addLittleChar(ByteList dest, char value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void addLittleChar(ByteList dest, int offset, char value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleChar(OutputStream dest, char value) throws IOException, EOFException
@@ -1144,10 +1335,22 @@ p(s);
 		dest[offset+1] = (byte)((value >>> 8) & 0xFF);
 	}
 	
+	public static void putLittleShort(Slice<byte[]> dest, short value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
 	public static void putLittleShort(Slice<byte[]> dest, int offset, short value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
+	}
+	
+	public static void setLittleShort(ByteList dest, short value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleShort(ByteList dest, int offset, short value)
@@ -1156,10 +1359,16 @@ p(s);
 		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
-	public static void putLittleShort(ByteList dest, short value)
+	public static void addLittleShort(ByteList dest, short value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void addLittleShort(ByteList dest, int offset, short value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleShort(OutputStream dest, short value) throws IOException, EOFException
@@ -1194,11 +1403,25 @@ p(s);
 		dest[offset+2] = (byte)((value >>> 16) & 0xFF);
 	}
 	
+	public static void putLittleInt24(Slice<byte[]> dest, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+	}
+	
 	public static void putLittleInt24(Slice<byte[]> dest, int offset, int value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
+	}
+	
+	public static void setLittleInt24(ByteList dest, int value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
 	}
 	
 	public static void putLittleInt24(ByteList dest, int offset, int value)
@@ -1208,11 +1431,18 @@ p(s);
 		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
 	}
 	
-	public static void putLittleInt24(ByteList dest, int value)
+	public static void addLittleInt24(ByteList dest, int value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void addLittleInt24(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
 	}
 	
 	public static void putLittleInt24(OutputStream dest, int value) throws IOException, EOFException
@@ -1252,12 +1482,28 @@ p(s);
 		dest[offset+3] = (byte)((value >>> 24) & 0xFF);
 	}
 	
+	public static void putLittleInt(Slice<byte[]> dest, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+	}
+	
 	public static void putLittleInt(Slice<byte[]> dest, int offset, int value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
+	}
+	
+	public static void setLittleInt(ByteList dest, int value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
 	}
 	
 	public static void putLittleInt(ByteList dest, int offset, int value)
@@ -1268,12 +1514,20 @@ p(s);
 		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
 	}
 	
-	public static void putLittleInt(ByteList dest, int value)
+	public static void addLittleInt(ByteList dest, int value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void addLittleInt(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
 	}
 	
 	public static void putLittleInt(OutputStream dest, int value) throws IOException, EOFException
@@ -1318,6 +1572,15 @@ p(s);
 		dest[offset+4] = (byte)((value >>> 32) & 0xFF);
 	}
 	
+	public static void putLittleLong40(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 32) & 0xFF);
+	}
+	
 	public static void putLittleLong40(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
@@ -1325,6 +1588,15 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
+	}
+	
+	public static void setLittleLong40(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 32) & 0xFF));
 	}
 	
 	public static void putLittleLong40(ByteList dest, int offset, long value)
@@ -1336,13 +1608,22 @@ p(s);
 		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
 	}
 	
-	public static void putLittleLong40(ByteList dest, long value)
+	public static void addLittleLong40(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 24) & 0xFF));
 		dest.addByte((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void addLittleLong40(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
 	}
 	
 	public static void putLittleLong40(OutputStream dest, long value) throws IOException, EOFException
@@ -1392,6 +1673,16 @@ p(s);
 		dest[offset+5] = (byte)((value >>> 40) & 0xFF);
 	}
 	
+	public static void putLittleLong48(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 40) & 0xFF);
+	}
+	
 	public static void putLittleLong48(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
@@ -1400,6 +1691,16 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 24) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
+	}
+	
+	public static void setLittleLong48(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 40) & 0xFF));
 	}
 	
 	public static void putLittleLong48(ByteList dest, int offset, long value)
@@ -1412,7 +1713,7 @@ p(s);
 		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
 	}
 	
-	public static void putLittleLong48(ByteList dest, long value)
+	public static void addLittleLong48(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
@@ -1420,6 +1721,16 @@ p(s);
 		dest.addByte((byte)((value >>> 24) & 0xFF));
 		dest.addByte((byte)((value >>> 32) & 0xFF));
 		dest.addByte((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void addLittleLong48(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
 	}
 	
 	public static void putLittleLong48(OutputStream dest, long value) throws IOException, EOFException
@@ -1474,6 +1785,17 @@ p(s);
 		dest[offset+6] = (byte)((value >>> 48) & 0xFF);
 	}
 	
+	public static void putLittleLong56(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+6] = (byte)((value >>> 48) & 0xFF);
+	}
+	
 	public static void putLittleLong56(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
@@ -1483,6 +1805,17 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 32) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 48) & 0xFF);
+	}
+	
+	public static void setLittleLong56(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(6, (byte)((value >>> 48) & 0xFF));
 	}
 	
 	public static void putLittleLong56(ByteList dest, int offset, long value)
@@ -1496,7 +1829,7 @@ p(s);
 		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
 	}
 	
-	public static void putLittleLong56(ByteList dest, long value)
+	public static void addLittleLong56(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
@@ -1505,6 +1838,17 @@ p(s);
 		dest.addByte((byte)((value >>> 32) & 0xFF));
 		dest.addByte((byte)((value >>> 40) & 0xFF));
 		dest.addByte((byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void addLittleLong56(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
 	}
 	
 	public static void putLittleLong56(OutputStream dest, long value) throws IOException, EOFException
@@ -1564,6 +1908,18 @@ p(s);
 		dest[offset+7] = (byte)((value >>> 56) & 0xFF);
 	}
 	
+	public static void putLittleLong(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 0) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+6] = (byte)((value >>> 48) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+7] = (byte)((value >>> 56) & 0xFF);
+	}
+	
 	public static void putLittleLong(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 0) & 0xFF);
@@ -1574,6 +1930,18 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 40) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 48) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+7] = (byte)((value >>> 56) & 0xFF);
+	}
+	
+	public static void setLittleLong(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(6, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(7, (byte)((value >>> 56) & 0xFF));
 	}
 	
 	public static void putLittleLong(ByteList dest, int offset, long value)
@@ -1588,7 +1956,7 @@ p(s);
 		dest.setByte(offset+7, (byte)((value >>> 56) & 0xFF));
 	}
 	
-	public static void putLittleLong(ByteList dest, long value)
+	public static void addLittleLong(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 0) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
@@ -1598,6 +1966,18 @@ p(s);
 		dest.addByte((byte)((value >>> 40) & 0xFF));
 		dest.addByte((byte)((value >>> 48) & 0xFF));
 		dest.addByte((byte)((value >>> 56) & 0xFF));
+	}
+	
+	public static void addLittleLong(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(offset+7, (byte)((value >>> 56) & 0xFF));
 	}
 	
 	public static void putLittleLong(OutputStream dest, long value) throws IOException, EOFException
@@ -1652,11 +2032,27 @@ p(s);
 		return rv;
 	}
 	
+	public static char getBigChar(Slice<byte[]> source)
+	{
+		char rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static char getBigChar(Slice<byte[]> source, int offset)
 	{
 		char rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static char getBigChar(ByteList source)
+	{
+		char rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 8;
+		rv |= ((source.getByte(1)) & 0xFF) << 0;
 		return rv;
 	}
 	
@@ -1708,11 +2104,27 @@ p(s);
 		return rv;
 	}
 	
+	public static short getBigShort(Slice<byte[]> source)
+	{
+		short rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static short getBigShort(Slice<byte[]> source, int offset)
 	{
 		short rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static short getBigShort(ByteList source)
+	{
+		short rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 8;
+		rv |= ((source.getByte(1)) & 0xFF) << 0;
 		return rv;
 	}
 	
@@ -1766,12 +2178,30 @@ p(s);
 		return rv;
 	}
 	
+	public static int getBigUInt24(Slice<byte[]> source)
+	{
+		int rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static int getBigUInt24(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+0]) & 0xFF) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static int getBigUInt24(ByteList source)
+	{
+		int rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 16;
+		rv |= ((source.getByte(1)) & 0xFF) << 8;
+		rv |= ((source.getByte(2)) & 0xFF) << 0;
 		return rv;
 	}
 	
@@ -1831,6 +2261,16 @@ p(s);
 		return rv;
 	}
 	
+	public static int getBigInt(Slice<byte[]> source)
+	{
+		int rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFF) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFF) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFF) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static int getBigInt(Slice<byte[]> source, int offset)
 	{
 		int rv = 0;
@@ -1838,6 +2278,16 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+1]) & 0xFF) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFF) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static int getBigInt(ByteList source)
+	{
+		int rv = 0;
+		rv |= ((source.getByte(0)) & 0xFF) << 24;
+		rv |= ((source.getByte(1)) & 0xFF) << 16;
+		rv |= ((source.getByte(2)) & 0xFF) << 8;
+		rv |= ((source.getByte(3)) & 0xFF) << 0;
 		return rv;
 	}
 	
@@ -1903,6 +2353,17 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigULong40(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigULong40(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -1911,6 +2372,17 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+2]) & 0xFFl) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFFl) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigULong40(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 32;
+		rv |= ((source.getByte(1)) & 0xFFl) << 24;
+		rv |= ((source.getByte(2)) & 0xFFl) << 16;
+		rv |= ((source.getByte(3)) & 0xFFl) << 8;
+		rv |= ((source.getByte(4)) & 0xFFl) << 0;
 		return rv;
 	}
 	
@@ -1982,6 +2454,18 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigULong48(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 40;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigULong48(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -1991,6 +2475,18 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+3]) & 0xFFl) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigULong48(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 40;
+		rv |= ((source.getByte(1)) & 0xFFl) << 32;
+		rv |= ((source.getByte(2)) & 0xFFl) << 24;
+		rv |= ((source.getByte(3)) & 0xFFl) << 16;
+		rv |= ((source.getByte(4)) & 0xFFl) << 8;
+		rv |= ((source.getByte(5)) & 0xFFl) << 0;
 		return rv;
 	}
 	
@@ -2068,6 +2564,19 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigULong56(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 48;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 40;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+6]) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigULong56(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -2078,6 +2587,19 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+4]) & 0xFFl) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+6]) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigULong56(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 48;
+		rv |= ((source.getByte(1)) & 0xFFl) << 40;
+		rv |= ((source.getByte(2)) & 0xFFl) << 32;
+		rv |= ((source.getByte(3)) & 0xFFl) << 24;
+		rv |= ((source.getByte(4)) & 0xFFl) << 16;
+		rv |= ((source.getByte(5)) & 0xFFl) << 8;
+		rv |= ((source.getByte(6)) & 0xFFl) << 0;
 		return rv;
 	}
 	
@@ -2161,6 +2683,20 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigLong(Slice<byte[]> source)
+	{
+		long rv = 0;
+		rv |= ((source.getUnderlying()[source.getOffset()+0]) & 0xFFl) << 56;
+		rv |= ((source.getUnderlying()[source.getOffset()+1]) & 0xFFl) << 48;
+		rv |= ((source.getUnderlying()[source.getOffset()+2]) & 0xFFl) << 40;
+		rv |= ((source.getUnderlying()[source.getOffset()+3]) & 0xFFl) << 32;
+		rv |= ((source.getUnderlying()[source.getOffset()+4]) & 0xFFl) << 24;
+		rv |= ((source.getUnderlying()[source.getOffset()+5]) & 0xFFl) << 16;
+		rv |= ((source.getUnderlying()[source.getOffset()+6]) & 0xFFl) << 8;
+		rv |= ((source.getUnderlying()[source.getOffset()+7]) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigLong(Slice<byte[]> source, int offset)
 	{
 		long rv = 0;
@@ -2172,6 +2708,20 @@ p(s);
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+5]) & 0xFFl) << 16;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+6]) & 0xFFl) << 8;
 		rv |= ((source.getUnderlying()[source.getOffset()+offset+7]) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigLong(ByteList source)
+	{
+		long rv = 0;
+		rv |= ((source.getByte(0)) & 0xFFl) << 56;
+		rv |= ((source.getByte(1)) & 0xFFl) << 48;
+		rv |= ((source.getByte(2)) & 0xFFl) << 40;
+		rv |= ((source.getByte(3)) & 0xFFl) << 32;
+		rv |= ((source.getByte(4)) & 0xFFl) << 24;
+		rv |= ((source.getByte(5)) & 0xFFl) << 16;
+		rv |= ((source.getByte(6)) & 0xFFl) << 8;
+		rv |= ((source.getByte(7)) & 0xFFl) << 0;
 		return rv;
 	}
 	
@@ -2243,10 +2793,22 @@ p(s);
 		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigChar(Slice<byte[]> dest, char value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigChar(Slice<byte[]> dest, int offset, char value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigChar(ByteList dest, char value)
+	{
+		dest.setByte(0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigChar(ByteList dest, int offset, char value)
@@ -2255,10 +2817,16 @@ p(s);
 		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigChar(ByteList dest, char value)
+	public static void addBigChar(ByteList dest, char value)
 	{
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigChar(ByteList dest, int offset, char value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigChar(OutputStream dest, char value) throws IOException, EOFException
@@ -2291,10 +2859,22 @@ p(s);
 		dest[offset+1] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigShort(Slice<byte[]> dest, short value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigShort(Slice<byte[]> dest, int offset, short value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigShort(ByteList dest, short value)
+	{
+		dest.setByte(0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigShort(ByteList dest, int offset, short value)
@@ -2303,10 +2883,16 @@ p(s);
 		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigShort(ByteList dest, short value)
+	public static void addBigShort(ByteList dest, short value)
 	{
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigShort(ByteList dest, int offset, short value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigShort(OutputStream dest, short value) throws IOException, EOFException
@@ -2341,11 +2927,25 @@ p(s);
 		dest[offset+2] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigInt24(Slice<byte[]> dest, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigInt24(Slice<byte[]> dest, int offset, int value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigInt24(ByteList dest, int value)
+	{
+		dest.setByte(0, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt24(ByteList dest, int offset, int value)
@@ -2355,11 +2955,18 @@ p(s);
 		dest.setByte(offset+2, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigInt24(ByteList dest, int value)
+	public static void addBigInt24(ByteList dest, int value)
 	{
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigInt24(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt24(OutputStream dest, int value) throws IOException, EOFException
@@ -2399,12 +3006,28 @@ p(s);
 		dest[offset+3] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigInt(Slice<byte[]> dest, int value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigInt(Slice<byte[]> dest, int offset, int value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 24) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+1] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigInt(ByteList dest, int value)
+	{
+		dest.setByte(0, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt(ByteList dest, int offset, int value)
@@ -2415,12 +3038,20 @@ p(s);
 		dest.setByte(offset+3, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigInt(ByteList dest, int value)
+	public static void addBigInt(ByteList dest, int value)
 	{
 		dest.addByte((byte)((value >>> 24) & 0xFF));
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigInt(ByteList dest, int offset, int value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt(OutputStream dest, int value) throws IOException, EOFException
@@ -2465,6 +3096,15 @@ p(s);
 		dest[offset+4] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigLong40(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigLong40(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 32) & 0xFF);
@@ -2472,6 +3112,15 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+2] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigLong40(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong40(ByteList dest, int offset, long value)
@@ -2483,13 +3132,22 @@ p(s);
 		dest.setByte(offset+4, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong40(ByteList dest, long value)
+	public static void addBigLong40(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 32) & 0xFF));
 		dest.addByte((byte)((value >>> 24) & 0xFF));
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigLong40(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong40(OutputStream dest, long value) throws IOException, EOFException
@@ -2539,6 +3197,16 @@ p(s);
 		dest[offset+5] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigLong48(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigLong48(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 40) & 0xFF);
@@ -2547,6 +3215,16 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+3] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigLong48(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong48(ByteList dest, int offset, long value)
@@ -2559,7 +3237,7 @@ p(s);
 		dest.setByte(offset+5, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong48(ByteList dest, long value)
+	public static void addBigLong48(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 40) & 0xFF));
 		dest.addByte((byte)((value >>> 32) & 0xFF));
@@ -2567,6 +3245,16 @@ p(s);
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigLong48(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong48(OutputStream dest, long value) throws IOException, EOFException
@@ -2621,6 +3309,17 @@ p(s);
 		dest[offset+6] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigLong56(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 48) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+6] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigLong56(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 48) & 0xFF);
@@ -2630,6 +3329,17 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+4] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigLong56(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(6, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong56(ByteList dest, int offset, long value)
@@ -2643,7 +3353,7 @@ p(s);
 		dest.setByte(offset+6, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong56(ByteList dest, long value)
+	public static void addBigLong56(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 48) & 0xFF));
 		dest.addByte((byte)((value >>> 40) & 0xFF));
@@ -2652,6 +3362,17 @@ p(s);
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigLong56(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong56(OutputStream dest, long value) throws IOException, EOFException
@@ -2711,6 +3432,18 @@ p(s);
 		dest[offset+7] = (byte)((value >>> 0) & 0xFF);
 	}
 	
+	public static void putBigLong(Slice<byte[]> dest, long value)
+	{
+		dest.getUnderlying()[dest.getOffset()+0] = (byte)((value >>> 56) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+1] = (byte)((value >>> 48) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+2] = (byte)((value >>> 40) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+3] = (byte)((value >>> 32) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+4] = (byte)((value >>> 24) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+5] = (byte)((value >>> 16) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+6] = (byte)((value >>> 8) & 0xFF);
+		dest.getUnderlying()[dest.getOffset()+7] = (byte)((value >>> 0) & 0xFF);
+	}
+	
 	public static void putBigLong(Slice<byte[]> dest, int offset, long value)
 	{
 		dest.getUnderlying()[dest.getOffset()+offset+0] = (byte)((value >>> 56) & 0xFF);
@@ -2721,6 +3454,18 @@ p(s);
 		dest.getUnderlying()[dest.getOffset()+offset+5] = (byte)((value >>> 16) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+6] = (byte)((value >>> 8) & 0xFF);
 		dest.getUnderlying()[dest.getOffset()+offset+7] = (byte)((value >>> 0) & 0xFF);
+	}
+	
+	public static void setBigLong(ByteList dest, long value)
+	{
+		dest.setByte(0, (byte)((value >>> 56) & 0xFF));
+		dest.setByte(1, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(2, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(3, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(4, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(5, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(6, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(7, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong(ByteList dest, int offset, long value)
@@ -2735,7 +3480,7 @@ p(s);
 		dest.setByte(offset+7, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong(ByteList dest, long value)
+	public static void addBigLong(ByteList dest, long value)
 	{
 		dest.addByte((byte)((value >>> 56) & 0xFF));
 		dest.addByte((byte)((value >>> 48) & 0xFF));
@@ -2745,6 +3490,18 @@ p(s);
 		dest.addByte((byte)((value >>> 16) & 0xFF));
 		dest.addByte((byte)((value >>> 8) & 0xFF));
 		dest.addByte((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void addBigLong(ByteList dest, int offset, long value)
+	{
+		dest.setByte(offset+0, (byte)((value >>> 56) & 0xFF));
+		dest.setByte(offset+1, (byte)((value >>> 48) & 0xFF));
+		dest.setByte(offset+2, (byte)((value >>> 40) & 0xFF));
+		dest.setByte(offset+3, (byte)((value >>> 32) & 0xFF));
+		dest.setByte(offset+4, (byte)((value >>> 24) & 0xFF));
+		dest.setByte(offset+5, (byte)((value >>> 16) & 0xFF));
+		dest.setByte(offset+6, (byte)((value >>> 8) & 0xFF));
+		dest.setByte(offset+7, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong(OutputStream dest, long value) throws IOException, EOFException
@@ -2809,9 +3566,19 @@ p(s);
 		return signedUpcast24(getLittleUInt24(source, offset));
 	}
 	
+	public static int getLittleSInt24(Slice<byte[]> source)
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
 	public static int getLittleSInt24(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast24(getLittleUInt24(source, offset));
+	}
+	
+	public static int getLittleSInt24(ByteList source)
+	{
+		return signedUpcast24(getLittleUInt24(source));
 	}
 	
 	public static int getLittleSInt24(ByteList source, int offset)
@@ -2844,9 +3611,19 @@ p(s);
 		return signedUpcast40(getLittleULong40(source, offset));
 	}
 	
+	public static long getLittleSLong40(Slice<byte[]> source)
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
 	public static long getLittleSLong40(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast40(getLittleULong40(source, offset));
+	}
+	
+	public static long getLittleSLong40(ByteList source)
+	{
+		return signedUpcast40(getLittleULong40(source));
 	}
 	
 	public static long getLittleSLong40(ByteList source, int offset)
@@ -2879,9 +3656,19 @@ p(s);
 		return signedUpcast48(getLittleULong48(source, offset));
 	}
 	
+	public static long getLittleSLong48(Slice<byte[]> source)
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
 	public static long getLittleSLong48(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast48(getLittleULong48(source, offset));
+	}
+	
+	public static long getLittleSLong48(ByteList source)
+	{
+		return signedUpcast48(getLittleULong48(source));
 	}
 	
 	public static long getLittleSLong48(ByteList source, int offset)
@@ -2914,9 +3701,19 @@ p(s);
 		return signedUpcast56(getLittleULong56(source, offset));
 	}
 	
+	public static long getLittleSLong56(Slice<byte[]> source)
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
 	public static long getLittleSLong56(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast56(getLittleULong56(source, offset));
+	}
+	
+	public static long getLittleSLong56(ByteList source)
+	{
+		return signedUpcast56(getLittleULong56(source));
 	}
 	
 	public static long getLittleSLong56(ByteList source, int offset)
@@ -2949,9 +3746,19 @@ p(s);
 		return signedUpcast24(getBigUInt24(source, offset));
 	}
 	
+	public static int getBigSInt24(Slice<byte[]> source)
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
 	public static int getBigSInt24(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast24(getBigUInt24(source, offset));
+	}
+	
+	public static int getBigSInt24(ByteList source)
+	{
+		return signedUpcast24(getBigUInt24(source));
 	}
 	
 	public static int getBigSInt24(ByteList source, int offset)
@@ -2984,9 +3791,19 @@ p(s);
 		return signedUpcast40(getBigULong40(source, offset));
 	}
 	
+	public static long getBigSLong40(Slice<byte[]> source)
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
 	public static long getBigSLong40(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast40(getBigULong40(source, offset));
+	}
+	
+	public static long getBigSLong40(ByteList source)
+	{
+		return signedUpcast40(getBigULong40(source));
 	}
 	
 	public static long getBigSLong40(ByteList source, int offset)
@@ -3019,9 +3836,19 @@ p(s);
 		return signedUpcast48(getBigULong48(source, offset));
 	}
 	
+	public static long getBigSLong48(Slice<byte[]> source)
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
 	public static long getBigSLong48(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast48(getBigULong48(source, offset));
+	}
+	
+	public static long getBigSLong48(ByteList source)
+	{
+		return signedUpcast48(getBigULong48(source));
 	}
 	
 	public static long getBigSLong48(ByteList source, int offset)
@@ -3054,9 +3881,19 @@ p(s);
 		return signedUpcast56(getBigULong56(source, offset));
 	}
 	
+	public static long getBigSLong56(Slice<byte[]> source)
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
 	public static long getBigSLong56(Slice<byte[]> source, int offset)
 	{
 		return signedUpcast56(getBigULong56(source, offset));
+	}
+	
+	public static long getBigSLong56(ByteList source)
+	{
+		return signedUpcast56(getBigULong56(source));
 	}
 	
 	public static long getBigSLong56(ByteList source, int offset)
@@ -3105,9 +3942,19 @@ p(s);
 		return Float.intBitsToFloat(getLittleInt(source, offset));
 	}
 	
+	public static float getLittleFloat(Slice<byte[]> source)
+	{
+		return Float.intBitsToFloat(getLittleInt(source));
+	}
+	
 	public static float getLittleFloat(Slice<byte[]> source, int offset)
 	{
 		return Float.intBitsToFloat(getLittleInt(source, offset));
+	}
+	
+	public static float getLittleFloat(ByteList source)
+	{
+		return Float.intBitsToFloat(getLittleInt(source));
 	}
 	
 	public static float getLittleFloat(ByteList source, int offset)
@@ -3140,9 +3987,19 @@ p(s);
 		putLittleInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
+	public static void putLittleFloat(Slice<byte[]> dest, float value)
+	{
+		putLittleInt(dest, Float.floatToRawIntBits(value));
+	}
+	
 	public static void putLittleFloat(Slice<byte[]> dest, int offset, float value)
 	{
 		putLittleInt(dest, offset, Float.floatToRawIntBits(value));
+	}
+	
+	public static void setLittleFloat(ByteList dest, float value)
+	{
+		setLittleInt(dest, Float.floatToRawIntBits(value));
 	}
 	
 	public static void putLittleFloat(ByteList dest, int offset, float value)
@@ -3150,9 +4007,14 @@ p(s);
 		putLittleInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putLittleFloat(ByteList dest, float value)
+	public static void addLittleFloat(ByteList dest, float value)
 	{
-		putLittleInt(dest, Float.floatToRawIntBits(value));
+		addLittleInt(dest, Float.floatToRawIntBits(value));
+	}
+	
+	public static void addLittleFloat(ByteList dest, int offset, float value)
+	{
+		addLittleInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
 	public static void putLittleFloat(OutputStream dest, float value) throws IOException, EOFException
@@ -3180,9 +4042,19 @@ p(s);
 		return Double.longBitsToDouble(getLittleLong(source, offset));
 	}
 	
+	public static double getLittleDouble(Slice<byte[]> source)
+	{
+		return Double.longBitsToDouble(getLittleLong(source));
+	}
+	
 	public static double getLittleDouble(Slice<byte[]> source, int offset)
 	{
 		return Double.longBitsToDouble(getLittleLong(source, offset));
+	}
+	
+	public static double getLittleDouble(ByteList source)
+	{
+		return Double.longBitsToDouble(getLittleLong(source));
 	}
 	
 	public static double getLittleDouble(ByteList source, int offset)
@@ -3215,9 +4087,19 @@ p(s);
 		putLittleLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
+	public static void putLittleDouble(Slice<byte[]> dest, double value)
+	{
+		putLittleLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
 	public static void putLittleDouble(Slice<byte[]> dest, int offset, double value)
 	{
 		putLittleLong(dest, offset, Double.doubleToRawLongBits(value));
+	}
+	
+	public static void setLittleDouble(ByteList dest, double value)
+	{
+		setLittleLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
 	public static void putLittleDouble(ByteList dest, int offset, double value)
@@ -3225,9 +4107,14 @@ p(s);
 		putLittleLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
-	public static void putLittleDouble(ByteList dest, double value)
+	public static void addLittleDouble(ByteList dest, double value)
 	{
-		putLittleLong(dest, Double.doubleToRawLongBits(value));
+		addLittleLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
+	public static void addLittleDouble(ByteList dest, int offset, double value)
+	{
+		addLittleLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
 	public static void putLittleDouble(OutputStream dest, double value) throws IOException, EOFException
@@ -3255,9 +4142,19 @@ p(s);
 		return Float.intBitsToFloat(getBigInt(source, offset));
 	}
 	
+	public static float getBigFloat(Slice<byte[]> source)
+	{
+		return Float.intBitsToFloat(getBigInt(source));
+	}
+	
 	public static float getBigFloat(Slice<byte[]> source, int offset)
 	{
 		return Float.intBitsToFloat(getBigInt(source, offset));
+	}
+	
+	public static float getBigFloat(ByteList source)
+	{
+		return Float.intBitsToFloat(getBigInt(source));
 	}
 	
 	public static float getBigFloat(ByteList source, int offset)
@@ -3290,9 +4187,19 @@ p(s);
 		putBigInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
+	public static void putBigFloat(Slice<byte[]> dest, float value)
+	{
+		putBigInt(dest, Float.floatToRawIntBits(value));
+	}
+	
 	public static void putBigFloat(Slice<byte[]> dest, int offset, float value)
 	{
 		putBigInt(dest, offset, Float.floatToRawIntBits(value));
+	}
+	
+	public static void setBigFloat(ByteList dest, float value)
+	{
+		setBigInt(dest, Float.floatToRawIntBits(value));
 	}
 	
 	public static void putBigFloat(ByteList dest, int offset, float value)
@@ -3300,9 +4207,14 @@ p(s);
 		putBigInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putBigFloat(ByteList dest, float value)
+	public static void addBigFloat(ByteList dest, float value)
 	{
-		putBigInt(dest, Float.floatToRawIntBits(value));
+		addBigInt(dest, Float.floatToRawIntBits(value));
+	}
+	
+	public static void addBigFloat(ByteList dest, int offset, float value)
+	{
+		addBigInt(dest, offset, Float.floatToRawIntBits(value));
 	}
 	
 	public static void putBigFloat(OutputStream dest, float value) throws IOException, EOFException
@@ -3330,9 +4242,19 @@ p(s);
 		return Double.longBitsToDouble(getBigLong(source, offset));
 	}
 	
+	public static double getBigDouble(Slice<byte[]> source)
+	{
+		return Double.longBitsToDouble(getBigLong(source));
+	}
+	
 	public static double getBigDouble(Slice<byte[]> source, int offset)
 	{
 		return Double.longBitsToDouble(getBigLong(source, offset));
+	}
+	
+	public static double getBigDouble(ByteList source)
+	{
+		return Double.longBitsToDouble(getBigLong(source));
 	}
 	
 	public static double getBigDouble(ByteList source, int offset)
@@ -3365,9 +4287,19 @@ p(s);
 		putBigLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
+	public static void putBigDouble(Slice<byte[]> dest, double value)
+	{
+		putBigLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
 	public static void putBigDouble(Slice<byte[]> dest, int offset, double value)
 	{
 		putBigLong(dest, offset, Double.doubleToRawLongBits(value));
+	}
+	
+	public static void setBigDouble(ByteList dest, double value)
+	{
+		setBigLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
 	public static void putBigDouble(ByteList dest, int offset, double value)
@@ -3375,9 +4307,14 @@ p(s);
 		putBigLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
-	public static void putBigDouble(ByteList dest, double value)
+	public static void addBigDouble(ByteList dest, double value)
 	{
-		putBigLong(dest, Double.doubleToRawLongBits(value));
+		addBigLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
+	public static void addBigDouble(ByteList dest, int offset, double value)
+	{
+		addBigLong(dest, offset, Double.doubleToRawLongBits(value));
 	}
 	
 	public static void putBigDouble(OutputStream dest, double value) throws IOException, EOFException
@@ -3431,12 +4368,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static char getChar(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleChar(source);
+		else if (endianness == Endianness.Big)
+			return getBigChar(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static char getChar(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleChar(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigChar(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static char getChar(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleChar(source);
+		else if (endianness == Endianness.Big)
+			return getBigChar(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3521,12 +4478,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static short getShort(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static short getShort(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleShort(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigShort(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static short getShort(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3611,12 +4588,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static int getUInt24(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static int getUInt24(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleUInt24(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigUInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3701,12 +4698,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static int getInt(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static int getInt(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleInt(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigInt(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getInt(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3791,12 +4808,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getULong40(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getULong40(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong40(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigULong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3881,12 +4918,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getULong48(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getULong48(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong48(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigULong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong48(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -3971,12 +5028,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getULong56(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getULong56(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong56(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigULong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4061,12 +5138,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getLong(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getLong(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleLong(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigLong(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLong(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4151,12 +5248,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static float getFloat(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static float getFloat(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleFloat(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigFloat(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4241,12 +5358,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static double getDouble(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static double getDouble(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleDouble(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigDouble(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static double getDouble(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4331,12 +5468,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static int getSInt24(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static int getSInt24(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSInt24(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigSInt24(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4421,12 +5578,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getSLong40(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getSLong40(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong40(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigSLong40(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong40(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4511,12 +5688,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getSLong48(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getSLong48(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong48(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigSLong48(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong48(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4601,12 +5798,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getSLong56(Slice<byte[]> source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getSLong56(Slice<byte[]> source, int offset, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong56(source, offset);
 		else if (endianness == Endianness.Big)
 			return getBigSLong56(source, offset);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(ByteList source, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4691,12 +5908,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putChar(Slice<byte[]> dest, char value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleChar(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigChar(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putChar(Slice<byte[]> dest, int offset, char value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleChar(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigChar(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setChar(ByteList dest, char value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleChar(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigChar(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4711,12 +5948,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putChar(ByteList dest, char value, Endianness endianness)
+	public static void addChar(ByteList dest, char value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleChar(dest, value);
+			addLittleChar(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigChar(dest, value);
+			addBigChar(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addChar(ByteList dest, int offset, char value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleChar(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigChar(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4801,12 +6048,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putShort(Slice<byte[]> dest, short value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleShort(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigShort(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putShort(Slice<byte[]> dest, int offset, short value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleShort(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigShort(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setShort(ByteList dest, short value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleShort(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigShort(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4821,12 +6088,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putShort(ByteList dest, short value, Endianness endianness)
+	public static void addShort(ByteList dest, short value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleShort(dest, value);
+			addLittleShort(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigShort(dest, value);
+			addBigShort(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addShort(ByteList dest, int offset, short value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleShort(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigShort(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4911,12 +6188,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putInt24(Slice<byte[]> dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt24(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt24(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putInt24(Slice<byte[]> dest, int offset, int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleInt24(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigInt24(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setInt24(ByteList dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleInt24(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigInt24(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -4931,12 +6228,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt24(ByteList dest, int value, Endianness endianness)
+	public static void addInt24(ByteList dest, int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleInt24(dest, value);
+			addLittleInt24(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigInt24(dest, value);
+			addBigInt24(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addInt24(ByteList dest, int offset, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleInt24(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigInt24(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5021,12 +6328,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putInt(Slice<byte[]> dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putInt(Slice<byte[]> dest, int offset, int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleInt(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigInt(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setInt(ByteList dest, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleInt(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigInt(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5041,12 +6368,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt(ByteList dest, int value, Endianness endianness)
+	public static void addInt(ByteList dest, int value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleInt(dest, value);
+			addLittleInt(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigInt(dest, value);
+			addBigInt(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addInt(ByteList dest, int offset, int value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleInt(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigInt(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5131,12 +6468,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong40(Slice<byte[]> dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong40(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong40(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong40(Slice<byte[]> dest, int offset, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong40(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigLong40(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setLong40(ByteList dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleLong40(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigLong40(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5151,12 +6508,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong40(ByteList dest, long value, Endianness endianness)
+	public static void addLong40(ByteList dest, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleLong40(dest, value);
+			addLittleLong40(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigLong40(dest, value);
+			addBigLong40(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addLong40(ByteList dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleLong40(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigLong40(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5241,12 +6608,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong48(Slice<byte[]> dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong48(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong48(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong48(Slice<byte[]> dest, int offset, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong48(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigLong48(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setLong48(ByteList dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleLong48(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigLong48(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5261,12 +6648,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong48(ByteList dest, long value, Endianness endianness)
+	public static void addLong48(ByteList dest, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleLong48(dest, value);
+			addLittleLong48(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigLong48(dest, value);
+			addBigLong48(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addLong48(ByteList dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleLong48(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigLong48(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5351,12 +6748,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong56(Slice<byte[]> dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong56(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong56(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong56(Slice<byte[]> dest, int offset, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong56(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigLong56(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setLong56(ByteList dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleLong56(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigLong56(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5371,12 +6788,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong56(ByteList dest, long value, Endianness endianness)
+	public static void addLong56(ByteList dest, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleLong56(dest, value);
+			addLittleLong56(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigLong56(dest, value);
+			addBigLong56(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addLong56(ByteList dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleLong56(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigLong56(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5461,12 +6888,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong(Slice<byte[]> dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong(Slice<byte[]> dest, int offset, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigLong(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setLong(ByteList dest, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleLong(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigLong(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5481,12 +6928,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong(ByteList dest, long value, Endianness endianness)
+	public static void addLong(ByteList dest, long value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleLong(dest, value);
+			addLittleLong(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigLong(dest, value);
+			addBigLong(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addLong(ByteList dest, int offset, long value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleLong(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigLong(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5571,12 +7028,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putFloat(Slice<byte[]> dest, float value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleFloat(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigFloat(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putFloat(Slice<byte[]> dest, int offset, float value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleFloat(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigFloat(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setFloat(ByteList dest, float value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleFloat(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigFloat(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5591,12 +7068,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putFloat(ByteList dest, float value, Endianness endianness)
+	public static void addFloat(ByteList dest, float value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleFloat(dest, value);
+			addLittleFloat(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigFloat(dest, value);
+			addBigFloat(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addFloat(ByteList dest, int offset, float value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleFloat(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigFloat(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5681,12 +7168,32 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putDouble(Slice<byte[]> dest, double value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittleDouble(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigDouble(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putDouble(Slice<byte[]> dest, int offset, double value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
 			putLittleDouble(dest, offset, value);
 		else if (endianness == Endianness.Big)
 			putBigDouble(dest, offset, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setDouble(ByteList dest, double value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittleDouble(dest, value);
+		else if (endianness == Endianness.Big)
+			setBigDouble(dest, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -5701,12 +7208,22 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putDouble(ByteList dest, double value, Endianness endianness)
+	public static void addDouble(ByteList dest, double value, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittleDouble(dest, value);
+			addLittleDouble(dest, value);
 		else if (endianness == Endianness.Big)
-			putBigDouble(dest, value);
+			addBigDouble(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addDouble(ByteList dest, int offset, double value, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittleDouble(dest, offset, value);
+		else if (endianness == Endianness.Big)
+			addBigDouble(dest, offset, value);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -6047,6 +7564,66 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getLittleUnsigned(Slice<byte[]> source, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return source.getUnderlying()[source.getOffset()+0] & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(Slice<byte[]> source, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return source.getUnderlying()[source.getOffset()+0] & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(Slice<byte[]> source, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getLittleUnsigned(Slice<byte[]> source, int offset, int numberOfBytes)
 	{
 		switch (numberOfBytes)
@@ -6103,6 +7680,66 @@ p(s);
 			return getLittleUnsigned(source, offset, numberOfBytes);
 		else if (endianness == Endianness.Big)
 			return getBigUnsigned(source, offset, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLittleUnsigned(ByteList source, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return source.getByte(0) & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(ByteList source, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return source.getByte(0) & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(ByteList source, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -6587,6 +8224,66 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLittle(Slice<byte[]> dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.getUnderlying()[dest.getOffset()+0] = (byte)value; break;
+			case 2:
+				putLittleShort(dest, (short)value); break;
+			case 3:
+				putLittleInt24(dest, (int)value); break;
+			case 4:
+				putLittleInt(dest, (int)value); break;
+			case 5:
+				putLittleLong40(dest, (long)value); break;
+			case 6:
+				putLittleLong48(dest, (long)value); break;
+			case 7:
+				putLittleLong56(dest, (long)value); break;
+			case 8:
+				putLittleLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void putBig(Slice<byte[]> dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.getUnderlying()[dest.getOffset()+0] = (byte)value; break;
+			case 2:
+				putBigShort(dest, (short)value); break;
+			case 3:
+				putBigInt24(dest, (int)value); break;
+			case 4:
+				putBigInt(dest, (int)value); break;
+			case 5:
+				putBigLong40(dest, (long)value); break;
+			case 6:
+				putBigLong48(dest, (long)value); break;
+			case 7:
+				putBigLong56(dest, (long)value); break;
+			case 8:
+				putBigLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void put(Slice<byte[]> dest, long value, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			putLittle(dest, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			putBig(dest, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLittle(Slice<byte[]> dest, int offset, long value, int numberOfBytes)
 	{
 		switch (numberOfBytes)
@@ -6643,6 +8340,66 @@ p(s);
 			putLittle(dest, offset, value, numberOfBytes);
 		else if (endianness == Endianness.Big)
 			putBig(dest, offset, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void setLittle(ByteList dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.setByte(0, (byte)value); break;
+			case 2:
+				setLittleShort(dest, (short)value); break;
+			case 3:
+				setLittleInt24(dest, (int)value); break;
+			case 4:
+				setLittleInt(dest, (int)value); break;
+			case 5:
+				setLittleLong40(dest, (long)value); break;
+			case 6:
+				setLittleLong48(dest, (long)value); break;
+			case 7:
+				setLittleLong56(dest, (long)value); break;
+			case 8:
+				setLittleLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void setBig(ByteList dest, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.setByte(0, (byte)value); break;
+			case 2:
+				setBigShort(dest, (short)value); break;
+			case 3:
+				setBigInt24(dest, (int)value); break;
+			case 4:
+				setBigInt(dest, (int)value); break;
+			case 5:
+				setBigLong40(dest, (long)value); break;
+			case 6:
+				setBigLong48(dest, (long)value); break;
+			case 7:
+				setBigLong56(dest, (long)value); break;
+			case 8:
+				setBigLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void set(ByteList dest, long value, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			setLittle(dest, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			setBig(dest, value, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -6707,62 +8464,122 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLittle(ByteList dest, long value, int numberOfBytes)
+	public static void addLittle(ByteList dest, long value, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
 			case 1:
 				dest.addByte((byte)value); break;
 			case 2:
-				putLittleShort(dest, (short)value); break;
+				addLittleShort(dest, (short)value); break;
 			case 3:
-				putLittleInt24(dest, (int)value); break;
+				addLittleInt24(dest, (int)value); break;
 			case 4:
-				putLittleInt(dest, (int)value); break;
+				addLittleInt(dest, (int)value); break;
 			case 5:
-				putLittleLong40(dest, (long)value); break;
+				addLittleLong40(dest, (long)value); break;
 			case 6:
-				putLittleLong48(dest, (long)value); break;
+				addLittleLong48(dest, (long)value); break;
 			case 7:
-				putLittleLong56(dest, (long)value); break;
+				addLittleLong56(dest, (long)value); break;
 			case 8:
-				putLittleLong(dest, (long)value); break;
+				addLittleLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
 	}
 	
-	public static void putBig(ByteList dest, long value, int numberOfBytes)
+	public static void addBig(ByteList dest, long value, int numberOfBytes)
 	{
 		switch (numberOfBytes)
 		{
 			case 1:
 				dest.addByte((byte)value); break;
 			case 2:
-				putBigShort(dest, (short)value); break;
+				addBigShort(dest, (short)value); break;
 			case 3:
-				putBigInt24(dest, (int)value); break;
+				addBigInt24(dest, (int)value); break;
 			case 4:
-				putBigInt(dest, (int)value); break;
+				addBigInt(dest, (int)value); break;
 			case 5:
-				putBigLong40(dest, (long)value); break;
+				addBigLong40(dest, (long)value); break;
 			case 6:
-				putBigLong48(dest, (long)value); break;
+				addBigLong48(dest, (long)value); break;
 			case 7:
-				putBigLong56(dest, (long)value); break;
+				addBigLong56(dest, (long)value); break;
 			case 8:
-				putBigLong(dest, (long)value); break;
+				addBigLong(dest, (long)value); break;
 			default:
 				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
 		}
 	}
 	
-	public static void put(ByteList dest, long value, int numberOfBytes, Endianness endianness)
+	public static void add(ByteList dest, long value, int numberOfBytes, Endianness endianness)
 	{
 		if (endianness == Endianness.Little)
-			putLittle(dest, value, numberOfBytes);
+			addLittle(dest, value, numberOfBytes);
 		else if (endianness == Endianness.Big)
-			putBig(dest, value, numberOfBytes);
+			addBig(dest, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void addLittle(ByteList dest, int offset, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.setByte(offset+0, (byte)value); break;
+			case 2:
+				addLittleShort(dest, offset, (short)value); break;
+			case 3:
+				addLittleInt24(dest, offset, (int)value); break;
+			case 4:
+				addLittleInt(dest, offset, (int)value); break;
+			case 5:
+				addLittleLong40(dest, offset, (long)value); break;
+			case 6:
+				addLittleLong48(dest, offset, (long)value); break;
+			case 7:
+				addLittleLong56(dest, offset, (long)value); break;
+			case 8:
+				addLittleLong(dest, offset, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void addBig(ByteList dest, int offset, long value, int numberOfBytes)
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.setByte(offset+0, (byte)value); break;
+			case 2:
+				addBigShort(dest, offset, (short)value); break;
+			case 3:
+				addBigInt24(dest, offset, (int)value); break;
+			case 4:
+				addBigInt(dest, offset, (int)value); break;
+			case 5:
+				addBigLong40(dest, offset, (long)value); break;
+			case 6:
+				addBigLong48(dest, offset, (long)value); break;
+			case 7:
+				addBigLong56(dest, offset, (long)value); break;
+			case 8:
+				addBigLong(dest, offset, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void add(ByteList dest, int offset, long value, int numberOfBytes, Endianness endianness)
+	{
+		if (endianness == Endianness.Little)
+			addLittle(dest, offset, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			addBig(dest, offset, value, numberOfBytes);
 		else
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
@@ -7706,7 +9523,6 @@ _$$primxpconf:uint24,ulong40,ulong48,ulong56$$_
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -7904,7 +9720,6 @@ _$$primxpconf:sint24,slong40,slong48,slong56$$_
 	{
 		return signedUpcast56(getULong56Buffermodifying(source, offset, endianness));
 	}
-	
 	
 	
 	
@@ -8538,7 +10353,6 @@ _$$primxpconf:multibytes$$_
 		source.order(endianness);
 		source.putLong(offset, value);
 	}
-	
 	
 	
 	
@@ -10184,7 +11998,6 @@ _$$primxpconf:char,short,int,long,float,double,sint24,slong40,slong48,slong56,ui
 	
 	
 	
-	
 	// >>>
 				
 	
@@ -11195,7 +13008,6 @@ _$$primxpconf:char,short,int,long,float,double,uint24,ulong40,ulong48,ulong56$$_
 			source.order(originalByteOrder);
 		}
 	}
-	
 	
 	
 	

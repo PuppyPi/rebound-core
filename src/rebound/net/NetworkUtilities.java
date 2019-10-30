@@ -8,6 +8,7 @@ import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -38,20 +39,21 @@ import rebound.text.StringUtilities;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.objectutil.JavaNamespace;
 
 public class NetworkUtilities
 implements JavaNamespace
 {
-	public static byte[] getNetmaskForIPv4(int bitLength)
+	public static ByteList getNetmaskForIPv4(int bitLength)
 	{
 		if (bitLength < 0 || bitLength > 32)
 			throw new IllegalArgumentException(repr(bitLength));
 		
 		int v = (truncatingShift32(1, bitLength) - 1) << (32 - bitLength);
 		
-		return Bytes.packBigInt(v);
+		return ImmutableByteArrayList.newLIVE(Bytes.packBigInt(v));
 	}
 	
 	public static String getNetmaskForIPv4asString(int bitLength)
@@ -63,28 +65,28 @@ implements JavaNamespace
 	/**
 	 * Tests whether or not this IP address represents an IPv4 address.<br>
 	 */
-	public static boolean isIPv4(byte[] addr)
+	public static boolean isIPv4(ByteList addr)
 	{
-		if (addr.length == 4)
+		if (addr.size() == 4)
 		{
 			return true;
 		}
-		else if (addr.length == 16)
+		else if (addr.size() == 16)
 		{
 			return
 			(
-			addr[0] == 0 &&
-			addr[1] == 0 &&
-			addr[2] == 0 &&
-			addr[3] == 0 &&
-			addr[4] == 0 &&
-			addr[5] == 0 &&
-			addr[6] == 0 &&
-			addr[7] == 0 &&
-			addr[8] == 0 &&
-			addr[9] == 0 &&
-			addr[10] == (byte)0xFF &&
-			addr[11] == (byte)0xFF
+			addr.getByte(0) == 0 &&
+			addr.getByte(1) == 0 &&
+			addr.getByte(2) == 0 &&
+			addr.getByte(3) == 0 &&
+			addr.getByte(4) == 0 &&
+			addr.getByte(5) == 0 &&
+			addr.getByte(6) == 0 &&
+			addr.getByte(7) == 0 &&
+			addr.getByte(8) == 0 &&
+			addr.getByte(9) == 0 &&
+			addr.getByte(10) == (byte)0xFF &&
+			addr.getByte(11) == (byte)0xFF
 			);
 		}
 		else
@@ -94,37 +96,40 @@ implements JavaNamespace
 	}
 	
 	
+	
+	
+	
 	/**
 	 * This removes the ambiguity between 4-Byte arrays (IPv4) and 16-Byte arrays (IPv6) that are mapped to IPv4 addresses.<br>
 	 * <br>
 	 * If <code>toV6</code> is <code>true</code>, then any IPv4 address is converted to the equivalent IPv6, 16-Byte array.<br>
 	 * If <code>toV6</code> is <code>false</code>, then IPv4 mapped IPv6 addresses will be converted into 4-Byte arrays, otherwise nothing will be done to <code>src</code>.<br>
 	 */
-	public static byte[] canonicalizeIP(byte[] src, boolean toV6)
+	public static ByteList canonicalizeIP(ByteList src, boolean toV6)
 	{
 		if (toV6)
 		{
-			if (src.length == 4)
+			if (src.size() == 4)
 			{
 				byte[] v6 = new byte[16];
 				
 				//[0:10] = 0;
 				v6[10] = (byte)0xFF;
 				v6[11] = (byte)0xFF;
-				v6[12] = src[0];
-				v6[13] = src[1];
-				v6[14] = src[2];
-				v6[15] = src[3];
+				v6[12] = src.getByte(0);
+				v6[13] = src.getByte(1);
+				v6[14] = src.getByte(2);
+				v6[15] = src.getByte(3);
 				
-				return v6;
+				return ImmutableByteArrayList.newLIVE(v6);
 			}
-			else if (src.length == 16)
+			else if (src.size() == 16)
 			{
 				return src;
 			}
 			else
 			{
-				throw new AddressLengthException(src.length);
+				throw new AddressLengthException(src.size());
 			}
 		}
 		
@@ -132,20 +137,15 @@ implements JavaNamespace
 		
 		else
 		{
-			if (src.length == 4)
+			if (src.size() == 4)
 			{
 				return src;
 			}
-			else if (src.length == 16)
+			else if (src.size() == 16)
 			{
 				if (isIPv4(src))
 				{
-					byte[] v4 = new byte[4];
-					v4[0] = src[12];
-					v4[1] = src[13];
-					v4[2] = src[14];
-					v4[3] = src[15];
-					return v4;
+					return src.subListToEnd(12);
 				}
 				else
 				{
@@ -154,10 +154,12 @@ implements JavaNamespace
 			}
 			else
 			{
-				throw new AddressLengthException(src.length);
+				throw new AddressLengthException(src.size());
 			}
 		}
 	}
+	
+	
 	
 	
 	
@@ -186,7 +188,7 @@ implements JavaNamespace
 	 * If the string is of an IPv4 address, the array will be 4-byte.<br>
 	 * Otherwise, even if it is an IPv4 address mapped to IPv6, the array will be 16-byte.<br>
 	 */
-	public static byte[] parseIP(@Nonnull String str) throws TextSyntaxCheckedException
+	public static ByteList parseIPToList(@Nonnull String str) throws TextSyntaxCheckedException
 	{
 		if (str == null)
 			throw new NullPointerException();
@@ -337,7 +339,7 @@ implements JavaNamespace
 			}
 		}
 		
-		return addr;
+		return ImmutableByteArrayList.newLIVE(addr);
 	}
 	
 	private static byte digit(char c, int radix) throws TextSyntaxCheckedException
@@ -352,15 +354,21 @@ implements JavaNamespace
 	
 	public static int parseIPv4ToU32BE(@Nonnull String str) throws TextSyntaxCheckedException
 	{
-		byte[] ip = parseIP(str);
+		ByteList ip = parseIPToList(str);
 		
-		if (ip.length == 4)
+		if (ip.size() == 4)
 			return Bytes.getBigInt(ip);
-		else if (ip.length == 16)
+		else if (ip.size() == 16)
 			throw TextSyntaxCheckedException.inst("IPv6 was given but IPv4 was requested");
 		else
 			throw new AssertionError();
 	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -399,7 +407,7 @@ implements JavaNamespace
 	 */
 	public static String formatIP
 	(
-	byte[] ip,
+	ByteList ip,
 	
 	//<Format
 	boolean v4,
@@ -416,9 +424,9 @@ implements JavaNamespace
 		
 		if (v4)
 		{
-			byte[] ip4 = canonicalizeIP(ip, false);
+			ByteList ip4 = canonicalizeIP(ip, false);
 			
-			if (ip4.length != 4)
+			if (ip4.size() != 4)
 				throw new IllegalArgumentException("Cannot convert a non-mapped IPv6 address to an IPv4.");
 			
 			if (!dotted)
@@ -428,7 +436,7 @@ implements JavaNamespace
 			//Do the formatting
 			for (int i = 0; i < 4; i++)
 			{
-				String dec = StringUtilities.toStringU8(ip4[i]);
+				String dec = StringUtilities.toStringU8(ip4.getByte(i));
 				
 				if (leadingZeros)
 				{
@@ -448,7 +456,7 @@ implements JavaNamespace
 		
 		else
 		{
-			byte[] ip6 = canonicalizeIP(ip, true);
+			ByteList ip6 = canonicalizeIP(ip, true);
 			
 			boolean useDots = dotted && isIPv4(ip);
 			
@@ -464,7 +472,7 @@ implements JavaNamespace
 					
 					for (int i = 0; i < len+1; i++)
 					{
-						if (i < len && ip6[i*2] == 0 && ip6[i*2+1] == 0)
+						if (i < len && ip6.getByte(i*2) == 0 && ip6.getByte(i*2+1) == 0)
 						{
 							if (this_zerostrech_start == -1)
 							{
@@ -503,8 +511,8 @@ implements JavaNamespace
 				}
 				else
 				{
-					byte a = ip6[i*2];
-					byte b = ip6[i*2+1];
+					byte a = ip6.getByte(i*2);
+					byte b = ip6.getByte(i*2+1);
 					
 					if (a != 0)
 					{
@@ -564,7 +572,7 @@ implements JavaNamespace
 				//Do the formatting
 				for (int i = 12; i < 16; i++)
 				{
-					String dec = StringUtilities.toStringU8(ip6[i]);
+					String dec = StringUtilities.toStringU8(ip6.getByte(i));
 					
 					if (leadingZeros)
 					{
@@ -585,13 +593,14 @@ implements JavaNamespace
 	}
 	
 	
+	
 	/**
 	 * Formats an IP address in the standard fashion.<br>
 	 * Note: 4-byte addresses will be formatted as IPv4, but IPv6 mapped IPv4 addresses will be formatted in the IPv6 fashion (eg, ::ffff:f700:1).<br>
 	 */
-	public static String formatIP(byte[] ip) throws NullPointerException
+	public static String formatIP(ByteList ip) throws NullPointerException
 	{
-		if (ip.length == 4)
+		if (ip.size() == 4)
 		{
 			return formatIP(ip, true, true, true, false);
 		}
@@ -603,19 +612,14 @@ implements JavaNamespace
 	
 	public static String formatIPv4(int addrBigEndian)
 	{
-		return formatIP(Bytes.packBigInt(addrBigEndian));
+		return formatIP(byteArrayAsList(Bytes.packBigInt(addrBigEndian)));
 	}
 	
 	public static String formatIPv6(long addrBigEndianHigh, long addrBigEndianLow)
 	{
-		return formatIP(ArrayUtilities.concatArrays(Bytes.packBigLong(addrBigEndianHigh), Bytes.packBigLong(addrBigEndianLow)));
+		return formatIP(byteArrayAsList(ArrayUtilities.concatArrays(Bytes.packBigLong(addrBigEndianHigh), Bytes.packBigLong(addrBigEndianLow))));
 	}
 	
-	
-	public static String formatMAC(byte[] addr)
-	{
-		return DataEncodingUtilities.encodeHex(addr, DataEncodingUtilities.HEX_UPPERCASE, ":");
-	}
 	
 	public static String formatMAC(ByteList addr)
 	{
@@ -628,7 +632,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static @Nonnull byte[] parseMAC(String str) throws TextSyntaxCheckedException
+	public static @Nonnull ByteList parseMACToList(String str) throws TextSyntaxCheckedException
 	{
 		if (str.length() != 17)
 		{
@@ -638,7 +642,7 @@ implements JavaNamespace
 		{
 			try
 			{
-				return DataEncodingUtilities.decodeHex(str, 1);
+				return DataEncodingUtilities.decodeHexToList(str, 1);
 			}
 			catch (EOFException exc)
 			{
@@ -654,7 +658,7 @@ implements JavaNamespace
 	
 	public static long parseMACToBitfield(String str) throws TextSyntaxCheckedException
 	{
-		return Bytes.getBigULong48(parseMAC(str));
+		return Bytes.getBigULong48(parseMACToList(str));
 	}
 	
 	
@@ -758,24 +762,6 @@ implements JavaNamespace
 				available.add(url);
 		return available;
 	}
-	
-	
-	
-	
-	
-	
-	public static InetAddress toInetAddress(Object host) throws UnknownHostException
-	{
-		if (host instanceof InetAddress)
-			return (InetAddress)host;
-		else if (host instanceof byte[])
-			return InetAddress.getByAddress((byte[])host);
-		else if (host instanceof String)
-			return InetAddress.getByName((String)host);
-		else
-			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(host);
-	}
-	
 	
 	
 	
@@ -1012,9 +998,109 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/////////////////// Old array-not-list code ///////////////////
+	
+	@Deprecated
+	public static boolean isIPv4(byte[] addr)
+	{
+		return isIPv4(byteArrayAsList(addr));
+	}
+	
+	@Deprecated
+	public static byte[] canonicalizeIP(byte[] src, boolean toV6)
+	{
+		return canonicalizeIP(byteArrayAsList(src), toV6).toByteArray();
+	}
+	
+	@Deprecated
+	public static String formatMAC(byte[] addr)
+	{
+		return formatMAC(byteArrayAsList(addr));
+	}
+	
+	@Deprecated
+	public static byte[] parseIPToArray(@Nonnull String str) throws TextSyntaxCheckedException
+	{
+		return parseIPToList(str).toByteArray();
+	}
+	
+	
+	@Deprecated
+	public static String formatIP
+	(
+	byte[] ip,
+	
+	//<Format
+	boolean v4,
+	boolean compact,
+	boolean dotted,
+	boolean leadingZeros
+	//Format>
+	)
+	throws NullPointerException
+	{
+		return formatIP(byteArrayAsList(ip), v4, compact, dotted, leadingZeros);
+	}
+	
+	
+	@Deprecated
+	public static String formatIP(byte[] ip) throws NullPointerException
+	{
+		return formatIP(byteArrayAsList(ip));
+	}
+	
+	
+	
+	@Deprecated
+	public static @Nonnull byte[] parseMAC(String str) throws TextSyntaxCheckedException
+	{
+		return parseMACToList(str).toByteArray();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/////////////////// I don't like these because .toString() doesn't return something useful :< ///////////////////
+	
 	public static InetAddress parseIPToOOP(String s) throws TextSyntaxCheckedException
 	{
-		return ipToOOP(parseIP(s));
+		return ipToOOP(parseIPToArray(s));
 	}
 	
 	public static InetAddress ipToOOP(byte[] s)
@@ -1027,5 +1113,17 @@ implements JavaNamespace
 		{
 			throw new ImpossibleException(exc);
 		}
+	}
+	
+	public static InetAddress toInetAddress(Object host) throws UnknownHostException
+	{
+		if (host instanceof InetAddress)
+			return (InetAddress)host;
+		else if (host instanceof byte[])
+			return InetAddress.getByAddress((byte[])host);
+		else if (host instanceof String)
+			return InetAddress.getByName((String)host);
+		else
+			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(host);
 	}
 }

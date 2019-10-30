@@ -27,6 +27,8 @@ package from.java.io.forr.rebound.io.iio;
 import java.io.IOException;
 import java.io.OutputStream;
 import javax.annotation.concurrent.NotThreadSafe;
+import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
 import rebound.util.collections.prim.PrimitiveCollections.ByteArrayList;
@@ -148,11 +150,19 @@ implements CloseableFlushableOutputByteStreamInterface   //TODO also implement R
 	 * @return the current contents of this output stream, as a byte array.
 	 * @see java.io.ByteArrayOutputStream#size()
 	 */
+	@ThrowAwayValue
 	public byte[] toByteArray()
 	{
 		return this.buf.toByteArray();
 	}
 	
+	@ThrowAwayValue
+	public ByteList toByteList()
+	{
+		return buf.clone();
+	}
+	
+	@LiveValue
 	public ByteList getByteListLive()
 	{
 		return buf;
