@@ -9,15 +9,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * The method tagged with this is like a <code>public static void main(String[] args)</code> method (whether it has that signature/name or not)
- * But it *will not call {@link System#exit(int)}!!*
+ * Explicit opposite of {@link EmbeddableMain}
+ * It does (at least sometimes) call {@link System#exit(int)}!!
  * 
- * So it's safe to embed into other applications :>
- * 
- * @see UnembeddableMain
+ * @see EmbeddableMain
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EmbeddableMain
+public @interface UnembeddableMain
 {
 }

@@ -1,5 +1,7 @@
 package rebound.io.util;
 
+import static java.util.Objects.*;
+import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.CharArrayWriter;
@@ -7,10 +9,13 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import rebound.io.ucs4.UCS4ArrayWriter;
 import rebound.io.ucs4.UCS4Reader;
 import rebound.io.ucs4.UCS4Writer;
@@ -353,5 +358,43 @@ public class TextIOUtilities
 	public static BufferedWriter ensureBufferedWriter(Writer in)
 	{
 		return in instanceof BufferedWriter ? (BufferedWriter)in : new BufferedWriter(in);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void writeTextToBinaryProperly(OutputStream out, Charset encoding, PureTextWritingBody body) throws IOException
+	{
+		Writer w = new OutputStreamWriter(requireNonNull(out), encoding);
+		
+		
+		//Our text implementation of course doesn't encode UTF-16 properly!! XD   It encodes the <?xml..?> as UTF-16 *without* adding a proper BOM, so it can't be re-parsed!..0
+		{
+			if (eq(encoding, StandardCharsets.UTF_16))
+				throw new IllegalArgumentException("You gotta say which endian it is, little or big!");
+			
+			//..But we can easily fix that! :D
+			if (eq(encoding, StandardCharsets.UTF_16LE))
+			{
+				out.write(0xFF);
+				out.write(0xFE);
+			}
+			else if (eq(encoding, StandardCharsets.UTF_16BE))
+			{
+				out.write(0xFE);
+				out.write(0xFF);
+			}
+		}
+		
+		
+		body.run(w, encoding.name());
+		
+		
+		w.flush();  //In case our stream decorator is buffering (*sigh* Java doesn't allow a standard interface for 'closing' or 'flushing' just a single level of decorator X'3 )
 	}
 }

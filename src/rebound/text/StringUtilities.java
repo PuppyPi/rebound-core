@@ -1294,6 +1294,22 @@ implements JavaNamespace
 	
 	
 	@Nullable
+	public static String[] splitonceOrNull(String s, UnaryFunctionCharToBoolean del)
+	{
+		int i = indexOf(s, del);
+		return i == -1 ? null : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	@Nonnull
+	public static String[] splitonce(String s, UnaryFunctionCharToBoolean del)
+	{
+		int i = indexOf(s, del);
+		return i == -1 ? new String[]{s} : new String[]{s.substring(0, i), s.substring(i+1)};
+	}
+	
+	
+	
+	@Nullable
 	public static String[] splitonceOrNull(String s, String del)
 	{
 		int i = s.indexOf(del);
