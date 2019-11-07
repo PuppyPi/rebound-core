@@ -6,6 +6,7 @@ package rebound.util;
 
 import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.PlatformNIOBufferUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -29,8 +30,17 @@ import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
+import rebound.util.collections.prim.PrimitiveCollections.DoubleList;
+import rebound.util.collections.prim.PrimitiveCollections.FloatList;
+import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.PubliclyCloneable;
+
+//TODO Refactor-Rename to remove method overloading ^^'
 
 public class NIOBufferUtilities
 implements JavaNamespace
@@ -1221,7 +1231,6 @@ implements JavaNamespace
 		return LongBuffer.wrap(array, offset, length);
 	}
 	
-	
 	// >>>
 	
 	
@@ -1602,12 +1611,46 @@ implements JavaNamespace
 	
 	
 	
-	
 	/* <<<
 	python
 	
 	
 	p(primxp.primxp(prims=primxp.AllPrimsButBoolean, source="""
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue _$$Prim$$_Buffer buffer, int bufferOffset, @WritableValue _$$prim$$_[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue _$$Prim$$_Buffer buffer, int bufferOffset, @WritableValue _$$prim$$_[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	
+	
 	
 	public static void getWithoutMoving(@ReadonlyValue _$$Prim$$_Buffer buffer, @WritableValue _$$prim$$_[] array, int arrayOffset, int length)
 	{
@@ -1637,6 +1680,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue _$$Prim$$_Buffer buffer, @WritableValue Slice<_$$prim$$_[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMoving_$$Prim$$_(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue _$$Primitive$$_List list)
+	{
+		getWithoutMoving(buffer, list.to_$$Prim$$_ArraySlicePossiblyLive());
+	}
+	
+	public static void getMoving_$$Prim$$_(@ReadonlyValue _$$Prim$$_Buffer buffer, @WritableValue Slice<_$$prim$$_[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMoving_$$Prim$$_(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue _$$Primitive$$_List list)
+	{
+		getMoving_$$Prim$$_(buffer, list.to_$$Prim$$_ArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static _$$prim$$_[] getToNewArrayWithoutMoving(@ReadonlyValue _$$Prim$$_Buffer buffer, int length)
 	{
 		_$$prim$$_[] array = new _$$prim$$_[length];
@@ -1650,6 +1715,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static _$$Primitive$$_List getToNewListWithoutMoving_$$Prim$$_(@ReadonlyValue _$$Prim$$_Buffer buffer, int length)
+	{
+		return _$$prim$$_ArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static _$$Primitive$$_List getToNewListMoving_$$Prim$$_(@ReadonlyValue _$$Prim$$_Buffer buffer, int length)
+	{
+		return _$$prim$$_ArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue _$$Prim$$_Buffer buffer, int bufferOffset, @ReadonlyValue _$$prim$$_[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue _$$Prim$$_Buffer buffer, int bufferOffset, @ReadonlyValue _$$prim$$_[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue _$$prim$$_[] array, int arrayOffset, int length)
@@ -1685,6 +1801,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMoving_$$Prim$$_(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue _$$Primitive$$_List list)
+	{
+		putWithoutMoving_$$Prim$$_(buffer, list.to_$$Prim$$_ArraySlicePossiblyLive());
+	}
+	
+	public static void putMoving_$$Prim$$_(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue Slice<_$$prim$$_[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMoving_$$Prim$$_(@WritableValue _$$Prim$$_Buffer buffer, @ReadonlyValue _$$Primitive$$_List list)
+	{
+		putMoving_$$Prim$$_(buffer, list.to_$$Prim$$_ArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -1703,6 +1834,41 @@ implements JavaNamespace
 	
 	"""));
 	 */
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue ByteBuffer buffer, int bufferOffset, @WritableValue byte[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue ByteBuffer buffer, int bufferOffset, @WritableValue byte[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	
 	
 	
 	public static void getWithoutMoving(@ReadonlyValue ByteBuffer buffer, @WritableValue byte[] array, int arrayOffset, int length)
@@ -1733,6 +1899,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue ByteBuffer buffer, @WritableValue Slice<byte[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingByte(@WritableValue ByteBuffer buffer, @ReadonlyValue ByteList list)
+	{
+		getWithoutMoving(buffer, list.toByteArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingByte(@ReadonlyValue ByteBuffer buffer, @WritableValue Slice<byte[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingByte(@WritableValue ByteBuffer buffer, @ReadonlyValue ByteList list)
+	{
+		getMovingByte(buffer, list.toByteArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static byte[] getToNewArrayWithoutMoving(@ReadonlyValue ByteBuffer buffer, int length)
 	{
 		byte[] array = new byte[length];
@@ -1746,6 +1934,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static ByteList getToNewListWithoutMovingByte(@ReadonlyValue ByteBuffer buffer, int length)
+	{
+		return byteArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static ByteList getToNewListMovingByte(@ReadonlyValue ByteBuffer buffer, int length)
+	{
+		return byteArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue ByteBuffer buffer, int bufferOffset, @ReadonlyValue byte[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue ByteBuffer buffer, int bufferOffset, @ReadonlyValue byte[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue ByteBuffer buffer, @ReadonlyValue byte[] array, int arrayOffset, int length)
@@ -1781,6 +2020,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingByte(@WritableValue ByteBuffer buffer, @ReadonlyValue ByteList list)
+	{
+		putWithoutMovingByte(buffer, list.toByteArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingByte(@WritableValue ByteBuffer buffer, @ReadonlyValue Slice<byte[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingByte(@WritableValue ByteBuffer buffer, @ReadonlyValue ByteList list)
+	{
+		putMovingByte(buffer, list.toByteArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -1795,6 +2049,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue CharBuffer buffer, int bufferOffset, @WritableValue char[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue CharBuffer buffer, int bufferOffset, @WritableValue char[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -1827,6 +2116,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue CharBuffer buffer, @WritableValue Slice<char[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingChar(@WritableValue CharBuffer buffer, @ReadonlyValue CharacterList list)
+	{
+		getWithoutMoving(buffer, list.toCharArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingChar(@ReadonlyValue CharBuffer buffer, @WritableValue Slice<char[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingChar(@WritableValue CharBuffer buffer, @ReadonlyValue CharacterList list)
+	{
+		getMovingChar(buffer, list.toCharArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static char[] getToNewArrayWithoutMoving(@ReadonlyValue CharBuffer buffer, int length)
 	{
 		char[] array = new char[length];
@@ -1840,6 +2151,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static CharacterList getToNewListWithoutMovingChar(@ReadonlyValue CharBuffer buffer, int length)
+	{
+		return charArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static CharacterList getToNewListMovingChar(@ReadonlyValue CharBuffer buffer, int length)
+	{
+		return charArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue CharBuffer buffer, int bufferOffset, @ReadonlyValue char[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue CharBuffer buffer, int bufferOffset, @ReadonlyValue char[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue CharBuffer buffer, @ReadonlyValue char[] array, int arrayOffset, int length)
@@ -1875,6 +2237,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingChar(@WritableValue CharBuffer buffer, @ReadonlyValue CharacterList list)
+	{
+		putWithoutMovingChar(buffer, list.toCharArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingChar(@WritableValue CharBuffer buffer, @ReadonlyValue Slice<char[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingChar(@WritableValue CharBuffer buffer, @ReadonlyValue CharacterList list)
+	{
+		putMovingChar(buffer, list.toCharArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -1889,6 +2266,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue ShortBuffer buffer, int bufferOffset, @WritableValue short[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue ShortBuffer buffer, int bufferOffset, @WritableValue short[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -1921,6 +2333,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue ShortBuffer buffer, @WritableValue Slice<short[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingShort(@WritableValue ShortBuffer buffer, @ReadonlyValue ShortList list)
+	{
+		getWithoutMoving(buffer, list.toShortArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingShort(@ReadonlyValue ShortBuffer buffer, @WritableValue Slice<short[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingShort(@WritableValue ShortBuffer buffer, @ReadonlyValue ShortList list)
+	{
+		getMovingShort(buffer, list.toShortArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static short[] getToNewArrayWithoutMoving(@ReadonlyValue ShortBuffer buffer, int length)
 	{
 		short[] array = new short[length];
@@ -1934,6 +2368,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static ShortList getToNewListWithoutMovingShort(@ReadonlyValue ShortBuffer buffer, int length)
+	{
+		return shortArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static ShortList getToNewListMovingShort(@ReadonlyValue ShortBuffer buffer, int length)
+	{
+		return shortArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue ShortBuffer buffer, int bufferOffset, @ReadonlyValue short[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue ShortBuffer buffer, int bufferOffset, @ReadonlyValue short[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue ShortBuffer buffer, @ReadonlyValue short[] array, int arrayOffset, int length)
@@ -1969,6 +2454,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingShort(@WritableValue ShortBuffer buffer, @ReadonlyValue ShortList list)
+	{
+		putWithoutMovingShort(buffer, list.toShortArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingShort(@WritableValue ShortBuffer buffer, @ReadonlyValue Slice<short[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingShort(@WritableValue ShortBuffer buffer, @ReadonlyValue ShortList list)
+	{
+		putMovingShort(buffer, list.toShortArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -1983,6 +2483,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue FloatBuffer buffer, int bufferOffset, @WritableValue float[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue FloatBuffer buffer, int bufferOffset, @WritableValue float[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -2015,6 +2550,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue FloatBuffer buffer, @WritableValue Slice<float[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue FloatList list)
+	{
+		getWithoutMoving(buffer, list.toFloatArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingFloat(@ReadonlyValue FloatBuffer buffer, @WritableValue Slice<float[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue FloatList list)
+	{
+		getMovingFloat(buffer, list.toFloatArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static float[] getToNewArrayWithoutMoving(@ReadonlyValue FloatBuffer buffer, int length)
 	{
 		float[] array = new float[length];
@@ -2028,6 +2585,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static FloatList getToNewListWithoutMovingFloat(@ReadonlyValue FloatBuffer buffer, int length)
+	{
+		return floatArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static FloatList getToNewListMovingFloat(@ReadonlyValue FloatBuffer buffer, int length)
+	{
+		return floatArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue FloatBuffer buffer, int bufferOffset, @ReadonlyValue float[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue FloatBuffer buffer, int bufferOffset, @ReadonlyValue float[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue FloatBuffer buffer, @ReadonlyValue float[] array, int arrayOffset, int length)
@@ -2063,6 +2671,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue FloatList list)
+	{
+		putWithoutMovingFloat(buffer, list.toFloatArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue Slice<float[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingFloat(@WritableValue FloatBuffer buffer, @ReadonlyValue FloatList list)
+	{
+		putMovingFloat(buffer, list.toFloatArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -2077,6 +2700,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue IntBuffer buffer, int bufferOffset, @WritableValue int[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue IntBuffer buffer, int bufferOffset, @WritableValue int[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -2109,6 +2767,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue IntBuffer buffer, @WritableValue Slice<int[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingInt(@WritableValue IntBuffer buffer, @ReadonlyValue IntegerList list)
+	{
+		getWithoutMoving(buffer, list.toIntArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingInt(@ReadonlyValue IntBuffer buffer, @WritableValue Slice<int[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingInt(@WritableValue IntBuffer buffer, @ReadonlyValue IntegerList list)
+	{
+		getMovingInt(buffer, list.toIntArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static int[] getToNewArrayWithoutMoving(@ReadonlyValue IntBuffer buffer, int length)
 	{
 		int[] array = new int[length];
@@ -2122,6 +2802,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static IntegerList getToNewListWithoutMovingInt(@ReadonlyValue IntBuffer buffer, int length)
+	{
+		return intArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static IntegerList getToNewListMovingInt(@ReadonlyValue IntBuffer buffer, int length)
+	{
+		return intArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue IntBuffer buffer, int bufferOffset, @ReadonlyValue int[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue IntBuffer buffer, int bufferOffset, @ReadonlyValue int[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue IntBuffer buffer, @ReadonlyValue int[] array, int arrayOffset, int length)
@@ -2157,6 +2888,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingInt(@WritableValue IntBuffer buffer, @ReadonlyValue IntegerList list)
+	{
+		putWithoutMovingInt(buffer, list.toIntArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingInt(@WritableValue IntBuffer buffer, @ReadonlyValue Slice<int[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingInt(@WritableValue IntBuffer buffer, @ReadonlyValue IntegerList list)
+	{
+		putMovingInt(buffer, list.toIntArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -2171,6 +2917,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue DoubleBuffer buffer, int bufferOffset, @WritableValue double[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue DoubleBuffer buffer, int bufferOffset, @WritableValue double[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -2203,6 +2984,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue DoubleBuffer buffer, @WritableValue Slice<double[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingDouble(@WritableValue DoubleBuffer buffer, @ReadonlyValue DoubleList list)
+	{
+		getWithoutMoving(buffer, list.toDoubleArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingDouble(@ReadonlyValue DoubleBuffer buffer, @WritableValue Slice<double[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingDouble(@WritableValue DoubleBuffer buffer, @ReadonlyValue DoubleList list)
+	{
+		getMovingDouble(buffer, list.toDoubleArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static double[] getToNewArrayWithoutMoving(@ReadonlyValue DoubleBuffer buffer, int length)
 	{
 		double[] array = new double[length];
@@ -2216,6 +3019,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static DoubleList getToNewListWithoutMovingDouble(@ReadonlyValue DoubleBuffer buffer, int length)
+	{
+		return doubleArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static DoubleList getToNewListMovingDouble(@ReadonlyValue DoubleBuffer buffer, int length)
+	{
+		return doubleArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue DoubleBuffer buffer, int bufferOffset, @ReadonlyValue double[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue DoubleBuffer buffer, int bufferOffset, @ReadonlyValue double[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue DoubleBuffer buffer, @ReadonlyValue double[] array, int arrayOffset, int length)
@@ -2251,6 +3105,21 @@ implements JavaNamespace
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
+	public static void putWithoutMovingDouble(@WritableValue DoubleBuffer buffer, @ReadonlyValue DoubleList list)
+	{
+		putWithoutMovingDouble(buffer, list.toDoubleArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingDouble(@WritableValue DoubleBuffer buffer, @ReadonlyValue Slice<double[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingDouble(@WritableValue DoubleBuffer buffer, @ReadonlyValue DoubleList list)
+	{
+		putMovingDouble(buffer, list.toDoubleArraySlicePossiblyLive());
+	}
+	
 	
 	
 	
@@ -2265,6 +3134,41 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	public static void getWithoutMoving(@ReadonlyValue LongBuffer buffer, int bufferOffset, @WritableValue long[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void getWithoutMoving(@ReadonlyValue LongBuffer buffer, int bufferOffset, @WritableValue long[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.get(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
 	
 	
 	
@@ -2297,6 +3201,28 @@ implements JavaNamespace
 		}
 	}
 	
+	public static void getWithoutMoving(@ReadonlyValue LongBuffer buffer, @WritableValue Slice<long[]> arraySlice)
+	{
+		getWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getWithoutMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue LongList list)
+	{
+		getWithoutMoving(buffer, list.toLongArraySlicePossiblyLive());
+	}
+	
+	public static void getMovingLong(@ReadonlyValue LongBuffer buffer, @WritableValue Slice<long[]> arraySlice)
+	{
+		buffer.get(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void getMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue LongList list)
+	{
+		getMovingLong(buffer, list.toLongArraySlicePossiblyLive());
+	}
+	
+	
+	
 	public static long[] getToNewArrayWithoutMoving(@ReadonlyValue LongBuffer buffer, int length)
 	{
 		long[] array = new long[length];
@@ -2310,6 +3236,57 @@ implements JavaNamespace
 		buffer.get(array);
 		return array;
 	}
+	
+	
+	public static LongList getToNewListWithoutMovingLong(@ReadonlyValue LongBuffer buffer, int length)
+	{
+		return longArrayAsList(getToNewArrayWithoutMoving(buffer, length));
+	}
+	
+	public static LongList getToNewListMovingLong(@ReadonlyValue LongBuffer buffer, int length)
+	{
+		return longArrayAsList(getToNewArrayMoving(buffer, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void putWithoutMoving(@WritableValue LongBuffer buffer, int bufferOffset, @ReadonlyValue long[] array, int arrayOffset, int length)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array, arrayOffset, length);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
+	public static void putWithoutMoving(@WritableValue LongBuffer buffer, int bufferOffset, @ReadonlyValue long[] array)
+	{
+		int originalPosition = buffer.position();
+		
+		try
+		{
+			buffer.position(bufferOffset);
+			buffer.put(array);
+		}
+		finally
+		{
+			buffer.position(originalPosition);
+		}
+	}
+	
 	
 	
 	public static void putWithoutMoving(@WritableValue LongBuffer buffer, @ReadonlyValue long[] array, int arrayOffset, int length)
@@ -2343,6 +3320,21 @@ implements JavaNamespace
 	public static void putWithoutMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue Slice<long[]> arraySlice)
 	{
 		putWithoutMoving(buffer, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putWithoutMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue LongList list)
+	{
+		putWithoutMovingLong(buffer, list.toLongArraySlicePossiblyLive());
+	}
+	
+	public static void putMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue Slice<long[]> arraySlice)
+	{
+		buffer.put(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public static void putMovingLong(@WritableValue LongBuffer buffer, @ReadonlyValue LongList list)
+	{
+		putMovingLong(buffer, list.toLongArraySlicePossiblyLive());
 	}
 	
 	
@@ -2529,7 +3521,6 @@ _$$primxpconf:noboolean$$_
 		
 		if (buffer instanceof LongBuffer)
 			return (B)((LongBuffer)buffer).slice();
-		
 		// >>>
 		
 		throw newClassCastExceptionOrNullPointerException(buffer);
@@ -2540,7 +3531,7 @@ _$$primxpconf:noboolean$$_
 	
 	
 	//@NotThreadSafe
-	public static <B extends Buffer> B sliceNonmodifying(B buffer, int offset, int length)
+	public static <B extends Buffer> B sliceAbsoluteNonmodifying(B buffer, int offset, int length)
 	{
 		int p = buffer.position();
 		int l = buffer.limit();
@@ -2566,10 +3557,16 @@ _$$primxpconf:noboolean$$_
 		return (B)u;
 	}
 	
+	/**
+	 * Offset is relative to the buffer's current position
+	 * And this call advances that position
+	 */
 	//@NotThreadSafe
-	public static <B extends Buffer> B sliceAdvancing(B buffer, int offset, int length)
+	public static <B extends Buffer> B sliceRelativeAdvancing(B buffer, int offset, int length)
 	{
 		B u = sliceNonmodifying(buffer);
+		u.position(offset);
+		u.limit(offset+length);
 		advance(buffer, length);
 		return u;
 	}
@@ -2578,15 +3575,19 @@ _$$primxpconf:noboolean$$_
 	
 	
 	//@NotThreadSafe
-	public static <B extends Buffer> B sliceNonmodifying(Slice<B> bufferImmutablepositionslice)
+	public static <B extends Buffer> B sliceAbsoluteNonmodifying(Slice<B> bufferImmutablepositionslice)
 	{
-		return sliceNonmodifying(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
+		return sliceAbsoluteNonmodifying(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
 	}
 	
+	/**
+	 * Offset is relative to the buffer's current position
+	 * And this call advances that position
+	 */
 	//@NotThreadSafe
-	public static <B extends Buffer> B sliceAdvancing(Slice<B> bufferImmutablepositionslice)
+	public static <B extends Buffer> B sliceRelativeAdvancing(Slice<B> bufferImmutablepositionslice)
 	{
-		return sliceAdvancing(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
+		return sliceRelativeAdvancing(bufferImmutablepositionslice.getUnderlying(), bufferImmutablepositionslice.getOffset(), bufferImmutablepositionslice.getLength());
 	}
 	
 	
@@ -2605,54 +3606,6 @@ _$$primxpconf:noboolean$$_
 	public static _$$Prim$$_Buffer sliceNonmodifying(_$$Prim$$_Buffer buffer)
 	{
 		return buffer.slice();
-	}
-	
-	
-	//@NotThreadSafe
-	public static <B extends Buffer> B sliceNonmodifying(B buffer, int offset, int length)
-	{
-		int p = buffer.position();
-		int l = buffer.limit();
-		
-		_$$Prim$$_Buffer u;
-		
-		if (offset != p || length != l - p)
-		{
-			if (offset + p + length > l)
-				throw new IndexOutOfBoundsException();
-			
-			buffer.position(p+offset);
-			buffer.limit(p+offset+length);
-			u = sliceNonmodifying(buffer);
-			buffer.position(p);
-			buffer.limit(l);
-		}
-		else
-		{
-			u = sliceNonmodifying(buffer);
-		}
-		
-		return u;
-	}
-	
-	//@NotThreadSafe
-	public static _$$Prim$$_Buffer sliceAdvancing(_$$Prim$$_Buffer buffer, int offset, int length)
-	{
-		_$$Prim$$_Buffer u = sliceNonmodifying(buffer);
-		advance(buffer, length);
-		return u;
-	}
-	
-	//@NotThreadSafe
-	public static <B extends Buffer> B sliceNonmodifying(Slice<B> bufferImmutablepositionslice)
-	{
-		
-	}
-	
-	//@NotThreadSafe
-	public static _$$Prim$$_Buffer sliceAdvancing(Slice<B> bufferImmutablepositionslice)
-	{
-		return sliceAdvancing(bufferImmutablepositionslice, 
 	}
 	 */
 	
@@ -2690,7 +3643,6 @@ _$$primxpconf:noboolean$$_
 	{
 		return buffer.slice();
 	}
-	
 	// >>>
 	
 	

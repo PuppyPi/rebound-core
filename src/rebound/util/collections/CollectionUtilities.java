@@ -91,6 +91,7 @@ import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
 import rebound.util.collections.maps.MapWithBoundKeyEqualityComparator;
 import rebound.util.collections.maps.MapWithBoundValueEqualityComparator;
+import rebound.util.collections.prim.PrimitiveCollection;
 import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
@@ -117,7 +118,6 @@ import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortInterval
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortIntervalSet;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
-import rebound.util.collections.prim.PrimitiveCollections.PrimitiveCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.container.ContainerInterfaces.BooleanContainer;
 import rebound.util.container.ContainerInterfaces.ObjectContainer;
@@ -9799,6 +9799,56 @@ _$$primxpconf:intsonly$$_
 				appendRowExpandingIP(table, row, elementToAddIfExpanding);
 			
 			return table;
+		}
+	}
+
+
+
+	public static <E> List<E> removeAllOPC(List<E> l, E e)
+	{
+		int i = l.indexOf(e);
+		
+		if (i == -1)
+			return l;
+		else
+		{
+			List<E> ll = new ArrayList<>(l);
+			
+			while (true)
+			{
+				ll.remove(i);
+				i = ll.indexOf(e);
+				
+				if (i == -1)
+					break;
+			}
+			
+			return ll;
+		}
+	}
+
+
+
+	public static <E> List<E> replaceAllOPC(List<E> l, E old, E neu)
+	{
+		int i = l.indexOf(old);
+		
+		if (i == -1)
+			return l;
+		else
+		{
+			List<E> ll = new ArrayList<>(l);
+			
+			while (true)
+			{
+				ll.set(i, neu);
+				i = ll.indexOf(old);
+				
+				if (i == -1)
+					break;
+			}
+			
+			return ll;
 		}
 	}
 }

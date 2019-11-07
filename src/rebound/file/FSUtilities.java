@@ -39,6 +39,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -3829,8 +3830,17 @@ implements JavaNamespace
 	
 	
 	
-	public static void doLockedOnFileBlocking(File f, RunnableThrowingIOException r) throws IOException
+	public static void doLockedOnFileBlockingOrNotIfNull(@Nullable File f, RunnableThrowingIOException r) throws IOException
 	{
+		if (f == null)
+			r.run();
+		else
+			doLockedOnFileBlocking(f, r);
+	}
+	
+	public static void doLockedOnFileBlocking(@Nonnull File f, RunnableThrowingIOException r) throws IOException
+	{
+		requireNonNull(f);
 		try (SimpleFileLock l = lockFileBlocking(f))
 		{
 			r.run();
@@ -4502,5 +4512,70 @@ implements JavaNamespace
 		{
 			return c.map(writeable ? MapMode.READ_WRITE : MapMode.READ_ONLY, startInBytes, sizeInBytes);
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void chx(File f) throws IOException
+	{
+		chmod(f, union(getmod(f), setof(
+		PosixFilePermission.OWNER_EXECUTE,
+		PosixFilePermission.GROUP_EXECUTE,
+		PosixFilePermission.OTHERS_EXECUTE
+		)));
+	}
+	
+	public static void normperms(File f) throws IOException
+	{
+		if (f.isDirectory())
+			setPermsToStandardX(f);
+		else
+			setPermsToStandardNX(f);
+	}
+	
+	
+	/**
+	 * Most common settings for non-executable files.
+	 */
+	public static void setPermsToStandardNX(File f) throws IOException
+	{
+		chmod(f, setof(
+		PosixFilePermission.OWNER_READ,
+		PosixFilePermission.OWNER_WRITE,
+		PosixFilePermission.GROUP_READ,
+		PosixFilePermission.OTHERS_READ
+		));
+	}
+	
+	/**
+	 * Most common settings for directories and executable files.
+	 */
+	public static void setPermsToStandardX(File f) throws IOException
+	{
+		chmod(f, setof(
+		PosixFilePermission.OWNER_READ,
+		PosixFilePermission.OWNER_WRITE,
+		PosixFilePermission.OWNER_EXECUTE,
+		PosixFilePermission.GROUP_READ,
+		PosixFilePermission.GROUP_EXECUTE,
+		PosixFilePermission.OTHERS_READ,
+		PosixFilePermission.OTHERS_EXECUTE
+		));
+	}
+	
+	
+	
+	public static Set<PosixFilePermission> getmod(File f) throws IOException
+	{
+		return Files.getPosixFilePermissions(f.toPath());
+	}
+	
+	public static void chmod(File f, Set<PosixFilePermission> mode) throws IOException
+	{
+		Files.setPosixFilePermissions(f.toPath(), mode);
 	}
 }

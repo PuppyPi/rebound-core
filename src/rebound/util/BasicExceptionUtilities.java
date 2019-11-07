@@ -1,10 +1,14 @@
 package rebound.util;
 
+import java.io.IOException;
 import rebound.annotations.semantic.temporal.NeverReturns;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.UnexpectedHardcodedEnumValueException;
+import rebound.exceptions.UnreachableCodeException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingAnything;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
 
 public class BasicExceptionUtilities
 {
@@ -107,6 +111,68 @@ public class BasicExceptionUtilities
 		else
 		{
 			return false;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void tryFinallyProperlyThrowingAnything(RunnableThrowingAnything tryBody, RunnableThrowingAnything finallyBody) throws Throwable
+	{
+		try
+		{
+			tryBody.run();
+		}
+		catch (Throwable t0)
+		{
+			try
+			{
+				finallyBody.run();
+			}
+			catch (Throwable t1)
+			{
+				t0.addSuppressed(t1);
+			}
+			
+			throw t0;
+		}
+		
+		finallyBody.run();
+	}
+	
+	public static void tryFinallyProperlyThrowingNothing(Runnable tryBody, Runnable finallyBody)
+	{
+		try
+		{
+			tryFinallyProperlyThrowingAnything(tryBody::run, finallyBody::run);
+		}
+		catch (Throwable exc)
+		{
+			throwGeneralThrowableIfPossible(exc);
+			throw new UnreachableCodeException();
+		}
+	}
+	
+	public static void tryFinallyProperlyThrowingIOException(RunnableThrowingIOException tryBody, RunnableThrowingIOException finallyBody) throws IOException
+	{
+		try
+		{
+			tryFinallyProperlyThrowingAnything(tryBody::run, finallyBody::run);
+		}
+		catch (IOException exc)
+		{
+			throw exc;
+		}
+		catch (Throwable exc)
+		{
+			throwGeneralThrowableIfPossible(exc);
+			throw new UnreachableCodeException();
 		}
 	}
 }

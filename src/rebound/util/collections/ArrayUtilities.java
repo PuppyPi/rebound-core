@@ -17180,6 +17180,12 @@ primxp
 		}
 	}
 	
+	public static <A> Slice<A> wholeArraySlice(A array)
+	{
+		return new Slice<>(array, 0, Array.getLength(array));
+	}
+	
+	
 	public static <T> Slice<T[]> wholeArraySliceReference(T[] array)
 	{
 		return new Slice<>(array, 0, array.length);

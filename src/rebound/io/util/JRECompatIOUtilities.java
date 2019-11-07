@@ -8,7 +8,6 @@ import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
-import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -23,11 +22,14 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.exceptions.ImpossibleException;
 import rebound.io.iio.InputByteStream;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
@@ -844,14 +846,49 @@ implements JavaNamespace
 	
 	
 	
-	public static void writeSlice(OutputStream out, Slice<byte[]> data) throws IOException
+	
+	public static void writeSlice(OutputStream out, @ReadonlyValue Slice<byte[]> data) throws IOException
 	{
 		out.write(data.getUnderlying(), data.getOffset(), data.getLength());
 	}
 	
-	public static int readSlice(InputStream in, Slice<byte[]> data) throws IOException
+	public static int readSlice(InputStream in, @WritableValue Slice<byte[]> data) throws IOException
 	{
 		return in.read(data.getUnderlying(), data.getOffset(), data.getLength());
+	}
+	
+	public static void readSliceFully(InputStream in, @WritableValue Slice<byte[]> data) throws IOException
+	{
+		readFully(in, data.getUnderlying(), data.getOffset(), data.getLength());
+	}
+	
+	
+	
+	public static void writeList(OutputStream out, @ReadonlyValue ByteList data) throws IOException
+	{
+		writeSlice(out, data.toByteArraySlicePossiblyLive());
+	}
+	
+	public static int readList(InputStream in, @WritableValue ByteList data) throws IOException
+	{
+		//		IntegerContainer rv = new SimpleIntegerContainer();
+		//		readWriteArraySliceDefinitelyLiveThrowingIOException(data, arraySlice -> rv.set(readSlice(in, arraySlice)));
+		//		return rv.get();
+		
+		Slice<byte[]> s = data.toByteArraySliceLiveOrNull();
+		if (s == null)
+			throw new IllegalArgumentException("The performance penalty here is likely not desired!");
+		return readSlice(in, s);
+	}
+	
+	public static void readListFully(InputStream in, @WritableValue ByteList data) throws IOException
+	{
+		//		readWriteArraySliceDefinitelyLiveThrowingIOException(data, arraySlice -> readSliceFully(in, arraySlice));
+		
+		Slice<byte[]> s = data.toByteArraySliceLiveOrNull();
+		if (s == null)
+			throw new IllegalArgumentException("The performance penalty here is likely not desired!");
+		readSliceFully(in, s);
 	}
 	
 	
@@ -894,6 +931,11 @@ implements JavaNamespace
 	
 	public static int streamcmp(InputStream a, InputStream b) throws IOException
 	{
+		return streamcmp(a, false, b, false);
+	}
+	
+	public static int streamcmp(InputStream a, boolean okayIfAStopsEarly, InputStream b, boolean okayIfBStopsEarly) throws IOException
+	{
 		//// yay JIT compiling! :D ////
 		BufferedInputStream ab = ensureBufferedInputStream(a);
 		BufferedInputStream bb = ensureBufferedInputStream(b);
@@ -902,6 +944,10 @@ implements JavaNamespace
 		while (true)
 		{
 			int ac = ab.read();
+			
+			if (ac < 0 && okayIfAStopsEarly)
+				return 0;
+			
 			int bc = bb.read();
 			
 			if (ac < 0)
@@ -919,7 +965,7 @@ implements JavaNamespace
 			{
 				if (bc < 0)
 				{
-					return 1;
+					return okayIfBStopsEarly ? 0 : 1;
 				}
 				else
 				{

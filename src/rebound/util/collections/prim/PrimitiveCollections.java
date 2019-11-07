@@ -95,17 +95,32 @@ import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
 //TODO READWRITE-TEST THEM ALL! X'D :D
 
+
+/* TODO
+ * 
+ * Refactor-Rename these operations to be the same for all PrimitiveCollections/Lists
+		--all--
+		public default _$$prim$$_[] to_$$Prim$$_Array()
+		public default _$$prim$$_[] to_$$Prim$$_ArrayPossiblyLive()
+		public default Slice<_$$prim$$_[]> to_$$Prim$$_ArraySlicePossiblyLive()
+		public default boolean addAll_$$Prim$$_s(_$$prim$$_[] array)
+		public default boolean addAll_$$Prim$$_s(_$$prim$$_[] elements, int offset, int length)
+		public default void removeAll_$$Prim$$_s(_$$prim$$_[] array)
+		public default void removeAll_$$Prim$$_s(Slice<_$$prim$$_[]> arraySlice)
+		public default void removeAll_$$Prim$$_s(_$$prim$$_[] a, int offset, int length)
+		
+		--list--
+		public default void setAll_$$Prim$$_s(int index, Slice<_$$prim$$_[]> arraySlice)
+		public default void setAll_$$Prim$$_s(int start, _$$prim$$_[] array, int offset, int length)
+		public default void getAll_$$Prim$$_s(int start, @WritableValue _$$prim$$_[] array, int offset, int length)
+		public static void defaultGetAll_$$Prim$$_s(_$$Primitive$$_List list, int start, @WritableValue _$$prim$$_[] array, int offset, int length)
+		public default _$$prim$$_[] getAll_$$Prim$$_s(int start, int end)
+		public default void readWrite_$$Prim$$_ArraySliceDefinitelyLiveThrowingAnything(UnaryProcedureThrowingAnything<Slice<_$$prim$$_[]>> operation) throws Throwable
+ */
+
+
 public class PrimitiveCollections
 {
-	@SignalType
-	public static interface PrimitiveCollection<T>
-	extends Collection<T>
-	{
-	}
-	
-	
-	
-	
 	//Todo empirically determine these! :D
 	public static final int DefaultPrimitiveArrayListInitialCapacity = 16;
 	public static final int FillWithArrayThreshold = 100;
@@ -139,6 +154,42 @@ public class PrimitiveCollections
 	
 	
 	
+	
+	
+	
+	
+	//	public static <B, A> void readWriteArraySliceDefinitelyLiveThrowingAnything(PrimitiveList<B, A> list, UnaryProcedureThrowingAnything<Slice<A>> operation) throws Throwable
+	//	{
+	//		if (TransparentContiguousArrayBackedCollection.is(list))
+	//		{
+	//			Slice<?> u = ((TransparentContiguousArrayBackedCollection)list).getLiveContiguousArrayBackingUNSAFE();
+	//			
+	//			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(list.size(), u);
+	//			
+	//			if (list.getArrayType().isInstance(u.getUnderlying()))
+	//			{
+	//				operation.f((Slice<A>) u);
+	//				return;
+	//			}
+	//		}
+	//		
+	//		//Otherwise do a copy :3
+	//		{
+	//			Slice<A> copySlice = wholeArraySlice(list.toPrimArray());
+	//			operation.f(copySlice);
+	//			list.setAllPrims(0, copySlice);
+	//		}
+	//	}
+	//	
+	//	public static <B, A> void readWriteArraySliceDefinitelyLiveThrowingNothing(PrimitiveList<B, A> list, UnaryProcedure<Slice<A>> operation)
+	//	{
+	//		//TODO
+	//	}
+	//	
+	//	public static <B, A> void readWriteArraySliceDefinitelyLiveThrowingIOException(PrimitiveList<B, A> list, UnaryProcedureThrowingIOException<Slice<A>> operation) throws IOException
+	//	{
+	//		//TODO
+	//	}
 	
 	
 	
@@ -1241,6 +1292,16 @@ primxp
 	
 	
 	
+	//	public static <A> void readWrite_$$Prim$$_ArraySliceDefinitelyLive(UnaryProcedure<Slice<_$$prim$$_[]>> operation)
+	//	{
+	//		try
+	//		{
+	//			readWrite_$$Prim$$_ArraySliceDefinitelyLiveThrowingAnything(operation::f);
+	//		}
+	//		catch (Throwable exc)
+	//		{
+	//			throw
+	//	}
 	
 	
 	
@@ -1325,11 +1386,35 @@ primxp
 	
 	@SignalType
 	public static interface _$$Primitive$$_Collection
-	extends PrimitiveCollection<_$$Primitive$$_>, Simple_$$Primitive$$_Iterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<_$$Primitive$$_, _$$prim$$_[]>, Simple_$$Primitive$$_Iterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean add_$$Prim$$_(_$$prim$$_ value);
 		
 		public boolean remove_$$Prim$$_(_$$prim$$_ value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return _$$prim$$_.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<_$$Primitive$$_> getBoxedType()
+		{
+			return _$$Primitive$$_.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<_$$prim$$_[]> getArrayType()
+		{
+			return _$$prim$$_[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -1415,6 +1500,24 @@ primxp
 			}
 			
 			return wholeArraySlice_$$Prim$$_(defaultTo_$$Prim$$_Array(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<_$$prim$$_[]> to_$$Prim$$_ArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof _$$prim$$_[])
+				{
+					return (Slice<_$$prim$$_[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -1891,7 +1994,7 @@ primxp
 	
 	@SignalType
 	public static interface _$$Primitive$$_List
-	extends NonuniformMethodsFor_$$Primitive$$_List, NiceList<_$$Primitive$$_>, _$$Primitive$$_ListRO, _$$Primitive$$_ListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<_$$Primitive$$_>, ListWithSetAll, ListWithFill<_$$Primitive$$_>
+	extends PrimitiveList<_$$Primitive$$_, _$$prim$$_[]>, NonuniformMethodsFor_$$Primitive$$_List, NiceList<_$$Primitive$$_>, _$$Primitive$$_ListRO, _$$Primitive$$_ListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<_$$Primitive$$_>, ListWithSetAll, ListWithFill<_$$Primitive$$_>
 	{
 		@Override
 		public default Iterator<_$$Primitive$$_> iterator()
@@ -4216,11 +4319,35 @@ primxp
 	
 	@SignalType
 	public static interface BooleanCollection
-	extends PrimitiveCollection<Boolean>, SimpleBooleanIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Boolean, boolean[]>, SimpleBooleanIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addBoolean(boolean value);
 		
 		public boolean removeBoolean(boolean value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return boolean.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Boolean> getBoxedType()
+		{
+			return Boolean.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<boolean[]> getArrayType()
+		{
+			return boolean[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -4306,6 +4433,24 @@ primxp
 			}
 			
 			return wholeArraySliceBoolean(defaultToBooleanArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<boolean[]> toBooleanArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof boolean[])
+				{
+					return (Slice<boolean[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -4782,7 +4927,7 @@ primxp
 	
 	@SignalType
 	public static interface BooleanList
-	extends NonuniformMethodsForBooleanList, NiceList<Boolean>, BooleanListRO, BooleanListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Boolean>, ListWithSetAll, ListWithFill<Boolean>
+	extends PrimitiveList<Boolean, boolean[]>, NonuniformMethodsForBooleanList, NiceList<Boolean>, BooleanListRO, BooleanListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Boolean>, ListWithSetAll, ListWithFill<Boolean>
 	{
 		@Override
 		public default Iterator<Boolean> iterator()
@@ -7106,11 +7251,35 @@ primxp
 	
 	@SignalType
 	public static interface ByteCollection
-	extends PrimitiveCollection<Byte>, SimpleByteIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Byte, byte[]>, SimpleByteIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addByte(byte value);
 		
 		public boolean removeByte(byte value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return byte.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Byte> getBoxedType()
+		{
+			return Byte.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<byte[]> getArrayType()
+		{
+			return byte[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -7196,6 +7365,24 @@ primxp
 			}
 			
 			return wholeArraySliceByte(defaultToByteArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<byte[]> toByteArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof byte[])
+				{
+					return (Slice<byte[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -7672,7 +7859,7 @@ primxp
 	
 	@SignalType
 	public static interface ByteList
-	extends NonuniformMethodsForByteList, NiceList<Byte>, ByteListRO, ByteListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Byte>, ListWithSetAll, ListWithFill<Byte>
+	extends PrimitiveList<Byte, byte[]>, NonuniformMethodsForByteList, NiceList<Byte>, ByteListRO, ByteListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Byte>, ListWithSetAll, ListWithFill<Byte>
 	{
 		@Override
 		public default Iterator<Byte> iterator()
@@ -9996,11 +10183,35 @@ primxp
 	
 	@SignalType
 	public static interface CharacterCollection
-	extends PrimitiveCollection<Character>, SimpleCharacterIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Character, char[]>, SimpleCharacterIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addChar(char value);
 		
 		public boolean removeChar(char value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return char.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Character> getBoxedType()
+		{
+			return Character.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<char[]> getArrayType()
+		{
+			return char[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -10086,6 +10297,24 @@ primxp
 			}
 			
 			return wholeArraySliceChar(defaultToCharArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<char[]> toCharArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof char[])
+				{
+					return (Slice<char[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -10562,7 +10791,7 @@ primxp
 	
 	@SignalType
 	public static interface CharacterList
-	extends NonuniformMethodsForCharacterList, NiceList<Character>, CharacterListRO, CharacterListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Character>, ListWithSetAll, ListWithFill<Character>
+	extends PrimitiveList<Character, char[]>, NonuniformMethodsForCharacterList, NiceList<Character>, CharacterListRO, CharacterListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Character>, ListWithSetAll, ListWithFill<Character>
 	{
 		@Override
 		public default Iterator<Character> iterator()
@@ -12886,11 +13115,35 @@ primxp
 	
 	@SignalType
 	public static interface ShortCollection
-	extends PrimitiveCollection<Short>, SimpleShortIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Short, short[]>, SimpleShortIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addShort(short value);
 		
 		public boolean removeShort(short value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return short.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Short> getBoxedType()
+		{
+			return Short.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<short[]> getArrayType()
+		{
+			return short[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -12976,6 +13229,24 @@ primxp
 			}
 			
 			return wholeArraySliceShort(defaultToShortArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<short[]> toShortArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof short[])
+				{
+					return (Slice<short[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -13452,7 +13723,7 @@ primxp
 	
 	@SignalType
 	public static interface ShortList
-	extends NonuniformMethodsForShortList, NiceList<Short>, ShortListRO, ShortListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Short>, ListWithSetAll, ListWithFill<Short>
+	extends PrimitiveList<Short, short[]>, NonuniformMethodsForShortList, NiceList<Short>, ShortListRO, ShortListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Short>, ListWithSetAll, ListWithFill<Short>
 	{
 		@Override
 		public default Iterator<Short> iterator()
@@ -15776,11 +16047,35 @@ primxp
 	
 	@SignalType
 	public static interface FloatCollection
-	extends PrimitiveCollection<Float>, SimpleFloatIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Float, float[]>, SimpleFloatIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addFloat(float value);
 		
 		public boolean removeFloat(float value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return float.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Float> getBoxedType()
+		{
+			return Float.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<float[]> getArrayType()
+		{
+			return float[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -15866,6 +16161,24 @@ primxp
 			}
 			
 			return wholeArraySliceFloat(defaultToFloatArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<float[]> toFloatArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof float[])
+				{
+					return (Slice<float[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -16342,7 +16655,7 @@ primxp
 	
 	@SignalType
 	public static interface FloatList
-	extends NonuniformMethodsForFloatList, NiceList<Float>, FloatListRO, FloatListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Float>, ListWithSetAll, ListWithFill<Float>
+	extends PrimitiveList<Float, float[]>, NonuniformMethodsForFloatList, NiceList<Float>, FloatListRO, FloatListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Float>, ListWithSetAll, ListWithFill<Float>
 	{
 		@Override
 		public default Iterator<Float> iterator()
@@ -18666,11 +18979,35 @@ primxp
 	
 	@SignalType
 	public static interface IntegerCollection
-	extends PrimitiveCollection<Integer>, SimpleIntegerIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Integer, int[]>, SimpleIntegerIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addInt(int value);
 		
 		public boolean removeInt(int value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return int.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Integer> getBoxedType()
+		{
+			return Integer.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<int[]> getArrayType()
+		{
+			return int[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -18756,6 +19093,24 @@ primxp
 			}
 			
 			return wholeArraySliceInt(defaultToIntArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<int[]> toIntArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof int[])
+				{
+					return (Slice<int[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -19232,7 +19587,7 @@ primxp
 	
 	@SignalType
 	public static interface IntegerList
-	extends NonuniformMethodsForIntegerList, NiceList<Integer>, IntegerListRO, IntegerListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Integer>, ListWithSetAll, ListWithFill<Integer>
+	extends PrimitiveList<Integer, int[]>, NonuniformMethodsForIntegerList, NiceList<Integer>, IntegerListRO, IntegerListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Integer>, ListWithSetAll, ListWithFill<Integer>
 	{
 		@Override
 		public default Iterator<Integer> iterator()
@@ -21556,11 +21911,35 @@ primxp
 	
 	@SignalType
 	public static interface DoubleCollection
-	extends PrimitiveCollection<Double>, SimpleDoubleIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Double, double[]>, SimpleDoubleIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addDouble(double value);
 		
 		public boolean removeDouble(double value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return double.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Double> getBoxedType()
+		{
+			return Double.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<double[]> getArrayType()
+		{
+			return double[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -21646,6 +22025,24 @@ primxp
 			}
 			
 			return wholeArraySliceDouble(defaultToDoubleArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<double[]> toDoubleArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof double[])
+				{
+					return (Slice<double[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -22122,7 +22519,7 @@ primxp
 	
 	@SignalType
 	public static interface DoubleList
-	extends NonuniformMethodsForDoubleList, NiceList<Double>, DoubleListRO, DoubleListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Double>, ListWithSetAll, ListWithFill<Double>
+	extends PrimitiveList<Double, double[]>, NonuniformMethodsForDoubleList, NiceList<Double>, DoubleListRO, DoubleListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Double>, ListWithSetAll, ListWithFill<Double>
 	{
 		@Override
 		public default Iterator<Double> iterator()
@@ -24446,11 +24843,35 @@ primxp
 	
 	@SignalType
 	public static interface LongCollection
-	extends PrimitiveCollection<Long>, SimpleLongIterable, Copyable, DefaultToStringRestrictionCircumvention
+	extends PrimitiveCollection<Long, long[]>, SimpleLongIterable, Copyable, DefaultToStringRestrictionCircumvention
 	{
 		public boolean addLong(long value);
 		
 		public boolean removeLong(long value);
+		
+		
+		
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class getPrimitiveType()
+		{
+			return long.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<Long> getBoxedType()
+		{
+			return Long.class;
+		}
+		
+		@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+		public default Class<long[]> getArrayType()
+		{
+			return long[].class;
+		}
+		
+		
+		
 		
 		
 		
@@ -24536,6 +24957,24 @@ primxp
 			}
 			
 			return wholeArraySliceLong(defaultToLongArray(this));
+		}
+		
+		@LiveValue
+		public default @Nullable Slice<long[]> toLongArraySliceLiveOrNull()
+		{
+			if (TransparentContiguousArrayBackedCollection.is(this))
+			{
+				Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+				
+				TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(this.size(), u);
+				
+				if (u.getUnderlying() instanceof long[])
+				{
+					return (Slice<long[]>) u;
+				}
+			}
+			
+			return null;
 		}
 		
 		
@@ -25012,7 +25451,7 @@ primxp
 	
 	@SignalType
 	public static interface LongList
-	extends NonuniformMethodsForLongList, NiceList<Long>, LongListRO, LongListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Long>, ListWithSetAll, ListWithFill<Long>
+	extends PrimitiveList<Long, long[]>, NonuniformMethodsForLongList, NiceList<Long>, LongListRO, LongListRWFixed, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<Long>, ListWithSetAll, ListWithFill<Long>
 	{
 		@Override
 		public default Iterator<Long> iterator()
@@ -36347,7 +36786,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapper_$$Primitive$$_List(@SnapshotValue @LiveValue _$$Prim$$_Buffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapper_$$Primitive$$_List(@SnapshotValue @LiveValue _$$Prim$$_Buffer underlying)
@@ -36514,7 +36953,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperByteList(@SnapshotValue @LiveValue ByteBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperByteList(@SnapshotValue @LiveValue ByteBuffer underlying)
@@ -36680,7 +37119,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperCharacterList(@SnapshotValue @LiveValue CharBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperCharacterList(@SnapshotValue @LiveValue CharBuffer underlying)
@@ -36846,7 +37285,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperShortList(@SnapshotValue @LiveValue ShortBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperShortList(@SnapshotValue @LiveValue ShortBuffer underlying)
@@ -37012,7 +37451,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperFloatList(@SnapshotValue @LiveValue FloatBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperFloatList(@SnapshotValue @LiveValue FloatBuffer underlying)
@@ -37178,7 +37617,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperIntegerList(@SnapshotValue @LiveValue IntBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperIntegerList(@SnapshotValue @LiveValue IntBuffer underlying)
@@ -37344,7 +37783,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperDoubleList(@SnapshotValue @LiveValue DoubleBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperDoubleList(@SnapshotValue @LiveValue DoubleBuffer underlying)
@@ -37510,7 +37949,7 @@ _$$primxpconf:noboolean$$_
 		public FixedLengthBufferWrapperLongList(@SnapshotValue @LiveValue LongBuffer underlying, int offset, int length)
 		{
 			rangeCheckIntervalByLength(underlying.remaining(), offset, length);
-			this.underlying = sliceNonmodifying(underlying, offset, length);
+			this.underlying = sliceAbsoluteNonmodifying(underlying, offset, length);
 		}
 		
 		public FixedLengthBufferWrapperLongList(@SnapshotValue @LiveValue LongBuffer underlying)
