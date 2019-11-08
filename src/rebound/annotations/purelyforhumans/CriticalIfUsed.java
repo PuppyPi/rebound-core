@@ -10,6 +10,8 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * signififies that whatever is tagged with this is dangerous and code using it is {@link Critical}!
+ * 
+ * Critical aka Unsafe
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

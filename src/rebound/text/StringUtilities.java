@@ -6908,6 +6908,9 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
 	public static String hexint(byte b)
 	{
 		String s = Integer.toHexString(upcast(b)).toUpperCase();
@@ -6970,6 +6973,83 @@ implements JavaNamespace
 		String s = Long.toHexString(b & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
 		return "0x"+mulnn('0', 14 - s.length()) + s;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String binint(byte b)
+	{
+		String s = Integer.toBinaryString(upcast(b)).toUpperCase();
+		return "0b"+mulnn('0', 8 - s.length()) + s;
+	}
+	
+	public static String binint(short b)
+	{
+		String s = Integer.toBinaryString(upcast(b)).toUpperCase();
+		return "0b"+mulnn('0', 16 - s.length()) + s;
+	}
+	
+	public static String binint(int b)
+	{
+		String s = Integer.toBinaryString(b).toUpperCase();
+		return "0b"+mulnn('0', 32 - s.length()) + s;
+	}
+	
+	public static String binint(long b)
+	{
+		String s = Long.toBinaryString(b).toUpperCase();
+		return "0b"+mulnn('0', 64 - s.length()) + s;
+	}
+	
+	
+	public static String binint(int b, int l)
+	{
+		String s = Integer.toBinaryString(b).toUpperCase();
+		return "0b"+mulnn('0', l - s.length()) + s;
+	}
+	
+	public static String binint(long b, int l)
+	{
+		String s = Long.toBinaryString(b).toUpperCase();
+		return "0b"+mulnn('0', l - s.length()) + s;
+	}
+	
+	
+	
+	public static String binint24(int b)
+	{
+		String s = Integer.toBinaryString(b & 0x00FFFFFF).toUpperCase();
+		return "0b"+mulnn('0', 24 - s.length()) + s;
+	}
+	
+	public static String binint40(long b)
+	{
+		String s = Long.toBinaryString(b & 0x000000FF_FFFFFFFFl).toUpperCase();
+		return "0b"+mulnn('0', 40 - s.length()) + s;
+	}
+	
+	public static String binint48(long b)
+	{
+		String s = Long.toBinaryString(b & 0x0000FFFF_FFFFFFFFl).toUpperCase();
+		return "0b"+mulnn('0', 48 - s.length()) + s;
+	}
+	
+	public static String binint56(long b)
+	{
+		String s = Long.toBinaryString(b & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
+		return "0b"+mulnn('0', 56 - s.length()) + s;
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	

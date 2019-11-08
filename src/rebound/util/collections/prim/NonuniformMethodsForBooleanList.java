@@ -22,6 +22,9 @@ extends DefaultToArraysBooleanCollection
 	public void setBoolean(int index, boolean value);
 	
 	
+	
+	
+	
 	public default long getBitfield(int offset, int length)
 	{
 		long r = 0;

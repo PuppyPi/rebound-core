@@ -163,6 +163,8 @@ import rebound.util.objectutil.PubliclyCloneable;
 //Todo toNewMutableRichGeneralList :>
 
 
+//Todo our own unmodifiableList view-creator system (eg, a trait interface!) for supporting PrimitiveLists and DirectByteList.asReadonly()! :D
+
 
 public class CollectionUtilities
 {
@@ -1732,7 +1734,7 @@ public class CollectionUtilities
 	//Convenience :3
 	public static <E> void setListSize(List<E> list, int newSize)
 	{
-		setListSize(list, newSize, null);
+		setListSize(list, newSize, CollectionWithDefaultElement.getDefaultElement(list));
 	}
 	
 	
@@ -1779,12 +1781,12 @@ public class CollectionUtilities
 	}
 	
 	
-	public static void setListSizeShrinking(List<?> list, int newSize) throws IllegalArgumentException
+	public static <E> void setListSizeShrinking(List<E> list, int newSize) throws IllegalArgumentException
 	{
 		if (newSize > list.size())
 			throw new IllegalArgumentException();
 		else
-			setListSize(list, newSize, null);
+			setListSize(list, newSize, CollectionWithDefaultElement.getDefaultElement(list));
 	}
 	
 	public static <E> void setListSizeGrowing(List<E> list, int newSize, E elementToAddIfGrowing) throws IllegalArgumentException
@@ -3697,6 +3699,32 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	public static <E> Collection<E> unionMultisets(Iterable<E> a, Iterable<E> b) //OR (14)
+	{
+		return unionV(a, b);
+	}
+	
+	public static <E> Collection<E> unionMultisetsV(Iterable<E>... sets) //OR (14)
+	{
+		Collection<E> output = new ArrayList<>();
+		
+		for (Iterable<E> c : sets)
+			addAll(output, c);
+		
+		return output;
+	}
+	
+	public static <E> Collection<E> unionMultisetsMany(Iterable<? extends Iterable<E>> sets) //OR (14)
+	{
+		Collection<E> output = new ArrayList<>();
+		
+		for (Iterable<E> c : sets)
+			addAll(output, c);
+		
+		return output;
+	}
 	
 	
 	
@@ -8504,6 +8532,7 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckIntervalByLength(int collectionSize, int fromIndex, int length)
 	{
+		if (length < 0)  throw new IndexOutOfBoundsException("negative length!!  "+length);
 		rangeCheckInterval(collectionSize, fromIndex, fromIndex+length);
 	}
 	
@@ -8517,6 +8546,44 @@ _$$primxpconf:intsonly$$_
 	public static void rangeCheckFor_removeRange(List list, int start, int pastEnd)
 	{
 		rangeCheckInterval(list.size(), start, pastEnd);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//Todo ones for U64's ^^'
+	
+	public static void rangeCheckMemberS64(long collectionSize, long index)
+	{
+		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
+		if (index >= collectionSize)  throw new IndexOutOfBoundsException("index "+index+" >= size "+collectionSize);   // >= not > !!
+	}
+	
+	public static void rangeCheckCursorPointS64(long collectionSize, long index)
+	{
+		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
+		if (index > collectionSize)  throw new IndexOutOfBoundsException("index "+index+" > size "+collectionSize);   // > not >= !!
+	}
+	
+	
+	public static void rangeCheckIntervalS64(long collectionSize, long start, long endExcl)
+	{
+		if (start < 0)  throw new IndexOutOfBoundsException("negative index!!  "+start);
+		if (endExcl < 0)  throw new IndexOutOfBoundsException("negative index!!  "+endExcl);
+		if (start > collectionSize)  throw new IndexOutOfBoundsException("index "+start+" > size "+collectionSize);
+		if (endExcl > collectionSize)  throw new IndexOutOfBoundsException("index bound "+endExcl+" > size "+collectionSize);
+		if (endExcl < start)  throw new IndexOutOfBoundsException("index bounds reversed!  ("+start+" to "+endExcl+")");
+	}
+	
+	public static void rangeCheckIntervalByLengthS64(long collectionSize, long fromIndex, long length)
+	{
+		if (length < 0)  throw new IndexOutOfBoundsException("negative length!!  "+length);
+		rangeCheckIntervalS64(collectionSize, fromIndex, fromIndex+length);
 	}
 	
 	
@@ -9801,9 +9868,9 @@ _$$primxpconf:intsonly$$_
 			return table;
 		}
 	}
-
-
-
+	
+	
+	
 	public static <E> List<E> removeAllOPC(List<E> l, E e)
 	{
 		int i = l.indexOf(e);
@@ -9826,9 +9893,9 @@ _$$primxpconf:intsonly$$_
 			return ll;
 		}
 	}
-
-
-
+	
+	
+	
 	public static <E> List<E> replaceAllOPC(List<E> l, E old, E neu)
 	{
 		int i = l.indexOf(old);
@@ -9850,5 +9917,75 @@ _$$primxpconf:intsonly$$_
 			
 			return ll;
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static interface AliasObserver<E>
+	{
+		public void observeAlias(E id, E targetId);
+		public void observeNonalias(E id);
+	}
+	
+	public static <E> Map<E, Set<E>> produceAliasMap(UnaryProcedure<AliasObserver<E>> observeAllIds)
+	{
+		Map<E, Set<E>> map = new HashMap<>();
+		
+		observeAllIds.f(new AliasObserver<E>()
+		{
+			@Override
+			public void observeAlias(E startingId, E redirectTargetId)
+			{
+				if (redirectTargetId != null)
+				{
+					//Merge them into the same object reference so others will add into it :>
+					// (and it's good for performance :3 )
+					{
+						Set<E> startingAliases = map.get(startingId);
+						Set<E> redirectTargetAliases = map.get(redirectTargetId);
+						
+						if (startingAliases == null)
+						{
+							if (redirectTargetAliases == null)
+							{
+								Set<E> s = newSet(startingId, redirectTargetId);
+								map.put(redirectTargetId, s);
+								map.put(startingId, s);
+							}
+							else
+							{
+								redirectTargetAliases.add(startingId);
+								map.put(startingId, redirectTargetAliases);
+							}
+						}
+						else
+						{
+							if (redirectTargetAliases == null)
+							{
+								startingAliases.add(redirectTargetId);
+								map.put(redirectTargetId, startingAliases);
+							}
+							else
+							{
+								redirectTargetAliases.addAll(startingAliases);
+								map.put(startingId, redirectTargetAliases);
+							}
+						}
+					}
+				}
+			}
+			
+			@Override
+			public void observeNonalias(E startingId)
+			{
+				getOrCreate(map, startingId, HashSet::new).add(startingId);
+			}
+		});
+		
+		return map;
 	}
 }

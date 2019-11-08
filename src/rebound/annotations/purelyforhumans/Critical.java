@@ -11,6 +11,8 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * This code could allow security vulnerabilities if not done perfectly!!
  * (Eg, interfacing with native libraries).
+ * 
+ * Critical aka Unsafe
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

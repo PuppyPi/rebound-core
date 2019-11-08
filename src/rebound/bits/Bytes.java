@@ -22,6 +22,13 @@ import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.objectutil.JavaNamespace;
 
+//TODO!!  Test instanceof ByteListWithMultibyteAccess!! XDD'''
+//TODO Are these named right?  putLittleLong56Buffermodifying(.., int offset, ..), etc.   It modifies the ByteOrder but not the position().  Make sure we're consistent with naming!
+
+//TODO Test the non-power-of-two accessors (esp. the ByteBuffer ones!!)  X'D     (and perhaps use the same test for DirectByteList and any ByteListWithMultibyteAccess? :>     That would be way easier if this used instanceof to support things properly X'D )
+
+//TODO Ones like putLittleInt(byte[], int value) for ByteList/etc.!
+
 //Todo Add a suite of the methods for the rebound.io.streaming API when/ifffff that's ever finisheddd! X'DD
 //Todo add documentation making it clear that the bytesize-multiplexed methods do UNsigned upcasting from all the sizes to 64bit long's!  \:DD/
 
@@ -137,7 +144,7 @@ apis = [
 [  [ "get", "", [["ByteList", "source"]], None, "source.getByte(byteIndex)"],           [ "set", "", [["ByteList", "dest"]], None, "dest.setByte(byteIndex, %)"]         ],
 [  [ "get", "", [["ByteList", "source"], ["int", "offset"]], None, "source.getByte(offset+byteIndex)"],           [ "put", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
 [  None,                                                                    [ "add", "", [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
-[  None,                                                                    [ "add", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.setByte(offset+byteIndex, %)"]         ],
+[  None,                                                                    [ "add", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.insertByte(offset+byteIndex, %)"]         ],
 [  [ "get", "", [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ "put", "", [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ "get", "", [["InputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ "put", "", [["OutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ "get", "", [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ "put", "", [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
@@ -1301,8 +1308,8 @@ p(s);
 	
 	public static void addLittleChar(ByteList dest, int offset, char value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleChar(OutputStream dest, char value) throws IOException, EOFException
@@ -1367,8 +1374,8 @@ p(s);
 	
 	public static void addLittleShort(ByteList dest, int offset, short value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public static void putLittleShort(OutputStream dest, short value) throws IOException, EOFException
@@ -1440,9 +1447,9 @@ p(s);
 	
 	public static void addLittleInt24(ByteList dest, int offset, int value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
 	}
 	
 	public static void putLittleInt24(OutputStream dest, int value) throws IOException, EOFException
@@ -1524,10 +1531,10 @@ p(s);
 	
 	public static void addLittleInt(ByteList dest, int offset, int value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
 	}
 	
 	public static void putLittleInt(OutputStream dest, int value) throws IOException, EOFException
@@ -1619,11 +1626,11 @@ p(s);
 	
 	public static void addLittleLong40(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 32) & 0xFF));
 	}
 	
 	public static void putLittleLong40(OutputStream dest, long value) throws IOException, EOFException
@@ -1725,12 +1732,12 @@ p(s);
 	
 	public static void addLittleLong48(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 40) & 0xFF));
 	}
 	
 	public static void putLittleLong48(OutputStream dest, long value) throws IOException, EOFException
@@ -1842,13 +1849,13 @@ p(s);
 	
 	public static void addLittleLong56(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+6, (byte)((value >>> 48) & 0xFF));
 	}
 	
 	public static void putLittleLong56(OutputStream dest, long value) throws IOException, EOFException
@@ -1970,14 +1977,14 @@ p(s);
 	
 	public static void addLittleLong(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 0) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 48) & 0xFF));
-		dest.setByte(offset+7, (byte)((value >>> 56) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+6, (byte)((value >>> 48) & 0xFF));
+		dest.insertByte(offset+7, (byte)((value >>> 56) & 0xFF));
 	}
 	
 	public static void putLittleLong(OutputStream dest, long value) throws IOException, EOFException
@@ -2825,8 +2832,8 @@ p(s);
 	
 	public static void addBigChar(ByteList dest, int offset, char value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigChar(OutputStream dest, char value) throws IOException, EOFException
@@ -2891,8 +2898,8 @@ p(s);
 	
 	public static void addBigShort(ByteList dest, int offset, short value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigShort(OutputStream dest, short value) throws IOException, EOFException
@@ -2964,9 +2971,9 @@ p(s);
 	
 	public static void addBigInt24(ByteList dest, int offset, int value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt24(OutputStream dest, int value) throws IOException, EOFException
@@ -3048,10 +3055,10 @@ p(s);
 	
 	public static void addBigInt(ByteList dest, int offset, int value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigInt(OutputStream dest, int value) throws IOException, EOFException
@@ -3143,11 +3150,11 @@ p(s);
 	
 	public static void addBigLong40(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong40(OutputStream dest, long value) throws IOException, EOFException
@@ -3249,12 +3256,12 @@ p(s);
 	
 	public static void addBigLong48(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong48(OutputStream dest, long value) throws IOException, EOFException
@@ -3366,13 +3373,13 @@ p(s);
 	
 	public static void addBigLong56(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 48) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 48) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+6, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong56(OutputStream dest, long value) throws IOException, EOFException
@@ -3494,14 +3501,14 @@ p(s);
 	
 	public static void addBigLong(ByteList dest, int offset, long value)
 	{
-		dest.setByte(offset+0, (byte)((value >>> 56) & 0xFF));
-		dest.setByte(offset+1, (byte)((value >>> 48) & 0xFF));
-		dest.setByte(offset+2, (byte)((value >>> 40) & 0xFF));
-		dest.setByte(offset+3, (byte)((value >>> 32) & 0xFF));
-		dest.setByte(offset+4, (byte)((value >>> 24) & 0xFF));
-		dest.setByte(offset+5, (byte)((value >>> 16) & 0xFF));
-		dest.setByte(offset+6, (byte)((value >>> 8) & 0xFF));
-		dest.setByte(offset+7, (byte)((value >>> 0) & 0xFF));
+		dest.insertByte(offset+0, (byte)((value >>> 56) & 0xFF));
+		dest.insertByte(offset+1, (byte)((value >>> 48) & 0xFF));
+		dest.insertByte(offset+2, (byte)((value >>> 40) & 0xFF));
+		dest.insertByte(offset+3, (byte)((value >>> 32) & 0xFF));
+		dest.insertByte(offset+4, (byte)((value >>> 24) & 0xFF));
+		dest.insertByte(offset+5, (byte)((value >>> 16) & 0xFF));
+		dest.insertByte(offset+6, (byte)((value >>> 8) & 0xFF));
+		dest.insertByte(offset+7, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public static void putBigLong(OutputStream dest, long value) throws IOException, EOFException
@@ -8529,7 +8536,7 @@ p(s);
 		switch (numberOfBytes)
 		{
 			case 1:
-				dest.setByte(offset+0, (byte)value); break;
+				dest.insertByte(offset+0, (byte)value); break;
 			case 2:
 				addLittleShort(dest, offset, (short)value); break;
 			case 3:
@@ -8554,7 +8561,7 @@ p(s);
 		switch (numberOfBytes)
 		{
 			case 1:
-				dest.setByte(offset+0, (byte)value); break;
+				dest.insertByte(offset+0, (byte)value); break;
 			case 2:
 				addBigShort(dest, offset, (short)value); break;
 			case 3:
@@ -8910,7 +8917,7 @@ p(s);
 	}
 	
 	// >>>
-				
+	
 	
 	
 	
@@ -11999,7 +12006,7 @@ _$$primxpconf:char,short,int,long,float,double,sint24,slong40,slong48,slong56,ui
 	
 	
 	// >>>
-				
+	
 	
 	
 	

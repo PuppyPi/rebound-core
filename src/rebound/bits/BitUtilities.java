@@ -1322,6 +1322,71 @@ p(primxp.primxp("""
 	
 	
 	
+	public static short reverseBytes16(short x)
+	{
+		return Short.reverseBytes(x);
+	}
+	
+	public static int reverseBytes32(int x)
+	{
+		return Integer.reverseBytes(x);
+	}
+	
+	public static long reverseBytes64(long x)
+	{
+		return Long.reverseBytes(x);
+	}
+	
+	
+	
+	public static int reverseBytes24(int x)
+	{
+		//It's faster to do it this way on platforms that support reverseBytes() as a single machine code instruction :>
+		// And if they don't we'll just hope the math optimizations in JIT/AOT fix it all for us XD'
+		//Todo use an easily JITtable static final boolean field like a C macro that's set to whether the CPU architecture supports it as a single instruction to switch between which one to use! :D   (And write the other fallback impl and Test it XD ) 
+		return Integer.reverseBytes(x) >>> 8;
+	}
+	
+	public static long reverseBytes40(long x)
+	{
+		//It's faster to do it this way on platforms that support reverseBytes() as a single machine code instruction :>
+		// And if they don't we'll just hope the math optimizations in JIT/AOT fix it all for us XD'
+		//Todo use an easily JITtable static final boolean field like a C macro that's set to whether the CPU architecture supports it as a single instruction to switch between which one to use! :D   (And write the other fallback impl and Test it XD ) 
+		return Long.reverseBytes(x) >>> 8;
+	}
+	
+	public static long reverseBytes48(long x)
+	{
+		//It's faster to do it this way on platforms that support reverseBytes() as a single machine code instruction :>
+		// And if they don't we'll just hope the math optimizations in JIT/AOT fix it all for us XD'
+		//Todo use an easily JITtable static final boolean field like a C macro that's set to whether the CPU architecture supports it as a single instruction to switch between which one to use! :D   (And write the other fallback impl and Test it XD ) 
+		return Long.reverseBytes(x) >>> 16;
+	}
+	
+	public static long reverseBytes56(long x)
+	{
+		//It's faster to do it this way on platforms that support reverseBytes() as a single machine code instruction :>
+		// And if they don't we'll just hope the math optimizations in JIT/AOT fix it all for us XD'
+		//Todo use an easily JITtable static final boolean field like a C macro that's set to whether the CPU architecture supports it as a single instruction to switch between which one to use! :D   (And write the other fallback impl and Test it XD ) 
+		return Long.reverseBytes(x) >>> 24;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static int rotateUp(int value, int numberOfBits)
 	{
@@ -5738,14 +5803,14 @@ for primA in intprims:
 	//TODO Test this! :D
 	public static boolean isPowerOf2(int x)
 	{
-        int m = x - 1;
-        return (x & m) == 0;
+		int m = x - 1;
+		return (x & m) == 0;
 	}
 	
 	public static boolean isPowerOf2(long x)
 	{
-        long m = x - 1;
-        return (x & m) == 0;
+		long m = x - 1;
+		return (x & m) == 0;
 	}
 	
 	
