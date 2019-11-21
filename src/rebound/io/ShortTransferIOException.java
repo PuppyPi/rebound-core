@@ -1,4 +1,4 @@
-package rebound.io.streaming.util;
+package rebound.io;
 
 import java.io.IOException;
 
@@ -11,10 +11,10 @@ extends IOException
 	
 	protected final int amountRequested, amountRead;
 	
-	public ShortTransferIOException(int amountRequested, int amountRead)
+	public ShortTransferIOException(int amountRequested, int amountActual)
 	{
 		this.amountRequested = amountRequested;
-		this.amountRead = amountRead;
+		this.amountRead = amountActual;
 	}
 	
 	

@@ -6,7 +6,11 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import rebound.io.iio.InputByteStream;
 import rebound.io.iio.OutputByteStream;
+import rebound.io.iio.ResettableInputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
+import rebound.io.iio.unions.CloseableInputByteStreamInterface;
+import rebound.io.packeted.InputPacketream;
+import rebound.io.packeted.OutputPacketream;
 import from.java.io.forr.rebound.io.iio.ByteArrayOutputByteStream;
 
 public class BasicIOUtilities
@@ -384,6 +388,27 @@ public class BasicIOUtilities
 	
 	
 	
+	public static enum EmptyInputByteStream
+	implements CloseableInputByteStreamInterface, ResettableInputByteStream
+	{
+		I;
+		
+		
+		@Override
+		public void close() {}
+		
+		@Override
+		public int read() {return -1;}
+		@Override
+		public int read(byte[] b) {return -1;}
+		@Override
+		public int read(byte[] b, int off, int len) {return -1;}
+		@Override
+		public long skip(long n) {return 0;}
+		
+		@Override
+		public void seekToStart() throws IOException {}
+	}
 	
 	
 	
@@ -424,6 +449,70 @@ public class BasicIOUtilities
 		public void flush()
 		{
 			//no op.
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static enum NullOutputPacketreamGobbling
+	implements OutputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int write(byte[] b, int off, int len)
+		{
+			//no op.
+			return len;  //gobble any data! X3
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
+		}
+	}
+	
+	
+	public static enum NullOutputPacketreamRejecting
+	implements OutputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int write(byte[] b, int off, int len)
+		{
+			//no op.
+			return 0;  //reject any data!
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
+		}
+	}
+	
+	
+	public static enum EmptyInputPacketreamRejecting
+	implements InputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int read(byte[] b, int off, int len)
+		{
+			//no op.
+			return 0;  //reject any requests for data!
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
 		}
 	}
 }
