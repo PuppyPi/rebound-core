@@ -1,10 +1,14 @@
 package rebound.io.util;
 
 import static java.util.Objects.*;
+import java.io.Closeable;
+import java.io.EOFException;
 import java.io.IOException;
+import rebound.exceptions.ClosedIOException;
 import rebound.exceptions.UnsupportedOptionException;
 import rebound.io.ShortReadIOException;
 import rebound.io.ShortWriteIOException;
+import rebound.io.packeted.BidirectionalPacketream;
 import rebound.io.packeted.InputPacketream;
 import rebound.io.packeted.OutputPacketream;
 import rebound.util.collections.Slice;
@@ -16,52 +20,52 @@ import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 
 public class PacketreamIOUtilities
 {
-	public static int readAllowingShorts(InputPacketream self, byte[] array, int offset, int length) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, byte[] array, int offset, int length) throws IOException
 	{
-		return self.read(array, offset, length);
+		return self.receive(array, offset, length);
 	}
 	
-	public static int readAllowingShorts(InputPacketream self, byte[] array) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, byte[] array) throws IOException
 	{
-		return readAllowingShorts(self, array, 0, array.length);
+		return receiveAllowingShorts(self, array, 0, array.length);
 	}
 	
-	public static int readAllowingShorts(InputPacketream self, Slice<byte[]> arraySlice) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, Slice<byte[]> arraySlice) throws IOException
 	{
-		return readAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return receiveAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static int readAllowingShorts(InputPacketream self, ByteList list) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, ByteList list) throws IOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
 			throw new UnsupportedOptionException();
-		return readAllowingShorts(self, s);
+		return receiveAllowingShorts(self, s);
 	}
 	
 	
 	
-	public static int writeAllowingShorts(OutputPacketream self, byte[] array, int offset, int length) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, byte[] array, int offset, int length) throws IOException
 	{
-		return self.write(array, offset, length);
+		return self.send(array, offset, length);
 	}
 	
-	public static int writeAllowingShorts(OutputPacketream self, byte[] array) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, byte[] array) throws IOException
 	{
-		return writeAllowingShorts(self, array, 0, array.length);
+		return sendAllowingShorts(self, array, 0, array.length);
 	}
 	
-	public static int writeAllowingShorts(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException
 	{
-		return writeAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		return sendAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static int writeAllowingShorts(OutputPacketream self, ByteList list) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, ByteList list) throws IOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
 			throw new UnsupportedOptionException();
-		return writeAllowingShorts(self, s);
+		return sendAllowingShorts(self, s);
 	}
 	
 	
@@ -75,58 +79,58 @@ public class PacketreamIOUtilities
 	
 	
 	
-	public static void readFullyOrThrow(InputPacketream self, byte[] array, int offset, int length) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, byte[] array, int offset, int length) throws IOException, ShortReadIOException
 	{
-		int r = readAllowingShorts(self, array, offset, length);
+		int r = receiveAllowingShorts(self, array, offset, length);
 		if (r != length)
 			throw new ShortReadIOException(length, r);
 	}
 	
-	public static void readFullyOrThrow(InputPacketream self, byte[] array) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, byte[] array) throws IOException, ShortReadIOException
 	{
-		readFullyOrThrow(self, array, 0, array.length);
+		receiveFullyOrThrow(self, array, 0, array.length);
 	}
 	
-	public static void readFullyOrThrow(InputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortReadIOException
 	{
-		readFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		receiveFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static void readFullyOrThrow(InputPacketream self, ByteList list) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, ByteList list) throws IOException, ShortReadIOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
 			throw new UnsupportedOptionException();
-		readFullyOrThrow(self, s);
+		receiveFullyOrThrow(self, s);
 	}
 	
 	
 	
 	
 	
-	public static void writeFullyOrThrow(OutputPacketream self, byte[] array, int offset, int length) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, byte[] array, int offset, int length) throws IOException, ShortWriteIOException
 	{
-		int r = writeAllowingShorts(self, array, offset, length);
+		int r = sendAllowingShorts(self, array, offset, length);
 		if (r != length)
 			throw new ShortWriteIOException(length, r);
 	}
 	
-	public static void writeFullyOrThrow(OutputPacketream self, byte[] array) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, byte[] array) throws IOException, ShortWriteIOException
 	{
-		writeFullyOrThrow(self, array, 0, array.length);
+		sendFullyOrThrow(self, array, 0, array.length);
 	}
 	
-	public static void writeFullyOrThrow(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortWriteIOException
 	{
-		writeFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		sendFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static void writeFullyOrThrow(OutputPacketream self, ByteList list) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, ByteList list) throws IOException, ShortWriteIOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
 			throw new UnsupportedOptionException();
-		writeFullyOrThrow(self, s);
+		sendFullyOrThrow(self, s);
 	}
 	
 	
@@ -154,15 +158,15 @@ public class PacketreamIOUtilities
 	/**
 	 * @param c will be called exactly once before each packet, like a while() loop :3
 	 */
-	public static void pumpAllowingShortReadsButNotShortWrites(InputPacketream in, OutputPacketream out, int requestedPacketSizeForReads, NullaryFunction<ContinueSignal> c) throws IOException
+	public static void pumpAllowingShortReceivesButNotShortSends(InputPacketream in, OutputPacketream out, int requestedPacketSizeForReceives, NullaryFunction<ContinueSignal> c) throws IOException
 	{
-		byte[] a = new byte[requestedPacketSizeForReads];
+		byte[] a = new byte[requestedPacketSizeForReceives];
 		
 		while (requireNonNull(c.f()) == ContinueSignal.Continue)
 		{
-			int r = readAllowingShorts(in, a, 0, requestedPacketSizeForReads);
+			int r = receiveAllowingShorts(in, a, 0, requestedPacketSizeForReceives);
 			
-			writeFullyOrThrow(out, a, 0, r);
+			sendFullyOrThrow(out, a, 0, r);
 		}
 	}
 	
@@ -176,8 +180,8 @@ public class PacketreamIOUtilities
 		
 		while (requireNonNull(c.f()) == ContinueSignal.Continue)
 		{
-			readFullyOrThrow(in, a, 0, packetSize);
-			writeFullyOrThrow(out, a, 0, packetSize);
+			receiveFullyOrThrow(in, a, 0, packetSize);
+			sendFullyOrThrow(out, a, 0, packetSize);
 		}
 	}
 	
@@ -186,11 +190,11 @@ public class PacketreamIOUtilities
 	
 	
 	
-	public static void pumpFixedAllowingShortReadsButNotShortWrites(InputPacketream in, OutputPacketream out, int requestedPacketSizeForReads, int numberOfPackets) throws IOException
+	public static void pumpFixedAllowingShortReceivesButNotShortSends(InputPacketream in, OutputPacketream out, int requestedPacketSizeForReceives, int numberOfPackets) throws IOException
 	{
 		IntegerContainer remaining_C = new SimpleIntegerContainer(numberOfPackets);
 		
-		pumpAllowingShortReadsButNotShortWrites(in, out, requestedPacketSizeForReads, () ->
+		pumpAllowingShortReceivesButNotShortSends(in, out, requestedPacketSizeForReceives, () ->
 		{
 			int r = remaining_C.get();
 			
@@ -222,5 +226,149 @@ public class PacketreamIOUtilities
 				return ContinueSignal.Continue;
 			}
 		});
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Wrap a bidirectional packetream as a {@link BidirectionalPacketream} X'D
+	 * 
+	 * Sigh, Java typing X'D
+	 * I wonder if this is a problem in Haskell? :>
+	 */
+	public static <T extends InputPacketream & OutputPacketream> BidirectionalPacketream wrapToConvenienceAPI(T x)
+	{
+		return new BidirectionalPacketream()
+		{
+			@Override
+			public int send(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
+			{
+				return x.send(array, offset, length);
+			}
+			
+			@Override
+			public int receive(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
+			{
+				return x.receive(array, offset, length);
+			}
+		};
+	}
+	
+	
+	
+	/**
+	 * Wrap a closeable bidirectional packetream as a {@link Closeable} {@link BidirectionalPacketream} X'D
+	 * 
+	 * Sigh, Java typing X'D
+	 * I wonder if this is a problem in Haskell? :>
+	 */
+	public static <T extends InputPacketream & OutputPacketream & Closeable, O extends BidirectionalPacketream & Closeable> O wrapToCloseableConvenienceAPI(T x)
+	{
+		class c
+		implements BidirectionalPacketream, Closeable
+		{
+			@Override
+			public int send(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
+			{
+				return x.send(array, offset, length);
+			}
+			
+			@Override
+			public int receive(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
+			{
+				return x.receive(array, offset, length);
+			}
+			
+			@Override
+			public void close() throws IOException
+			{
+				x.close();
+			}
+		};
+		
+		
+		return (O)new c();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static enum NullOutputPacketreamGobbling
+	implements OutputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int send(byte[] b, int off, int len)
+		{
+			//no op.
+			return len;  //gobble any data! X3
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
+		}
+	}
+	
+	
+	public static enum NullOutputPacketreamRejecting
+	implements OutputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int send(byte[] b, int off, int len)
+		{
+			//no op.
+			return 0;  //reject any data!
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
+		}
+	}
+	
+	
+	public static enum EmptyInputPacketreamRejecting
+	implements InputPacketream, Closeable
+	{
+		I;
+		
+		
+		@Override
+		public int receive(byte[] b, int off, int len)
+		{
+			//no op.
+			return 0;  //reject any requests for data!
+		}
+		
+		@Override
+		public void close() throws IOException
+		{
+		}
 	}
 }

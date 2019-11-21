@@ -22,7 +22,6 @@ import rebound.util.objectutil.JavaNamespace;
 public class ExtraIOUtilities
 implements JavaNamespace
 {
-	
 	public static interface SynchronousConsumer
 	{
 		/**
@@ -44,6 +43,10 @@ implements JavaNamespace
 		 */
 		public Object eofReached(boolean a, boolean b);
 	}
+	
+	
+	
+	
 	
 	public static class InputStreamChannelAdapter
 	extends InputStream
