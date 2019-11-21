@@ -1334,8 +1334,7 @@ implements JavaNamespace
 		return i == -1 ? s : s.substring(0, i);
 	}
 	
-	@Nonnull
-	public static String splitonceReturnPrecedingOrNull(String s, char del)
+	public static @Nullable String splitonceReturnPrecedingOrNull(String s, char del)
 	{
 		int i = s.indexOf(del);
 		return i == -1 ? null : s.substring(0, i);
@@ -1364,8 +1363,7 @@ implements JavaNamespace
 		return i == -1 ? s : s.substring(0, i);
 	}
 	
-	@Nonnull
-	public static String splitonceReturnPrecedingOrNull(String s, String del)
+	public static @Nullable String splitonceReturnPrecedingOrNull(String s, String del)
 	{
 		int i = s.indexOf(del);
 		return i == -1 ? null : s.substring(0, i);
@@ -1442,8 +1440,7 @@ implements JavaNamespace
 		return i == -1 ? s : s.substring(0, i);
 	}
 	
-	@Nonnull
-	public static String rsplitonceReturnPrecedingOrNull(String s, char del)
+	public static @Nullable String rsplitonceReturnPrecedingOrNull(String s, char del)
 	{
 		int i = s.lastIndexOf(del);
 		return i == -1 ? null : s.substring(0, i);
@@ -1472,8 +1469,7 @@ implements JavaNamespace
 		return i == -1 ? s : s.substring(0, i);
 	}
 	
-	@Nonnull
-	public static String rsplitonceReturnPrecedingOrNull(String s, String del)
+	public static @Nullable String rsplitonceReturnPrecedingOrNull(String s, String del)
 	{
 		int i = s.lastIndexOf(del);
 		return i == -1 ? null : s.substring(0, i);
@@ -6700,7 +6696,7 @@ implements JavaNamespace
 	
 	public static String singleLineify(String s)
 	{
-		return s.replace("\t", "").replace("\n", " ");
+		return s.replace("\t", "").replace("\n", " ").trim();
 	}
 	
 	public static String reprSingleLine(Object o)

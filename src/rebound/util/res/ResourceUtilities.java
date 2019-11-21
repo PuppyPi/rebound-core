@@ -1012,6 +1012,27 @@ implements JavaNamespace
 		}
 	}
 	
+	@Nonnull
+	public static byte[] loadBinaryResourceAbsolute(ClassLoader c, String name) throws ResourceNotFoundException, ResourceLoadException
+	{
+		InputStream in = c.getResourceAsStream(name);
+		if (in == null)
+			throw new ResourceNotFoundException(name);
+		
+		try
+		{
+			return JRECompatIOUtilities.readAll(in);
+		}
+		catch (IOException exc)
+		{
+			throw new ResourceLoadException(name, exc);
+		}
+		finally
+		{
+			closeWithoutError(in);
+		}
+	}
+	
 	
 	
 	
@@ -1037,6 +1058,27 @@ implements JavaNamespace
 		catch (IOException exc)
 		{
 			throw new ResourceLoadException(c, name, exc);
+		}
+		finally
+		{
+			closeWithoutError(in);
+		}
+	}
+	
+	@Nonnull
+	public static String loadTextResourceAbsolute(ClassLoader c, String name, Charset encoding) throws ResourceNotFoundException, ResourceLoadException
+	{
+		InputStream in = c.getResourceAsStream(name);
+		if (in == null)
+			throw new ResourceNotFoundException(name);
+		
+		try
+		{
+			return TextIOUtilities.readAllText(in, encoding);
+		}
+		catch (IOException exc)
+		{
+			throw new ResourceLoadException(name, exc);
 		}
 		finally
 		{

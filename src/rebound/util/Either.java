@@ -56,15 +56,4 @@ public class Either<A, B>
 		else
 			throw new NotThisException();
 	}
-	
-	
-	
-	
-	
-	
-	public static class NotThisException
-	extends RuntimeException
-	{
-		private static final long serialVersionUID = 1L;
-	}
 }

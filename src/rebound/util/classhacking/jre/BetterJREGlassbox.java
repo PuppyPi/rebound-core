@@ -23,6 +23,10 @@ public class BetterJREGlassbox
 	public static final Class Type_Collections_emptyMap = Collections.emptyMap().getClass();
 	public static final Class Type_Collections_emptySet = Collections.emptySet().getClass();
 	
+	public static final Class Type_Collections_singletonList = Collections.singletonList(0).getClass();
+	public static final Class Type_Collections_singletonSet = Collections.singleton(0).getClass();
+	public static final Class Type_Collections_singletonMap = Collections.singletonMap(0, 0).getClass();
+	
 	public static final Class Type_Collections_unmodifiableCollection = Collections.unmodifiableCollection(new ArrayList()).getClass();
 	public static final Class Type_Collections_unmodifiableList = Collections.unmodifiableList(new ArrayList()).getClass();
 	public static final Class Type_Collections_unmodifiableMap = Collections.unmodifiableMap(new HashMap()).getClass();

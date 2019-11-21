@@ -2063,6 +2063,14 @@ public class PolymorphicCollectionUtilities
 				return false;
 			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableSortedSet)
 				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_emptyList)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_emptySet)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_singletonList)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_singletonSet)
+				return false;
 			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Arrays_asList)
 				return true;
 			
@@ -2080,6 +2088,65 @@ public class PolymorphicCollectionUtilities
 				return true;
 			
 			//TODO moreeeee grandfatheringggggg! :>
+			
+			return null;
+		}
+	}
+	
+	/**
+	 * If this is true, then {@link #isCollectionWritable(Object)} must be true as well :3
+	 * If {@link #isCollectionWritable(Object)} is false, this must be false as well :3
+	 */
+	@Nullable
+	public static Boolean isCollectionVariableSize(@Nonnull Object collectionThing)
+	{
+		if (collectionThing == null)
+			throw new NullPointerException();
+		
+		//Todo a trait predicate for this too like there is for writability! :>
+		//		else if (collectionThing instanceof RuntimeWriteabilityCollection)
+		//			return ((RuntimeWriteabilityCollection)collectionThing).isWritableCollection();
+		//		else
+		{
+			if (collectionThing.getClass().isArray())
+				return false;  //writable but fixed-length!
+			
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableCollection)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableList)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableSet)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_unmodifiableSortedSet)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_emptyList)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_emptySet)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_singletonList)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Collections_singletonSet)
+				return false;
+			else if (collectionThing.getClass() == BetterJREGlassbox.Type_Arrays_asList)
+				return false;  //writable but fixed-length!
+			
+			else if (collectionThing.getClass() == ArrayList.class)
+				return true;
+			else if (collectionThing.getClass() == HashSet.class)
+				return true;
+			else if (collectionThing.getClass() == LinkedList.class)
+				return true;
+			else if (collectionThing.getClass() == Vector.class)
+				return true;
+			else if (collectionThing.getClass() == Stack.class)
+				return true;
+			else if (collectionThing.getClass() == PriorityQueue.class)
+				return true;
+			
+			//TODO moreeeee grandfatheringggggg! :>
+			
+			if (!isCollectionWritable(collectionThing))
+				return false;
 			
 			return null;
 		}

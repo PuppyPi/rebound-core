@@ -9928,7 +9928,7 @@ _$$primxpconf:intsonly$$_
 	public static interface AliasObserver<E>
 	{
 		public void observeAlias(E id, E targetId);
-		public void observeNonalias(E id);
+		public void observeEntryNotSayingIfAlias(E id);
 	}
 	
 	public static <E> Map<E, Set<E>> produceAliasMap(UnaryProcedure<AliasObserver<E>> observeAllIds)
@@ -9980,7 +9980,7 @@ _$$primxpconf:intsonly$$_
 			}
 			
 			@Override
-			public void observeNonalias(E startingId)
+			public void observeEntryNotSayingIfAlias(E startingId)
 			{
 				getOrCreate(map, startingId, HashSet::new).add(startingId);
 			}

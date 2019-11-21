@@ -76,6 +76,7 @@ import rebound.util.collections.CollectionUtilities;
 import rebound.util.container.ContainerInterfaces.IntegerContainer;
 import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
 import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
+import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
@@ -832,13 +833,9 @@ implements JavaNamespace
 	
 	
 	
-	public static String dirnamePosix(String path)
+	public static @Nonnull String dirnamePosix(String path)
 	{
-		//TODO do it properly X'D
-		if (File.separatorChar != '/')
-			throw new NotYetImplementedException();
-		
-		return new File(path).getParent();
+		return getAllButLastPathElementOrEmptyPosix(path);
 	}
 	
 	
@@ -874,16 +871,14 @@ implements JavaNamespace
 	/**
 	 * Ie, basically <code>concat({@link StringUtilities#split(String, char)}(path, delimiter)[0:-1])</code>, but faster :D
 	 */
-	@Nullable
-	public static String getAllButLastPathElementOrNull(@Nonnull String path, char sep)
+	public static @Nullable String getAllButLastPathElementOrNull(@Nonnull String path, char sep)
 	{
 		path = trim(path, sep);
 		return rsplitonceReturnPrecedingOrNull(path, sep);
 	}
 	
-	public static String getAllButLastPathElementOrEmpty(String path, char sep)
+	public static @Nonnull String getAllButLastPathElementOrEmpty(String path, char sep)
 	{
-		path = trim(path, sep);
 		String r = getAllButLastPathElementOrNull(path, sep);
 		return r == null ? "" : r;
 	}
@@ -968,7 +963,7 @@ implements JavaNamespace
 		return getLastPathElement(path, '/');
 	}
 	
-	public static String getAllButLastPathElementOrEmptyPosix(String path)
+	public static @Nonnull String getAllButLastPathElementOrEmptyPosix(String path)
 	{
 		return getAllButLastPathElementOrEmpty(path, '/');
 	}
@@ -4381,6 +4376,16 @@ implements JavaNamespace
 	
 	
 	
+	public static Map<String, byte[]> readEntireDirectoryTreeFiles(File d, int entryCountLimit, long fileSizeLimit)
+	{
+		return readEntireDirectoryTreeFiles(d, f -> true, entryCountLimit, fileSizeLimit);
+	}
+	
+	public static Map<String, NullaryFunction<byte[]>> readEntireDirectoryTreeFilesLazy(File d, int entryCountLimit, long fileSizeLimit)
+	{
+		return readEntireDirectoryTreeFilesLazy(d, f -> true, entryCountLimit, fileSizeLimit);
+	}
+	
 	
 	/**
 	 * Only normal files (and symlinks to normal files) are entered into the map, not directories, special files, symlinks to dirs or specials, nor broken/cyclical symlinks :3
@@ -4388,11 +4393,16 @@ implements JavaNamespace
 	 */
 	public static Map<String, byte[]> readEntireDirectoryTreeFiles(File d, Predicate<File> p, int entryCountLimit, long fileSizeLimit)
 	{
-		Map<String, byte[]> rv = new HashMap<>();
+		return mapdictvalues(v -> v.f(), readEntireDirectoryTreeFilesLazy(d, p, entryCountLimit, fileSizeLimit));
+	}
+	
+	
+	public static Map<String, NullaryFunction<byte[]>> readEntireDirectoryTreeFilesLazy(File d, Predicate<File> p, int entryCountLimit, long fileSizeLimit)
+	{
+		Map<String, NullaryFunction<byte[]>> rv = new HashMap<>();
 		
 		recurse(f ->
 		{
-			
 			if (f.isFile() && p.test(f))
 			{
 				int n = rv.size();
@@ -4409,27 +4419,22 @@ implements JavaNamespace
 				if (l > fileSizeLimit)
 					throw new WrappedThrowableRuntimeException(new IOException("File size ("+l+" bytes) exceeded limit ("+fileSizeLimit+" bytes) for "+repr(f.getAbsolutePath())));
 				
-				byte[] c;
-				try
+				putNewMandatory(rv, relpath, () ->
 				{
-					c = FSIOUtilities.readAll(f);
-				}
-				catch (IOException exc)
-				{
-					throw new WrappedThrowableRuntimeException(exc);
-				}
-				
-				putNewMandatory(rv, relpath, c);
+					try
+					{
+						return FSIOUtilities.readAll(f);
+					}
+					catch (Exception exc)
+					{
+						throw new WrappedThrowableRuntimeException(exc);
+					}
+				});
 			}
 			
 		}, DescendRecurse_Always, d);
 		
 		return rv;
-	}
-	
-	public static Map<String, byte[]> readEntireDirectoryTreeFiles(File d, int entryCountLimit, long fileSizeLimit)
-	{
-		return readEntireDirectoryTreeFiles(d, f -> true, entryCountLimit, fileSizeLimit);
 	}
 	
 	
@@ -4439,6 +4444,9 @@ implements JavaNamespace
 	
 	public static void storeEntireDirectoryTreeFilesIntoEmptyParent(File parent, Map<String, byte[]> tree)
 	{
+		//TODO Deal with both kinds of slashes for windows X'3
+		
+		
 		if (!parent.isDirectory())
 			throw new WrappedThrowableRuntimeException(new IOException("Not a directory: "+repr(parent.getAbsolutePath())));
 		
@@ -4449,13 +4457,14 @@ implements JavaNamespace
 		{
 			String r = e.getKey();
 			
-			if (r.contains(File.separator+".."+File.separator))  //this is not a security check!!  windows permits both forward and back slashes, so if this only checks for one, it's not being done properly!  (we'd really need joinPaths() somewhere in between lenient and strict ^^' )
+			if (r.contains(File.separator+".."+File.separator))
 				throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(r)));
 			
 			File f = joinPathsLenient(parent, r);
 			
 			try
 			{
+				ensureDirsWholePathThrowing(f.getParentFile());
 				FSIOUtilities.writeAll(f, e.getValue());
 			}
 			catch (IOException exc)
@@ -4466,10 +4475,47 @@ implements JavaNamespace
 	}
 	
 	
+	
 	public static void storeEntireDirectoryTreeFilesIntoParentThatIsEmptySaveForTheseFilenames(File parent, Map<String, byte[]> tree)
 	{
-		for (String k : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
-			new File(parent, k).delete();
+		//TODO Deal with both kinds of slashes for windows X'3
+		
+		
+		if (!parent.isDirectory())
+			throw new WrappedThrowableRuntimeException(new IOException("Not a directory: "+repr(parent.getAbsolutePath())));
+		
+		
+		
+		//Delete only the things we're adding since..that's literally in the function name XD
+		//Sometimes people want that!  Like to make sure only autogenerated stuff gets deleted in an autogenerated directory!
+		{
+			for (String k : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
+			{
+				if (k.startsWith("../"))
+					throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(k)));
+				
+				deleteMandatoryIfExists(new File(parent, k));
+			}
+			
+			
+			for (String k : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
+			{
+				while (true)
+				{
+					String n = splitonceReturnPrecedingOrNull(k, '/');
+					
+					deleteMandatoryIfExists(new File(parent, n == null ? k : n));
+					
+					if (n == null)
+						break;
+					
+					k = n;
+				}
+			}
+		}
+		
+		
+		
 		
 		storeEntireDirectoryTreeFilesIntoEmptyParent(parent, tree);
 	}

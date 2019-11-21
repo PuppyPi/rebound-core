@@ -12,6 +12,12 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 	}
 	
 	@FunctionalInterface
+	public static interface PredicateThrowingAnything<Input>
+	{
+		public boolean test(Input input) throws Throwable;
+	}
+	
+	@FunctionalInterface
 	public static interface UnaryProcedureThrowingAnything<Input>
 	{
 		public void f(Input input) throws Throwable;
