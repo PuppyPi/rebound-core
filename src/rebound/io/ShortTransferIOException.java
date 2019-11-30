@@ -13,6 +13,9 @@ extends IOException
 	
 	public ShortTransferIOException(int amountRequested, int amountActual)
 	{
+		if (amountActual >= amountRequested)
+			throw new IllegalArgumentException("That's not a short transfer! XD");
+		
 		this.amountRequested = amountRequested;
 		this.amountRead = amountActual;
 	}

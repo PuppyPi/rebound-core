@@ -107,7 +107,6 @@ import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
-import rebound.util.uid.UIDUtilities;
 
 public class StringUtilities
 implements JavaNamespace
@@ -6391,7 +6390,7 @@ implements JavaNamespace
 				return "'"+escapeJavaStandard(o.toString())+"'";
 			
 			else if (o instanceof ImmutableByteArrayList)
-				return UIDUtilities.formatString((ImmutableByteArrayList)o);
+				return DataEncodingUtilities.encodeHexNoDelimiter((ImmutableByteArrayList)o, DataEncodingUtilities.HEX_UPPERCASE);
 			
 			else if (o instanceof Class)
 			{

@@ -76,6 +76,17 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 		public Output f(Input input) throws IOException;
 	}
 	
+	public static interface BinaryProcedureThrowingIOException<Input0, Input1>
+	{
+		public void f(Input0 input0, Input1 input1) throws IOException;
+	}
+	
+	@FunctionalInterface
+	public static interface BinaryFunctionThrowingIOException<Input0, Input1, Output>
+	{
+		public Output f(Input0 input0, Input1 input1) throws IOException;
+	}
+	
 	
 	
 	
@@ -103,16 +114,6 @@ public class FunctionalInterfacesThrowingCheckedExceptionsStandard
 	public static interface UnaryFunctionThrowingBinarySyntaxCheckedException<Input, Output>
 	{
 		public Output f(Input input) throws BinarySyntaxCheckedException;
-	}
-	
-	
-	
-	
-	
-	
-	public static interface BinaryProcedureThrowingIOException<Input0, Input1>
-	{
-		public void f(Input0 input0, Input1 input1) throws IOException;
 	}
 	
 	

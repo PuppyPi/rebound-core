@@ -14,6 +14,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.exceptions.ImpossibleException;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteListRO;
@@ -635,9 +636,9 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static ByteList decodeHexMandatoryToList(String source, int delimiterSize) throws AssertionError
+	public static ByteList decodeHexMandatoryToList(String source, int delimiterSize) throws ImpossibleException
 	{
 		try
 		{
@@ -645,11 +646,11 @@ implements JavaNamespace
 		}
 		catch (EOFException exc)
 		{
-			throw new AssertionError(exc);
+			throw new ImpossibleException(exc);
 		}
 		catch (InvalidInputCharacterException exc)
 		{
-			throw new AssertionError(exc);
+			throw new ImpossibleException(exc);
 		}
 	}
 	
@@ -732,9 +733,9 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static byte[] decodeHexMandatory(String source, int delimiterSize) throws AssertionError
+	public static byte[] decodeHexMandatory(String source, int delimiterSize) throws ImpossibleException
 	{
 		try
 		{
@@ -742,11 +743,11 @@ implements JavaNamespace
 		}
 		catch (EOFException exc)
 		{
-			throw new AssertionError(exc);
+			throw new ImpossibleException(exc);
 		}
 		catch (InvalidInputCharacterException exc)
 		{
-			throw new AssertionError(exc);
+			throw new ImpossibleException(exc);
 		}
 	}
 	
@@ -759,17 +760,17 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static byte[] decodeHexMandatoryNoDelimiter(String source) throws AssertionError
+	public static byte[] decodeHexMandatoryNoDelimiter(String source) throws ImpossibleException
 	{
 		return decodeHexMandatory(source, 0);
 	}
 	
 	/**
-	 * Wraps the exceptions into {@link AssertionError}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
+	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static ByteList decodeHexMandatoryNoDelimiterToList(String source) throws AssertionError
+	public static ByteList decodeHexMandatoryNoDelimiterToList(String source) throws ImpossibleException
 	{
 		return decodeHexMandatoryToList(source, 0);
 	}

@@ -1,20 +1,29 @@
 package rebound.util.uid;
 
+import static rebound.text.StringUtilities.*;
 import java.io.EOFException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.bits.Bytes;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.TextSyntaxException;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 
 public class UIDUtilities
 {
+	public static final UnaryFunctionCharToBoolean DelimiterPattern = c -> c == '-' || c == ' ' || c == ':';
+	
+	
+	
 	public static ImmutableByteArrayList parseAnnotation(@Nonnull UID uid) throws TextSyntaxException
 	{
 		return parseString(uid.value());
@@ -37,6 +46,8 @@ public class UIDUtilities
 	{
 		try
 		{
+			uidstr = replaceCharsWithStringsByPattern(uidstr, DelimiterPattern, "");
+			
 			byte[] a = DataEncodingUtilities.decodeHexNoDelimiter(uidstr);
 			return ImmutableByteArrayList.newLIVE(a);
 		}
@@ -154,11 +165,38 @@ public class UIDUtilities
 			boolean low = c >= 'a' && c <= 'f';
 			boolean high = c >= 'A' && c <= 'F';
 			boolean num = c >= '0' && c <= '9';
+			boolean delimiter = DelimiterPattern.f(c);
 			
-			if (!low && !high && !num)
+			if (!low && !high && !num && !delimiter)
 				return false;
 		}
 		
 		return true;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static UUID toUUID(ByteList bytes)
+	{
+		return new UUID(Bytes.getBigLong(bytes, 0), Bytes.getBigLong(bytes, 8));
+	}
+	
+	public static ImmutableByteArrayList fromUUID(UUID uuid)
+	{
+		byte[] a = new byte[16];
+		Bytes.putBigLong(a, 0, uuid.getMostSignificantBits());
+		Bytes.putBigLong(a, 8, uuid.getLeastSignificantBits());
+		return ImmutableByteArrayList.newLIVE(a);
 	}
 }

@@ -9,8 +9,6 @@ import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.ResettableInputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
 import rebound.io.iio.unions.CloseableInputByteStreamInterface;
-import rebound.io.packeted.InputPacketream;
-import rebound.io.packeted.OutputPacketream;
 import from.java.io.forr.rebound.io.iio.ByteArrayOutputByteStream;
 
 public class BasicIOUtilities

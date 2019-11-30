@@ -5,7 +5,7 @@
 package rebound.exceptions;
 
 /**
- * Put this when you KNOW that the code can't be reached!
+ * Put this when you KNOW that the code can't be reached!  (Even if the Java Compiler doesn't XD )
  * 
  * eg,
  * <code>

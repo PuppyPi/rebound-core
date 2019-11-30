@@ -35,6 +35,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -81,6 +82,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
 
 //Todo should joinPathsStrict use a different definition of strictness? (the one used by the isStrictPath()s ?) XD
@@ -3800,7 +3802,20 @@ implements JavaNamespace
 	{
 		FileChannel c = FileChannel.open(f.toPath(), StandardOpenOption.WRITE);
 		
-		FileLock l = c.tryLock();
+		final FileLock l;
+		{
+			FileLock l_;
+			try
+			{
+				l_ = c.tryLock();
+			}
+			catch (OverlappingFileLockException exc)
+			{
+				l_ = null;  //we consider something else in our JVM process holding the lock to be equivalent to some other process holding it :3
+			}
+			
+			l = l_;
+		}
 		
 		return l == null ? null : new SimpleFileLock()
 		{
@@ -4623,5 +4638,43 @@ implements JavaNamespace
 	public static void chmod(File f, Set<PosixFilePermission> mode) throws IOException
 	{
 		Files.setPosixFilePermissions(f.toPath(), mode);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void withTemporaryFile(UnaryProcedureThrowingIOException<File> f) throws IOException
+	{
+		withTemporaryFile(false, f);
+	}
+	
+	
+	/**
+	 * @param leave useful for debugging :3
+	 */
+	public static void withTemporaryFile(boolean leave, UnaryProcedureThrowingIOException<File> f) throws IOException
+	{
+		File t = File.createTempFile("temporary-file-", ".tmp");
+		
+		try
+		{
+			f.f(t);
+		}
+		finally
+		{
+			if (!leave)
+				t.delete();
+		}
 	}
 }
