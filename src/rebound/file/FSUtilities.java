@@ -3641,45 +3641,81 @@ implements JavaNamespace
 	
 	public static void performSafeFileSystemWriteTwoStageAndCopy(File dest, WriterProcedure write) throws IOException
 	{
-		if (dest.isDirectory() || isBrokenSymlink(dest))
-			throw new IOException("Tried to write into an invalid destination!: "+repr(dest.getAbsolutePath()));
+		File p = dest.getParentFile();
 		
-		dest = realpath(dest);
-		
-		
-		File temporary = getUniqueFileOrNull(dest.getParentFile(), dest.getName(), ".tmp");
-		if (lexists(temporary))
-			throw new IOException("Strange error while making temp file: "+repr(temporary.getAbsolutePath()));
-		ensureEmptyFileThrowing(temporary);
-		
-		if (!temporary.canWrite())
+		if (!p.isDirectory())
 		{
-			temporary = File.createTempFile(dest.getName(), ".tmp");
-			
-			if (!temporary.canWrite())
-				logBug();
+			throw new IOException("Not a directory: "+repr(p.getAbsolutePath()));
 		}
-		
-		
-		try
+		else
 		{
-			try (OutputStream out = new FileOutputStream(temporary))
+			boolean specialFile = isSpecialFile(dest);
+			boolean ex = lexists(dest);
+			
+			if (specialFile || dest.isFile() || !ex)
 			{
-				write.write(out);
+				if (specialFile)
+				{
+					//Don't do the fancy thing in this case XD
+					try (OutputStream out = new FileOutputStream(dest))
+					{
+						write.write(out);
+					}
+				}
+				else
+				{
+					//Handle symlinks perfectly, preserving the ability to do a safe, two-stage copy! :D
+					// (note that we DON'T want it to be realpathUIDSafe() here!!)
+					if (ex)
+					{
+						dest = realpath(dest);
+						asrt(!isSymlink(dest));
+					}
+					
+					
+					File temporary = getUniqueFileOrNull(p, dest.getName(), ".tmp");
+					if (lexists(temporary))
+						throw new IOException("Strange error while making temp file: "+repr(temporary.getAbsolutePath()));
+					
+					ensureEmptyFileThrowing(temporary);
+					
+					if (!temporary.canWrite())
+					{
+						temporary = File.createTempFile(dest.getName(), ".tmp");
+						
+						if (!temporary.canWrite())
+							logBug();
+					}
+					
+					
+					boolean success = false;
+					
+					try (OutputStream out = new FileOutputStream(temporary))
+					{
+						write.write(out);
+						success = true;
+					}
+					finally
+					{
+						if (!success)
+							temporary.delete();
+					}
+					//else
+					{
+						asrt(success);
+						
+						//Transfer it into the final location! :D
+						{
+							deleteMandatoryIfExists(dest);
+							renameMandatory(temporary, dest);
+						}
+					}
+				}
 			}
-			
-			
-			//We won't reach this part if writing failed!
-			
-			//Transfer it into the final location! :D
+			else
 			{
-				deleteMandatoryIfExists(dest);
-				renameMandatory(temporary, dest);
+				throw new IOException("Tried to write into an invalid destination!: "+repr(dest.getAbsolutePath()));
 			}
-		}
-		finally
-		{
-			temporary.delete();
 		}
 	}
 	
@@ -3850,6 +3886,9 @@ implements JavaNamespace
 	
 	public static void doLockedOnFileBlocking(@Nonnull File f, RunnableThrowingIOException r) throws IOException
 	{
+		//TODO Use some kind of static/global Map to keep track of which thread has the file lock to allow OverlappingFileLockException to be handled by either doing nothing / incrementing a reentrant depth counter (if it's us that has the lock :> ), or blocking/waiting inside the JVM (if it's not us—this thread—that has the lock)
+		//	+ And when you do that, search for references to OverlappingFileLockException in our workspace to find cases where we handled the behavior ourselves in a less-than-ideal way ^^'   (example: a method inside the class with @UID("fb6e4759-e047-41d5-801c-4c7009ff36f5"))
+		
 		requireNonNull(f);
 		try (SimpleFileLock l = lockFileBlocking(f))
 		{
@@ -4160,6 +4199,9 @@ implements JavaNamespace
 	{
 		if (lexists(newPath))
 			throw new IOException("Destination already exists!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+		
+		if (!lexists(file))
+			throw new IOException("Source doesn't exist!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
 		
 		if (!file.renameTo(newPath))
 			throw new IOException("Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));

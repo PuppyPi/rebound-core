@@ -3600,6 +3600,10 @@ _$$primxpconf:intsonly$$_
 		return r;
 	}
 	
+	/**
+	 * Aka unionGeneralMapsIP()
+	 * XD
+	 */
 	public static <K, V> void putAllGeneralMaps(@ReadonlyValue Map<K, Set<V>> acceptor, @ReadonlyValue Map<K, ? extends Iterable<V>> donor)
 	{
 		for (Entry<K, ? extends Iterable<V>> e : donor.entrySet())
