@@ -26,12 +26,24 @@ import rebound.util.objectutil.Copyable;
 public class BitSetBackedBooleanList
 implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteListConversion, Copyable, RandomAccess    //Trimmable Nope, the Java people used their favorite access level again (private), so we can't do this without copying the whole source code! X"3
 {
-	protected BitSet bitSet = new BitSet();
-	protected int size = 0;
+	protected BitSet bitSet;
+	protected int size;
 	
+	/**
+	 * Initially empty.
+	 */
 	public BitSetBackedBooleanList()
 	{
-		super();
+		this(0);
+	}
+	
+	/**
+	 * Initialized to all false's :>
+	 */
+	public BitSetBackedBooleanList(int size)
+	{
+		this.bitSet = new BitSet();
+		this.size = size;
 	}
 	
 	/**
@@ -62,6 +74,12 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	public BitSetBackedBooleanList clone()
 	{
 		return new BitSetBackedBooleanList((BitSet)this.bitSet.clone(), this.size);
+	}
+	
+	@Override
+	public Boolean isWritableCollection()
+	{
+		return true;
 	}
 	
 	@Override
@@ -155,8 +173,11 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	{
 		if (newSize > this.size)
 		{
-			for (int i = this.size; i < newSize; i++)
-				setBoolean(i, elementToAddIfGrowing);
+			if (elementToAddIfGrowing != false)
+			{
+				for (int i = this.size; i < newSize; i++)
+					this.bitSet.set(i, elementToAddIfGrowing);
+			}
 		}
 		
 		this.size = newSize;

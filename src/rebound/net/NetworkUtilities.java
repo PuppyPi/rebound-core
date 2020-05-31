@@ -14,6 +14,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -46,6 +48,37 @@ import rebound.util.objectutil.JavaNamespace;
 public class NetworkUtilities
 implements JavaNamespace
 {
+	public static final int LengthOfIPv4AddressInBytes = 4;
+	public static final int LengthOfIPv6AddressInBytes = 16;
+	
+	
+	
+	
+	
+	
+	
+	public static final Inet4Address IPv4Wildcard = (Inet4Address) ipToOOP(new byte[LengthOfIPv4AddressInBytes]);
+	public static final Inet6Address IPv6Wildcard = (Inet6Address) ipToOOP(new byte[LengthOfIPv6AddressInBytes]);
+	
+	
+	protected static final boolean IsIPv6Supported = InetAddress.getLoopbackAddress() instanceof Inet6Address;  //hackin into java.net.InetAddressImplFactory.isIPv6Supported() without voiding the warranty! ;D XD
+	public static boolean isIPv6Supported()
+	{
+		return IsIPv6Supported;
+	}
+	
+	public static InetAddress getWildcardAddress()
+	{
+		return isIPv6Supported() ? IPv6Wildcard : IPv4Wildcard;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static ByteList getNetmaskForIPv4(int bitLength)
 	{
 		if (bitLength < 0 || bitLength > 32)

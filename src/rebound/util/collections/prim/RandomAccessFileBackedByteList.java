@@ -38,13 +38,15 @@ implements DefaultShiftingBasedByteList
 {
 	protected final RandomAccessFile underlying;
 	protected int currentPosition;
+	protected Boolean writable;
 	
-	public RandomAccessFileBackedByteList(RandomAccessFile underlying)
+	public RandomAccessFileBackedByteList(RandomAccessFile underlying, Boolean writable)
 	{
 		try
 		{
 			this.underlying = underlying;
 			this.currentPosition = safeCastU64toS32(underlying.getFilePointer());
+			this.writable = writable;
 			size();  //fail early if it's too big XD''
 		}
 		catch (IOException exc)
@@ -243,5 +245,12 @@ implements DefaultShiftingBasedByteList
 	public ByteList clone()
 	{
 		return new ByteArrayList(toByteArray());
+	}
+	
+	
+	@Override
+	public Boolean isWritableCollection()
+	{
+		return writable;
 	}
 }

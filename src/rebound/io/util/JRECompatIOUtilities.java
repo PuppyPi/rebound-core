@@ -8,6 +8,7 @@ import static java.util.Objects.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
+import static rebound.util.collections.PolymorphicCollectionUtilities.*;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -25,6 +26,7 @@ import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.exceptions.ImpossibleException;
+import rebound.exceptions.SlowVersionUnsupportedException;
 import rebound.io.iio.InputByteStream;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.util.collections.ArrayUtilities;
@@ -875,9 +877,11 @@ implements JavaNamespace
 		//		readWriteArraySliceDefinitelyLiveThrowingIOException(data, arraySlice -> rv.set(readSlice(in, arraySlice)));
 		//		return rv.get();
 		
+		ensureWritableCollection(data);
+		
 		Slice<byte[]> s = data.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new IllegalArgumentException("The performance penalty here is likely not desired!");
+			throw new SlowVersionUnsupportedException();
 		return readSlice(in, s);
 	}
 	
@@ -885,9 +889,11 @@ implements JavaNamespace
 	{
 		//		readWriteArraySliceDefinitelyLiveThrowingIOException(data, arraySlice -> readSliceFully(in, arraySlice));
 		
+		ensureWritableCollection(data);
+		
 		Slice<byte[]> s = data.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new IllegalArgumentException("The performance penalty here is likely not desired!");
+			throw new SlowVersionUnsupportedException();
 		readSliceFully(in, s);
 	}
 	

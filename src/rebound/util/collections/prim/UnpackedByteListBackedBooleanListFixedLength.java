@@ -233,6 +233,13 @@ implements BooleanList, BooleanListWithByteListConversion, RandomAccess
 	
 	
 	
+	@Override
+	public Boolean isWritableCollection()
+	{
+		return underlying.isWritableCollection();
+	}
+	
+	
 	
 	
 	
@@ -256,6 +263,8 @@ implements BooleanList, BooleanListWithByteListConversion, RandomAccess
 	{
 		throw new UnsupportedOperationException();
 	}
+	
+	
 	
 	
 	

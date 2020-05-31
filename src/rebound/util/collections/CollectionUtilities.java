@@ -39,11 +39,13 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Queue;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.WeakHashMap;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
@@ -301,7 +303,7 @@ public class CollectionUtilities
 	public static <K, V> void putNewMandatory(Map<K, V> map, K key, V value) throws AlreadyExistsException
 	{
 		if (map.containsKey(key))
-			throw new AlreadyExistsException("Conflict between keys: "+repr(key));
+			throw new AlreadyExistsException("Conflict between keys: "+repr(key)+"   The current value is: "+repr(map.get(key))+" and the new conflicting value is: "+repr(value));
 		map.put(key, value);
 	}
 	
@@ -324,7 +326,7 @@ public class CollectionUtilities
 		if (currentValue != null || map.containsKey(key))
 		{
 			if (!eq(currentValue, newValue))
-				throw new AlreadyExistsException("Conflict between keys: "+repr(key)+"   The two conflicting values are: "+repr(currentValue)+" and "+repr(newValue));
+				throw new AlreadyExistsException("Conflict between keys: "+repr(key)+"   The current value is: "+repr(currentValue)+" and the new conflicting value is: "+repr(newValue));
 		}
 		
 		map.put(key, newValue);
@@ -763,11 +765,11 @@ public class CollectionUtilities
 			
 			
 			//Check the views! ^_~
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.entrySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.entrySet())))
 				return true;
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.keySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.keySet())))
 				return true;
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.values())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.values())))
 				return true;
 			
 			
@@ -808,11 +810,11 @@ public class CollectionUtilities
 			
 			
 			//Check the views! ^_~
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.entrySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.entrySet())))
 				return true;
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.keySet())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.keySet())))
 				return true;
-			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isCollectionReadable(map.values())))
+			if (isTrueAndNotNull(PolymorphicCollectionUtilities.isReadableCollection(map.values())))
 				return true;
 			
 			
@@ -1188,7 +1190,14 @@ public class CollectionUtilities
 	{
 		if (i instanceof List)
 			return (List<E>)i;
-		else if (i instanceof Collection)
+		else
+			return toNewList(i);
+	}
+	
+	@SnapshotValue
+	public static <E> List<E> toNewList(Iterable<E> i)
+	{
+		if (i instanceof Collection)
 			return new ArrayList<>((Collection<E>)i);
 		else
 		{
@@ -3633,6 +3642,28 @@ _$$primxpconf:intsonly$$_
 		
 		for (Iterable<E> c : sets)
 			addAll(output, c);
+		
+		return output;
+	}
+	
+	public static <I, O> Set<O> unionManyMapping(Mapper<I, Iterable<O>> mapper, Iterable<I> input) //OR (14)
+	{
+		Set<O> output = new HashSet<>();
+		
+		for (I i : input)
+		{
+			Iterable<O> o;
+			try
+			{
+				o = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			addAll(output, o);
+		}
 		
 		return output;
 	}
@@ -8433,6 +8464,80 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	/**
+	 * Merge a table into one column! :>
+	 * @param merger order is preserved :3
+	 */
+	public static <E> SimpleTable<E> mergeColumnsOP(SimpleTable<E> input, BinaryFunction<E, E, E> merger)
+	{
+		int wi = input.getNumberOfColumns();
+		int h = input.getNumberOfRows();
+		
+		if (wi == 0 || h == 0)
+		{
+			return newTable();
+		}
+		else
+		{
+			SimpleTable<E> output = newTableNullfilled(1, h);
+			
+			for (int y = 0; y < h; y++)
+			{
+				E e = input.getCellContents(0, y);
+				
+				for (int xi = 1; xi < wi; xi++)
+				{
+					E ee = input.getCellContents(xi, y);
+					
+					e = merger.f(e, ee);
+				}
+				
+				output.setCellContents(0, y, e);
+			}
+			
+			return output;
+		}
+	}
+	
+	
+	
+	/**
+	 * Merge a table into one row! :>
+	 * @param merger order is preserved :3
+	 */
+	public static <E> SimpleTable<E> mergeRowsOP(SimpleTable<E> input, BinaryFunction<E, E, E> merger)
+	{
+		int w = input.getNumberOfColumns();
+		int hi = input.getNumberOfRows();
+		
+		if (w == 0 || hi == 0)
+		{
+			return newTable();
+		}
+		else
+		{
+			SimpleTable<E> output = newTableNullfilled(w, 1);
+			
+			for (int x = 0; x < w; x++)
+			{
+				E e = input.getCellContents(x, 0);
+				
+				for (int yi = 1; yi < hi; yi++)
+				{
+					E ee = input.getCellContents(x, yi);
+					
+					e = merger.f(e, ee);
+				}
+				
+				output.setCellContents(x, 0, e);
+			}
+			
+			return output;
+		}
+	}
+	
+	
+	
 	
 	public static <E> SimpleTable<E> listifyOP(int numberOfRepeatedColumnsAtStart, int numberOfRepeatedRowsAtStart, SimpleTable<E> input)
 	{
@@ -9099,6 +9204,14 @@ _$$primxpconf:intsonly$$_
 	{
 		if (index >= list.size())
 			setListSizeGrowing(list, index+1, null);
+		
+		list.set(index, element);
+	}
+	
+	public static <E> void setInListGrowingIfNecessary(List<E> list, int index, E element, E elementToAddIfGrowing)
+	{
+		if (index >= list.size())
+			setListSizeGrowing(list, index+1, elementToAddIfGrowing);
 		
 		list.set(index, element);
 	}
@@ -9991,5 +10104,92 @@ _$$primxpconf:intsonly$$_
 		});
 		
 		return map;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * It will be fair!!  (Ie, order preserved!)
+	 * 
+	 * It's not guaranteed to be a thread safe queue, unlike {@link ArrayBlockingQueue}!
+	 */
+	//@NotThreadSafe
+	public static <E> Queue<E> newArrayQueue(int capacity)
+	{
+		return new ArrayBlockingQueue<>(capacity, true);  //Todo use a non-concurrency-safe version of ArrayBlockingQueue since we don't need that X3
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E firstOrNull(Iterable<E> c)
+	{
+		Iterator<E> i = c.iterator();
+		return i.hasNext() ? i.next() : null;
+	}
+	
+	public static <E> E firstOrNull(Collection<E> c)
+	{
+		if (c instanceof List)
+			return firstOrNull((List<E>)c);
+		else if (c.isEmpty())
+			return null;
+		else
+			return firstOrNull((Iterable<E>)c);
+	}
+	
+	public static <E> E firstOrNull(List<E> c)
+	{
+		return c.isEmpty() ? null : c.get(0);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static interface InPlaceReducer<I, O>
+	{
+		public void f(@ReadonlyValue I input, @WritableValue O outputToMergeWith);
+	}
+	
+	/**
+	 * @return mutableOutputStartingWithIdentity for convenience :3
+	 */
+	public static <I, O> O reduceByOperation(UnaryProcedure<UnaryProcedure<I>> theThingThatVisitsButWontReturnAnything, O mutableOutputStartingWithIdentity, InPlaceReducer<I, O> reducer)
+	{
+		theThingThatVisitsButWontReturnAnything.f(i ->
+		{
+			reducer.f(i, mutableOutputStartingWithIdentity);
+		});
+		
+		return mutableOutputStartingWithIdentity;
 	}
 }

@@ -384,21 +384,11 @@ extends Copyable, Equivalenceable
 	{
 		List<List<E>> rows = new ArrayList<>();
 		
-		int w = self.getNumberOfColumns();
 		int h = self.getNumberOfRows();
 		
 		for (int r = 0; r < h; r++)
 		{
-			List<E> row = new ArrayList<>();
-			
-			for (int c = 0; c < w; c++)
-			{
-				E cell = self.getCellContents(c, r);
-				
-				row.add(cell);
-			}
-			
-			rows.add(row);
+			rows.add(self.rowToList(r));
 		}
 		
 		return rows;

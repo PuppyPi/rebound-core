@@ -1,11 +1,14 @@
 package rebound.io.util;
 
 import static java.util.Objects.*;
+import static rebound.util.collections.PolymorphicCollectionUtilities.*;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
+import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.exceptions.ClosedIOException;
-import rebound.exceptions.UnsupportedOptionException;
+import rebound.exceptions.SlowVersionUnsupportedException;
 import rebound.io.ShortReadIOException;
 import rebound.io.ShortWriteIOException;
 import rebound.io.packeted.BidirectionalPacketream;
@@ -20,51 +23,53 @@ import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 
 public class PacketreamIOUtilities
 {
-	public static int receiveAllowingShorts(InputPacketream self, byte[] array, int offset, int length) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, @WritableValue byte[] array, int offset, int length) throws IOException
 	{
 		return self.receive(array, offset, length);
 	}
 	
-	public static int receiveAllowingShorts(InputPacketream self, byte[] array) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, @WritableValue byte[] array) throws IOException
 	{
 		return receiveAllowingShorts(self, array, 0, array.length);
 	}
 	
-	public static int receiveAllowingShorts(InputPacketream self, Slice<byte[]> arraySlice) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, @WritableValue Slice<byte[]> arraySlice) throws IOException
 	{
 		return receiveAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static int receiveAllowingShorts(InputPacketream self, ByteList list) throws IOException
+	public static int receiveAllowingShorts(InputPacketream self, @WritableValue ByteList list) throws IOException
 	{
+		ensureWritableCollection(list);
+		
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new UnsupportedOptionException();
+			throw new SlowVersionUnsupportedException();
 		return receiveAllowingShorts(self, s);
 	}
 	
 	
 	
-	public static int sendAllowingShorts(OutputPacketream self, byte[] array, int offset, int length) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, @ReadonlyValue byte[] array, int offset, int length) throws IOException
 	{
 		return self.send(array, offset, length);
 	}
 	
-	public static int sendAllowingShorts(OutputPacketream self, byte[] array) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, @ReadonlyValue byte[] array) throws IOException
 	{
 		return sendAllowingShorts(self, array, 0, array.length);
 	}
 	
-	public static int sendAllowingShorts(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, @ReadonlyValue Slice<byte[]> arraySlice) throws IOException
 	{
 		return sendAllowingShorts(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static int sendAllowingShorts(OutputPacketream self, ByteList list) throws IOException
+	public static int sendAllowingShorts(OutputPacketream self, @ReadonlyValue ByteList list) throws IOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new UnsupportedOptionException();
+			throw new SlowVersionUnsupportedException();
 		return sendAllowingShorts(self, s);
 	}
 	
@@ -79,28 +84,30 @@ public class PacketreamIOUtilities
 	
 	
 	
-	public static void receiveFullyOrThrow(InputPacketream self, byte[] array, int offset, int length) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, @WritableValue byte[] array, int offset, int length) throws IOException, ShortReadIOException
 	{
 		int r = receiveAllowingShorts(self, array, offset, length);
 		if (r != length)
 			throw new ShortReadIOException(length, r);
 	}
 	
-	public static void receiveFullyOrThrow(InputPacketream self, byte[] array) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, @WritableValue byte[] array) throws IOException, ShortReadIOException
 	{
 		receiveFullyOrThrow(self, array, 0, array.length);
 	}
 	
-	public static void receiveFullyOrThrow(InputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, @WritableValue Slice<byte[]> arraySlice) throws IOException, ShortReadIOException
 	{
 		receiveFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static void receiveFullyOrThrow(InputPacketream self, ByteList list) throws IOException, ShortReadIOException
+	public static void receiveFullyOrThrow(InputPacketream self, @WritableValue ByteList list) throws IOException, ShortReadIOException
 	{
+		ensureWritableCollection(list);
+		
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new UnsupportedOptionException();
+			throw new SlowVersionUnsupportedException();
 		receiveFullyOrThrow(self, s);
 	}
 	
@@ -108,28 +115,28 @@ public class PacketreamIOUtilities
 	
 	
 	
-	public static void sendFullyOrThrow(OutputPacketream self, byte[] array, int offset, int length) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, @ReadonlyValue byte[] array, int offset, int length) throws IOException, ShortWriteIOException
 	{
 		int r = sendAllowingShorts(self, array, offset, length);
 		if (r != length)
 			throw new ShortWriteIOException(length, r);
 	}
 	
-	public static void sendFullyOrThrow(OutputPacketream self, byte[] array) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, @ReadonlyValue byte[] array) throws IOException, ShortWriteIOException
 	{
 		sendFullyOrThrow(self, array, 0, array.length);
 	}
 	
-	public static void sendFullyOrThrow(OutputPacketream self, Slice<byte[]> arraySlice) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, @ReadonlyValue Slice<byte[]> arraySlice) throws IOException, ShortWriteIOException
 	{
 		sendFullyOrThrow(self, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public static void sendFullyOrThrow(OutputPacketream self, ByteList list) throws IOException, ShortWriteIOException
+	public static void sendFullyOrThrow(OutputPacketream self, @ReadonlyValue ByteList list) throws IOException, ShortWriteIOException
 	{
 		Slice<byte[]> s = list.toByteArraySliceLiveOrNull();
 		if (s == null)
-			throw new UnsupportedOptionException();
+			throw new SlowVersionUnsupportedException();
 		sendFullyOrThrow(self, s);
 	}
 	

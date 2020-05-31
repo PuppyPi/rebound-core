@@ -2827,6 +2827,54 @@ primxp
 		}
 	}
 	
+	public static void reverse(Object[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	
+	
+	/* <<<
+	primxp
+
+	public static void reverse(_$$prim$$_[] array, int offset, int length)
+	{
+		_$$prim$$_ swap = _$$primdef$$_;
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			swap = array[offset + offing];
+			array[offset + offing] = array[offset + length - 1 - offing];
+			array[offset + length - 1 - offing] = swap;
+		}
+	}
+
+	public static void reverse(_$$prim$$_[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+
+
+	public static _$$prim$$_[] reversed(_$$prim$$_[] input, int offset, int length)
+	{
+		_$$prim$$_[] output = new _$$prim$$_[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+
+	public static _$$prim$$_[] reversed(_$$prim$$_[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	 */
+	
 	public static void reverse(boolean[] array, int offset, int length)
 	{
 		boolean swap = false;
@@ -2839,40 +2887,28 @@ primxp
 		}
 	}
 	
-	public static void reverse(char[] array, int offset, int length)
+	public static void reverse(boolean[] array)
 	{
-		char swap = 0;
-		
-		for (int offing = 0; offing < length / 2; offing++)
-		{
-			swap = array[offset + offing];
-			array[offset + offing] = array[offset + length - 1 - offing];
-			array[offset + length - 1 - offing] = swap;
-		}
+		reverse(array, 0, array.length);
 	}
 	
-	public static void reverse(float[] array, int offset, int length)
+	
+	public static boolean[] reversed(boolean[] input, int offset, int length)
 	{
-		float swap = 0;
+		boolean[] output = new boolean[input.length];
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
-			swap = array[offset + offing];
-			array[offset + offing] = array[offset + length - 1 - offing];
-			array[offset + length - 1 - offing] = swap;
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
 		}
+		
+		return output;
 	}
 	
-	public static void reverse(double[] array, int offset, int length)
+	public static boolean[] reversed(boolean[] array)
 	{
-		double swap = 0;
-		
-		for (int offing = 0; offing < length / 2; offing++)
-		{
-			swap = array[offset + offing];
-			array[offset + offing] = array[offset + length - 1 - offing];
-			array[offset + length - 1 - offing] = swap;
-		}
+		return reversed(array, 0, array.length);
 	}
 	
 	public static void reverse(byte[] array, int offset, int length)
@@ -2887,6 +2923,66 @@ primxp
 		}
 	}
 	
+	public static void reverse(byte[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static byte[] reversed(byte[] input, int offset, int length)
+	{
+		byte[] output = new byte[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static byte[] reversed(byte[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	
+	public static void reverse(char[] array, int offset, int length)
+	{
+		char swap = 0;
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			swap = array[offset + offing];
+			array[offset + offing] = array[offset + length - 1 - offing];
+			array[offset + length - 1 - offing] = swap;
+		}
+	}
+	
+	public static void reverse(char[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static char[] reversed(char[] input, int offset, int length)
+	{
+		char[] output = new char[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static char[] reversed(char[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	
 	public static void reverse(short[] array, int offset, int length)
 	{
 		short swap = 0;
@@ -2897,6 +2993,66 @@ primxp
 			array[offset + offing] = array[offset + length - 1 - offing];
 			array[offset + length - 1 - offing] = swap;
 		}
+	}
+	
+	public static void reverse(short[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static short[] reversed(short[] input, int offset, int length)
+	{
+		short[] output = new short[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static short[] reversed(short[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	
+	public static void reverse(float[] array, int offset, int length)
+	{
+		float swap = 0;
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			swap = array[offset + offing];
+			array[offset + offing] = array[offset + length - 1 - offing];
+			array[offset + length - 1 - offing] = swap;
+		}
+	}
+	
+	public static void reverse(float[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static float[] reversed(float[] input, int offset, int length)
+	{
+		float[] output = new float[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static float[] reversed(float[] array)
+	{
+		return reversed(array, 0, array.length);
 	}
 	
 	public static void reverse(int[] array, int offset, int length)
@@ -2911,6 +3067,66 @@ primxp
 		}
 	}
 	
+	public static void reverse(int[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static int[] reversed(int[] input, int offset, int length)
+	{
+		int[] output = new int[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static int[] reversed(int[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	
+	public static void reverse(double[] array, int offset, int length)
+	{
+		double swap = 0;
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			swap = array[offset + offing];
+			array[offset + offing] = array[offset + length - 1 - offing];
+			array[offset + length - 1 - offing] = swap;
+		}
+	}
+	
+	public static void reverse(double[] array)
+	{
+		reverse(array, 0, array.length);
+	}
+	
+	
+	public static double[] reversed(double[] input, int offset, int length)
+	{
+		double[] output = new double[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
+	}
+	
+	public static double[] reversed(double[] array)
+	{
+		return reversed(array, 0, array.length);
+	}
+	
 	public static void reverse(long[] array, int offset, int length)
 	{
 		long swap = 0;
@@ -2923,53 +3139,31 @@ primxp
 		}
 	}
 	
-	
-	public static void reverse(Object[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
 	public static void reverse(long[] array)
 	{
 		reverse(array, 0, array.length);
 	}
 	
-	public static void reverse(double[] array)
+	
+	public static long[] reversed(long[] input, int offset, int length)
 	{
-		reverse(array, 0, array.length);
+		long[] output = new long[input.length];
+		
+		for (int offing = 0; offing < length / 2; offing++)
+		{
+			output[offset + offing] = input[offset + length - 1 - offing];
+			output[offset + length - 1 - offing] = input[offset + offing];
+		}
+		
+		return output;
 	}
 	
-	public static void reverse(int[] array)
+	public static long[] reversed(long[] array)
 	{
-		reverse(array, 0, array.length);
+		return reversed(array, 0, array.length);
 	}
+	//>>>
 	
-	public static void reverse(float[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
-	public static void reverse(short[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
-	public static void reverse(char[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
-	public static void reverse(byte[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
-	public static void reverse(boolean[] array)
-	{
-		reverse(array, 0, array.length);
-	}
-	
-	//Todo conveniences for other reverse's
 	//Reversing>
 	
 	

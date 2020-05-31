@@ -499,24 +499,43 @@ implements JavaNamespace
 	
 	
 	
-	public static int rgb(int r, int g, int b)
+	public static Color rgb(int r, int g, int b)
+	{
+		return new Color(r, g, b);
+	}
+	
+	public static Color argb(int a, int r, int g, int b)
+	{
+		return new Color(r, g, b, a);
+	}
+	
+	public static Color rgba(int r, int g, int b, int a)
+	{
+		return new Color(r, g, b, a);
+	}
+	
+	
+	
+	
+	
+	public static int rgbPacked32(int r, int g, int b)
 	{
 		return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
 	}
 	
-	public static int argb(int a, int r, int g, int b)
+	public static int argbPacked32(int a, int r, int g, int b)
 	{
 		return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
 	}
 	
 	
 	
-	public static int bgr(int r, int g, int b)
+	public static int bgrPacked32(int r, int g, int b)
 	{
 		return ((r & 0xFF) << 0) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16);
 	}
 	
-	public static int abgr(int r, int g, int b, int a)
+	public static int abgrPacked32(int r, int g, int b, int a)
 	{
 		return ((r & 0xFF) << 0) | ((g & 0xFF) << 8) | ((b & 0xFF) << 16) | ((a & 0xFF) << 24);
 	}

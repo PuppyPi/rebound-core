@@ -106,7 +106,7 @@ implements ByteBlockWriteStream
 		
 		if (tt != null)
 		{
-			BasicExceptionUtilities.throwGeneralThrowableIfPossible(tt);
+			BasicExceptionUtilities.rethrowSafe(tt);
 			throw new UnreachableCodeException();
 		}
 	}

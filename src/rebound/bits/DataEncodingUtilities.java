@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.exceptions.ImpossibleException;
+import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteListRO;
@@ -583,6 +584,28 @@ implements JavaNamespace
 	
 	//<Convenience methods
 	//<Hex
+	public static String encodeHexNoDelimiter(Slice<byte[]> source, int hexcase)
+	{
+		return encodeHexNoDelimiter(byteArrayAsList(source), hexcase);
+	}
+	
+	public static String encodeHex(Slice<byte[]> source, int hexcase, @Nullable String delimiter)
+	{
+		return encodeHex(byteArrayAsList(source), hexcase, delimiter);
+	}
+	
+	public static String encodeHex(Slice<byte[]> source, int hexcase, @Nullable char[] delimiter)
+	{
+		return encodeHex(byteArrayAsList(source), hexcase, delimiter);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	public static String encodeHexNoDelimiter(ByteList source, int hexcase)
 	{
 		return encodeHex(source, hexcase, (char[])null);

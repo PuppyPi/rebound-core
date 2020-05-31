@@ -42,6 +42,8 @@ import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath;
+import rebound.exceptions.ReadonlyPossiblyUnsupportedOperationException;
+import rebound.exceptions.ReadonlyUnsupportedOperationException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.math.MathUtilities;
 import rebound.util.BasicExceptionUtilities;
@@ -1937,7 +1939,7 @@ public class PolymorphicCollectionUtilities
 	@LiveValue
 	public static Object anyToUnmodifiableList(@CollectionValue Object list)
 	{
-		if (isFalseAndNotNull(isCollectionWritable(list)))
+		if (isFalseAndNotNull(isWritableCollection(list)))
 			//THEN DON'T DECORATE IT \o/  :D!
 			return list;
 		
@@ -1984,12 +1986,12 @@ public class PolymorphicCollectionUtilities
 	}
 	
 	/**
-	 * Note that {@link #isCollectionReadable(Object)} and {@link PolymorphicCollectionUtilities#isCollectionWritable(Object)} are completely orthogonal properties ^w^
+	 * Note that {@link #isReadableCollection(Object)} and {@link PolymorphicCollectionUtilities#isWritableCollection(Object)} are completely orthogonal properties ^w^
 	 * 
 	 * + Usually in the JRE, it's safe to assume unknown-readability is yes-readable, but technically not always!
 	 */
 	@Nullable
-	public static Boolean isCollectionReadable(@Nonnull Object collectionThing)
+	public static Boolean isReadableCollection(@Nonnull Object collectionThing)
 	{
 		if (collectionThing == null)
 			throw new NullPointerException();
@@ -2036,10 +2038,10 @@ public class PolymorphicCollectionUtilities
 	}
 	
 	/**
-	 * Note that {@link #isCollectionReadable(Object)} and {@link #isCollectionWritable(Object)} are generally completely orthogonal/independent properties ^w^
+	 * Note that {@link #isReadableCollection(Object)} and {@link #isWritableCollection(Object)} are generally completely orthogonal/independent properties ^w^
 	 */
 	@Nullable
-	public static Boolean isCollectionWritable(@Nonnull Object collectionThing)
+	public static Boolean isWritableCollection(@Nonnull Object collectionThing)
 	{
 		if (collectionThing == null)
 			throw new NullPointerException();
@@ -2050,6 +2052,8 @@ public class PolymorphicCollectionUtilities
 		//			return false;
 		else if (collectionThing instanceof RuntimeWriteabilityCollection)
 			return ((RuntimeWriteabilityCollection)collectionThing).isWritableCollection();
+		
+		
 		else
 		{
 			if (collectionThing.getClass().isArray())
@@ -2093,9 +2097,21 @@ public class PolymorphicCollectionUtilities
 		}
 	}
 	
+	public static void ensureWritableCollection(@Nonnull Object collectionThing)
+	{
+		Boolean b = isWritableCollection(collectionThing);
+		
+		if (b == null)
+			throw new ReadonlyPossiblyUnsupportedOperationException();
+		if (!b)
+			throw new ReadonlyUnsupportedOperationException();
+	}
+	
+	
+	
 	/**
-	 * If this is true, then {@link #isCollectionWritable(Object)} must be true as well :3
-	 * If {@link #isCollectionWritable(Object)} is false, this must be false as well :3
+	 * If this is true, then {@link #isWritableCollection(Object)} must be true as well :3
+	 * If {@link #isWritableCollection(Object)} is false, this must be false as well :3
 	 */
 	@Nullable
 	public static Boolean isCollectionVariableSize(@Nonnull Object collectionThing)
@@ -2145,7 +2161,7 @@ public class PolymorphicCollectionUtilities
 			
 			//TODO moreeeee grandfatheringggggg! :>
 			
-			if (!isCollectionWritable(collectionThing))
+			if (isFalseAndNotNull(isWritableCollection(collectionThing)))
 				return false;
 			
 			return null;

@@ -62,7 +62,7 @@ implements FixedSizeCollection, CollectionWithGetArbitraryElement<E>, Statically
 	}
 	
 	@Override
-	public boolean isWritableCollection()
+	public Boolean isWritableCollection()
 	{
 		return false;
 	}

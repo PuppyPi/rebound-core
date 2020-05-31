@@ -4,6 +4,7 @@
  */
 package rebound.text;
 
+import static java.lang.Math.*;
 import static java.util.Objects.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
@@ -89,6 +90,7 @@ import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.SimpleIterator;
+import rebound.util.collections.SimpleTable;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
@@ -4375,7 +4377,7 @@ implements JavaNamespace
 	public static boolean parseBooleanStrictly(String data) throws TextSyntaxException
 	{
 		if (data.equals("false"))
-			return true;
+			return false;
 		else if (data.equals("true"))
 			return true;
 		else
@@ -6347,6 +6349,9 @@ implements JavaNamespace
 		if (o == null)
 			return String.valueOf(o);
 		
+		if (o instanceof Reprable)
+			return ((Reprable)o).reprThis();
+		
 		boolean scalar = Primitives.isPrimitiveWrapperClass(o.getClass()) ||
 		o instanceof String || o instanceof StringBuffer || o instanceof StringBuilder ||
 		o instanceof ImmutableByteArrayList ||
@@ -6416,6 +6421,10 @@ implements JavaNamespace
 			
 			alreadyDone.add(o);
 			
+			if (o instanceof SimpleTable)
+			{
+				o = ((SimpleTable)o).toListOfRowsPossiblyLive();
+			}
 			
 			if (o instanceof Collection || o.getClass().isArray() || o instanceof Slice)
 			{
@@ -6470,11 +6479,6 @@ implements JavaNamespace
 				out.append("}");
 				
 				return out.toString();
-			}
-			
-			else if (o instanceof Reprable)
-			{
-				return ((Reprable)o).reprThis();
 			}
 			
 			else
@@ -8106,7 +8110,14 @@ primxp
 	
 	public static String zeroPad(long v, int minDigits)
 	{
-		return zeroPad(Long.toString(v), minDigits);
+		return zeroPad(v, minDigits, false);
+	}
+	
+	public static String zeroPad(long v, int minDigits, boolean includePlusIfNonnegative)
+	{
+		String s = v == Long.MIN_VALUE ? "9223372036854775808" : Long.toString(abs(v));
+		String z = zeroPad(s, minDigits);
+		return v < 0 ? ('-' + z) : (includePlusIfNonnegative ? ('+' + z) : z);
 	}
 	
 	
@@ -8141,6 +8152,11 @@ primxp
 	
 	
 	
+	
+	public static String szpad(long v, int minDigits)
+	{
+		return zeroPad(v, minDigits, true);
+	}
 	
 	
 	
@@ -8922,9 +8938,25 @@ primxp
 	
 	
 	
-	public static List<String> mapTrimmingAndFilteringAwayEmpties(List<String> strs)
+	public static List<String> mapTrimmingAndFilteringAwayEmpties(Iterable<String> strs)
 	{
 		return mapToList(s ->
+		{
+			s = s.trim();
+			
+			if (s.isEmpty())  //*after* trimming :3
+				throw FilterAwayReturnPath.I;
+			else
+				return s;
+			
+			
+		}, strs);
+	}
+	
+	
+	public static Set<String> mapTrimmingAndFilteringAwayEmptiesToSet(Iterable<String> strs)
+	{
+		return mapToSet(s ->
 		{
 			s = s.trim();
 			

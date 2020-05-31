@@ -44,7 +44,7 @@ implements RuntimeWriteabilityCollection, RuntimeReadabilityCollection, External
 	}
 	
 	@Override
-	public boolean isWritableCollection()
+	public Boolean isWritableCollection()
 	{
 		return true;
 	}

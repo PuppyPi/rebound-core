@@ -220,7 +220,7 @@ public class FSIOUtilities
 	@WritableValue
 	public static ByteList fileAsList(File file) throws IOException, UncheckedIOException
 	{
-		return new RandomAccessFileBackedByteList(new RandomAccessFile(file, "rw"));
+		return new RandomAccessFileBackedByteList(new RandomAccessFile(file, "rw"), true);
 	}
 	
 	

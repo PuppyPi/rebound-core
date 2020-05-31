@@ -31,6 +31,12 @@ implements CharacterList
 	}
 	
 	@Override
+	public Boolean isWritableCollection()
+	{
+		return false;
+	}
+	
+	@Override
 	public int size()
 	{
 		return underlying.length();

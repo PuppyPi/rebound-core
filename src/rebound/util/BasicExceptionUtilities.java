@@ -89,7 +89,7 @@ public class BasicExceptionUtilities
 	
 	
 	@NeverReturns
-	public static RuntimeException throwGeneralThrowableIfPossible(Throwable target) throws RuntimeException, Error
+	public static RuntimeException rethrowSafe(Throwable target) throws RuntimeException, Error
 	{
 		if (target instanceof RuntimeException)
 			throw (RuntimeException)target;
@@ -111,6 +111,15 @@ public class BasicExceptionUtilities
 		else
 		{
 			return false;
+		}
+	}
+	
+	public static void rethrowIfFatalError(Throwable t)
+	{
+		if (t instanceof Error)
+		{
+			if (t instanceof AssertionError || t instanceof LinkageError)
+				throw (Error)t;
 		}
 	}
 	
@@ -154,7 +163,7 @@ public class BasicExceptionUtilities
 		}
 		catch (Throwable exc)
 		{
-			throwGeneralThrowableIfPossible(exc);
+			rethrowSafe(exc);
 			throw new UnreachableCodeException();
 		}
 	}
@@ -171,7 +180,7 @@ public class BasicExceptionUtilities
 		}
 		catch (Throwable exc)
 		{
-			throwGeneralThrowableIfPossible(exc);
+			rethrowSafe(exc);
 			throw new UnreachableCodeException();
 		}
 	}

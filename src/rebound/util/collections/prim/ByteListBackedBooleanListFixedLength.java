@@ -32,6 +32,12 @@ implements BooleanList, BooleanListWithByteListConversion, RandomAccess
 		return bitsInLastByte == 0 ? 0 : (underlying.size() - 1) * 8 + bitsInLastByte;
 	}
 	
+	@Override
+	public Boolean isWritableCollection()
+	{
+		return underlying.isWritableCollection();
+	}
+	
 	
 	
 	

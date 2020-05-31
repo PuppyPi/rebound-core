@@ -3,6 +3,7 @@ package rebound.util.objectutil;
 import static rebound.util.Primitives.*;
 import java.util.Comparator;
 import java.util.function.Predicate;
+import javax.annotation.Nullable;
 import rebound.exceptions.StructuredClassCastException;
 
 public class BasicObjectUtilities
@@ -209,7 +210,7 @@ implements JavaNamespace
 	 * Attempts to compare the objects, and throws a {@link CompareNotSupportedException} if not supported ._.
 	 * :>
 	 */
-	public static int cmp2(Object a, Object b) throws CompareNotSupportedException
+	public static int cmp2(@Nullable Object a, @Nullable Object b) throws CompareNotSupportedException
 	{
 		if (a == null)
 		{

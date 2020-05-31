@@ -1871,7 +1871,7 @@ implements JavaNamespace
 		}
 		catch (InvocationTargetException exc)
 		{
-			throw throwGeneralThrowableIfPossible(exc.getTargetException());
+			throw rethrowSafe(exc.getTargetException());
 		}
 	}
 	
@@ -1896,7 +1896,7 @@ implements JavaNamespace
 		}
 		catch (InvocationTargetException exc)
 		{
-			throw throwGeneralThrowableIfPossible(exc.getTargetException());
+			throw rethrowSafe(exc.getTargetException());
 		}
 	}
 	

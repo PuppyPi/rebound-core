@@ -5,6 +5,7 @@
 package rebound.util;
 
 import java.lang.reflect.InvocationTargetException;
+import rebound.annotations.purelyforhumans.DeprecatedInFavorOfMember;
 import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
 import rebound.annotations.semantic.temporal.NeverReturns;
 import rebound.exceptions.WrappedThrowableRuntimeException;
@@ -24,7 +25,7 @@ implements JavaNamespace
 	 * (but in practice, I don't really see how a RuntimeException subclass is intrinsically less problem-causing than an unverified exception xD )
 	 */
 	@NeverReturns
-	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse
+	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse  //if Escape wasn't using it, I'd like to rename it to rethrowUnsafe()  ^^'
 	public static RuntimeException throwGeneralThrowableAttemptingUnverifiedThrow(Throwable target)
 	{
 		if (target instanceof RuntimeException)
@@ -109,10 +110,11 @@ implements JavaNamespace
 	
 	
 	@Deprecated
+	@DeprecatedInFavorOfMember(cls=BasicExceptionUtilities.class, member="rethrowSafe")
 	@NeverReturns
 	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse
 	public static RuntimeException throwGeneralThrowableIfPossible(Throwable target) throws RuntimeException, Error
 	{
-		return BasicExceptionUtilities.throwGeneralThrowableIfPossible(target);
+		return BasicExceptionUtilities.rethrowSafe(target);
 	}
 }

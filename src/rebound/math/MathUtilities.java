@@ -43,8 +43,11 @@ import rebound.util.collections.Mapper;
 import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
+import rebound.util.collections.prim.PrimitiveCollections.ImmutableIntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.functional.ContinueSignal;
+import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
@@ -456,6 +459,73 @@ implements JavaNamespace
 		
 		return f;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * inclusiveStart * (inclusiveStart+1) *  ... * (inclusiveEnd-1) * inclusiveEnd
+	 * 
+	 * factorialPartial(8, 11) = 8 * 9 * 10 * 11
+	 * 
+	 * factorialPartial(1, x) = factorial(x)
+	 * factorialPartial(2, x) = factorial(x)
+	 * factorialPartial(x, x) = x
+	 * factorialPartial(y > x, x) = error
+	 * 
+	 * @return inclusiveEnd! / (inclusiveStart = 1 ? 1 : inclusiveStart-1)!   :>
+	 */
+	public static int factorialPartial32(int inclusiveStart, int inclusiveEnd)
+	{
+		if (inclusiveStart < 0)  throw new IllegalArgumentException();
+		if (inclusiveEnd < 0)  throw new IllegalArgumentException();
+		if (inclusiveEnd < inclusiveStart)  throw new IllegalArgumentException();
+		
+		int f = 1;
+		
+		for (int i = inclusiveStart; i <= inclusiveEnd; i++)
+			f = safe_mul_s32(f, i);
+		
+		return f;
+	}
+	
+	
+	
+	/**
+	 * inclusiveStart * (inclusiveStart+1) *  ... * (inclusiveEnd-1) * inclusiveEnd
+	 * 
+	 * factorialPartial(8, 11) = 8 * 9 * 10 * 11
+	 * 
+	 * factorialPartial(x <= 0, y) = error
+	 * factorialPartial(x, y <= 0) = error
+	 * factorialPartial(1, x) = factorial(x)
+	 * factorialPartial(2, x) = factorial(x)
+	 * factorialPartial(x, x) = x
+	 * factorialPartial(y > x, x) = error
+	 * 
+	 * @return inclusiveEnd! / (inclusiveStart = 1 ? 1 : inclusiveStart-1)!   :>
+	 */
+	public static long factorialPartial64(int inclusiveStart, int inclusiveEnd)
+	{
+		if (inclusiveStart < 0)  throw new IllegalArgumentException();
+		if (inclusiveEnd < 0)  throw new IllegalArgumentException();
+		if (inclusiveEnd < inclusiveStart)  throw new IllegalArgumentException();
+		
+		long f = 1;
+		
+		for (int i = inclusiveStart; i <= inclusiveEnd; i++)
+			f = safe_mul_s64(f, i);
+		
+		return f;
+	}
 	//Integer factors>
 	
 	
@@ -646,6 +716,35 @@ implements JavaNamespace
 	//Missing BigInteger constructors>
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static ContinueSignal observeAllSequences(int sequenceMaxCardinality, int sequenceLength, UnaryFunction<ImmutableIntegerArrayList, ContinueSignal> observe)
+	{
+		return observeAllSequencesSharedArray(sequenceMaxCardinality, sequenceLength, s -> observe.f(ImmutableIntegerArrayList.newCopying(s)));
+	}
+	
+	public static ContinueSignal observeAllSequencesSharedArray(int sequenceMaxCardinality, int sequenceLength, UnaryFunction<int[], ContinueSignal> observe)
+	{
+		int[] sequence = new int[sequenceLength];
+		
+		do
+		{
+			if (observe.f(sequence) == ContinueSignal.Stop)
+				return ContinueSignal.Stop;
+		}
+		while (MathUtilities.increment(sequence, 0, sequenceMaxCardinality));
+		
+		return ContinueSignal.Continue;
+	}
 	
 	
 	
@@ -3761,7 +3860,7 @@ implements JavaNamespace
 			}
 		}
 	}
-
+	
 	public static void placeValueStandard(@ActuallyUnsigned long value, @ActuallyUnsigned long radix, UnaryProcedureLong digitOutputted)
 	{
 		if (radix < 2)
@@ -3775,7 +3874,7 @@ implements JavaNamespace
 			digitOutputted.f(digit);
 		}
 	}
-
+	
 	public static void placeValueBijective(@ActuallyUnsigned long value, @ActuallyUnsigned long radix, UnaryProcedureLong digitOutputted)
 	{
 		if (radix < 2)

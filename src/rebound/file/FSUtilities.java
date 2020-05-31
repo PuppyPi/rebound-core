@@ -88,6 +88,8 @@ import rebound.util.objectutil.JavaNamespace;
 //Todo should joinPathsStrict use a different definition of strictness? (the one used by the isStrictPath()s ?) XD
 //         + should we have three levels? XD
 
+//Todo throw the structured InvalidPathNameIOException in more cases!
+
 /**
  * 
  * 
@@ -2491,8 +2493,11 @@ implements JavaNamespace
 	/**
 	 * ln -s immediateTarget pathForSymlink
 	 * :>
+	 * 
+	 * TODO throw {@link InvalidSymlinkTargetIOException} if the target is invalid  (todo: find a way to determine that ^^' )
+	 * @throws InvalidPathNameIOException ifF pathForSymlink is invalid (eg, too long), not if immediateTarget is invalid!  (we currently don't have a structured way of dealing with that, unfortunately)
 	 */
-	public static void makelinkSymbolic(File immediateTarget, File pathForSymlink) throws IOException
+	public static void makelinkSymbolic(File immediateTarget, File pathForSymlink) throws IOException, InvalidPathNameIOException
 	{
 		requireNonNull(immediateTarget);
 		requireNonNull(pathForSymlink);
@@ -2500,13 +2505,16 @@ implements JavaNamespace
 		if (lexists(pathForSymlink))
 			throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
 		
-		Files.createSymbolicLink(pathForSymlink.toPath(), immediateTarget.toPath());
+		_makelinkSymbolic(immediateTarget, pathForSymlink);
 	}
 	
 	/**
 	 * @return if we did anything (ie, created the link; false if it was already what we would make it) :3
+	 * 
+	 * TODO throw {@link InvalidSymlinkTargetIOException} if the target is invalid  (todo: find a way to determine that ^^' )
+	 * @throws InvalidPathNameIOException ifF pathForSymlink is invalid (eg, too long), not if immediateTarget is invalid!  (we currently don't have a structured way of dealing with that, unfortunately)
 	 */
-	public static boolean makelinkSymbolicIfNotAlready(File immediateTarget, File pathForSymlink) throws IOException
+	public static boolean makelinkSymbolicIfNotAlready(File immediateTarget, File pathForSymlink) throws IOException, InvalidPathNameIOException
 	{
 		requireNonNull(immediateTarget);
 		requireNonNull(pathForSymlink);
@@ -2519,9 +2527,32 @@ implements JavaNamespace
 				throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
 		}
 		
-		Files.createSymbolicLink(pathForSymlink.toPath(), immediateTarget.toPath());
+		_makelinkSymbolic(immediateTarget, pathForSymlink);
+		
 		return true;
 	}
+	
+	protected static void _makelinkSymbolic(File immediateTarget, File pathForSymlink) throws IOException, InvalidPathNameIOException
+	{
+		boolean can = canFileExist(pathForSymlink);
+		
+		try
+		{
+			Files.createSymbolicLink(pathForSymlink.toPath(), immediateTarget.toPath());
+		}
+		catch (IOException exc)
+		{
+			if (!can)
+				throw new InvalidPathNameIOException(exc);
+			else
+				throw exc;
+		}
+		
+		if (!can)
+			logBug(repr(pathForSymlink.getPath()) + " → " + repr(immediateTarget.getPath()));
+	}
+	
+	
 	
 	public static boolean isThisSymlinkPresent(File immediateTarget, File pathForSymlink) throws IOException
 	{
@@ -4025,6 +4056,9 @@ implements JavaNamespace
 	
 	public static void ensureRenameThrowing(File oldPath, File newPath) throws IOException
 	{
+		oldPath = normpath(oldPath.getAbsoluteFile());
+		newPath = normpath(newPath.getAbsoluteFile());
+		
 		if (!lexists(oldPath))
 		{
 			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the source didn't exist!");
@@ -4321,44 +4355,111 @@ implements JavaNamespace
 	/**
 	 * Eg, if "/dir/something.pdf" exists, returns "/dir/something (2).pdf"  :3
 	 */
-	public static File getNextFreePath(File f)
+	public static File getNextFreePathPreservingExtension(File f, Predicate<File> returnNullIf)
 	{
-		if (!lexists(f))
+		if (isRoot(f))
+			throw new IllegalArgumentException(repr(f.getAbsolutePath()));
+		
+		int i = 1;
+		
+		File d = f.getAbsoluteFile().getParentFile();
+		requireNonNull(d);
+		
+		String n = f.getName();
+		String stem = splitonceReturnPrecedingOrWhole(n, '.');
+		String ext = splitonceReturnSucceedingOrNull(n, '.');
+		
+		while (true)
 		{
-			return f;
-		}
-		else
-		{
-			int i = 2;
+			final int ii = i;
 			
-			if (isRoot(f))
-				throw new IllegalArgumentException(repr(f.getAbsolutePath()));
+			File t = getMaxPath(stem, d,
+			s -> s+    (ii == 1 ? "" : " ("+ii+")")+(ext == null ? "" : '.' + ext),
+			s -> s+'…'+(ii == 1 ? "" : " ("+ii+")")+(ext == null ? "" : '.' + ext),
+			x -> canFileExist(x));
 			
-			File d = f.getAbsoluteFile().getParentFile();
-			requireNonNull(d);
-			
-			String n = f.getName();
-			String stem = splitonceReturnPrecedingOrWhole(n, '.');
-			String ext = splitonceReturnSucceedingOrNull(n, '.');
-			
-			while (true)
+			if (t == null)
 			{
-				String nn = stem+" ("+i+")";
-				if (ext != null)
-					nn += '.' + ext;
-				
-				File t = new File(d, nn);
-				
-				if (!lexists(t))
-					return t;
+				if (ext == null)
+				{
+					throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(stem)));
+				}
 				else
-					i++;
-				
-				if (i == 0)
-					throw new OverflowException();
+				{
+					//Maybe the ext made it always too long!
+					//Let's try snipping off the end of *that*!  X'D
+					
+					t = getMaxPath(n, d,
+					s -> s+    (ii == 1 ? "" : " ("+ii+")"),
+					s -> s+'…'+(ii == 1 ? "" : " ("+ii+")"),
+					x -> canFileExist(x));
+					
+					if (t == null)
+					{
+						throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(n)));
+					}
+				}
 			}
+			
+			if (!lexists(t))
+				return t;
+			else if (returnNullIf.test(t))
+				return null;
+			else
+				i++;
+			
+			if (i == 0)
+				throw new OverflowException();
 		}
 	}
+	
+	
+	/**
+	 * Eg, if "/dir/something.pdf" exists, returns "/dir/something.pdf (2)"  :3
+	 */
+	public static File getNextFreePathNotPreservingExtension(File f, Predicate<File> returnNullIf)
+	{
+		if (isRoot(f))
+			throw new IllegalArgumentException(repr(f.getAbsolutePath()));
+		
+		int i = 1;
+		
+		File d = f.getAbsoluteFile().getParentFile();
+		requireNonNull(d);
+		
+		String n = f.getName();
+		
+		while (true)
+		{
+			final int ii = i;
+			
+			File t = getMaxPath(n, d,
+			s -> s+    (ii == 1 ? "" : " ("+ii+")"),
+			s -> s+'…'+(ii == 1 ? "" : " ("+ii+")"),
+			x -> canFileExist(x));
+			
+			if (t == null)
+			{
+				throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(n)));
+			}
+			
+			if (!lexists(t))
+				return t;
+			else if (returnNullIf.test(t))
+				return null;
+			else
+				i++;
+			
+			if (i == 0)
+				throw new OverflowException();
+		}
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -4379,44 +4480,44 @@ implements JavaNamespace
 	
 	
 	
-	
 	/**
 	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
 	 * + Adds an ellipsis on the end of truncated names :3
 	 */
-	public static File getNextFreeMaxPath(final String sOrig, File dir)
+	public static @Nonnull File getMaxPath(final String sOrig, File dir)
 	{
-		return getMaxPath(sOrig, dir, s -> getNextFreePath(new File(dir, s)).getName(), s -> getNextFreePath(new File(dir, s+'…')).getName());
+		File r = getMaxPath(sOrig, dir, s -> s, s -> s+'…', f -> canFileExist(f));
+		
+		if (r == null)
+			throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(sOrig)));
+		
+		return r;
 	}
 	
 	/**
 	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
-	 * + Adds an ellipsis on the end of truncated names :3
+	 * @return null if truncating all the way still didn't pass the validityTest!
 	 */
-	public static File getMaxPath(final String sOrig, File dir)
+	public static @Nullable File getMaxPath(final String sOrig, File dir, UnaryFunction<String, String> originalPathnameModifier, UnaryFunction<String, String> truncatedPathnameModifier, Predicate<File> validityTest)
 	{
-		return getMaxPath(sOrig, dir, s -> s, s -> s+'…');
-	}
-	
-	/**
-	 * Truncate the path to as much as will fit (given pathnames and filenames both have maximum limits in most filesystems!)
-	 */
-	public static File getMaxPath(final String sOrig, File dir, UnaryFunction<String, String> originalPathnameModifier, UnaryFunction<String, String> truncatedPathnameModifier)
-	{
+		requireNonEmpty(sOrig);
+		
 		String s = sOrig;
 		
 		//Then try the whole URL XD
 		File lp = new File(dir, originalPathnameModifier.f(s));
 		
 		//Then try the url truncated ^^'
-		while (!canFileExist(lp) && !s.isEmpty())
+		while (!validityTest.test(lp) && !s.isEmpty())
 		{
 			s = s.substring(0, s.length() - 1);
+			
 			lp = new File(dir, truncatedPathnameModifier.f(s));
 		}
 		
+		
 		if (s.isEmpty())
-			throw new WrappedThrowableRuntimeException(new IOException("The first character must have made it illegal!: "+repr(sOrig)));
+			return null;
 		
 		return lp;
 	}
