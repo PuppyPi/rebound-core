@@ -194,6 +194,10 @@ public class ReURL
 		{
 			return baseURL.getProtocol()+urlPossiblyRelativeToBase;
 		}
+		else if (urlPossiblyRelativeToBase.startsWith("//"))
+		{
+			return baseURL.getProtocol()+':'+urlPossiblyRelativeToBase;
+		}
 		else if (urlPossiblyRelativeToBase.contains("://"))
 		{
 			//It's fine as it is :3

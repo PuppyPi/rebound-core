@@ -7,13 +7,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import rebound.exceptions.ImpossibleException;
 
-public class FixedSizeInputStreamDecorator
+public class FixedLengthInputStreamDecorator
 extends FilterInputStream
 {
 	protected final long lengthInBytes;
 	protected long soFar = 0;
 	
-	public FixedSizeInputStreamDecorator(InputStream in, long lengthInBytes)
+	public FixedLengthInputStreamDecorator(InputStream in, long lengthInBytes)
 	{
 		super(in);
 		this.lengthInBytes = lengthInBytes;

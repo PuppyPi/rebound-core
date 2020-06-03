@@ -5,6 +5,7 @@
 package rebound.util;
 
 import java.lang.reflect.InvocationTargetException;
+import javax.annotation.Nullable;
 import rebound.annotations.purelyforhumans.DeprecatedInFavorOfMember;
 import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
 import rebound.annotations.semantic.temporal.NeverReturns;
@@ -116,5 +117,37 @@ implements JavaNamespace
 	public static RuntimeException throwGeneralThrowableIfPossible(Throwable target) throws RuntimeException, Error
 	{
 		return BasicExceptionUtilities.rethrowSafe(target);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void tryCatchElseFinally(@Nullable Runnable tryBlock, @Nullable Runnable catchBlock, @Nullable Runnable elseBlock, @Nullable Runnable finallyBlock)
+	{
+		boolean success = false;
+		
+		try
+		{
+			tryBlock.run();
+			success = true;
+		}
+		finally
+		{
+			if (!success)
+			{
+				catchBlock.run();
+			}
+			else
+			{
+				elseBlock.run();
+			}
+			
+			finallyBlock.run();
+		}
 	}
 }
