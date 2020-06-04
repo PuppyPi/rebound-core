@@ -8,7 +8,7 @@ import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
 @SignalType
 public interface Sublist<E>
-extends List<E>, UnderlyingInstanceAccessible<List<E>>, KnowsLengthFixedness, TransparentContiguousArrayBackedCollection
+extends List<E>, UnderlyingInstanceAccessible<List<E>>, KnowsLengthFixedness, TransparentContiguousArrayBackedCollection, WeakCollection
 {
 	@ConstantReturnValue
 	@ImplementationTransparency
@@ -35,6 +35,11 @@ extends List<E>, UnderlyingInstanceAccessible<List<E>>, KnowsLengthFixedness, Tr
 		return PolymorphicCollectionUtilities.isFixedLengthNotVariableLength(this.getUnderlying());
 	}
 	
+	@Override
+	public default boolean isWeakCollection()
+	{
+		return WeakCollection.is(this.getUnderlying());
+	}
 	
 	
 	
