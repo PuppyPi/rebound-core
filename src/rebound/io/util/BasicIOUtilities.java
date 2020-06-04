@@ -1,15 +1,20 @@
 package rebound.io.util;
 
+import static java.util.Objects.*;
+import static rebound.math.SmallIntegerMathUtilities.*;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import javax.annotation.Nonnull;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.io.iio.InputByteStream;
 import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.ResettableInputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
 import rebound.io.iio.unions.CloseableInputByteStreamInterface;
 import from.java.io.forr.rebound.io.iio.ByteArrayOutputByteStream;
+
+//Todo requirePositive(), requireNonNull(), @ActuallySigned, etc. as needed
 
 public class BasicIOUtilities
 {
@@ -37,7 +42,7 @@ public class BasicIOUtilities
 		int amt = in.read(buffer);
 		while (amt >= 0)
 		{
-			total += amt;
+			total = safe_add_s64(total, amt);
 			out.write(buffer, 0, amt);
 			amt = in.read(buffer);
 		}
@@ -53,19 +58,19 @@ public class BasicIOUtilities
 	}
 	
 	
-	public static long pumpFixed(InputByteStream in, OutputByteStream out, long length, int bufferSize) throws IOException
+	public static @ActuallyUnsigned long pumpFixed(InputByteStream in, OutputByteStream out, @ActuallyUnsigned long length, int bufferSize) throws IOException
 	{
 		if (length > 0)
 		{
 			byte[] buffer = new byte[bufferSize];
 			int amt = 0;
-			long curr = 0;
-			while (curr < length)
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
 			{
 				amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
 				if (amt < 0)
 					return curr;
-				curr += amt;
+				curr = safe_add_u64(curr, amt);
 				out.write(buffer, 0, amt);
 			}
 			return curr;
@@ -225,9 +230,11 @@ public class BasicIOUtilities
 	 * @throws EOFException If the underlying stream returns -1 bytes read
 	 * @throws IOException If the underlying stream throws one
 	 */
-	public static void skipFully(InputByteStream in, long len, byte[] dummyBuffer) throws EOFException, IOException
+	public static void skipFully(InputByteStream in, @ActuallyUnsigned long len, byte[] dummyBuffer) throws EOFException, IOException
 	{
-		int total = 0;
+		requireNonNull(dummyBuffer);
+		
+		@ActuallyUnsigned long total = 0;
 		int amt = 0;
 		int toRead = 0;
 		while (true)
@@ -242,7 +249,7 @@ public class BasicIOUtilities
 			if (amt < 0) //Only read does this; skip() does not support EOF indication
 				throw new EOFException("Premature EOF");
 			
-			total += amt;
+			total = safe_add_u64(total, amt);
 			
 			if (total >= len)
 				return; //We're finished

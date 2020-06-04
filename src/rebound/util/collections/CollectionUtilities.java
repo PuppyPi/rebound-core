@@ -32,6 +32,7 @@ import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.RandomAccess;
 import java.util.Set;
@@ -93,6 +95,8 @@ import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
 import rebound.util.collections.maps.MapWithBoundKeyEqualityComparator;
 import rebound.util.collections.maps.MapWithBoundValueEqualityComparator;
+import rebound.util.collections.maps.WeakKeyedMap;
+import rebound.util.collections.maps.WeakValuedMap;
 import rebound.util.collections.prim.PrimitiveCollection;
 import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
@@ -10191,5 +10195,85 @@ _$$primxpconf:intsonly$$_
 		});
 		
 		return mutableOutputStartingWithIdentity;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Boolean isWeakKeyedMap(Object o)
+	{
+		if (o instanceof WeakKeyedMap)
+			return ((WeakKeyedMap)o).isWeakKeyedMap();
+		else if (o instanceof WeakHashMap)
+			return true;
+		else if (o.getClass() == HashMap.class)
+			return false;
+		else if (o.getClass() == Hashtable.class)
+			return false;
+		else if (o.getClass() == Properties.class)
+			return false;
+		else if (o.getClass() == TreeMap.class)
+			return false;
+		else
+			return null;
+	}
+	
+	
+	public static Boolean isWeakValuedMap(Object o)
+	{
+		if (o instanceof WeakValuedMap)
+			return ((WeakValuedMap)o).isWeakValuedMap();
+		else if (o instanceof WeakHashMap)
+			return false;
+		else if (o.getClass() == HashMap.class)
+			return false;
+		else if (o.getClass() == Hashtable.class)
+			return false;
+		else if (o.getClass() == Properties.class)
+			return false;
+		else if (o.getClass() == TreeMap.class)
+			return false;
+		else
+			return null;
+	}
+	
+	
+	public static Boolean isWeakMap(Object o)
+	{
+		Boolean a = isWeakKeyedMap(o);
+		Boolean b = isWeakValuedMap(o);
+		
+		if (isTrueAndNotNull(a) || isTrueAndNotNull(b))
+			return true;
+		else if (a == null)
+			return b;
+		else
+			return a;
+	}
+	
+	
+	
+	
+	
+	public static Boolean isWeakCollection(Object o)
+	{
+		if (o instanceof WeakCollection)
+			return ((WeakCollection)o).isWeakCollection();
+		else if (o.getClass() == ArrayList.class)
+			return false;
+		else if (o.getClass() == Vector.class)
+			return false;
+		else if (o.getClass() == HashSet.class)
+			return false;
+		else
+			return null;
 	}
 }

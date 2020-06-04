@@ -25,6 +25,8 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.simpledata.ActuallySigned;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.SlowVersionUnsupportedException;
 import rebound.io.iio.InputByteStream;
@@ -35,6 +37,8 @@ import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
+
+//Todo requirePositive(), requireNonNull(), @ActuallySigned, etc. as needed
 
 public class JRECompatIOUtilities
 implements JavaNamespace
@@ -97,9 +101,9 @@ implements JavaNamespace
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
-	public static long pumpObservingErrors(InputStream in, OutputStream out, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	public static @ActuallySigned long pumpObservingErrors(InputStream in, OutputStream out, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
 	{
-		long total = 0;
+		@ActuallySigned long total = 0;
 		byte[] buffer = new byte[bufferSize];
 		
 		while (true)
@@ -128,7 +132,7 @@ implements JavaNamespace
 				break;
 			}
 			
-			total += amt;
+			total = safe_add_s64(total, amt);
 		}
 		
 		return total;
@@ -163,13 +167,15 @@ implements JavaNamespace
 	
 	
 	
-	public static long pumpFixedObservingErrors(InputStream in, OutputStream out, long length, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	public static @ActuallyUnsigned long pumpFixedObservingErrors(InputStream in, OutputStream out, @ActuallyUnsigned long length, int bufferSize, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
 	{
+		requirePositive(bufferSize);
+		
 		if (length > 0)
 		{
 			byte[] buffer = new byte[bufferSize];
-			long curr = 0;
-			while (curr < length)
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
 			{
 				int amt;
 				try
@@ -185,7 +191,7 @@ implements JavaNamespace
 				if (amt < 0)
 					return curr;
 				
-				curr += amt;
+				curr = safe_add_u64(curr, amt);
 				
 				try
 				{
@@ -205,7 +211,7 @@ implements JavaNamespace
 		}
 	}
 	
-	public static long pumpFixedObservingErrors(InputStream in, OutputStream out, long length, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
+	public static @ActuallyUnsigned long pumpFixedObservingErrors(InputStream in, OutputStream out, @ActuallyUnsigned long length, UnaryProcedure<IOException> ioerrorInInput, UnaryProcedure<IOException> ioerrorInOutput)
 	{
 		return pumpFixedObservingErrors(in, out, length, 4096, ioerrorInInput, ioerrorInOutput);
 	}
@@ -221,9 +227,9 @@ implements JavaNamespace
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
-	public static long pump(InputStream in, OutputStream out, int bufferSize) throws IOException
+	public static @ActuallySigned long pump(InputStream in, OutputStream out, int bufferSize) throws IOException
 	{
-		long total = 0;
+		@ActuallySigned long total = 0;
 		byte[] buffer = new byte[bufferSize];
 		
 		while (true)
@@ -233,7 +239,7 @@ implements JavaNamespace
 				break;
 			
 			out.write(buffer, 0, amt);
-			total += amt;
+			total = safe_add_s64(total, amt);
 		}
 		
 		return total;
@@ -268,18 +274,20 @@ implements JavaNamespace
 	
 	
 	
-	public static long pumpFixed(InputStream in, OutputStream out, long length, int bufferSize) throws IOException
+	public static @ActuallyUnsigned long pumpFixed(InputStream in, OutputStream out, @ActuallyUnsigned long length, int bufferSize) throws IOException
 	{
+		requirePositive(bufferSize);
+		
 		if (length > 0)
 		{
 			byte[] buffer = new byte[bufferSize];
-			long curr = 0;
-			while (curr < length)
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
 			{
 				int amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
 				if (amt < 0)
 					return curr;
-				curr += amt;
+				curr = safe_add_u64(curr, amt);
 				out.write(buffer, 0, amt);
 			}
 			return curr;
@@ -290,7 +298,7 @@ implements JavaNamespace
 		}
 	}
 	
-	public static long pumpFixed(InputStream in, OutputStream out, long length) throws IOException
+	public static @ActuallyUnsigned long pumpFixed(InputStream in, OutputStream out, @ActuallyUnsigned long length) throws IOException
 	{
 		return pumpFixed(in, out, length, 4096);
 	}
@@ -313,9 +321,9 @@ implements JavaNamespace
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
-	public static long pump(RandomAccessFile in, OutputStream out, int bufferSize) throws IOException
+	public static @ActuallySigned long pump(RandomAccessFile in, OutputStream out, int bufferSize) throws IOException
 	{
-		long total = 0;
+		@ActuallySigned long total = 0;
 		byte[] buffer = new byte[bufferSize];
 		
 		while (true)
@@ -325,7 +333,7 @@ implements JavaNamespace
 				break;
 			
 			out.write(buffer, 0, amt);
-			total += amt;
+			total = safe_add_s64(total, amt);
 		}
 		
 		return total;
@@ -340,18 +348,18 @@ implements JavaNamespace
 	}
 	
 	
-	public static long pumpFixed(RandomAccessFile in, OutputStream out, long length, int bufferSize) throws IOException
+	public static @ActuallyUnsigned long pumpFixed(RandomAccessFile in, OutputStream out, long length, int bufferSize) throws IOException
 	{
 		if (length > 0)
 		{
 			byte[] buffer = new byte[bufferSize];
-			long curr = 0;
-			while (curr < length)
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
 			{
 				int amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
 				if (amt < 0)
 					return curr;
-				curr += amt;
+				curr = safe_add_u64(curr, amt);
 				out.write(buffer, 0, amt);
 			}
 			return curr;
@@ -385,9 +393,9 @@ implements JavaNamespace
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
-	public static long pump(InputStream in, RandomAccessFile out, int bufferSize) throws IOException
+	public static @ActuallySigned long pump(InputStream in, RandomAccessFile out, int bufferSize) throws IOException
 	{
-		long total = 0;
+		@ActuallySigned long total = 0;
 		byte[] buffer = new byte[bufferSize];
 		
 		while (true)
@@ -397,7 +405,7 @@ implements JavaNamespace
 				break;
 			
 			out.write(buffer, 0, amt);
-			total += amt;
+			total = safe_add_s64(total, amt);
 		}
 		
 		return total;
@@ -412,18 +420,18 @@ implements JavaNamespace
 	}
 	
 	
-	public static long pumpFixed(InputStream in, RandomAccessFile out, long length, int bufferSize) throws IOException
+	public static @ActuallyUnsigned long pumpFixed(InputStream in, RandomAccessFile out, long length, int bufferSize) throws IOException
 	{
 		if (length > 0)
 		{
 			byte[] buffer = new byte[bufferSize];
-			long curr = 0;
-			while (curr < length)
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
 			{
 				int amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
 				if (amt < 0)
 					return curr;
-				curr += amt;
+				curr = safe_add_u64(curr, amt);
 				out.write(buffer, 0, amt);
 			}
 			return curr;
@@ -610,9 +618,9 @@ implements JavaNamespace
 	
 	
 	
-	public static long skipFullyByDiscarding(InputStream in, long amount, byte[] dummyBuffer) throws IOException
+	public static @ActuallySigned long skipFullyByDiscarding(InputStream in, long amount, byte[] dummyBuffer) throws IOException
 	{
-		long total = 0;
+		@ActuallySigned long total = 0;
 		int amt = 0;
 		
 		while (true)
@@ -625,7 +633,7 @@ implements JavaNamespace
 			if (amt < 0) //Only read does this; skip() does not support EOF indication
 				return total; //We're finished
 			
-			total += amt;
+			total = safe_add_s64(total, amt);
 		}
 	}
 	

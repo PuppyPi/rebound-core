@@ -997,6 +997,14 @@ public class SmallIntegerMathUtilities
 		return a + b;
 	}
 	
+	public static long safe_add_u64(long a, long b) throws OverflowException
+	{
+		if (isOverflow_add_u64(a, b))
+			throw new OverflowException();
+		
+		return a + b;
+	}
+	
 	public static long safe_sub_s64(long a, long b) throws OverflowException
 	{
 		if (isOverflow_sub_s64(a, b))
