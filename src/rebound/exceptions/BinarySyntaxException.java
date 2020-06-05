@@ -5,10 +5,28 @@ extends SyntaxException
 {
 	private static final long serialVersionUID = 1L;
 	
-	protected BinarySyntaxException(String message, Throwable cause)
+	
+	public BinarySyntaxException()
+	{
+		super();
+	}
+	
+	public BinarySyntaxException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}
+	
+	public BinarySyntaxException(String message)
+	{
+		super(message);
+	}
+	
+	public BinarySyntaxException(Throwable cause)
+	{
+		super(cause);
+	}
+	
+	
 	
 	
 	public static BinarySyntaxException inst()

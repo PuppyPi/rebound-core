@@ -2424,7 +2424,7 @@ _$$primxpconf:intsonly$$_
 	
 	//Importing java.util.Arrays.* conflicts with java.util.ArrayList so they can't both be imported! :[
 	//So we offer a delegate here to get around that! ^wwwww^
-	//(also it's not varargs, since that causes a lot of problems X'D )
+	//(also it's not varargs (unless you want that with asListV()), since varargs with Object causes a lot of confusion when passing an Object[] to it X'D )
 	@LiveValue
 	@WritableValue
 	public static <E> List<E> asList(E[] array)  //fixed-length but writable view of the array!
