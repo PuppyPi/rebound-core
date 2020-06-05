@@ -1,5 +1,6 @@
 package rebound.io.util;
 
+import static rebound.file.FSUtilities.*;
 import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
@@ -25,6 +26,7 @@ import java.nio.channels.FileChannel.MapMode;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.FixedLengthValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -389,10 +391,59 @@ public class FSIOUtilities
 	
 	
 	
+	public static void writeAllIfNotAlready(File file, byte[] data) throws IOException
+	{
+		if (lexists(file))
+		{
+			if (file.isFile())
+			{
+				byte[] already = readAll(file);
+				if (Arrays.equals(data, already))
+					return;
+			}
+			
+			//else
+			throw new IOException("Differing file contents! at "+repr(file.getAbsolutePath()));
+		}
+		else
+		{
+			writeAll(file, data);
+		}
+	}
+	
+	
+	public static void writeAllTextIfNotAlready(File file, String data) throws IOException
+	{
+		if (lexists(file))
+		{
+			if (file.isFile())
+			{
+				String already = readAllText(file);
+				if (data.equals(already))
+					return;
+			}
+			
+			//else
+			throw new IOException("Differing file contents! at "+repr(file.getAbsolutePath()));
+		}
+		else
+		{
+			writeAllText(file, data);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static byte[] readSectionOfFileToMemory(File f, long offset, int length) throws IOException
 	{
+		//Todo use RandomAccessFile :3
+		
 		try (InputStream in = new FileInputStream(f))
 		{
 			if (offset > 0)
@@ -408,6 +459,8 @@ public class FSIOUtilities
 	
 	public static void readSectionOfFileToOtherFile(File source, long offset, long length, File dest) throws IOException
 	{
+		//Todo use RandomAccessFile's :3
+		
 		try (InputStream in = new FileInputStream(source))
 		{
 			if (offset > 0)
