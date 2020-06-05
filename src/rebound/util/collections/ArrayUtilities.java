@@ -8,6 +8,7 @@ import static rebound.bits.BitUtilities.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
@@ -19443,4 +19444,43 @@ primxp
 	
 	
 	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//From: org.bouncycastle.util.Arrays
+	public static int compareBigEndianLengthsFirstUnsigned(@Nonnull byte[] a, @Nonnull byte[] b)
+	{
+		if (a == b)
+			return 0;
+		
+		int al = a.length;
+		int bl = b.length;
+		
+		if (al < bl)
+			return -1;
+		if (al > bl)
+			return 1;
+		
+		int len = arbitrary(al, bl);
+		
+		for (int i = 0; i < len; ++i)
+		{
+			int aVal = a[i] & 0xFF;
+			int bVal = b[i] & 0xFF;
+			
+			if (aVal < bVal)
+				return -1;
+			
+			if (aVal > bVal)
+				return 1;
+		}
+		
+		return 0;
+	}
 }

@@ -4334,6 +4334,12 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	public static <E> boolean defaultSetsEquivalent(Set<? extends E> a, Set<? extends E> b, EqualityComparator<E> eq)
+	{
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, eq);
+	}
+	
+	
 	
 	
 	
@@ -4456,8 +4462,53 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	public static <K, V> boolean defaultMapsEquivalent(Map<? extends K, ? extends V> a, Map<? extends K, ? extends V> b, EqualityComparator<K> keysEqualityComparator, EqualityComparator<V> valuesEqualityComparator)
+	{
+		if (!defaultSetsEquivalent(a.keySet(), b.keySet(), keysEqualityComparator))  //this'll take care of the quick-test for if the sizes aren't equal :33
+			return false;
+		
+		Set<? extends K> aks = a.keySet();
+		Set<? extends K> bks = b.keySet();
+		
+		for (K keyA : aks)
+		{
+			K keyB = (K)lookupThrowingIfAbsentOrMultiple(keyA, (Set)bks, (EqualityComparator)keysEqualityComparator);
+			
+			assert keysEqualityComparator.equals(keyA, keyB);
+			
+			V valueA = a.get(keyA);
+			V valueB = b.get(keyB);
+			
+			if (!valuesEqualityComparator.equals(valueA, valueB))
+				return false;
+		}
+		
+		return true;
+	}
 	
 	
+	public static <E> E lookupThrowingIfAbsentOrMultiple(E token, Collection<? extends E> c, EqualityComparator<? super E> eq)
+	{
+		E r = null;
+		boolean has = false;
+		
+		for (E e : c)
+		{
+			if (eq.equals(e, token))
+			{
+				if (has)
+					throw new NonSingletonException("more than one element! o_o");
+				
+				r = e;
+				has = true;
+			}
+		}
+		
+		if (!has)
+			throw new NonSingletonException("no elements! ><");
+		
+		return r;
+	}
 	
 	
 	
