@@ -690,6 +690,8 @@ implements JavaNamespace
 	//ABOVE_MAX_VAL's are a thing because of two's complement! ^_~
 	//(ESP the Long ones! :D )
 	
+	public static final BigInteger BIGINT_NEGATIVE_ONE = toBigInteger(-1);
+	
 	public static final BigInteger BIGINT_BYTE_MIN_VAL = toBigInteger(Byte.MIN_VALUE);
 	public static final BigInteger BIGINT_BYTE_MAX_VAL = toBigInteger(Byte.MAX_VALUE);
 	public static final BigInteger BIGINT_BYTE_ABOVE_MAX_VAL = toBigInteger(Byte.MAX_VALUE + 1);    // 2^7  :D
