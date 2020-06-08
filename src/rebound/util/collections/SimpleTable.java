@@ -18,6 +18,7 @@ import rebound.exceptions.NotYetImplementedException;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.Copyable;
+import rebound.util.objectutil.Equivalenceable;
 
 // ^wwwwwwwwwww^
 public interface SimpleTable<E>

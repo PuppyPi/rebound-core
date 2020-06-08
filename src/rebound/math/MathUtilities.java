@@ -2062,7 +2062,7 @@ implements JavaNamespace
 		
 		
 		if (a instanceof Float)
-			return convertFloatToRationalOrInteger((Double)a);
+			return convertFloatToRationalOrInteger((Float)a);
 		if (a instanceof Double)
 			return convertFloatToRationalOrInteger((Double)a);
 		

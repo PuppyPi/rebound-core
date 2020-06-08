@@ -149,6 +149,7 @@ import rebound.util.functional.MapFunctionalIterable;
 import rebound.util.functional.SuccessfulIterationStopType;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.EqualityComparator;
+import rebound.util.objectutil.Equivalenceable;
 import rebound.util.objectutil.NaturalEqualityComparator;
 import rebound.util.objectutil.PubliclyCloneable;
 

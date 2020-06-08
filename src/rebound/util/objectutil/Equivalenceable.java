@@ -1,4 +1,4 @@
-package rebound.util.collections;
+package rebound.util.objectutil;
 
 import rebound.annotations.semantic.SignalType;
 import rebound.exceptions.NotSupportedReturnPath;

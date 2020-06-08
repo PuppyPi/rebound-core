@@ -133,21 +133,26 @@ implements JavaNamespace
 		
 		try
 		{
-			tryBlock.run();
+			if (tryBlock != null)
+				tryBlock.run();
+			
 			success = true;
 		}
 		finally
 		{
 			if (!success)
 			{
-				catchBlock.run();
+				if (catchBlock != null)
+					catchBlock.run();
 			}
 			else
 			{
-				elseBlock.run();
+				if (elseBlock != null)
+					elseBlock.run();
 			}
 			
-			finallyBlock.run();
+			if (finallyBlock != null)
+				finallyBlock.run();
 		}
 	}
 }

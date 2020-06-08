@@ -1,6 +1,7 @@
 package rebound.util;
 
 public enum Undefined
+implements ValueType
 {
 	I;
 	

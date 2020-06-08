@@ -8,6 +8,7 @@ import rebound.annotations.semantic.simpledata.NormalizesPrimitives;
 import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.TruncationException;
+import rebound.util.ValueType;
 
 /**
  * Note: it should really be Immutable*Reduced*Rational now :33
@@ -15,7 +16,7 @@ import rebound.exceptions.TruncationException;
  */
 public class ImmutableRational
 extends Number
-implements Rational, Serializable
+implements Rational, Serializable, ValueType
 {
 	private static final long serialVersionUID = 1L;
 	

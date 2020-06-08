@@ -49,6 +49,7 @@ import java.util.TreeSet;
 import java.util.UUID;
 import java.util.Vector;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import rebound.annotations.purelyforhumans.DeprecatedInFavorOfMember;
 import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
 import rebound.concurrency.immutability.JavaImmutability;
@@ -63,19 +64,19 @@ import rebound.util.AngryReflectionUtility;
 import rebound.util.AngryReflectionUtility.JavaVisibility;
 import rebound.util.ExceptionUtilities;
 import rebound.util.Primitives;
+import rebound.util.ValueType;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.classhacking.jre.JREGlassBox.ArraysGlassBox;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.objectutil.InstantiationNotSupportedException.InputlessInstantiationNotSupportedException;
 import rebound.util.objectutil.Trimmable.TrimmableTrimRV;
 
-
 //TODO go through and add to all the self-Instantiator things, ProvidesInstantiator as well :>    (or just plain replace that old pattern of self-instantiator???)
 
 //TODO make singletons be instances in single-member enums (ie, *actual* java singletons? XD )
 
-
 //Todo grandfathering for copyInto (maybe??)
+
 
 /**
  * Missing utilities and systems for..
@@ -145,7 +146,7 @@ implements JavaNamespace
 	/**
 	 * @return true or false if known, null is it couldn't be determined
 	 */
-	public static JavaImmutability isImmutable(Object object)
+	public static JavaImmutability isImmutable(@Nullable Object object)
 	{
 		//Java things which could never implement our interfaces!
 		if (object == null)
@@ -175,7 +176,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static JavaImmutability isImmutableIncludingSlowReflectionTests(Object object)
+	public static JavaImmutability isImmutableIncludingSlowReflectionTests(@Nullable Object object)
 	{
 		JavaImmutability rv = isImmutable(object);
 		if (rv != null)
@@ -1557,4 +1558,47 @@ implements JavaNamespace
 			throw new UnexpectedHardcodedEnumValueException(imt);
 	}
 	//[Im]mutability-testing things>
+	
+	
+	
+	
+	/**
+	 * false-negatives but no false-positives
+	 */
+	public static boolean isDefinitelyValueType(@Nullable Object object)
+	{
+		return isTrueAndNotNull(isValueType(object));
+	}
+	
+	public static @Nullable Boolean isValueType(@Nullable Object object)
+	{
+		return object instanceof ValueType ? ((ValueType)object).isValueType() : isDefinitelyValueTypeGrandfathering(object);
+	}
+	
+	public static Boolean isDefinitelyValueTypeGrandfathering(@Nullable Object object)
+	{
+		if (
+		object == null || object instanceof Boolean ||
+		object instanceof Number || object instanceof Character ||
+		object instanceof String ||
+		object instanceof Enum ||
+		object instanceof UUID
+		)
+			return true;
+		
+		
+		else if (
+		//		object.getClass() == ArrayList.class ||
+		//		object.getClass() == Vector.class ||
+		//		object.getClass() == HashMap.class ||
+		//		object.getClass() == Hashtable.class ||
+		//		object.getClass() == Properties.class ||
+		isImmutable(object) == JavaImmutability.Mutable
+		)
+			return false;
+		
+		
+		else
+			return null;
+	}
 }
