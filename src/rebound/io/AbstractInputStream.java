@@ -59,6 +59,19 @@ extends InputStream
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//Copied from java.io.InputStream
+	
+	
+	
 	// MAX_SKIP_BUFFER_SIZE is used to determine the maximum buffer size to use when skipping.
 	private static final int MAX_SKIP_BUFFER_SIZE = 2048;
 	
