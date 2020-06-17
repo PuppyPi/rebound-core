@@ -1024,6 +1024,39 @@ implements JavaNamespace
 	
 	
 	
+	public static String getSecondLevelAndTopLevelDomain(String domainName)
+	{
+		domainName = rtrimstr(domainName, ".");
+		
+		int l = domainName.lastIndexOf('.');
+		
+		if (l == -1 || l == 0)
+		{
+			return null;
+		}
+		else
+		{
+			int sl = domainName.lastIndexOf('.', l-1);
+			
+			if (sl == -1 || sl == 0)
+			{
+				return domainName;
+			}
+			else
+			{
+				return domainName.substring(sl+1);
+			}
+		}
+	}
+	
+	
+	public static String getTopLevelDomain(String domainName)
+	{
+		domainName = rtrimstr(domainName, ".");
+		return domainName.isEmpty() ? null : rsplitonceReturnSucceedingOrWhole(domainName, '.');
+	}
+	
+	
 	
 	
 	

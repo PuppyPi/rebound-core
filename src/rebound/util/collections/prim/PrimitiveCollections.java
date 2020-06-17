@@ -55,6 +55,7 @@ import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.ImmutableValue;
 import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
+import rebound.concurrency.immutability.JavaImmutability;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.OverflowException;
@@ -89,6 +90,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToShort;
 import rebound.util.growth.Grower.GrowerComputationallyUnreducedPurelyRecursive;
 import rebound.util.growth.TranslatedExponentialGrower;
 import rebound.util.objectutil.Equivalenceable;
+import rebound.util.objectutil.RuntimeImmutability;
 import rebound.util.objectutil.Trimmable;
 import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
@@ -3397,7 +3399,7 @@ primxp
 	
 	@Immutable
 	public static class Immutable_$$Primitive$$_ArrayList
-	implements Serializable, Comparable<Immutable_$$Primitive$$_ArrayList>, _$$Primitive$$_List, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<Immutable_$$Primitive$$_ArrayList>, _$$Primitive$$_List, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -3583,6 +3585,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -6411,7 +6419,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableBooleanArrayList
-	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -6597,6 +6605,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -9424,7 +9438,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableByteArrayList
-	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -9610,6 +9624,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -12437,7 +12457,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableCharacterArrayList
-	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -12623,6 +12643,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -15450,7 +15476,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableShortArrayList
-	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -15636,6 +15662,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -18463,7 +18495,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableFloatArrayList
-	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -18649,6 +18681,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -21476,7 +21514,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableIntegerArrayList
-	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -21662,6 +21700,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -24489,7 +24533,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableDoubleArrayList
-	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -24675,6 +24719,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		
@@ -27502,7 +27552,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableLongArrayList
-	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness, RandomAccess, ValueType     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -27688,6 +27738,12 @@ primxp
 		public Boolean isFixedLengthNotVariableLength()
 		{
 			return true;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Non_Thread_Safe_Immutable;
 		}
 		
 		

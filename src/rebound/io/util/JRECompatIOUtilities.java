@@ -23,6 +23,7 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import rebound.annotations.hints.Inline;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
@@ -80,14 +81,16 @@ implements JavaNamespace
 	
 	
 	
+	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
 	public static BufferedInputStream ensureBufferedInputStream(InputStream in)
 	{
-		return in instanceof BufferedInputStream ? (BufferedInputStream)in : new BufferedInputStream(in);
+		return in.getClass() == BufferedInputStream.class ? (BufferedInputStream)in : new BufferedInputStream(in);
 	}
 	
+	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
 	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream in)
 	{
-		return in instanceof BufferedOutputStream ? (BufferedOutputStream)in : new BufferedOutputStream(in);
+		return in.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)in : new BufferedOutputStream(in);
 	}
 	
 	
