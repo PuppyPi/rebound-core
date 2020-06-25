@@ -75,8 +75,8 @@ import rebound.exceptions.NoSuchMappingReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath.NoSuchMappingException;
 import rebound.exceptions.NonForwardInjectiveMapException;
 import rebound.exceptions.NonReverseInjectiveMapException;
-import rebound.exceptions.NonSingletonException;
 import rebound.exceptions.NotFoundException;
+import rebound.exceptions.NotSingletonException;
 import rebound.exceptions.NotSupportedReturnPath;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
@@ -175,13 +175,6 @@ import rebound.util.objectutil.PubliclyCloneable;
 
 public class CollectionUtilities
 {
-	public static void checkRangeNonnegative(int underlyingLength, int start, int length) throws IndexOutOfBoundsException
-	{
-		if (underlyingLength < 0) throw new ImpossibleException("incorrect use of this function >,>");
-		if (start < 0) throw new IndexOutOfBoundsException("Negative start! D:   "+start);
-		if (length < 0) throw new IndexOutOfBoundsException("Negative length! D:   "+length);
-		if (start + length > underlyingLength) throw new IndexOutOfBoundsException("Range overflowed underlying thing!  Range was: ["+start+":"+length+"),  Maximum possible range was: [0:"+underlyingLength+")  ;_;");
-	}
 	
 	
 	
@@ -1881,7 +1874,7 @@ public class CollectionUtilities
 	}
 	
 	
-	public static <E> int indexOfSingle(Predicate<E> predicate, @CollectionValue List<E> list) throws NonSingletonException
+	public static <E> int indexOfSingle(Predicate<E> predicate, @CollectionValue List<E> list) throws NotSingletonException
 	{
 		if (isRandomAccessFast(list))
 		{
@@ -1894,7 +1887,7 @@ public class CollectionUtilities
 					if (rv == -1)
 						rv = i;
 					else
-						throw new NonSingletonException();
+						throw new NotSingletonException();
 				}
 			}
 			return rv;
@@ -1911,7 +1904,7 @@ public class CollectionUtilities
 					if (rv == -1)
 						rv = i;
 					else
-						throw new NonSingletonException();
+						throw new NotSingletonException();
 				}
 				
 				i++;
@@ -4498,7 +4491,7 @@ _$$primxpconf:intsonly$$_
 			if (eq.equals(e, token))
 			{
 				if (has)
-					throw new NonSingletonException("more than one element! o_o");
+					throw new NotSingletonException("more than one element! o_o");
 				
 				r = e;
 				has = true;
@@ -4506,7 +4499,7 @@ _$$primxpconf:intsonly$$_
 		}
 		
 		if (!has)
-			throw new NonSingletonException("no elements! ><");
+			throw new NotSingletonException("no elements! ><");
 		
 		return r;
 	}
@@ -8675,12 +8668,14 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckMember(int collectionSize, int index)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
 		if (index >= collectionSize)  throw new IndexOutOfBoundsException("index "+index+" >= size "+collectionSize);   // >= not > !!
 	}
 	
 	public static void rangeCheckCursorPoint(int collectionSize, int index)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
 		if (index > collectionSize)  throw new IndexOutOfBoundsException("index "+index+" > size "+collectionSize);   // > not >= !!
 	}
@@ -8688,6 +8683,7 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckInterval(int collectionSize, int start, int endExcl)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (start < 0)  throw new IndexOutOfBoundsException("negative index!!  "+start);
 		if (endExcl < 0)  throw new IndexOutOfBoundsException("negative index!!  "+endExcl);
 		if (start > collectionSize)  throw new IndexOutOfBoundsException("index "+start+" > size "+collectionSize);
@@ -8697,10 +8693,10 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckIntervalByLength(int collectionSize, int fromIndex, int length)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (length < 0)  throw new IndexOutOfBoundsException("negative length!!  "+length);
 		rangeCheckInterval(collectionSize, fromIndex, fromIndex+length);
 	}
-	
 	
 	
 	public static void rangeCheckFor_shiftRegionStretchingFromIndexToEndByAmountChangingSizeGrandfathering(List list, int start, int amount)
@@ -8725,12 +8721,14 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckMemberS64(long collectionSize, long index)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
 		if (index >= collectionSize)  throw new IndexOutOfBoundsException("index "+index+" >= size "+collectionSize);   // >= not > !!
 	}
 	
 	public static void rangeCheckCursorPointS64(long collectionSize, long index)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (index < 0)  throw new IndexOutOfBoundsException("negative index!!  "+index);
 		if (index > collectionSize)  throw new IndexOutOfBoundsException("index "+index+" > size "+collectionSize);   // > not >= !!
 	}
@@ -8738,6 +8736,7 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckIntervalS64(long collectionSize, long start, long endExcl)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (start < 0)  throw new IndexOutOfBoundsException("negative index!!  "+start);
 		if (endExcl < 0)  throw new IndexOutOfBoundsException("negative index!!  "+endExcl);
 		if (start > collectionSize)  throw new IndexOutOfBoundsException("index "+start+" > size "+collectionSize);
@@ -8747,6 +8746,7 @@ _$$primxpconf:intsonly$$_
 	
 	public static void rangeCheckIntervalByLengthS64(long collectionSize, long fromIndex, long length)
 	{
+		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (length < 0)  throw new IndexOutOfBoundsException("negative length!!  "+length);
 		rangeCheckIntervalS64(collectionSize, fromIndex, fromIndex+length);
 	}

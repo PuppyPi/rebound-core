@@ -4,26 +4,26 @@
  */
 package rebound.exceptions;
 
-public class NonSingletonException
+public class NotSingletonException
 extends RuntimeException
 {
 	private static final long serialVersionUID = 1L;
 	
-	public NonSingletonException()
+	public NotSingletonException()
 	{
 	}
 	
-	public NonSingletonException(String message)
+	public NotSingletonException(String message)
 	{
 		super(message);
 	}
 	
-	public NonSingletonException(Throwable cause)
+	public NotSingletonException(Throwable cause)
 	{
 		super(cause);
 	}
 	
-	public NonSingletonException(String message, Throwable cause)
+	public NotSingletonException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}

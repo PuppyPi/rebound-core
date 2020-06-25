@@ -85,7 +85,7 @@ public class PolymorphicCollectionUtilities
 		{
 			Sublist listC = (Sublist)list;
 			
-			CollectionUtilities.checkRangeNonnegative(listC.size(), start, length);
+			CollectionUtilities.rangeCheckIntervalByLength(listC.size(), start, length);
 			
 			return anySublist(listC.getUnderlying(), listC.getSublistStartingIndex() + start, length);
 		}
@@ -106,7 +106,7 @@ public class PolymorphicCollectionUtilities
 		{
 			Buffer listC = (Buffer)list;
 			
-			CollectionUtilities.checkRangeNonnegative(listC.remaining(), start, length);
+			CollectionUtilities.rangeCheckIntervalByLength(listC.remaining(), start, length);
 			
 			Buffer slice = NIOBufferUtilities.slice(listC);
 			slice.limit(listC.position() + start + length);

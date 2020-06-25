@@ -57,7 +57,7 @@ import rebound.bits.DataEncodingUtilities;
 import rebound.bits.Endianness;
 import rebound.bits.Unsigned;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.NonSingletonException;
+import rebound.exceptions.NotSingletonException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.ReturnPath.SingletonReturnPath;
 import rebound.exceptions.StopIterationReturnPath;
@@ -5251,9 +5251,9 @@ implements JavaNamespace
 	
 	
 	/**
-	 * @param ignoreSyntaxErroneousLines only applies to syntax errors; not non-singleton values on keys, {@link NonSingletonException} is always thrown for those ^_^
+	 * @param ignoreSyntaxErroneousLines only applies to syntax errors; not non-singleton values on keys, {@link NotSingletonException} is always thrown for those ^_^
 	 */
-	public static Map<String, String> parseBasicSingletonValuedInfoData(String source, boolean ignoreSyntaxErroneousLines) throws TextSyntaxException, NonSingletonException
+	public static Map<String, String> parseBasicSingletonValuedInfoData(String source, boolean ignoreSyntaxErroneousLines) throws TextSyntaxException, NotSingletonException
 	{
 		Map results = parseBasicInfoData(source, ignoreSyntaxErroneousLines);
 		List<String> badKeys = null;
@@ -5278,7 +5278,7 @@ implements JavaNamespace
 			return results;
 		else
 		{
-			throw new NonSingletonException("Non singleton keys!: "+joinStrings(mapToNewList(e -> repr(e), badKeys), ", "));
+			throw new NotSingletonException("Non singleton keys!: "+joinStrings(mapToNewList(e -> repr(e), badKeys), ", "));
 		}
 	}
 	
