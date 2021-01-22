@@ -1,6 +1,8 @@
 package rebound.util.collections;
 
 import static java.util.Collections.*;
+import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
 import java.util.Collection;
@@ -13,6 +15,7 @@ import javax.annotation.Nullable;
 import rebound.exceptions.NotSingletonException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.math.SmallIntegerMathUtilities;
+import rebound.util.Maybe;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -72,7 +75,7 @@ implements JavaNamespace
 			throw new NotSingletonException("no elements! ><");
 		E first = i.next();
 		if (i.hasNext())
-			throw new NotSingletonException("more than one element! o_o");
+			throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(first, i.next()))+", (possibly more)");
 		return first;
 	}
 	
@@ -82,7 +85,7 @@ implements JavaNamespace
 			return sentinelIfNone;
 		E first = i.next();
 		if (i.hasNext())
-			throw new NotSingletonException("more than one element! o_o");
+			throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(first, i.next()))+", (possibly more)");
 		return first;
 	}
 	
@@ -527,4 +530,34 @@ implements JavaNamespace
 	
 	
 	//>>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <A, B> PairOrdered<A, B> pair(A a, B b)
+	{
+		return new PairOrderedImmutable<A, B>(a, b);
+	}
+	
+	public static <T> PairCommutative<T> doubleton(T a, T b)
+	{
+		return new PairCommutativeImmutable<T>(a, b);
+	}
+	
+	public static <E> Maybe<E> just(@Nullable E e)
+	{
+		return new Maybe<E>(e);
+	}
 }

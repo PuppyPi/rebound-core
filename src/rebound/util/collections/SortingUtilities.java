@@ -244,6 +244,7 @@ _$$primxpconf:noboolean$$_
 	//<indexOf
 	/**
 	 * aka indexOf()
+	 * @return -1 if not found
 	 ⎋a/
 	public static int findIndexForValueInSortedSet(_$$prim$$_[] sortedSet, _$$prim$$_ value)
 	{
@@ -253,6 +254,7 @@ _$$primxpconf:noboolean$$_
 	
 	/**
 	 * aka indexOf()
+	 * @return -1 if not found
 	 ⎋a/
 	public static int findIndexForValueInSortedSet(_$$prim$$_[] sortedSet, int lowBound, int highBound, _$$prim$$_ value)
 	{

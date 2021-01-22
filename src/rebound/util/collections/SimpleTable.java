@@ -8,13 +8,14 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NonrectangularException;
 import rebound.exceptions.NotSupportedReturnPath;
 import rebound.exceptions.NotYetImplementedException;
+import rebound.util.functional.ContinueSignal;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.Copyable;
@@ -29,6 +30,12 @@ extends Copyable, Equivalenceable
 	
 	@Nonnegative
 	public int getNumberOfRows();
+	
+	
+	public boolean isReadableTable();
+	
+	public boolean isWritableTable();
+	
 	
 	
 	public default int getNumberOfCells()
@@ -577,6 +584,15 @@ extends Copyable, Equivalenceable
 	
 	public default void apply(UnaryProcedure<E> observer)
 	{
+		applyStoppable(v ->
+		{
+			observer.f(v);
+			return ContinueSignal.Continue;
+		});
+	}
+	
+	public default ContinueSignal applyStoppable(UnaryFunction<E, ContinueSignal> observer)
+	{
 		int w = this.getNumberOfColumns();
 		int h = this.getNumberOfRows();
 		
@@ -584,9 +600,13 @@ extends Copyable, Equivalenceable
 		{
 			for (int c = 0; c < w; c++)
 			{
-				observer.f(this.getCellContents(c, r));
+				ContinueSignal rv = observer.f(this.getCellContents(c, r));
+				if (rv == ContinueSignal.Stop)
+					return rv;
 			}
 		}
+		
+		return ContinueSignal.Continue;
 	}
 	
 	

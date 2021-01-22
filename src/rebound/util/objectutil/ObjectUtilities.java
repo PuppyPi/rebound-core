@@ -68,6 +68,7 @@ import rebound.util.ValueType;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.classhacking.jre.JREGlassBox.ArraysGlassBox;
 import rebound.util.collections.ArrayUtilities;
+import rebound.util.functional.EqualityComparator;
 import rebound.util.objectutil.InstantiationNotSupportedException.InputlessInstantiationNotSupportedException;
 import rebound.util.objectutil.Trimmable.TrimmableTrimRV;
 

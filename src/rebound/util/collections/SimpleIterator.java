@@ -132,6 +132,18 @@ public interface SimpleIterator<E>
 				};
 			}
 		}
+		
+		public static <D> SimpleIterator<D> simpleIteratorOf(Iterable<D> iterable)
+		{
+			if (iterable instanceof SimpleIterable)
+			{
+				return ((SimpleIterable<D>) iterable).simpleIterator();
+			}
+			else
+			{
+				return SimpleIterator.simpleIterator(iterable.iterator());
+			}
+		}
 	}
 	
 	

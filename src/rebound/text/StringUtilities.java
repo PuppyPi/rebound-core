@@ -18,6 +18,10 @@ import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.io.CharArrayReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
@@ -47,11 +51,11 @@ import javax.annotation.Nullable;
 import javax.annotation.Signed;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.Positive;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.bits.BitfieldSafeCasts;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.Endianness;
@@ -618,7 +622,10 @@ implements JavaNamespace
 			}
 		}
 		
-		tokens.add(new String(data, tokenStart, data.length - tokenStart));
+		if (leaveInEmpties || data.length - tokenStart != 0)
+		{
+			tokens.add(new String(data, tokenStart, data.length - tokenStart));
+		}
 		
 		return tokens.toArray(new String[tokens.size()]);
 	}
@@ -646,7 +653,10 @@ implements JavaNamespace
 			}
 		}
 		
-		tokens.add(new String(data, 0, tokenEnd));
+		if (leaveInEmpties || tokenEnd != 0)
+		{
+			tokens.add(new String(data, 0, tokenEnd));
+		}
 		
 		String[] reversed = new String[tokens.size()];
 		for (int i = 0; i < reversed.length; i++)
@@ -2508,7 +2518,7 @@ implements JavaNamespace
 		return endsWith(longer.toLowerCase(), shorter.toLowerCase());
 	}
 	
-	public static boolean eqCaseInsensitively(String a, String b)
+	public static boolean eqCaseInsensitively(@Nullable String a, @Nullable String b)
 	{
 		return a == null ? b == null : (b != null && a.equalsIgnoreCase(b));
 	}
@@ -3361,16 +3371,23 @@ implements JavaNamespace
 	}
 	
 	
-	@PossiblySnapshotPossiblyLiveValue  //Future-proofing ^^'
+	@PossiblySnapshotPossiblyLiveValue
 	public static String universalNewlines(String original)
 	{
-		char[] ca0 = original.toCharArray();
-		char[] ca1 = universalNewlinesCharArrayOPC(ca0);
-		
-		if (ca1 == ca0)
+		if (original.indexOf('\r') == -1)
+		{
 			return original;
+		}
 		else
-			return new String(ca1);
+		{
+			char[] ca0 = original.toCharArray();
+			char[] ca1 = universalNewlinesCharArrayOPC(ca0);
+			
+			if (ca1 == ca0)
+				return original;
+			else
+				return new String(ca1);
+		}
 	}
 	
 	
@@ -3778,7 +3795,7 @@ implements JavaNamespace
 		return encodeTextToByteArray(s, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
 	}
 	
-	public static byte[] encodeTextToByteArrayReportingRE(CharSequence s, Charset encoding) throws RuntimeException
+	public static byte[] encodeTextToByteArrayReportingUnchecked(CharSequence s, Charset encoding) throws RuntimeException
 	{
 		try
 		{
@@ -3927,7 +3944,23 @@ implements JavaNamespace
 	
 	
 	
+	public static Writer encodingReporting(OutputStream in, Charset encoding)
+	{
+		return new OutputStreamWriter(in,
+		encoding.newEncoder()
+		.onMalformedInput(CodingErrorAction.REPORT)
+		.onUnmappableCharacter(CodingErrorAction.REPORT)
+		);
+	}
 	
+	public static Reader decodingReporting(InputStream in, Charset encoding)
+	{
+		return new InputStreamReader(in,
+		encoding.newDecoder()
+		.onMalformedInput(CodingErrorAction.REPORT)
+		.onUnmappableCharacter(CodingErrorAction.REPORT)
+		);
+	}
 	
 	
 	
@@ -4736,6 +4769,88 @@ implements JavaNamespace
 		't', '\t'
 		);
 	}
+	
+	
+	
+	
+	/**
+	 * This is similar to URL escaping with the % character but only ASCII characters (the first 127 characters of ISO-8859-1 and Unicode) are supported.
+	 * This is not just similar, but exactly the same as URL escaping before unicode was introduced!
+	 * And indeed (because over character 127 are not allowed) any of these escapes is a valid URL escape :)
+	 * (Not necessarily vice-versa since URL escapes also support UTF-8, or more rarely ISO-8859-1)
+	 */
+	public static String descapeASCIIPercentSignSyntax(String s) throws TextSyntaxException
+	{
+		int n = s.length();
+		
+		StringBuilder b = new StringBuilder();
+		
+		int inEscape = 0;
+		char firstEscapeChar = 0;
+		
+		for (int i = 0; i < n; i++)
+		{
+			char c = s.charAt(i);
+			
+			if (inEscape == 1)
+			{
+				firstEscapeChar = c;
+				inEscape = 2;
+			}
+			else if (inEscape == 2)
+			{
+				char secondEscapeChar = c;
+				
+				if (!( (firstEscapeChar >= '0' && firstEscapeChar <= '9') || (firstEscapeChar >= 'A' && firstEscapeChar <= 'F') || (firstEscapeChar >= 'a' && firstEscapeChar <= 'f') ))
+					throw TextSyntaxException.inst(("Illegal hexadecimal: "+firstEscapeChar)+secondEscapeChar);
+				
+				if (!( (secondEscapeChar >= '0' && secondEscapeChar <= '9') || (secondEscapeChar >= 'A' && secondEscapeChar <= 'F') || (secondEscapeChar >= 'a' && secondEscapeChar <= 'f') ))
+					throw TextSyntaxException.inst(("Illegal hexadecimal: "+firstEscapeChar)+secondEscapeChar);
+				
+				int v;
+				try
+				{
+					v = Integer.parseInt(new String(new char[]{firstEscapeChar, secondEscapeChar}), 16);
+				}
+				catch (NumberFormatException exc)
+				{
+					throw new ImpossibleException(exc);
+				}
+				
+				if (v > 127)
+					throw TextSyntaxException.inst(("Illegal character encoded: %"+firstEscapeChar)+secondEscapeChar);
+				
+				char escapedChar = (char) v;
+				
+				b.append(escapedChar);
+				
+				inEscape = 0;
+			}
+			else
+			{
+				if (c == '%')
+				{
+					inEscape = 1;
+				}
+				else
+				{
+					b.append(c);
+				}
+			}
+		}
+		
+		if (inEscape == 1)
+			throw TextSyntaxException.inst("Syntax error, EOF in the middle of an escape!");
+		
+		if (inEscape == 2)
+			throw TextSyntaxException.inst("Syntax error, EOF in the middle of an escape!");  //different line number :3
+		
+		return b.toString();
+	}
+	
+	
+	
+	
 	
 	
 	
@@ -8648,14 +8763,18 @@ primxp
 	
 	public static int indexOf(String source, int sourceOffset, int sourceCount, String target, int targetOffset, int targetCount, int fromIndex, CharEqualityComparator ceq)
 	{
+		//Copied and altered slightly from String.java
+		
 		if (fromIndex >= sourceCount)
 		{
 			return (targetCount == 0 ? sourceCount : -1);
 		}
+		
 		if (fromIndex < 0)
 		{
 			fromIndex = 0;
 		}
+		
 		if (targetCount == 0)
 		{
 			return fromIndex;
@@ -8686,6 +8805,7 @@ primxp
 				}
 			}
 		}
+		
 		return -1;
 	}
 	
@@ -8967,5 +9087,20 @@ primxp
 			
 			
 		}, strs);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int cmpCaseInsensitively(String a, String b)
+	{
+		if (a == null || b == null)
+			return cmp2(a, b);
+		else
+			return a.compareToIgnoreCase(b);
 	}
 }

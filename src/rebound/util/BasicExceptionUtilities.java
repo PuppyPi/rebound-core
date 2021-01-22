@@ -118,7 +118,7 @@ public class BasicExceptionUtilities
 	{
 		if (t instanceof Error)
 		{
-			if (t instanceof AssertionError || t instanceof LinkageError)
+			if (!(t instanceof AssertionError || t instanceof LinkageError))
 				throw (Error)t;
 		}
 	}

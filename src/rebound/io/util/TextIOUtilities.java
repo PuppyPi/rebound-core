@@ -16,9 +16,12 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import rebound.io.HeadReopenableInputStream;
 import rebound.io.ucs4.UCS4ArrayWriter;
 import rebound.io.ucs4.UCS4Reader;
 import rebound.io.ucs4.UCS4Writer;
+import rebound.text.encodings.detection.TextEncodingDetector;
+import rebound.text.encodings.detection.detectors.StandardTextEncodingDetection;
 
 public class TextIOUtilities
 {
@@ -38,9 +41,19 @@ public class TextIOUtilities
 		return new String(TextIOUtilities.readAll(new InputStreamReader(in, encoding)));
 	}
 	
+	public static String readAllText(InputStream in, TextEncodingDetector encodingDetector) throws IOException
+	{
+		int headSize = encodingDetector.headSize();
+		HeadReopenableInputStream headReopenable = new HeadReopenableInputStream(in, headSize);
+		
+		Charset encoding = encodingDetector.detectEncoding(headReopenable::openNewHeadStream);
+		
+		return readAllText(headReopenable.stream(), encoding == null ? StandardCharsets.UTF_8 : encoding);
+	}
+	
 	public static String readAllText(InputStream in) throws IOException
 	{
-		return new String(TextIOUtilities.readAll(new InputStreamReader(in)));
+		return readAllText(in, StandardTextEncodingDetection.certain());  //UTF-8 is an important and strong default, let's not use heuristics (idk if it matters though X3' )
 	}
 	
 	public static long pump(Reader in, Writer out) throws IOException

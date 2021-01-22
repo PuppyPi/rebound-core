@@ -296,16 +296,5 @@ implements JavaNamespace
 	}
 	
 	
-	public static void softasrt(boolean c)
-	{
-		if (!c)
-			logBug();
-	}
-	
-	
-	
-	
-	
-	
 	private GlobalCodeMetastuffContext() {}
 }

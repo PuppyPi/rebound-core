@@ -22,7 +22,6 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -51,10 +50,10 @@ import rebound.annotations.semantic.allowedoperations.TreatAsImmutableValue;
 import rebound.annotations.semantic.allowedoperations.VariableLengthValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.ImmutableValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.concurrency.immutability.JavaImmutability;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.exceptions.ImpossibleException;
@@ -484,8 +483,129 @@ public class PrimitiveCollections
 	
 	
 	
+	public static void sort(boolean[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(boolean[] array, int start, int length)
+	{
+		int nFalses = 0;
+		int nTrues = 0;
+		
+		for (int i = 0; i < length; i++)
+		{
+			if (array[i + start])
+				nTrues++;
+			else
+				nFalses++;
+		}
+		
+		for (int i = 0; i < nFalses; i++)
+		{
+			array[i + start] = false;
+		}
+		
+		int s = start + nFalses;
+		
+		for (int i = 0; i < nTrues; i++)
+		{
+			array[i + s] = true;
+		}
+	}
 	
 	
+	/* <<< primxp
+	_$$primxpconf:noboolean$$_
+	
+	public static void sort(_$$prim$$_[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(_$$prim$$_[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	 */
+	
+	public static void sort(byte[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(byte[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(char[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(char[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(short[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(short[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(float[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(float[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(int[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(int[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(double[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(double[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	
+	
+	public static void sort(long[] array)
+	{
+		sortArray(array, 0, array.length);
+	}
+	
+	public static void sortArray(long[] array, int start, int length)
+	{
+		Arrays.sort(array, start, length);
+	}
+	//>>>
+		
 	
 	
 	
@@ -1106,7 +1226,7 @@ primxp
 	@WritableValue
 	public static BooleanList newBooleanListZerofilled(int size)
 	{
-		return new BitSetBackedBooleanList(new BitSet(), size);
+		return BitSetBackedBooleanList.newBooleanListZerofilled(size);
 	}
 	
 	
@@ -3062,6 +3182,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -3387,6 +3514,35 @@ primxp
 	
 	
 	
+	public static @Nonnull _$$Primitive$$_List uniquedOfPresorted(@ReadonlyValue @Nonnull _$$Primitive$$_List presorted)
+	{
+		int n = presorted.size();
+		
+		_$$Primitive$$_ArrayList uniqued = new _$$Primitive$$_ArrayList(n);
+		
+		_$$prim$$_ last = _$$primdef$$_;
+		
+		for (int i = 0; i < n; i++)
+		{
+			_$$prim$$_ e = presorted.get_$$Prim$$_(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.add_$$Prim$$_(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.add_$$Prim$$_(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -6328,6 +6484,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -6653,6 +6816,35 @@ primxp
 	
 	
 	
+	public static @Nonnull BooleanList uniquedOfPresorted(@ReadonlyValue @Nonnull BooleanList presorted)
+	{
+		int n = presorted.size();
+		
+		BooleanArrayList uniqued = new BooleanArrayList(n);
+		
+		boolean last = false;
+		
+		for (int i = 0; i < n; i++)
+		{
+			boolean e = presorted.getBoolean(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addBoolean(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addBoolean(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -9593,6 +9785,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -9918,6 +10117,35 @@ primxp
 	
 	
 	
+	public static @Nonnull ByteList uniquedOfPresorted(@ReadonlyValue @Nonnull ByteList presorted)
+	{
+		int n = presorted.size();
+		
+		ByteArrayList uniqued = new ByteArrayList(n);
+		
+		byte last = ((byte)0);
+		
+		for (int i = 0; i < n; i++)
+		{
+			byte e = presorted.getByte(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addByte(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addByte(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -12858,6 +13086,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -13183,6 +13418,35 @@ primxp
 	
 	
 	
+	public static @Nonnull CharacterList uniquedOfPresorted(@ReadonlyValue @Nonnull CharacterList presorted)
+	{
+		int n = presorted.size();
+		
+		CharacterArrayList uniqued = new CharacterArrayList(n);
+		
+		char last = ((char)0);
+		
+		for (int i = 0; i < n; i++)
+		{
+			char e = presorted.getChar(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addChar(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addChar(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -16123,6 +16387,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -16448,6 +16719,35 @@ primxp
 	
 	
 	
+	public static @Nonnull ShortList uniquedOfPresorted(@ReadonlyValue @Nonnull ShortList presorted)
+	{
+		int n = presorted.size();
+		
+		ShortArrayList uniqued = new ShortArrayList(n);
+		
+		short last = ((short)0);
+		
+		for (int i = 0; i < n; i++)
+		{
+			short e = presorted.getShort(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addShort(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addShort(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -19388,6 +19688,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -19713,6 +20020,35 @@ primxp
 	
 	
 	
+	public static @Nonnull FloatList uniquedOfPresorted(@ReadonlyValue @Nonnull FloatList presorted)
+	{
+		int n = presorted.size();
+		
+		FloatArrayList uniqued = new FloatArrayList(n);
+		
+		float last = 0.0f;
+		
+		for (int i = 0; i < n; i++)
+		{
+			float e = presorted.getFloat(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addFloat(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addFloat(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -22653,6 +22989,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -22978,6 +23321,35 @@ primxp
 	
 	
 	
+	public static @Nonnull IntegerList uniquedOfPresorted(@ReadonlyValue @Nonnull IntegerList presorted)
+	{
+		int n = presorted.size();
+		
+		IntegerArrayList uniqued = new IntegerArrayList(n);
+		
+		int last = 0;
+		
+		for (int i = 0; i < n; i++)
+		{
+			int e = presorted.getInt(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addInt(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addInt(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -25918,6 +26290,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -26243,6 +26622,35 @@ primxp
 	
 	
 	
+	public static @Nonnull DoubleList uniquedOfPresorted(@ReadonlyValue @Nonnull DoubleList presorted)
+	{
+		int n = presorted.size();
+		
+		DoubleArrayList uniqued = new DoubleArrayList(n);
+		
+		double last = 0.0d;
+		
+		for (int i = 0; i < n; i++)
+		{
+			double e = presorted.getDouble(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addDouble(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addDouble(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -29183,6 +29591,13 @@ primxp
 		
 		
 		
+		public void sort()
+		{
+			sortArray(data, 0, size);
+		}
+		
+		
+		
 		
 		
 		
@@ -29508,6 +29923,35 @@ primxp
 	
 	
 	
+	public static @Nonnull LongList uniquedOfPresorted(@ReadonlyValue @Nonnull LongList presorted)
+	{
+		int n = presorted.size();
+		
+		LongArrayList uniqued = new LongArrayList(n);
+		
+		long last = 0l;
+		
+		for (int i = 0; i < n; i++)
+		{
+			long e = presorted.getLong(0);
+			
+			if (i == 0)
+			{
+				last = e;
+				uniqued.addLong(e);
+			}
+			else
+			{
+				if (e != last)
+				{
+					last = e;
+					uniqued.addLong(e);
+				}
+			}
+		}
+		
+		return uniqued;
+	}
 	
 	
 	
@@ -30767,7 +31211,7 @@ primxp
 	
 	
 	
-	
+	//TODO More efficient addAll()!!!  X'D
 	
 	
 	/* <<<
@@ -30794,6 +31238,14 @@ _$$primxpconf:noboolean$$_
 		public Sorted_$$Primitive$$_SetBackedByList(@LiveValue _$$Primitive$$_List presortedOrEmptyUnderlying)
 		{
 			this.underlying = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static Sorted_$$Primitive$$_SetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<_$$Primitive$$_> c)
+		{
+			Sorted_$$Primitive$$_SetBackedByList set = new Sorted_$$Primitive$$_SetBackedByList();
+			set.addAll(c);
+			return set;
 		}
 		
 		
@@ -31103,6 +31555,14 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		
+		public static SortedByteSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Byte> c)
+		{
+			SortedByteSetBackedByList set = new SortedByteSetBackedByList();
+			set.addAll(c);
+			return set;
+		}
+		
+		
 		
 		
 		
@@ -31405,6 +31865,14 @@ _$$primxpconf:noboolean$$_
 		public SortedCharacterSetBackedByList(@LiveValue CharacterList presortedOrEmptyUnderlying)
 		{
 			this.underlying = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static SortedCharacterSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Character> c)
+		{
+			SortedCharacterSetBackedByList set = new SortedCharacterSetBackedByList();
+			set.addAll(c);
+			return set;
 		}
 		
 		
@@ -31713,6 +32181,14 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		
+		public static SortedShortSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Short> c)
+		{
+			SortedShortSetBackedByList set = new SortedShortSetBackedByList();
+			set.addAll(c);
+			return set;
+		}
+		
+		
 		
 		
 		
@@ -32015,6 +32491,14 @@ _$$primxpconf:noboolean$$_
 		public SortedFloatSetBackedByList(@LiveValue FloatList presortedOrEmptyUnderlying)
 		{
 			this.underlying = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static SortedFloatSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Float> c)
+		{
+			SortedFloatSetBackedByList set = new SortedFloatSetBackedByList();
+			set.addAll(c);
+			return set;
 		}
 		
 		
@@ -32323,6 +32807,14 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		
+		public static SortedIntegerSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Integer> c)
+		{
+			SortedIntegerSetBackedByList set = new SortedIntegerSetBackedByList();
+			set.addAll(c);
+			return set;
+		}
+		
+		
 		
 		
 		
@@ -32628,6 +33120,14 @@ _$$primxpconf:noboolean$$_
 		}
 		
 		
+		public static SortedDoubleSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Double> c)
+		{
+			SortedDoubleSetBackedByList set = new SortedDoubleSetBackedByList();
+			set.addAll(c);
+			return set;
+		}
+		
+		
 		
 		
 		
@@ -32930,6 +33430,14 @@ _$$primxpconf:noboolean$$_
 		public SortedLongSetBackedByList(@LiveValue LongList presortedOrEmptyUnderlying)
 		{
 			this.underlying = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static SortedLongSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Long> c)
+		{
+			SortedLongSetBackedByList set = new SortedLongSetBackedByList();
+			set.addAll(c);
+			return set;
 		}
 		
 		

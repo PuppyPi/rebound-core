@@ -3,6 +3,7 @@ package rebound.math;
 import static java.lang.Math.*;
 import static rebound.bits.BitUtilities.*;
 import static rebound.bits.Unsigned.*;
+import static rebound.math.SmallFloatMathUtilities.*;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -57,6 +58,17 @@ public class SmallIntegerMathUtilities
 		throw new NotYetImplementedException();
 	}
 	
+	
+	
+	public static int ceildiv(int numerator, int divisor)
+	{
+		return ceilingDivision(numerator, divisor);
+	}
+	
+	public static long ceildiv(long numerator, long divisor)
+	{
+		return ceilingDivision(numerator, divisor);
+	}
 	
 	
 	
@@ -1614,7 +1626,6 @@ _$$primxpconf:intsonly$$_
 		
 		return e;
 	}
-	
 	// >>>	
 	
 	
@@ -2702,6 +2713,13 @@ _$$primxpconf:noboolean$$_
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
+
+	public static _$$prim$$_ requireNonZero(@Negative _$$prim$$_ i)
+	{
+		if (i == 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	 */
 	
 	
@@ -2730,6 +2748,13 @@ _$$primxpconf:noboolean$$_
 	public static byte requireNegative(@Negative byte i)
 	{
 		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireNonZero(@Negative byte i)
+	{
+		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
@@ -2764,6 +2789,13 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
+	public static char requireNonZero(@Negative char i)
+	{
+		if (i == 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
 	
 	
 	public static short requireNonNegative(@Nonnegative short i)
@@ -2790,6 +2822,13 @@ _$$primxpconf:noboolean$$_
 	public static short requireNegative(@Negative short i)
 	{
 		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireNonZero(@Negative short i)
+	{
+		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
@@ -2824,6 +2863,13 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
+	public static float requireNonZero(@Negative float i)
+	{
+		if (i == 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
 	
 	
 	public static int requireNonNegative(@Nonnegative int i)
@@ -2850,6 +2896,13 @@ _$$primxpconf:noboolean$$_
 	public static int requireNegative(@Negative int i)
 	{
 		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireNonZero(@Negative int i)
+	{
+		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
@@ -2884,6 +2937,13 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
+	public static double requireNonZero(@Negative double i)
+	{
+		if (i == 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
 	
 	
 	public static long requireNonNegative(@Nonnegative long i)
@@ -2914,6 +2974,12 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
+	public static long requireNonZero(@Negative long i)
+	{
+		if (i == 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	// >>>
 	
 	
@@ -2978,5 +3044,23 @@ _$$primxpconf:noboolean$$_
 	{
 		boolean overflows = (bits & 63) != bits;
 		return overflows ? 0 : (value << bits);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int ceilsqrtS32(int v)
+	{
+		//TODO X'D
+		return roundCeilS32(sqrt((double)v));
 	}
 }

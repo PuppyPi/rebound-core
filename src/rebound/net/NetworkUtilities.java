@@ -61,17 +61,48 @@ implements JavaNamespace
 	public static final Inet6Address IPv6Wildcard = (Inet6Address) ipToOOP(new byte[LengthOfIPv6AddressInBytes]);
 	
 	
-	protected static final boolean IsIPv6Supported = InetAddress.getLoopbackAddress() instanceof Inet6Address;  //hackin into java.net.InetAddressImplFactory.isIPv6Supported() without voiding the warranty! ;D XD
-	public static boolean isIPv6Supported()
+	protected static final boolean IsIPv6Preferred = InetAddress.getLoopbackAddress() instanceof Inet6Address;  //Todo get java.net.InetAddressImplFactory.isIPv6Supported() separately!
+	public static boolean isIPv6Preferred()
 	{
-		return IsIPv6Supported;
+		return IsIPv6Preferred;
 	}
 	
 	public static InetAddress getWildcardAddress()
 	{
-		return isIPv6Supported() ? IPv6Wildcard : IPv4Wildcard;
+		return isIPv6Preferred() ? IPv6Wildcard : IPv4Wildcard;
 	}
 	
+	
+	/**
+	 * @return usually the string "localhost", which is usually equivalent to "127.0.0.1" and "::1"
+	 */
+	public static String getLoopbackHost()
+	{
+		return InetAddress.getLoopbackAddress().getHostName();
+	}
+	
+	/**
+	 * @return the computer's name (ie, /etc/hostname ) not to be confused with "localhost" which is generally what's returned by {@link #getLoopbackHost()}!
+	 */
+	public static String getHostname()
+	{
+		try
+		{
+			return InetAddress.getLocalHost().getHostName();
+		}
+		catch (UnknownHostException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
+	/**
+	 * @return usually the string "0.0.0.0"
+	 */
+	public static String getWildcardHost()
+	{
+		return getWildcardAddress().getHostName();
+	}
 	
 	
 	
@@ -847,6 +878,11 @@ implements JavaNamespace
 		return _urlFormEscape_JRE(s);
 	}
 	
+	public static String urlPathEscape(@Nonnull String s)
+	{
+		return _urlFormEscape_JRE(s).replace("%2F", "/");
+	}
+	
 	public static String _urlFormEscape_JRE(@Nonnull String s)
 	{
 		try
@@ -915,6 +951,8 @@ implements JavaNamespace
 				}
 				else
 				{
+					//Thanks UTF-8, for being one char per byte (albeit possibly many bytes per char)  :>
+					
 					byte[] enc = new String(new int[]{c}, 0, 1).getBytes(StandardCharsets.UTF_8);
 					
 					for (byte encByte : enc)

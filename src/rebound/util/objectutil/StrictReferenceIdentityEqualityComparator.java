@@ -1,6 +1,7 @@
 package rebound.util.objectutil;
 
 import rebound.annotations.semantic.SignalType;
+import rebound.util.functional.EqualityComparator;
 
 /**
  * Interfaces for inspecting and rearranging/reimplementing/optimizing predicate trees! :D

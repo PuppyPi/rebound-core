@@ -1296,4 +1296,82 @@ public class CodeHinting
 	
 	
 	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E undefined()
+	{
+		return null;
+	}
+	
+	
+	
+	/* <<<
+	primxp
+	
+	public static _$$prim$$_ undefined_$$Prim$$_()
+	{
+		return _$$primdef$$_;
+	}
+	 */
+	
+	public static boolean undefinedBoolean()
+	{
+		return false;
+	}
+	
+	public static byte undefinedByte()
+	{
+		return ((byte)0);
+	}
+	
+	public static char undefinedChar()
+	{
+		return ((char)0);
+	}
+	
+	public static short undefinedShort()
+	{
+		return ((short)0);
+	}
+	
+	public static float undefinedFloat()
+	{
+		return 0.0f;
+	}
+	
+	public static int undefinedInt()
+	{
+		return 0;
+	}
+	
+	public static double undefinedDouble()
+	{
+		return 0.0d;
+	}
+	
+	public static long undefinedLong()
+	{
+		return 0l;
+	}
+	// >>>
 }

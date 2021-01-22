@@ -6,6 +6,7 @@ import static rebound.util.NIOBufferUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.RandomAccess;
@@ -34,21 +35,29 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	 */
 	public BitSetBackedBooleanList()
 	{
-		this(0);
+		this.bitSet = new BitSet();
+		this.size = 0;
+	}
+	
+	/**
+	 * Initially empty.
+	 * To make one that's full of false's, see {@link #newBooleanListZerofilled(int)} :3
+	 * @param  capacity  see {@link ArrayList#ArrayList(int)}; it's the same thing :3
+	 */
+	public BitSetBackedBooleanList(int capacity, Void v)
+	{
+		this.bitSet = new BitSet(capacity);
+		this.size = 0;
 	}
 	
 	/**
 	 * Initialized to all false's :>
 	 */
-	public BitSetBackedBooleanList(int size)
+	public static BitSetBackedBooleanList newBooleanListZerofilled(int size)
 	{
-		this.bitSet = new BitSet();
-		this.size = size;
+		return new BitSetBackedBooleanList(new BitSet(), size);
 	}
 	
-	/**
-	 * Initialized to all zeros :>
-	 */
 	public BitSetBackedBooleanList(@LiveValue BitSet bitSet, int size)
 	{
 		this.bitSet = requireNonNull(bitSet);
@@ -183,6 +192,10 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 		this.size = newSize;
 	}
 	
+	public void setSize(int newSize)
+	{
+		this.size = newSize;
+	}
 	
 	
 	

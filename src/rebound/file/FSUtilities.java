@@ -66,7 +66,6 @@ import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoFreeResourceFoundException;
 import rebound.exceptions.NotFoundException;
-import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.io.util.FSIOUtilities;
@@ -81,6 +80,7 @@ import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.BinaryProcedureThrowingIOException;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
@@ -126,6 +126,419 @@ implements JavaNamespace
 	{
 		return path == null ? NonExistantFile.inst() : new File(path);
 	}
+	
+	
+	
+	
+	
+	
+	
+	public static @Nonnull String[] listDirectoryBasenamesOrThrow(@Nonnull File d) throws IOException
+	{
+		requireNonNull(d);
+		
+		String[] children = d.list();
+		
+		if (children == null)
+			throw new IOException("I/O Error listing directory: "+repr(d.getPath()));
+		
+		return children;
+	}
+	
+	public static @Nonnull File[] listDirectoryFilesOrThrow(@Nonnull File d) throws IOException
+	{
+		requireNonNull(d);
+		
+		File[] children = d.listFiles();
+		
+		if (children == null)
+			throw new IOException("I/O Error listing directory: "+repr(d.getPath()));
+		
+		return children;
+	}
+	
+	
+	
+	
+	public static void checkDir(File d) throws ImpossibleException
+	{
+		if (!d.isDirectory())
+			throw new ImpossibleException("Not a directory: "+repr(d.getAbsolutePath()));
+	}
+	
+	public static void checkFile(File f) throws ImpossibleException
+	{
+		//checkRegularFile(f);  //It's a good safe default I think, since nonregular files include device files and you wouldn't want to be interacting with those accidentally!
+		checkRegularOrSpecialFile(f);  //But then that makes it difficult to do useful tricks like use fifos ;3
+	}
+	
+	public static void checkRegularFile(File f) throws ImpossibleException
+	{
+		if (!isRegularFile(f))
+			throw new ImpossibleException("Not a regular file: "+repr(f.getAbsolutePath()));
+	}
+	
+	public static void checkRegularOrSpecialFile(File f) throws ImpossibleException
+	{
+		if (!isSpecialOrRegularFile(f))
+			throw new ImpossibleException("Not a regular-or-special file: "+repr(f.getAbsolutePath()));
+	}
+	
+	
+	
+	
+	
+	
+	public static void ensureDirLeafMandatory(File d)
+	{
+		try
+		{
+			ensureDirLeafThrowing(d);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void ensureDirLeafThrowing(File d) throws IOException
+	{
+		if (d.isDirectory())  //it's important to dereference symlinks here :>
+			return;
+		else if (lexists(d))
+			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+		else
+		{
+			d.mkdir();
+			
+			if (d.isDirectory())
+				return;
+			else if (lexists(d))
+				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
+		}
+	}
+	
+	
+	
+	
+	public static void ensureDirsWholePathMandatory(File d)
+	{
+		try
+		{
+			ensureDirsWholePathThrowing(d);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void ensureDirsWholePathThrowing(File d) throws IOException
+	{
+		if (d.isDirectory())  //it's important to dereference symlinks here :>
+			return;
+		else if (lexists(d))
+			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+		else
+		{
+			d.mkdirs();
+			
+			if (d.isDirectory())
+				return;
+			else if (lexists(d))
+				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
+		}
+	}
+	
+	
+	public static void ensureRenameThrowing(File oldPath, File newPath) throws IOException
+	{
+		oldPath = normpath(oldPath.getAbsoluteFile());
+		newPath = normpath(newPath.getAbsoluteFile());
+		
+		if (!lexists(oldPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the source didn't exist!");
+		}
+		
+		if (lexists(newPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the destination already existed!");
+		}
+		
+		if (!oldPath.renameTo(newPath))
+		{
+			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath()));
+		}
+	}
+	
+	
+	public static void ensureEmptyFileThrowing(File f) throws IOException
+	{
+		if (f.isFile() && f.length() == 0)
+		{
+			return;
+		}
+		else if (lexists(f))
+		{
+			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+		}
+		else
+		{
+			f.createNewFile();
+			
+			if (f.isFile())
+			{
+				if (f.length() != 0)
+					throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started writing to it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+				
+				return;
+			}
+			else if (lexists(f))
+			{
+				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+			}
+			else
+			{
+				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
+			}
+		}
+	}
+	
+	public static void ensureFileThrowing(File f) throws IOException
+	{
+		if (f.isFile())
+			return;
+		else if (lexists(f))
+			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+		else
+		{
+			f.createNewFile();
+			
+			if (f.isFile())
+				return;
+			else if (lexists(f))
+				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+			else
+				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
+		}
+	}
+	
+	
+	public static void ensureWritableEmptyFileThrowing(File f) throws IOException
+	{
+		if (f.isFile() && f.length() == 0)
+		{
+			return;
+		}
+		else if (lexists(f))
+		{
+			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+		}
+		else
+		{
+			f.createNewFile();
+			
+			if (f.isFile())
+			{
+				if (f.length() != 0)
+					throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started messing with it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+				
+				boolean success = false;
+				
+				try
+				{
+					try (OutputStream out = new FileOutputStream(f))
+					{
+						out.write(0xAA);
+						
+						if (f.length() != 1)
+							throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started messing with it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+						
+						out.close();
+					}
+					
+					if (f.length() != 1)
+						throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started messing with it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+					
+					new FileOutputStream(f).close();  //truncate it back to the empty state :3
+					
+					if (f.length() != 0)
+						throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started messing with it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
+					
+					success = true;
+				}
+				finally
+				{
+					if (!success)
+						deleteMandatory(f);
+				}
+				
+				return;
+			}
+			else if (lexists(f))
+			{
+				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
+			}
+			else
+			{
+				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static File createTempFileUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
+	{
+		try
+		{
+			return File.createTempFile(prefix, suffix);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static boolean canFileExist(File f)
+	{
+		if (lexists(f))
+		{
+			return true;  //It already does! XD
+		}
+		else
+		{
+			boolean lexistsAfter;
+			
+			try
+			{
+				f.createNewFile();
+			}
+			catch (IOException exc)
+			{
+				return false;
+			}
+			finally
+			{
+				lexistsAfter = lexists(f);
+				
+				if (lexistsAfter)
+				{
+					f.delete();
+				}
+			}
+			
+			return lexistsAfter;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param nameMaker 'f' will become whatever this gives for 0 and the rest will be shifted up :>
+	 */
+	public static void shiftFile(File f, UnaryFunctionIntToObject<String> nameMaker)
+	{
+		File d = f.getParentFile();
+		
+		int pastLast;
+		{
+			int i = 0;
+			while (lexists(new File(d, nameMaker.f(i))))
+				i++;
+			pastLast = i;
+		}
+		
+		for (int i = pastLast-1; i >= 0; i++)
+		{
+			String currentName = nameMaker.f(i);
+			String nextName = nameMaker.f(i+1);
+			
+			File current = new File(d, currentName);
+			File next = new File(d, nextName);
+			
+			renameMandatoryRE(current, next);
+		}
+		
+		String nextName = nameMaker.f(0);
+		File next = new File(d, nextName);
+		renameMandatoryRE(f, next);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void renameMandatory(File file, File newPath) throws IOException
+	{
+		if (lexists(newPath))
+			throw new IOException("Destination already exists!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+		
+		if (!lexists(file))
+			throw new IOException("Source doesn't exist!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+		
+		if (!file.renameTo(newPath))
+			throw new IOException("Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
+	}
+	
+	public static void renameMandatoryRE(File file, File newPath) throws RuntimeException
+	{
+		try
+		{
+			renameMandatory(file, newPath);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static class NonExistantFile
 	extends File
@@ -432,6 +845,7 @@ implements JavaNamespace
 	
 	/**
 	 * Normalize a path by making it absolute and removing '..'s and '.'s, and duplicate and trailing '/'s
+	 * • Includes abspath()
 	 */
 	public static File normpath(File f)
 	{
@@ -539,13 +953,6 @@ implements JavaNamespace
 			f = f.substring(1);
 		
 		
-		f = rtrim(f, separator);
-		f = ltrimstr(f, "."+separator);
-		
-		if (eq(f, "."))
-			return "";
-		
-		
 		@WritableValue List<String> elements = new ArrayList<>(Arrays.asList(StringUtilities.split(f, separator, -1, WhatToDoWithEmpties.LeaveOutEmpties)));
 		
 		if (elements.size() == 1 && elements.get(0).isEmpty())
@@ -560,6 +967,10 @@ implements JavaNamespace
 				if (current.isEmpty())
 				{
 					throw new AssertionError();
+				}
+				else if (eq(current, "."))
+				{
+					elements.remove(i);
 				}
 				else if (eq(current, ".."))
 				{
@@ -1134,8 +1545,8 @@ implements JavaNamespace
 		}
 	}
 	
-	@Nullable
-	public static String getFilenameExtension(String path)
+	
+	public static @Nullable String getFilenameExtension(String path)
 	{
 		return getFilenameExtension(path, File.separatorChar);
 	}
@@ -1382,6 +1793,8 @@ implements JavaNamespace
 			
 			if (strict)
 			{
+				requireNonNull(n);
+				
 				// :>
 				{
 					if (first)
@@ -1790,33 +2203,97 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 */
 	public static boolean deleteAndCheck(File f)
 	{
 		boolean reportedSuccess = f.delete();
-		return !reportedSuccess || !lexists(f);
+		return reportedSuccess || !lexists(f);
 	}
 	
-	public static void deleteMandatory(File f) throws UncheckedIOException
+	
+	
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * 		TODO should this be in the IfExists variant??!
+	 */
+	public static void deleteThrowing(File f) throws IOException
 	{
 		boolean success = deleteAndCheck(f);
 		if (!success)
-			throw new UncheckedIOException(new IOException("Could not delete file: "+f.getAbsolutePath()));
+			throw new IOException("Could not delete file or directory: "+f.getAbsolutePath());
 	}
 	
-	public static void deleteMandatoryIfExists(File f) throws UncheckedIOException
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 */
+	public static void deleteIfExistsThrowing(File f) throws IOException
 	{
-		if (!lexists(f))
-			return;
-		deleteMandatory(f);
+		if (lexists(f))
+			deleteThrowing(f);
 	}
 	
-	public static void deleteRecursivelyMandatory(File f, boolean tryAll) throws UncheckedIOException
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * 		TODO should this be in the IfExists variant??!
+	 */
+	public static void deleteRecursivelyThrowing(File f, boolean tryAll) throws IOException
 	{
 		boolean success = deleteRecursively(f, tryAll);
 		if (!success)
-			throw new UncheckedIOException(new IOException("Could not delete file: "+f.getAbsolutePath()));
+			throw new IOException("Could not completely delete file or directory: "+f.getAbsolutePath());
 	}
 	
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * 		TODO should this be in the IfExists variant??!
+	 */
+	public static void deleteMandatory(File f) throws UncheckedIOException
+	{
+		try
+		{
+			deleteThrowing(f);
+		}
+		catch (IOException exc)
+		{
+			throw new UncheckedIOException(exc);
+		}
+	}
+	
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 */
+	public static void deleteIfExistsMandatory(File f) throws UncheckedIOException
+	{
+		try
+		{
+			deleteIfExistsThrowing(f);
+		}
+		catch (IOException exc)
+		{
+			throw new UncheckedIOException(exc);
+		}
+	}
+	
+	/**
+	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * 		TODO should this be in the IfExists variant??!
+	 */
+	public static void deleteRecursivelyMandatory(File f, boolean tryAll) throws UncheckedIOException
+	{
+		try
+		{
+			deleteRecursivelyThrowing(f, tryAll);
+		}
+		catch (IOException exc)
+		{
+			throw new UncheckedIOException(exc);
+		}
+	}
 	
 	
 	
@@ -1830,6 +2307,14 @@ implements JavaNamespace
 	 * However, *source* will definitely not be deleted until after a completely successful move :)
 	 */
 	public static void move(File source, File dest) throws IOException
+	{
+		move(source, dest, (s, d) ->
+		{
+			throw new IOException("Couldn't move inner file while copy-moving directory tree: "+repr(s.getPath())+" -> "+repr(d.getPath()));
+		});
+	}
+	
+	public static void move(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair) throws IOException
 	{
 		if (lexists(dest))
 			dest.delete();
@@ -1890,19 +2375,110 @@ implements JavaNamespace
 		}
 		else if (source.isDirectory())
 		{
-			//TODO!!!
-			// NOTE: If we change this, remove the preemptive NYI in the UIDSFS-Complete dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
-			throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+			//Todo remove the preemptive NYI in the UIDSFS-Complete dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
+			//throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+			
+			moveMergingDirectoryTrees(source, dest, handleUnmoveableSourceDestFilePair);
 		}
 		else if (source.exists())
 		{
-			throw new NotYetImplementedException("NYI: Moving special files (eg, devices and fifos) across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+			//Special file!! :D
+			
+			//throw new NotYetImplementedException("NYI: Moving special files (eg, devices and fifos) across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
+			
+			List<String> cmdAndArgs = listof("mv", source.getAbsolutePath(), dest.getAbsolutePath());
+			
+			try
+			{
+				ProcessBuilder b = new ProcessBuilder(cmdAndArgs);
+				b.inheritIO();
+				Process p = b.start();
+				
+				int ec;
+				
+				while (true)
+				{
+					try
+					{
+						ec = p.waitFor();
+						break;
+					}
+					catch (InterruptedException exc)
+					{
+					}
+				}
+				
+				if (ec != 0)
+					throw new IOException("Command returned non-zero exit status: "+ec);
+			}
+			catch (IOException exc)
+			{
+				throw new IOException("System move command (for special file) failed: ["+reprListContentsSingleLine(cmdAndArgs)+"]", exc);
+			}
 		}
 		else
 		{
 			throw new IOException("Tried to move a nonexistant file:   "+repr(source.getAbsolutePath()));
 		}
 	}
+	
+	
+	
+	
+	
+	
+	public static void moveMergingDirectoryTrees(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair) throws IOException
+	{
+		if (source.isDirectory())
+		{
+			if (lexists(dest))
+			{
+				if (!dest.isDirectory())
+				{
+					handleUnmoveableSourceDestFilePair.f(source, dest);
+					return;
+				}
+			}
+			else
+			{
+				if (isSymlink(source))
+				{
+					move(source, dest);
+					return;
+				}
+				
+				ensureDirLeafThrowing(dest);
+			}
+			
+			asrt(source.isDirectory());
+			asrt(dest.isDirectory());
+			
+			for (String c : listDirectoryBasenamesOrThrow(source))
+			{
+				File s = new File(source, c);
+				File d = new File(dest, c);
+				
+				moveMergingDirectoryTrees(s, d, handleUnmoveableSourceDestFilePair);  //Since we just up and move symlinks to directories via a call to move() when possible..does that mean we don't have to worry about symlink cycles??
+			}
+			
+			if (!isSymlink(source) && listDirectoryBasenamesOrThrow(source).length == 0)  //let's not delete symlinks juuuust in case they're important information to leave behind (eg, /uid/ symlinks!), given we might have merged them into a non-symlink dir ^^'
+				deleteThrowing(source);
+		}
+		else
+		{
+			move(source, dest);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -2255,10 +2831,9 @@ implements JavaNamespace
 	 * This is simply a delegate for {@link File#isFile()} but serves the self-documenting-code
 	 * purpose of helping to show the author really did mean to exclude special files!
 	 */
-	public static boolean isNormalFile(File f)
+	public static boolean isRegularFile(File f)
 	{
 		requireNonNull(f);
-		
 		return f.isFile();
 	}
 	
@@ -2266,12 +2841,11 @@ implements JavaNamespace
 	
 	/**
 	 * Just like isFile() and isDirectory(), this dereferences symbolic links, so it will return true for symlinks to special files as well :3
-	 * + {@link File#isFile()} is really "isNormalFile()" by our naming convention here :3
+	 * + {@link File#isFile()} is really "{@link #isRegularFile(File)}" by our naming convention here :3
 	 */
-	public static boolean isSpecialOrNormalFile(File f)
+	public static boolean isSpecialOrRegularFile(File f)
 	{
 		requireNonNull(f);
-		
 		return f.exists() && !f.isDirectory();
 	}
 	
@@ -2501,6 +3075,8 @@ implements JavaNamespace
 	{
 		requireNonNull(immediateTarget);
 		requireNonNull(pathForSymlink);
+		
+		pathForSymlink = normpath(pathForSymlink);
 		
 		if (lexists(pathForSymlink))
 			throw new IOException("Destination for symlink already exists: "+repr(pathForSymlink.getAbsolutePath()));
@@ -3249,13 +3825,6 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean realpathsEqual(File a, File b)
-	{
-		return eq(realpath(a), realpath(b));
-	}
-	
-	
-	
 	
 	
 	
@@ -3670,6 +4239,11 @@ implements JavaNamespace
 	}
 	
 	
+	public static void performSafeFileSystemWriteTwoStageAndCopy(File dest, byte[] data) throws IOException
+	{
+		performSafeFileSystemWriteTwoStageAndCopy(dest, o -> o.write(data));
+	}
+	
 	public static void performSafeFileSystemWriteTwoStageAndCopy(File dest, WriterProcedure write) throws IOException
 	{
 		File p = dest.getParentFile();
@@ -3737,7 +4311,7 @@ implements JavaNamespace
 						
 						//Transfer it into the final location! :D
 						{
-							deleteMandatoryIfExists(dest);
+							deleteIfExistsMandatory(dest);
 							renameMandatory(temporary, dest);
 						}
 					}
@@ -4004,7 +4578,7 @@ implements JavaNamespace
 	public static boolean isInSetByRealpaths(Iterable<File> set, File f)
 	{
 		for (File c : set)
-			if (realpathsEqual(f, c))
+			if (realpathEq(f, c))
 				return true;
 		return false;
 	}
@@ -4015,243 +4589,11 @@ implements JavaNamespace
 	
 	
 	
-	public static void ensureDirLeafThrowing(File d) throws IOException
-	{
-		if (d.isDirectory())  //it's important to dereference symlinks here :>
-			return;
-		else if (lexists(d))
-			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
-		else
-		{
-			d.mkdir();
-			
-			if (d.isDirectory())
-				return;
-			else if (lexists(d))
-				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
-			else
-				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
-		}
-	}
-	
-	public static void ensureDirsWholePathThrowing(File d) throws IOException
-	{
-		if (d.isDirectory())  //it's important to dereference symlinks here :>
-			return;
-		else if (lexists(d))
-			throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
-		else
-		{
-			d.mkdirs();
-			
-			if (d.isDirectory())
-				return;
-			else if (lexists(d))
-				throw new IOException("Monkey wrench: We tried to make this a directory but it's already something else: "+repr(d.getAbsolutePath()));
-			else
-				throw new IOException("We tried to make this a directory but failed: "+repr(d.getAbsolutePath()));
-		}
-	}
-	
-	
-	public static void ensureRenameThrowing(File oldPath, File newPath) throws IOException
-	{
-		oldPath = normpath(oldPath.getAbsoluteFile());
-		newPath = normpath(newPath.getAbsoluteFile());
-		
-		if (!lexists(oldPath))
-		{
-			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the source didn't exist!");
-		}
-		
-		if (lexists(newPath))
-		{
-			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath())+" because the destination already existed!");
-		}
-		
-		if (!oldPath.renameTo(newPath))
-		{
-			throw new IOException("Couldn't rename: "+repr(oldPath.getAbsolutePath())+" to: "+repr(newPath.getAbsolutePath()));
-		}
-	}
-	
-	
-	public static void ensureEmptyFileThrowing(File f) throws IOException
-	{
-		if (f.isFile() && f.length() == 0)
-		{
-			return;
-		}
-		else if (lexists(f))
-		{
-			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
-		}
-		else
-		{
-			f.createNewFile();
-			
-			if (f.isFile())
-			{
-				if (f.length() != 0)
-					throw new IOException("Monkey wrench: We tried to make this an empty file but (unless the JRE or OS is breaking API standards), it seems like something started writing to it *as soon as we made it!!* X'D  : "+repr(f.getAbsolutePath()));
-				
-				return;
-			}
-			else if (lexists(f))
-			{
-				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
-			}
-			else
-			{
-				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
-			}
-		}
-	}
-	
-	public static void ensureFileThrowing(File f) throws IOException
-	{
-		if (f.isFile())
-			return;
-		else if (lexists(f))
-			throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
-		else
-		{
-			f.createNewFile();
-			
-			if (f.isFile())
-				return;
-			else if (lexists(f))
-				throw new IOException("Monkey wrench: We tried to make this an empty file but it's already something else: "+repr(f.getAbsolutePath()));
-			else
-				throw new IOException("We tried to make this an empty file but failed: "+repr(f.getAbsolutePath()));
-		}
-	}
 	
 	
 	
 	
 	
-	
-	
-	
-	public static File createTempFileUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
-	{
-		try
-		{
-			return File.createTempFile(prefix, suffix);
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	public static boolean canFileExist(File f)
-	{
-		if (lexists(f))
-		{
-			return true;  //It already does! XD
-		}
-		else
-		{
-			boolean lexistsAfter;
-			
-			try
-			{
-				f.createNewFile();
-			}
-			catch (IOException exc)
-			{
-				return false;
-			}
-			finally
-			{
-				lexistsAfter = lexists(f);
-				
-				if (lexistsAfter)
-				{
-					f.delete();
-				}
-			}
-			
-			return lexistsAfter;
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	/**
-	 * @param nameMaker 'f' will become whatever this gives for 0 and the rest will be shifted up :>
-	 */
-	public static void shiftFile(File f, UnaryFunctionIntToObject<String> nameMaker)
-	{
-		File d = f.getParentFile();
-		
-		int pastLast;
-		{
-			int i = 0;
-			while (lexists(new File(d, nameMaker.f(i))))
-				i++;
-			pastLast = i;
-		}
-		
-		for (int i = pastLast-1; i >= 0; i++)
-		{
-			String currentName = nameMaker.f(i);
-			String nextName = nameMaker.f(i+1);
-			
-			File current = new File(d, currentName);
-			File next = new File(d, nextName);
-			
-			renameMandatoryRE(current, next);
-		}
-		
-		String nextName = nameMaker.f(0);
-		File next = new File(d, nextName);
-		renameMandatoryRE(f, next);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	public static void renameMandatory(File file, File newPath) throws IOException
-	{
-		if (lexists(newPath))
-			throw new IOException("Destination already exists!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
-		
-		if (!lexists(file))
-			throw new IOException("Source doesn't exist!: Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
-		
-		if (!file.renameTo(newPath))
-			throw new IOException("Renaming "+repr(file.getAbsolutePath())+" -> "+repr(newPath.getAbsolutePath()));
-	}
-	
-	public static void renameMandatoryRE(File file, File newPath) throws RuntimeException
-	{
-		try
-		{
-			renameMandatory(file, newPath);
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
-	}
 	
 	/**
 	 * @param symlinks map from basenames of the symlinks to their targets :>
@@ -4652,7 +4994,7 @@ implements JavaNamespace
 				if (k.startsWith("../"))
 					throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(k)));
 				
-				deleteMandatoryIfExists(new File(parent, k));
+				deleteIfExistsMandatory(new File(parent, k));
 			}
 			
 			
@@ -4662,7 +5004,7 @@ implements JavaNamespace
 				{
 					String n = splitonceReturnPrecedingOrNull(k, '/');
 					
-					deleteMandatoryIfExists(new File(parent, n == null ? k : n));
+					deleteIfExistsMandatory(new File(parent, n == null ? k : n));
 					
 					if (n == null)
 						break;
@@ -4818,6 +5160,40 @@ implements JavaNamespace
 		{
 			if (!leave)
 				t.delete();
+		}
+	}
+	
+	
+	
+	
+	
+	
+	public static void withTemporaryDirectory(UnaryProcedureThrowingIOException<File> f) throws IOException
+	{
+		withTemporaryDirectory(false, f);
+	}
+	
+	
+	/**
+	 * @param leave useful for debugging :3
+	 */
+	public static void withTemporaryDirectory(boolean leave, UnaryProcedureThrowingIOException<File> f) throws IOException
+	{
+		File t = File.createTempFile("temporary-dir-", "");
+		
+		deleteThrowing(t);
+		ensureDirLeafThrowing(t);
+		
+		try
+		{
+			f.f(t);
+		}
+		finally
+		{
+			if (!leave)
+			{
+				deleteRecursivelyThrowing(t, false);
+			}
 		}
 	}
 }

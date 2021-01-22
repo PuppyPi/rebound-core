@@ -13,6 +13,8 @@ import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
  * 
  * Specifically, values of this type will be typed as {@link Object} but only contain a {@link Rational} or a primitive boxed integer (usually {@link Long} :> ) or {@link BigInteger}
  * They're meant to be used with things like {@link MathUtilities#add(Object, Object)} and {@link MathUtilities#multiply(Object, Object)} :>
+ * 
+ * @see PolyInteger
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

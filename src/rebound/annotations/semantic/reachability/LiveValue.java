@@ -9,7 +9,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 
 //TODO replace these with more generic ones about escaping references and such??
 

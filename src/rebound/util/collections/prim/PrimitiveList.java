@@ -8,11 +8,12 @@ import rebound.util.collections.ListWithRemoveRange;
 import rebound.util.collections.ListWithSetAll;
 import rebound.util.collections.ListWithSetSize;
 import rebound.util.collections.NiceList;
+import rebound.util.objectutil.Equivalenceable;
 import rebound.util.objectutil.PubliclyCloneable;
 
 @SignalType
 public interface PrimitiveList<BoxedType, ArrayType>
-extends PrimitiveCollection<BoxedType, ArrayType>, List<BoxedType>, NiceList<BoxedType>, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<BoxedType>, ListWithSetAll, ListWithFill<BoxedType>
+extends PrimitiveCollection<BoxedType, ArrayType>, List<BoxedType>, NiceList<BoxedType>, ListWithRemoveRange, PubliclyCloneable, ListWithSetSize<BoxedType>, ListWithSetAll, ListWithFill<BoxedType>, Equivalenceable
 {
 	@Override
 	public default void setFrom(final Object source)

@@ -7,7 +7,6 @@ package rebound.annotations.semantic.reachability;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 
 //TODO replace these with more generic ones about escaping references and such??
 

@@ -5,6 +5,7 @@
 package rebound.util.functional;
 
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -14,6 +15,7 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,9 +25,9 @@ import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.reachability.EscapesVarargs;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.NotEscapedVarargs;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.ConstantReturnValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NoSuchMemberRuntimeException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
@@ -47,18 +49,43 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.functions.DefaultEqualityComparator;
+import rebound.util.functional.functions.IdentityFunction;
+import rebound.util.functional.predicates.AlwaysFalsePredicate;
+import rebound.util.functional.predicates.AlwaysTruePredicate;
 import rebound.util.objectutil.BasicObjectUtilities;
-import rebound.util.objectutil.EqualityComparator;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.StrictReferenceIdentityEqualityComparator;
 
 public class FunctionalUtilities
 implements JavaNamespace
 {
-	public static final Runnable NoopNullaryProcedure = () -> {};
+	public static final Predicate AlwaysTrue = AlwaysTruePredicate.I;
+	public static final Predicate AlwaysFalse = AlwaysFalsePredicate.I;
+	public static final UnaryFunction<?,?> Identity = IdentityFunction.I;
 	
-	public static final Predicate AlwaysTrue = a -> true;
-	public static final Predicate AlwaysFalse = a -> false;
+	public static final Runnable NoopNullaryProcedure = NoopRunnable.I;
+	
+	
+	
+	public static <E> EqualityComparator<E> equalityFromComparison(Comparator<E> comparison)
+	{
+		if (comparison == Comparator.naturalOrder())
+		{
+			return DefaultEqualityComparator.I;
+		}
+		else if (ComparatorWithEquality.is(comparison))
+		{
+			return ((ComparatorWithEquality)comparison).equalityComparator();
+		}
+		else
+		{
+			asrt(Comparator.naturalOrder() == Comparator.naturalOrder());
+			return new EqualityFromComparison<>(comparison);
+		}
+	}
+	
+	
 	
 	
 	

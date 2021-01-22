@@ -51,6 +51,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
+import rebound.util.functional.functions.DefaultComparisonNumericallyAbstract;
 import rebound.util.objectutil.JavaNamespace;
 
 public class MathUtilities
@@ -1176,22 +1177,35 @@ implements JavaNamespace
 	/**
 	 * @return null if there were 0 values given that weren't filtered away! XD''
 	 */
-	@Nullable
-	public static <I, O extends Comparable> O leastMap(Mapper<I, O> function, Iterable<I> inputs)
+	public static @Nullable <I, O extends Comparable> O leastMap(Mapper<I, O> function, Iterable<I> inputs)
 	{
 		PairOrdered<I, O> p = leastMapPair(function, inputs);
 		return p == null ? null : p.getB();
 	}
 	
-	public static <E extends Comparable> E least(Iterable<E> inputs)
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E least(Iterable<E> inputs)
 	{
 		return leastMap(x -> x, inputs);
 	}
 	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E least(Iterable<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = leastMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
 	public static <E extends Comparable> E least(E a, E b)
 	{
-		return mathcmp(a, b) < 0 ? a : b;
+		return DefaultComparisonNumericallyAbstract.I.compare(a, b) < 0 ? a : b;
 	}
+	
+	
 	
 	
 	
@@ -1199,22 +1213,32 @@ implements JavaNamespace
 	/**
 	 * @return null if there were 0 values given that weren't filtered away! XD''
 	 */
-	@Nullable
-	public static <I, O extends Comparable> O greatestMap(Mapper<I, O> function, Iterable<I> inputs)
+	public static @Nullable <I, O extends Comparable> O greatestMap(Mapper<I, O> function, Iterable<I> inputs)
 	{
 		PairOrdered<I, O> p = greatestMapPair(function, inputs);
 		return p == null ? null : p.getB();
 	}
 	
-	
-	public static <E extends Comparable> E greatest(Iterable<E> inputs)
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E greatest(Iterable<E> inputs)
 	{
 		return greatestMap(x -> x, inputs);
 	}
 	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E greatest(Iterable<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = greatestMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
 	public static <E extends Comparable> E greatest(E a, E b)
 	{
-		return mathcmp(a, b) > 0 ? a : b;
+		return DefaultComparisonNumericallyAbstract.I.compare(a, b) > 0 ? a : b;
 	}
 	
 	
@@ -1230,6 +1254,12 @@ implements JavaNamespace
 	 */
 	@Nullable
 	public static <I, O extends Comparable> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterable<I> inputs)
+	{
+		return leastMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterable<I> inputs, Comparator<O> comparison)
 	{
 		boolean has = false;
 		I extremestInput = null;
@@ -1256,7 +1286,7 @@ implements JavaNamespace
 			}
 			else
 			{
-				if (mathcmp(output, extremestOutput) < 0)
+				if (comparison.compare(output, extremestOutput) < 0)
 				{
 					extremestOutput = output;
 					extremestInput = input;
@@ -1281,6 +1311,12 @@ implements JavaNamespace
 	@Nullable
 	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs)
 	{
+		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs, Comparator<O> comparison)
+	{
 		boolean has = false;
 		I extremestInput = null;
 		O extremestOutput = null;
@@ -1306,7 +1342,7 @@ implements JavaNamespace
 			}
 			else
 			{
-				if (mathcmp(output, extremestOutput) > 0)
+				if (comparison.compare(output, extremestOutput) > 0)
 				{
 					extremestOutput = output;
 					extremestInput = input;
@@ -1699,6 +1735,60 @@ implements JavaNamespace
 	
 	
 	
+	public static BigInteger safeCastAnythingToBigInteger(Object input) throws TruncationException
+	{
+		if (input instanceof Float)
+		{
+			float f = (Float)input;
+			
+			Object r = convertFloatToRationalOrInteger(f);
+			
+			if (r instanceof Rational)
+				throw new TruncationException();
+			else
+				return toBigInteger(r);
+		}
+		
+		else if (input instanceof Double)
+		{
+			double f = (Double)input;
+			
+			Object r = convertFloatToRationalOrInteger(f);
+			
+			if (r instanceof Rational)
+				throw new TruncationException();
+			else
+				return toBigInteger(r);
+		}
+		
+		else
+		{
+			return toBigInteger(input);
+		}
+	}
+	
+	
+	
+	
+	public static @RationalOrInteger Object safeCastAnythingToRationalOrInteger(Object x)
+	{
+		if (isRationalOrInteger(x))
+			return x;
+		else if (x instanceof Float)
+			return convertFloatToRationalOrInteger((Float)x);
+		else if (x instanceof Double)
+			return convertFloatToRationalOrInteger((Double)x);
+		else if (x instanceof BigDecimal)
+			throw new NotYetImplementedException();
+		else
+			throw newClassCastExceptionOrNullPointerException(x);
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -1706,8 +1796,7 @@ implements JavaNamespace
 	protected static final Object IEEE754DoubleConversionSubnormalDenominator = pow(2, SizeOfSignificandInIEEE754Double - SubnormalActualCharacteristicInIEEE754Double);
 	
 	
-	@RationalOrInteger
-	public static Object convertFloatToRationalOrInteger(float f)
+	public static @RationalOrInteger Object convertFloatToRationalOrInteger(float f)
 	{
 		int[] p = rawparseIEEE754SinglePrecision(f);
 		int sign = p[0];
@@ -1738,8 +1827,7 @@ implements JavaNamespace
 	}
 	
 	
-	@RationalOrInteger
-	public static Object convertFloatToRationalOrInteger(double f)
+	public static @RationalOrInteger Object convertFloatToRationalOrInteger(double f)
 	{
 		long[] p = rawparseIEEE754DoublePrecision(f);
 		long sign = p[0];
@@ -1770,14 +1858,12 @@ implements JavaNamespace
 	}
 	
 	
-	@RationalOrInteger
-	public static Object convertFloatToClosestSmallRationalOrInteger(float f)
+	public static @RationalOrInteger Object convertFloatToClosestSmallRationalOrInteger(float f)
 	{
 		return castTruncatingPrecisionToClosestSmallRational(convertFloatToRationalOrInteger(f));
 	}
 	
-	@RationalOrInteger
-	public static Object convertFloatToClosestSmallRationalOrInteger(double f)
+	public static @RationalOrInteger Object convertFloatToClosestSmallRationalOrInteger(double f)
 	{
 		return castTruncatingPrecisionToClosestSmallRational(convertFloatToRationalOrInteger(f));
 	}
@@ -1785,15 +1871,13 @@ implements JavaNamespace
 	
 	
 	
-	@RationalOrInteger
-	public static Object castTruncatingPrecisionToClosestSmallRational(@RationalOrInteger Object possiblyBigRational) throws OverflowException
+	public static @RationalOrInteger Object castTruncatingPrecisionToClosestSmallRational(@RationalOrInteger Object possiblyBigRational) throws OverflowException
 	{
 		return castTruncatingPrecisionToClosestSmallRational(possiblyBigRational, RoundingMode.DOWN);  //Todo is DOWN a good choice of default? X'D
 	}
 	
 	
-	@RationalOrInteger
-	public static Object castTruncatingPrecisionToClosestSmallRational(@RationalOrInteger Object possiblyBigRational, RoundingMode roundingMode) throws OverflowException
+	public static @RationalOrInteger Object castTruncatingPrecisionToClosestSmallRational(@RationalOrInteger Object possiblyBigRational, RoundingMode roundingMode) throws OverflowException
 	{
 		if (possiblyBigRational instanceof BigInteger)
 			possiblyBigRational = normalizeNumberToRationalOrInteger(possiblyBigRational);
@@ -1855,8 +1939,7 @@ implements JavaNamespace
 	
 	
 	
-	@RationalOrInteger
-	public static Object castTruncatingPrecisionToClosestRational(@RationalOrInteger Object possiblyBigRational, @RationalOrInteger Object denomination, RoundingMode roundingMode)
+	public static @RationalOrInteger Object castTruncatingPrecisionToClosestRational(@RationalOrInteger Object possiblyBigRational, @RationalOrInteger Object denomination, RoundingMode roundingMode)
 	{
 		return multiply(denomination, getClosestIntegerNumberOfDenominationsToArbitraryRational(possiblyBigRational, denomination, roundingMode));
 	}
@@ -1865,14 +1948,12 @@ implements JavaNamespace
 	
 	
 	
-	@RationalOrInteger
-	public static Object castTruncatingPrecisionToClosestRationalOfGivenDenominator(@RationalOrInteger Object possiblyBigRational, Object largestDenominator)
+	public static @RationalOrInteger Object castTruncatingPrecisionToClosestRationalOfGivenDenominator(@RationalOrInteger Object possiblyBigRational, Object largestDenominator)
 	{
 		return castTruncatingPrecisionToClosestRationalOfGivenDenominator(possiblyBigRational, largestDenominator, RoundingMode.DOWN);
 	}
 	
-	@RationalOrInteger
-	public static Object castTruncatingPrecisionToClosestRationalOfGivenDenominator(@RationalOrInteger Object possiblyBigRational, @PolyInteger Object largestDenominator, RoundingMode roundingMode)
+	public static @RationalOrInteger Object castTruncatingPrecisionToClosestRationalOfGivenDenominator(@RationalOrInteger Object possiblyBigRational, @PolyInteger Object largestDenominator, RoundingMode roundingMode)
 	{
 		/*
 		 * a/b
@@ -1938,8 +2019,10 @@ implements JavaNamespace
 	
 	
 	@PolyInteger
-	public static Object round(@RationalOrInteger Object x, RoundingMode roundingMode)
+	public static Object round(@RealNumeric Object x, RoundingMode roundingMode)
 	{
+		x = safeCastAnythingToRationalOrInteger(x);
+		
 		if (x instanceof Rational)
 		{
 			Object n, d;
@@ -2346,11 +2429,17 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * Corresponds to {@link PolyInteger}
+	 */
 	public static boolean isInteger(Object x)
 	{
 		return x instanceof Long || x instanceof Integer || x instanceof Short || x instanceof Character || x instanceof Byte || x instanceof BigInteger;
 	}
 	
+	/**
+	 * Corresponds to {@link RationalOrInteger}
+	 */
 	public static boolean isRationalOrInteger(Object x)
 	{
 		return isInteger(x) || x instanceof Rational;
@@ -2360,6 +2449,72 @@ implements JavaNamespace
 	{
 		return x instanceof Rational && !matheq(((Rational)x).getDenominator(), 1);
 	}
+	
+	
+	/**
+	 * Corresponds to {@link RealNumeric}
+	 * This is really "isRealNumber()"
+	 */
+	public static boolean isRealNumber(Object x)
+	{
+		return x instanceof Number || x instanceof Rational;  //the java.lang.Number includes all the numeric primitives and BigInteger/BigDecimal :3
+	}
+	
+	
+	
+	public static boolean isPossiblyComplexNumber(Object x)
+	{
+		throw new NotYetImplementedException();
+	}
+	
+	public static boolean isPurelyImaginaryNumber(Object x)
+	{
+		throw new NotYetImplementedException();
+	}
+	
+	public static boolean isNonRealComplexNumber(Object x)
+	{
+		return isPossiblyComplexNumber(x) || !isRealNumber(x);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Nonnull @PolyInteger Object requireInteger(@Nonnull Object x)
+	{
+		requireNonNull(x);
+		if (!isInteger(x))
+			throw new IllegalArgumentException("Not an integer type: "+repr(x));
+		else
+			return x;
+	}
+	
+	public static @Nonnull @RationalOrInteger Object requireRationalOrInteger(@Nonnull Object x)
+	{
+		requireNonNull(x);
+		if (!isRationalOrInteger(x))
+			throw new IllegalArgumentException("Not an integer or rational type: "+repr(x));
+		else
+			return x;
+	}
+	
+	public static @Nonnull @RealNumeric Object requireRealNumber(@Nonnull Object x)
+	{
+		requireNonNull(x);
+		if (!isRealNumber(x))
+			throw new IllegalArgumentException("Not an integer or rational or float—not a real-number type: "+repr(x));
+		else
+			return x;
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	@NormalizesPrimitives
 	protected static Object internalRational(Object numerator, Object denominator)
@@ -2384,7 +2539,7 @@ implements JavaNamespace
 	 * (like 4/2 or 12/3 or anything/1! XD   ^_~  )
 	 */
 	@NormalizesPrimitives
-	public static Object rational(Object numerator, Object denominator)
+	public static @RationalOrInteger Object rational(@PolyInteger Object numerator, @PolyInteger Object denominator)
 	{
 		return reduce(numerator, denominator);  //it needs to be reduced for hashcode/equals anyways--ohwell XD''
 	}
@@ -2450,7 +2605,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object negate(Object a)
+	public static @RationalOrInteger Object negate(@RationalOrInteger Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		
@@ -2490,7 +2645,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object reciprocate(Object a)
+	public static @RationalOrInteger Object reciprocate(@RationalOrInteger Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		
@@ -2523,7 +2678,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object add(Object a, Object b)
+	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		b = normalizeNumberToRationalOrInteger(b);
@@ -2595,7 +2750,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object multiply(Object a, Object b)
+	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		b = normalizeNumberToRationalOrInteger(b);
@@ -2664,6 +2819,11 @@ implements JavaNamespace
 		}
 	}
 	
+	@NormalizesPrimitives
+	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b)
+	{
+		return multiply(a, b);
+	}
 	
 	
 	
@@ -2671,7 +2831,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object pow(Object base, Object exponent)
+	public static @RationalOrInteger Object pow(@RationalOrInteger Object base, @RationalOrInteger Object exponent)
 	{
 		base = normalizeNumberToRationalOrInteger(base);
 		exponent = normalizeNumberToRationalOrInteger(exponent);
@@ -2775,21 +2935,33 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	@RationalOrInteger
-	public static Object subtract(@RationalOrInteger Object a, @RationalOrInteger Object b)
+	public static @RationalOrInteger Object subtract(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
 	{
-		return add(a, negate(b));
+		return add(minuend, negate(subtrahend));
 	}
 	
 	@NormalizesPrimitives
-	@RationalOrInteger
-	public static Object divide(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
+	public static @RationalOrInteger Object divide(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
 	{
 		return multiply(dividend, reciprocate(divisor));
 	}
 	
 	
 	
+	@NormalizesPrimitives
+	public static @RationalOrInteger Object sub(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
+	{
+		return subtract(minuend, subtrahend);
+	}
+	
+	@NormalizesPrimitives
+	public static @RationalOrInteger Object div(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
+	{
+		return divide(dividend, divisor);
+	}
+	
+	
+	
 	
 	
 	
@@ -2798,8 +2970,7 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	@RationalOrInteger
-	public static Object reduce(@RationalOrInteger Object a)
+	public static @RationalOrInteger Object reduce(@RationalOrInteger Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		
@@ -2823,10 +2994,18 @@ implements JavaNamespace
 	
 	
 	@NormalizesPrimitives
-	public static Object reduce(Object numerator, Object denominator)
+	public static @RationalOrInteger Object reduce(@PolyInteger Object numerator, @PolyInteger Object denominator)
 	{
+		if (!isInteger(numerator))
+			throw new IllegalArgumentException();
+		
+		if (!isInteger(denominator))
+			throw new IllegalArgumentException();
+		
+		
 		Object n = normalizeNumberToRationalOrInteger(numerator);
 		Object d = normalizeNumberToRationalOrInteger(denominator);
+		
 		
 		if (matheq(d, Zero))
 			throw new DivisionByZeroException();

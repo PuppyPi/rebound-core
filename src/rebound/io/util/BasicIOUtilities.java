@@ -2,6 +2,7 @@ package rebound.io.util;
 
 import static java.util.Objects.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
@@ -371,6 +372,37 @@ public class BasicIOUtilities
 			for (Closeable s : ss)
 			{
 				closeWithoutError(s);
+			}
+		}
+	}
+	
+	public static void closeAll(Closeable... ss) throws IOException
+	{
+		if (ss != null)
+		{
+			Throwable exc = null;
+			
+			for (Closeable s : ss)
+			{
+				try
+				{
+					s.close();
+				}
+				catch (Throwable e)
+				{
+					if (exc == null)
+						exc = e;
+					else
+						exc.addSuppressed(e);
+				}
+			}
+			
+			if (exc != null)
+			{
+				if (exc instanceof IOException)
+					throw (IOException)exc;
+				else
+					rethrowSafe(exc);
 			}
 		}
 	}

@@ -1,7 +1,9 @@
 package rebound.net;
 
 import static java.util.Objects.*;
+import static rebound.file.FSUtilities.*;
 import static rebound.net.NetworkUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import java.net.URI;
 import javax.annotation.Nonnull;
@@ -10,7 +12,6 @@ import javax.annotation.concurrent.Immutable;
 import rebound.annotations.semantic.operationspecification.HashableType;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.TextSyntaxException;
-import rebound.file.FSUtilities;
 
 //TO DO Waittt shouuuuuuld we descape/escape the parts???
 //I like doing that because it considers '%20', '+', and ' ' to be equivalent during parsing, which, afaik, everything on the web does too X3
@@ -183,25 +184,29 @@ public class ReURL
 	
 	
 	
+	
+	
+	
+	
+	
+	
 	public static String resolvePossiblyRelativeURLEncoded(String baseURL, String urlPossiblyRelativeToBase) throws TextSyntaxException
 	{
-		return resolvePossiblyRelativeURLToEncoded(parse(baseURL), urlPossiblyRelativeToBase);
+		return resolvePossiblyRelativeURLToRaw(parseLenient(baseURL), urlPossiblyRelativeToBase);
 	}
 	
-	public static String resolvePossiblyRelativeURLToEncoded(ReURL baseURL, String urlPossiblyRelativeToBase)
+	/**
+	 * Differs from {@link #resolvePossiblyRelativeURL(ReURL, String)} by outputting a raw string which can be a URN/URI like "javascript:..." or "mailto:..."!
+	 */
+	public static String resolvePossiblyRelativeURLToRaw(ReURL baseURL, String urlPossiblyRelativeToBase)
 	{
-		if (urlPossiblyRelativeToBase.startsWith("://"))
+		if (urlPossiblyRelativeToBase.startsWith("://"))  //I have definitely seen this in the wild!!  —PP
 		{
 			return baseURL.getProtocol()+urlPossiblyRelativeToBase;
 		}
-		else if (urlPossiblyRelativeToBase.startsWith("//"))
+		else if (urlPossiblyRelativeToBase.startsWith("//"))  //I'm almost positive I've seen this in the wild!!  —PP
 		{
 			return baseURL.getProtocol()+':'+urlPossiblyRelativeToBase;
-		}
-		else if (urlPossiblyRelativeToBase.contains("://"))
-		{
-			//It's fine as it is :3
-			return urlPossiblyRelativeToBase;
 		}
 		else if (urlPossiblyRelativeToBase.startsWith("/"))
 		{
@@ -212,6 +217,7 @@ public class ReURL
 			
 			if (!b.endsWith("/"))
 				throw new ImpossibleException(repr(baseURL.serialize()));
+			
 			b = b.substring(0, b.length()-1);  //trim off the trailing '/'
 			
 			/*
@@ -223,34 +229,80 @@ public class ReURL
 		}
 		else
 		{
+			//Check for absolute URL properly
+			{
+				int colonPos = urlPossiblyRelativeToBase.indexOf(':');
+				
+				if (colonPos != -1)
+				{
+					String protocolCandidate = urlPossiblyRelativeToBase.substring(0, colonPos);
+					
+					if (forAll(c -> c != '/' && c != '?' && c != '#', protocolCandidate))
+					{
+						int slashPos = urlPossiblyRelativeToBase.indexOf('/');
+						
+						int end = slashPos == -1 ? urlPossiblyRelativeToBase.length() : slashPos;
+						
+						String afterColon = urlPossiblyRelativeToBase.substring(colonPos+1, end);
+						
+						if (!afterColon.isEmpty() && forAll(c -> c >= '0' && c <= '9', afterColon))  //if afterColon is empty, then that means its either like "javascript:" or "http://..." which both use the colon to denote a protocol not domain name, so that goes perfectly into the else{} block below :3
+						{
+							//It's like "example.net:8080" or "example.net:8080/path" :3
+							return baseURL.getProtocol()+"://"+urlPossiblyRelativeToBase;
+						}
+						else
+						{
+							// It's like "http://example.net/"
+							// Or "mailto:exampler@example.net"
+							// Or "javascript:document.write(stuff)"
+							// Or "javascript:"
+							
+							//  :3
+							
+							return urlPossiblyRelativeToBase;
+						}
+					}
+					else
+					{
+						//It's like "redirect.asp?site=http://example.net/"
+						//Normal relativeness with a (concerningly-unescaped XD) embedded url in it :3
+					}
+				}
+			}
+			
+			
+			
+			
 			//Relative url! :>
 			// (note that it might still have a query string!)
 			
 			String p = baseURL.getPath();
 			
-			String dp = rsplitonceReturnPrecedingOrNull(p, '/');
+			String dirnamePath = rsplitonceReturnPrecedingOrNull(p, '/');
 			
-			if (dp == null)
-				throw new ImpossibleException("Invalid URL should have been caught in parsing/constructing!!: "+repr(baseURL.serialize()));
+			if (dirnamePath == null)
+				throw new AssertionError("Invalid URL should have been caught in parsing/constructing!!: "+repr(baseURL.serialize()));
 			
-			String newPath = FSUtilities.normpathPosix(dp+'/'+urlPossiblyRelativeToBase);
+			String baseURLWithNoPath = new ReURL(baseURL.getProtocol(), baseURL.getUser(), baseURL.getPassword(), baseURL.getHost(), baseURL.getPort(), "/", null, null).serialize();
 			
-			String b = new ReURL(baseURL.getProtocol(), baseURL.getUser(), baseURL.getPassword(), baseURL.getHost(), baseURL.getPort(), "/", null, null).serialize();
-			
-			if (!b.endsWith("/"))
+			if (!baseURLWithNoPath.endsWith("/"))
 				throw new ImpossibleException(repr(baseURL.serialize()));
-			b = b.substring(0, b.length()-1);  //trim off the trailing '/'
+			baseURLWithNoPath = baseURLWithNoPath.substring(0, baseURLWithNoPath.length()-1);  //trim off the trailing '/'
 			
-			return b + newPath;
+			String newUnnormedStr = baseURLWithNoPath + dirnamePath + '/' + urlPossiblyRelativeToBase;
+			
+			ReURL newUnnormed = ReURL.parseLenient(newUnnormedStr);
+			
+			return newUnnormed.withDifferentPath(normpathPosix(newUnnormed.getPath(), '/')).serialize();
 		}
 	}
 	
 	public static ReURL resolvePossiblyRelativeURL(ReURL baseURL, String urlPossiblyRelativeToBase) throws TextSyntaxException
 	{
-		return parse(resolvePossiblyRelativeURLToEncoded(baseURL, urlPossiblyRelativeToBase));
+		return parseLenient(resolvePossiblyRelativeURLToRaw(baseURL, urlPossiblyRelativeToBase));
 	}
 	
-	public ReURL resolvePossiblyRelativeURL(String urlPossiblyRelativeToThis)
+	public ReURL resolvePossiblyRelativeURL(String urlPossiblyRelativeToThis) throws TextSyntaxException
 	{
 		return resolvePossiblyRelativeURL(this, urlPossiblyRelativeToThis);
 	}
@@ -378,12 +430,26 @@ public class ReURL
 	
 	
 	
-	
-	
-	
-	
+	/**
+	 * Only works for absolute URLs, to be sure!
+	 * (Relative "URL"s aren't technically URL's, they're simply URI's!)
+	 */
 	public static ReURL parse(String url) throws TextSyntaxException
 	{
+		return parse(url, false);  //we're not even slightly lenient by default because parse().serialize() should *always* return *exactly* the same string!!  this is what makes it okay to use ReURL instead of strings—no information can ever be lost in the conversion :>
+	}
+	
+	public static ReURL parseLenient(String url) throws TextSyntaxException
+	{
+		return parse(url, true);
+	}
+	
+	public static ReURL parse(String url, boolean slightlyLenient) throws TextSyntaxException
+	{
+		if (slightlyLenient)
+			url = url.replace(' ', '+');
+		
+		
 		/*
 		 *    http://user:password@hostname.com:8080/path?query#fragment
 		 *        a     [b]      [c]          [d]   e   [f]   [g]
@@ -395,7 +461,20 @@ public class ReURL
 		
 		int e = url.indexOf('/', a+3);
 		if (e == -1)
-			throw TextSyntaxException.inst("Missing \"/\" after protocol delimiter   "+repr(url));
+		{
+			//it's like "http://example.com" instead of "http://example.com/"   XD'
+			
+			if (slightlyLenient)
+			{
+				url += '/';
+				e = url.indexOf('/', a+3);
+				asrt(e == url.length() - 1);
+			}
+			else
+			{
+				throw TextSyntaxException.inst("Missing \"/\" after the protocol delimiter (after the :// slashes)  "+repr(url));
+			}
+		}
 		
 		int c = url.indexOf('@', a+3);
 		if (c != -1 && c > e)  //&& e != -1
@@ -453,6 +532,41 @@ public class ReURL
 		catch (IllegalArgumentException exc)
 		{
 			throw TextSyntaxException.inst(exc);
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * @see #parse(String)
+	 */
+	public static boolean isValid(String url)
+	{
+		return isValid(url, false);
+	}
+	
+	/**
+	 * @see #parseLenient(String)
+	 */
+	public static boolean isValidLenient(String url)
+	{
+		return isValid(url, true);
+	}
+	
+	/**
+	 * @see #parse(String, boolean)
+	 */
+	public static boolean isValid(String url, boolean slightlyLenient)
+	{
+		try
+		{
+			parse(url, slightlyLenient);
+			return true;
+		}
+		catch (TextSyntaxException exc)
+		{
+			return false;
 		}
 	}
 	

@@ -36,9 +36,9 @@ import rebound.annotations.hints.PerformanceSetting;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath;
@@ -61,9 +61,9 @@ import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.functional.EqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.objectutil.BasicObjectUtilities;
-import rebound.util.objectutil.EqualityComparator;
 
 //We say "collection" but include Arrays, Iterables, Iterators, and Enumerations  ^_^
 //edit: And now Maps/Dicts! :D

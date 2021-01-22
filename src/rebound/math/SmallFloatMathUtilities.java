@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.CodeHinting.*;
 import java.util.List;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -1179,13 +1180,219 @@ public class SmallFloatMathUtilities
 	
 	public static double cosr(double θrev)
 	{
-		return cos(rev2rad(θrev));
+		θrev = progmod(θrev, 1);
+		
+		if (θrev == 0)
+			return 1;
+		
+		else if (θrev == 0.25)
+			return 0;
+		
+		else if (θrev == 0.5)
+			return -1;
+		
+		else if (θrev == 0.75)
+			return 0;
+		
+		else
+			return cos(rev2rad(θrev));
 	}
 	
 	public static double sinr(double θrev)
 	{
-		return sin(rev2rad(θrev));
+		θrev = progmod(θrev, 1);
+		
+		if (θrev == 0)
+			return 0;
+		
+		else if (θrev == 0.25)
+			return 1;
+		
+		else if (θrev == 0.5)
+			return 0;
+		
+		else if (θrev == 0.75)
+			return -1;
+		
+		else
+			return sin(rev2rad(θrev));
 	}
+	
+	
+	
+	public static double tanr(double θrev)
+	{
+		θrev = progmod(θrev, 1);
+		
+		if (θrev == 0)
+			return 0;
+		
+		if (θrev == 0.125)
+			return 1;
+		
+		else if (θrev == 0.25)
+			return Double.POSITIVE_INFINITY;
+		
+		if (θrev == 0.375)
+			return -1;
+		
+		else if (θrev == 0.5)
+			return 0;
+		
+		if (θrev == 0.625)
+			return 1;
+		
+		else if (θrev == 0.75)
+			return Double.NEGATIVE_INFINITY;
+		
+		if (θrev == 0.875)
+			return -1;
+		
+		else
+			return sinr(θrev) / cosr(θrev);
+	}
+	
+	
+	public static double cotr(double θrev)
+	{
+		θrev = progmod(θrev, 1);
+		
+		if (θrev == 0)
+			return Double.POSITIVE_INFINITY;
+		
+		if (θrev == 0.125)
+			return 1;
+		
+		else if (θrev == 0.25)
+			return 0;
+		
+		if (θrev == 0.375)
+			return -1;
+		
+		else if (θrev == 0.5)
+			return Double.NEGATIVE_INFINITY;
+		
+		if (θrev == 0.625)
+			return 1;
+		
+		else if (θrev == 0.75)
+			return 0;
+		
+		if (θrev == 0.875)
+			return -1;
+		
+		else
+			return cosr(θrev) / sinr(θrev);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static double atanr(double yoverx)
+	{
+		if (yoverx == 0)
+			return 0;
+		
+		if (yoverx == 1)
+			return 0.125;
+		
+		else if (Double.isInfinite(yoverx))
+			return 0.25;
+		
+		if (yoverx == -1)
+			return 0.375;
+		
+		else
+			return rad2rev(atan(yoverx));
+	}
+	
+	
+	public static double acotr(double yoverx)
+	{
+		if (yoverx == 0)
+			return 0.25;
+		
+		if (yoverx == 1)
+			return 0.125;
+		
+		else if (Double.isInfinite(yoverx))
+			return 0;
+		
+		if (yoverx == -1)
+			return 0.375;
+		
+		else
+			return rad2rev(atan(1 / yoverx));
+	}
+	
+	
+	
+	
+	
+	/**
+	 * NOTE IT'S (Y,X) NOT (X,Y)
+	 * 
+	 * gawd who established that convention?  X'D
+	 */
+	public static double atanr2(double y, double x)
+	{
+		if (x == 0)
+		{
+			return y >= 0 ? 0.25 : 0.75;
+		}
+		
+		if (y == 0)
+		{
+			return x >= 0 ? 0 : 0.5;
+		}
+		
+		if (x == y)
+		{
+			return arbitrary(x, y) >= 0 ? 0.125 : 0.625;
+		}
+		
+		if (-x == y)
+		{
+			return arbitrary(-x, y) >= 0 ? 0.375 : 0.875;
+		}
+		
+		else
+		{
+			return rad2rev(atan2(y, x));
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * NOTE IT'S (Y,X) NOT (X,Y)
+	 * 
+	 * gawd who established that convention?  X'D
+	 */
+	public static double acotr2(double y, double x)
+	{
+		return atanr2(x, y);  //wonderful :'3
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * This is like doing <code>(int)round(t * (highest - lowest) + lowest)</code>,

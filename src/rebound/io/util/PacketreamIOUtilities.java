@@ -266,33 +266,6 @@ public class PacketreamIOUtilities
 			{
 				return x.receive(array, offset, length);
 			}
-		};
-	}
-	
-	
-	
-	/**
-	 * Wrap a closeable bidirectional packetream as a {@link Closeable} {@link BidirectionalPacketream} X'D
-	 * 
-	 * Sigh, Java typing X'D
-	 * I wonder if this is a problem in Haskell? :>
-	 */
-	public static <T extends InputPacketream & OutputPacketream & Closeable, O extends BidirectionalPacketream & Closeable> O wrapToCloseableConvenienceAPI(T x)
-	{
-		class c
-		implements BidirectionalPacketream, Closeable
-		{
-			@Override
-			public int send(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
-			{
-				return x.send(array, offset, length);
-			}
-			
-			@Override
-			public int receive(byte[] array, int offset, int length) throws IOException, EOFException, ClosedIOException
-			{
-				return x.receive(array, offset, length);
-			}
 			
 			@Override
 			public void close() throws IOException
@@ -300,9 +273,6 @@ public class PacketreamIOUtilities
 				x.close();
 			}
 		};
-		
-		
-		return (O)new c();
 	}
 	
 	

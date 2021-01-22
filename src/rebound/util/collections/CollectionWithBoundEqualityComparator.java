@@ -4,7 +4,7 @@
  */
 package rebound.util.collections;
 
-import rebound.util.objectutil.EqualityComparator;
+import rebound.util.functional.EqualityComparator;
 
 public interface CollectionWithBoundEqualityComparator<E>
 {

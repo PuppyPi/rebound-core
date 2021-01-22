@@ -7,7 +7,7 @@ package rebound.io.util;
 import java.io.IOException;
 import java.io.OutputStream;
 import rebound.annotations.semantic.reachability.LiveValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 
 public class BroadcastingOutputStream
 extends OutputStream

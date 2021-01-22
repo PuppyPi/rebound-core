@@ -37,6 +37,7 @@ import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
 import rebound.io.ChannelProvider;
+import rebound.text.encodings.detection.TextEncodingDetector;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.collections.Slice;
@@ -239,7 +240,7 @@ public class FSIOUtilities
 		
 		try
 		{
-			return new String(TextIOUtilities.readAll(in));
+			return TextIOUtilities.readAllToString(in);
 		}
 		finally
 		{
@@ -257,7 +258,7 @@ public class FSIOUtilities
 		
 		try
 		{
-			return new String(TextIOUtilities.readAll(in));
+			return TextIOUtilities.readAllToString(in);
 		}
 		finally
 		{
@@ -266,17 +267,20 @@ public class FSIOUtilities
 	}
 	
 	@Nonnull
+	public static String readAllText(File file, TextEncodingDetector encodingDetector) throws IOException
+	{
+		try (InputStream in = new FileInputStream(file))
+		{
+			return TextIOUtilities.readAllText(in, encodingDetector);
+		}
+	}
+	
+	@Nonnull
 	public static String readAllText(File file) throws IOException
 	{
-		Reader in = new InputStreamReader(new FileInputStream(file));
-		
-		try
+		try (InputStream in = new FileInputStream(file))
 		{
-			return new String(TextIOUtilities.readAll(in));
-		}
-		finally
-		{
-			TextIOUtilities.closeWithoutError(in);
+			return TextIOUtilities.readAllText(in);
 		}
 	}
 	
@@ -700,6 +704,19 @@ public class FSIOUtilities
 		try
 		{
 			return readAllText(file);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	@Nonnull
+	public static String readAllTextRE(File file, TextEncodingDetector encodingDetector)
+	{
+		try
+		{
+			return readAllText(file, encodingDetector);
 		}
 		catch (IOException exc)
 		{

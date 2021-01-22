@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import rebound.exceptions.StructuredClassCastException;
+import rebound.util.functional.EqualityComparator;
+import rebound.util.functional.functions.DefaultEqualityComparator;
 
 public class BasicObjectUtilities
 implements JavaNamespace
@@ -110,7 +112,7 @@ implements JavaNamespace
 		if (many.length < 2)
 			return true; //arbitrary choice for length=0 x>
 		
-		if (comparator == null || comparator == NaturalEqualityComparator.I)
+		if (comparator == null || comparator == DefaultEqualityComparator.I)
 			return eq(many);
 		if (comparator == BasicObjectUtilities.IdentityUnboxingEqualityComparator)
 			return BasicObjectUtilities.eqIdentityUnboxing(many);
@@ -167,7 +169,7 @@ implements JavaNamespace
 	
 	public static <T> EqualityComparator<T> getNaturalEqualityComparator()
 	{
-		return NaturalEqualityComparator.I;
+		return DefaultEqualityComparator.I;
 	}
 	
 	protected static final EqualityComparator IdentityUnboxingEqualityComparator = new EqualityComparator()

@@ -1,5 +1,8 @@
 package rebound.util;
 
+/**
+ * @see SuccessOrFailure
+ */
 public class Either<A, B>
 {
 	public static <A, B> Either<A, B> forA(A value)
@@ -41,7 +44,7 @@ public class Either<A, B>
 	}
 	
 	
-	public A getValueIfA()
+	public A getValueIfA() throws NotThisException
 	{
 		if (isB())
 			throw new NotThisException();
@@ -49,7 +52,7 @@ public class Either<A, B>
 			return (A)getValue();
 	}
 	
-	public B getValueIfB()
+	public B getValueIfB() throws NotThisException
 	{
 		if (isB())
 			return (B)getValue();

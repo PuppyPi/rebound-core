@@ -1,7 +1,6 @@
 package rebound.io.packeted.sio;
 
 import static java.util.Objects.*;
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -10,7 +9,7 @@ import rebound.exceptions.ClosedIOException;
 import rebound.io.packeted.BidirectionalPacketream;
 
 public class NetworkDatagramPacketream
-implements BidirectionalPacketream, Closeable
+implements BidirectionalPacketream
 {
 	protected final DatagramSocket socket;
 	

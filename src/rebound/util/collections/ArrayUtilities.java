@@ -24,8 +24,8 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.bits.Bytes;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.math.SmallIntegerMathUtilities;
@@ -38,7 +38,16 @@ import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.functional.EqualityComparator;
+import rebound.util.functional.FunctionInterfaces.BooleanEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.ByteEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.CharEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.DoubleEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.FloatEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.IntEqualityComparator;
+import rebound.util.functional.FunctionInterfaces.LongEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.NullaryFunction;
+import rebound.util.functional.FunctionInterfaces.ShortEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionBooleanToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionByteToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
@@ -48,7 +57,6 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToBoolean;
-import rebound.util.objectutil.EqualityComparator;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.PubliclyCloneable;
 
@@ -123,7 +131,6 @@ implements JavaNamespace
 		
 		else if (a instanceof long[])
 			return b instanceof long[] && arrayEquals((long[])a, (long[])b);
-		
 		// >>>
 		
 		
@@ -424,7 +431,6 @@ implements JavaNamespace
 	}
 	
 	
-	
 	// >>>
 	
 	
@@ -656,7 +662,6 @@ primxp
 	{
 		return arrayHashCode(array, 0, array.length);
 	}
-	
 	
 	
 	// >>>
@@ -2737,7 +2742,6 @@ primxp
 	
 	
 	
-	
 	//>>>
 	
 	
@@ -2914,7 +2918,7 @@ primxp
 	
 	public static void reverse(byte[] array, int offset, int length)
 	{
-		byte swap = 0;
+		byte swap = ((byte)0);
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -2950,7 +2954,7 @@ primxp
 	
 	public static void reverse(char[] array, int offset, int length)
 	{
-		char swap = 0;
+		char swap = ((char)0);
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -2986,7 +2990,7 @@ primxp
 	
 	public static void reverse(short[] array, int offset, int length)
 	{
-		short swap = 0;
+		short swap = ((short)0);
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -3022,7 +3026,7 @@ primxp
 	
 	public static void reverse(float[] array, int offset, int length)
 	{
-		float swap = 0;
+		float swap = 0.0f;
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -3094,7 +3098,7 @@ primxp
 	
 	public static void reverse(double[] array, int offset, int length)
 	{
-		double swap = 0;
+		double swap = 0.0d;
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -3130,7 +3134,7 @@ primxp
 	
 	public static void reverse(long[] array, int offset, int length)
 	{
-		long swap = 0;
+		long swap = 0l;
 		
 		for (int offing = 0; offing < length / 2; offing++)
 		{
@@ -4106,7 +4110,6 @@ primxp
 		
 		return interleaved;
 	}
-	
 	
 	
 	
@@ -5855,7 +5858,6 @@ primxp
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -6974,7 +6976,6 @@ primxp
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -7766,7 +7767,6 @@ primxp
 		array[b] = s;
 	}
 	
-	
 	// >>>
 	
 	
@@ -8393,7 +8393,6 @@ primxp
 	{
 		return slice(array, inclusiveLowBound, array.length);
 	}
-	
 	
 	
 	
@@ -14827,7 +14826,6 @@ primxp
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -15160,7 +15158,6 @@ primxp
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -15409,7 +15406,6 @@ primxp
 		
 		return Arrays.copyOf(temp, nOut);
 	}
-	
 	//>>>
 	
 	
@@ -17245,7 +17241,6 @@ primxp
 	
 	
 	
-	
 	//>>>
 	
 	
@@ -18746,7 +18741,6 @@ primxp
 	
 	
 	
-	
 	//>>>
 	
 	
@@ -19442,7 +19436,6 @@ primxp
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -19482,5 +19475,680 @@ primxp
 		}
 		
 		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+	primxp
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarray_$$Prim$$_(Slice<_$$prim$$_[]> array, Slice<_$$prim$$_[]> searchTarget)
+	{
+		return indexOfSubarray_$$Prim$$_(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarray_$$Prim$$_(Slice<_$$prim$$_[]> array, Slice<_$$prim$$_[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarray_$$Prim$$_(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarray_$$Prim$$_(Slice<_$$prim$$_[]> array, Slice<_$$prim$$_[]> searchTarget, int fromIndex, _$$Prim$$_EqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		_$$prim$$_ first = get_$$Prim$$_(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first _$$primitive$$_. ⎋a/
+			if (!ceq._$$prim$$_sEqual(get_$$Prim$$_(array, i), first))
+			{
+				while (++i <= max && !ceq._$$prim$$_sEqual(get_$$Prim$$_(array, i), first));
+			}
+			
+			/* Found first _$$primitive$$_, now look at the rest of v2 ⎋a/
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq._$$prim$$_sEqual(get_$$Prim$$_(array, j), get_$$Prim$$_(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. ⎋a/
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	 */
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayBoolean(Slice<boolean[]> array, Slice<boolean[]> searchTarget)
+	{
+		return indexOfSubarrayBoolean(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayBoolean(Slice<boolean[]> array, Slice<boolean[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayBoolean(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayBoolean(Slice<boolean[]> array, Slice<boolean[]> searchTarget, int fromIndex, BooleanEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		boolean first = getBoolean(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first boolean. */
+			if (!ceq.booleansEqual(getBoolean(array, i), first))
+			{
+				while (++i <= max && !ceq.booleansEqual(getBoolean(array, i), first));
+			}
+			
+			/* Found first boolean, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.booleansEqual(getBoolean(array, j), getBoolean(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayByte(Slice<byte[]> array, Slice<byte[]> searchTarget)
+	{
+		return indexOfSubarrayByte(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayByte(Slice<byte[]> array, Slice<byte[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayByte(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayByte(Slice<byte[]> array, Slice<byte[]> searchTarget, int fromIndex, ByteEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		byte first = getByte(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first byte. */
+			if (!ceq.bytesEqual(getByte(array, i), first))
+			{
+				while (++i <= max && !ceq.bytesEqual(getByte(array, i), first));
+			}
+			
+			/* Found first byte, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.bytesEqual(getByte(array, j), getByte(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayChar(Slice<char[]> array, Slice<char[]> searchTarget)
+	{
+		return indexOfSubarrayChar(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayChar(Slice<char[]> array, Slice<char[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayChar(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayChar(Slice<char[]> array, Slice<char[]> searchTarget, int fromIndex, CharEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		char first = getChar(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first character. */
+			if (!ceq.charsEqual(getChar(array, i), first))
+			{
+				while (++i <= max && !ceq.charsEqual(getChar(array, i), first));
+			}
+			
+			/* Found first character, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.charsEqual(getChar(array, j), getChar(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayShort(Slice<short[]> array, Slice<short[]> searchTarget)
+	{
+		return indexOfSubarrayShort(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayShort(Slice<short[]> array, Slice<short[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayShort(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayShort(Slice<short[]> array, Slice<short[]> searchTarget, int fromIndex, ShortEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		short first = getShort(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first short. */
+			if (!ceq.shortsEqual(getShort(array, i), first))
+			{
+				while (++i <= max && !ceq.shortsEqual(getShort(array, i), first));
+			}
+			
+			/* Found first short, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.shortsEqual(getShort(array, j), getShort(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayFloat(Slice<float[]> array, Slice<float[]> searchTarget)
+	{
+		return indexOfSubarrayFloat(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayFloat(Slice<float[]> array, Slice<float[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayFloat(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayFloat(Slice<float[]> array, Slice<float[]> searchTarget, int fromIndex, FloatEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		float first = getFloat(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first float. */
+			if (!ceq.floatsEqual(getFloat(array, i), first))
+			{
+				while (++i <= max && !ceq.floatsEqual(getFloat(array, i), first));
+			}
+			
+			/* Found first float, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.floatsEqual(getFloat(array, j), getFloat(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayInt(Slice<int[]> array, Slice<int[]> searchTarget)
+	{
+		return indexOfSubarrayInt(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayInt(Slice<int[]> array, Slice<int[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayInt(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayInt(Slice<int[]> array, Slice<int[]> searchTarget, int fromIndex, IntEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		int first = getInt(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first integer. */
+			if (!ceq.intsEqual(getInt(array, i), first))
+			{
+				while (++i <= max && !ceq.intsEqual(getInt(array, i), first));
+			}
+			
+			/* Found first integer, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.intsEqual(getInt(array, j), getInt(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayDouble(Slice<double[]> array, Slice<double[]> searchTarget)
+	{
+		return indexOfSubarrayDouble(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayDouble(Slice<double[]> array, Slice<double[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayDouble(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayDouble(Slice<double[]> array, Slice<double[]> searchTarget, int fromIndex, DoubleEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		double first = getDouble(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first double. */
+			if (!ceq.doublesEqual(getDouble(array, i), first))
+			{
+				while (++i <= max && !ceq.doublesEqual(getDouble(array, i), first));
+			}
+			
+			/* Found first double, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.doublesEqual(getDouble(array, j), getDouble(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static int indexOfSubarrayLong(Slice<long[]> array, Slice<long[]> searchTarget)
+	{
+		return indexOfSubarrayLong(array, searchTarget, 0);
+	}
+	
+	public static int indexOfSubarrayLong(Slice<long[]> array, Slice<long[]> searchTarget, int fromIndex)
+	{
+		return indexOfSubarrayLong(array, searchTarget, fromIndex, (a, b) -> a == b);
+	}
+	
+	public static int indexOfSubarrayLong(Slice<long[]> array, Slice<long[]> searchTarget, int fromIndex, LongEqualityComparator ceq)
+	{
+		//Copied and altered from String.java
+		
+		int sourceCount = array.getLength();
+		int targetCount = searchTarget.getLength();
+		
+		if (fromIndex >= sourceCount)
+		{
+			return (targetCount == 0 ? sourceCount : -1);
+		}
+		
+		if (fromIndex < 0)
+		{
+			fromIndex = 0;
+		}
+		
+		if (targetCount == 0)
+		{
+			return fromIndex;
+		}
+		
+		long first = getLong(searchTarget, 0);
+		int max = sourceCount - targetCount;
+		
+		for (int i = fromIndex; i <= max; i++)
+		{
+			/* Look for first long. */
+			if (!ceq.longsEqual(getLong(array, i), first))
+			{
+				while (++i <= max && !ceq.longsEqual(getLong(array, i), first));
+			}
+			
+			/* Found first long, now look at the rest of v2 */
+			if (i <= max)
+			{
+				int j = i + 1;
+				int end = j + targetCount - 1;
+				for (int k = 1; j < end && ceq.longsEqual(getLong(array, j), getLong(searchTarget, k)); j++, k++);
+				
+				if (j == end)
+				{
+					/* Found whole string. */
+					return i;
+				}
+			}
+		}
+		
+		return -1;
+	}
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E[] closeSequence(E[] array)
+	{
+		if (array.length == 0)
+			throw new IllegalArgumentException();
+		
+		int n = array.length;
+		E[] newa = Arrays.copyOf(array, n + 1);
+		newa[n] = array[0];
+		
+		return newa;
 	}
 }

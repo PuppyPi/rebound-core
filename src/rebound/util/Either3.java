@@ -54,7 +54,7 @@ public class Either3<A, B, C>
 	
 	
 	
-	public A getValueIfA()
+	public A getValueIfA() throws NotThisException
 	{
 		if (isB())
 			throw new NotThisException();
@@ -62,7 +62,7 @@ public class Either3<A, B, C>
 			return (A)getValue();
 	}
 	
-	public B getValueIfB()
+	public B getValueIfB() throws NotThisException
 	{
 		if (isB())
 			return (B)getValue();
@@ -70,7 +70,7 @@ public class Either3<A, B, C>
 			throw new NotThisException();
 	}
 	
-	public C getValueIfC()
+	public C getValueIfC() throws NotThisException
 	{
 		if (isC())
 			return (C)getValue();

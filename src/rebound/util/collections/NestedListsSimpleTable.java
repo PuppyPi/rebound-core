@@ -7,8 +7,8 @@ import java.util.List;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.NonrectangularException;
 import rebound.util.objectutil.PubliclyCloneable;
 
@@ -57,6 +57,18 @@ implements SimpleTable<E>, PubliclyCloneable<NestedListsSimpleTable<E>>
 		this.rows = rows;
 	}
 	
+	
+	@Override
+	public boolean isReadableTable()
+	{
+		return true;
+	}
+	
+	@Override
+	public boolean isWritableTable()
+	{
+		return true;
+	}
 	
 	
 	

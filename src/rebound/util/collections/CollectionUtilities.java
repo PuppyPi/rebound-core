@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -42,13 +43,16 @@ import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Queue;
+import java.util.Random;
 import java.util.RandomAccess;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Vector;
 import java.util.WeakHashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nonnegative;
@@ -59,15 +63,17 @@ import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
 import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.NonnullValues;
-import rebound.annotations.semantic.temporal.PossiblySnapshotPossiblyLiveValue;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.DuplicatesException;
+import rebound.exceptions.EmptyInputReturnPath;
+import rebound.exceptions.EmptyInputReturnPath.EmptyInputException;
 import rebound.exceptions.GenericDatastructuresFormatException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoSuchElementReturnPath;
@@ -75,6 +81,7 @@ import rebound.exceptions.NoSuchMappingReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath.NoSuchMappingException;
 import rebound.exceptions.NonForwardInjectiveMapException;
 import rebound.exceptions.NonReverseInjectiveMapException;
+import rebound.exceptions.NonSurjectiveMapException;
 import rebound.exceptions.NotFoundException;
 import rebound.exceptions.NotSingletonException;
 import rebound.exceptions.NotSupportedReturnPath;
@@ -100,9 +107,13 @@ import rebound.util.collections.maps.WeakValuedMap;
 import rebound.util.collections.prim.PrimitiveCollection;
 import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
+import rebound.util.collections.prim.PrimitiveCollections.ByteCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
+import rebound.util.collections.prim.PrimitiveCollections.CharacterCollection;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
+import rebound.util.collections.prim.PrimitiveCollections.DoubleCollection;
 import rebound.util.collections.prim.PrimitiveCollections.DoubleList;
+import rebound.util.collections.prim.PrimitiveCollections.FloatCollection;
 import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableBooleanArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
@@ -122,14 +133,26 @@ import rebound.util.collections.prim.PrimitiveCollections.ImmutableLongIntervalS
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortIntervalList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableShortIntervalSet;
+import rebound.util.collections.prim.PrimitiveCollections.IntegerCollection;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
+import rebound.util.collections.prim.PrimitiveCollections.LongCollection;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
+import rebound.util.collections.prim.PrimitiveCollections.ShortCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedByteSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedCharacterSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedDoubleSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedFloatSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedIntegerSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedLongSetBackedByList;
+import rebound.util.collections.prim.PrimitiveCollections.SortedShortSetBackedByList;
 import rebound.util.container.ContainerInterfaces.BooleanContainer;
 import rebound.util.container.ContainerInterfaces.ObjectContainer;
 import rebound.util.container.SimpleContainers.SimpleBooleanContainer;
+import rebound.util.container.SimpleContainers.SimpleObjectContainer;
 import rebound.util.functional.CollectionFunctionalIterable;
 import rebound.util.functional.ContinueSignal;
+import rebound.util.functional.EqualityComparator;
 import rebound.util.functional.FunctionInterfaces.BinaryFunction;
 import rebound.util.functional.FunctionInterfaces.BinaryFunctionToBoolean;
 import rebound.util.functional.FunctionInterfaces.NullaryFunction;
@@ -145,39 +168,25 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureInt;
 import rebound.util.functional.MapFunctionalIterable;
 import rebound.util.functional.SuccessfulIterationStopType;
+import rebound.util.functional.functions.DefaultEqualityComparator;
 import rebound.util.objectutil.BasicObjectUtilities;
-import rebound.util.objectutil.EqualityComparator;
 import rebound.util.objectutil.Equivalenceable;
-import rebound.util.objectutil.NaturalEqualityComparator;
 import rebound.util.objectutil.PubliclyCloneable;
 
-
 //TODO Implement the NotYetImplemented things ^^''
-
 //TODO reorderElement (in list) :>
 //TODO reorderElements (in list) :>
-
-//Todo rename mergeLists to concat (edit: ALREADY?! REALLY XDDD''')—new todo: Resolve duplicates between Merge and (Concatenate, Union)  ^^'''
-
-
-
-
+//TODO rename mergeLists to concat (edit: ALREADY?! REALLY XDDD''')—new todo: Resolve duplicates between Merge and (Concatenate, Union)  ^^'''
 //Todo Appensions (edit: Contatenations?):   Lightweight views of two or more [sub]lists which acts like the them merged back to back!  Can be combined with sublists and used on efficiently-backed char or boolean GeneralLists to make huge Text and Bit string manipulations SUUUUPER efficient! 8>
-
 //Todo toRichGeneralList, toNewVariableLengthMutableRichGeneralList  8>
 //Todo toNewMutableRichGeneralList :>
-
-
 //Todo our own unmodifiableList view-creator system (eg, a trait interface!) for supporting PrimitiveLists and DirectByteList.asReadonly()! :D
-
 
 public class CollectionUtilities
 {
-	
-	
-	
 	public static <E> void validateRowsAllSameSize(List<List<E>> rows) throws IllegalArgumentException
 	{
 		if (!areRowsAllTheSameSize(rows))
@@ -244,6 +253,22 @@ public class CollectionUtilities
 	}
 	
 	
+	/**
+	 * @return (value which may be actually null or if absent always null,     was value present?)
+	 */
+	public static <K, V> PairOrdered<V, Boolean> getp(Map<K, V> map, K key)
+	{
+		try
+		{
+			return pair(getrp(map, key), true);
+		}
+		catch (NoSuchMappingReturnPath exc)
+		{
+			return pair(null, false);
+		}
+	}
+	
+	
 	public static <K, V> V getMandatory(Map<K, V> map, K key) throws NoSuchMappingException
 	{
 		try
@@ -278,6 +303,31 @@ public class CollectionUtilities
 		catch (NoSuchMappingReturnPath exc)
 		{
 			throw new NoSuchMappingException("Element "+repr(key)+" not found in "+repr(map));
+		}
+	}
+	
+	public static <K, V> void removeExactMandatory(Map<K, V> map, K key, V value) throws NoSuchMappingException
+	{
+		V v;
+		try
+		{
+			v = getrp(map, key);
+		}
+		catch (NoSuchMappingReturnPath exc)
+		{
+			throw new NoSuchMappingException("Element "+repr(key)+" not found in "+repr(map));
+		}
+		
+		if (!eq(v, value))
+			throw new NoSuchMappingException("Element "+repr(key)+" was not mapped to "+repr(value)+" in "+repr(map));
+		
+		try
+		{
+			removerp(map, key);
+		}
+		catch (NoSuchMappingReturnPath exc)
+		{
+			throw new ImpossibleException("We already checked it was present in the map with getrp()!");
 		}
 	}
 	
@@ -1930,6 +1980,14 @@ public class CollectionUtilities
 		return indexOf(predicate, list) != -1;
 	}
 	
+	public static <E> boolean contains(Predicate<E> predicate, @CollectionValue Iterable<E> collection)
+	{
+		for (E e : collection)
+			if (predicate.test(e))
+				return true;
+		return false;
+	}
+	
 	
 	
 	
@@ -2290,7 +2348,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
 	// >>>
 	
 	
@@ -2629,6 +2686,14 @@ _$$primxpconf:intsonly$$_
 	@WritableValue
 	public static <E> Iterator<E> getRandomAccessRemoveCallbackIteratorDecorator(final Iterator<E> readonlyIterator, final List<E> backingList)
 	{
+		return getIndexBasedRemoveCallbackIteratorDecorator(readonlyIterator, backingList::remove);
+	}
+	
+	
+	@LiveValue
+	@WritableValue
+	public static <E> Iterator<E> getIndexBasedRemoveCallbackIteratorDecorator(final Iterator<E> readonlyIterator, final UnaryProcedureInt remove)
+	{
 		return new Iterator<E>()
 		{
 			int i = 0;
@@ -2650,7 +2715,63 @@ _$$primxpconf:intsonly$$_
 			@Override
 			public void remove()
 			{
-				backingList.remove(this.i);
+				remove.f(this.i);
+			}
+		};
+	}
+	
+	
+	
+	
+	@LiveValue
+	@WritableValue
+	public static <E> Iterator<E> newFullRandomAccessIterator(int initialSize, final UnaryFunction<Integer, E> getByIndex, final UnaryProcedureInt removeByIndex)
+	{
+		return new Iterator<E>()
+		{
+			int nextIndex = 0;
+			int size = initialSize;
+			boolean alreadyRemoved = false;
+			
+			@Override
+			public boolean hasNext()
+			{
+				return nextIndex < size;
+			}
+			
+			@Override
+			public E next()
+			{
+				if (nextIndex >= size)
+					throw new NoSuchElementException();
+				
+				E r = getByIndex.f(nextIndex);
+				
+				if (alreadyRemoved)
+					this.alreadyRemoved = false;
+				
+				this.nextIndex++;
+				
+				return r;
+			}
+			
+			@Override
+			public void remove() throws IllegalStateException
+			{
+				if (nextIndex == 0)
+					throw new IllegalStateException();  //different line numbers :3
+				if (alreadyRemoved)
+					throw new IllegalStateException();  //different line numbers :3
+				
+				
+				//do first in case the latter throws error
+				{
+					alreadyRemoved = true;
+					size--;
+					nextIndex--;
+				}
+				
+				removeByIndex.f(this.nextIndex);
 			}
 		};
 	}
@@ -3003,9 +3124,15 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	
+	
 	//TODO use a view of the list instead!! :D
-	public static <E> List<E> reversed(@WritableValue List<E> list)
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> reversed(@ReadonlyValue List<E> list)
 	{
+		if (list.size() <= 1)
+			return list;
+		
 		List<E> copylist = new ArrayList<>(list);
 		reverseListInPlace(copylist);
 		return copylist;
@@ -3013,6 +3140,39 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> shuffled(@ReadonlyValue List<E> list)
+	{
+		if (list.size() <= 1)
+			return list;
+		
+		List<E> copylist = new ArrayList<>(list);
+		shuffle(copylist);
+		return copylist;
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> shuffled(@ReadonlyValue List<E> list, Random r)
+	{
+		if (list.size() <= 1)
+			return list;
+		
+		List<E> copylist = new ArrayList<>(list);
+		shuffle(copylist, r);
+		return copylist;
+	}
+	
+	//TODO use a view of the list instead!! :D
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> rotated(@ReadonlyValue List<E> list, int amount)
+	{
+		if (list.size() <= 1 || amount == 0)
+			return list;
+		
+		List<E> copylist = new ArrayList<>(list);
+		rotate(copylist, amount);
+		return copylist;
+	}
 	
 	
 	
@@ -4328,9 +4488,36 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static <E> boolean defaultSetsEquivalent(Set<? extends E> a, Set<? extends E> b, EqualityComparator<E> eq)
+	public static <E> boolean defaultSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
 	{
-		return defaultMultiSetsEquivalent_SmallNaive(a, b, eq);
+		//Todo test that it's functionally equivalent to this!!: return defaultMultiSetsEquivalent_SmallNaive(a, b, eq);
+		
+		
+		if (a == b) return true;
+		if (a == null || b == null) return false;
+		
+		int as = a.size();
+		int bs = b.size();
+		
+		if (as != bs)
+			return false;
+		
+		if (as == 0)
+		{
+			assert bs == 0;
+			return true;
+		}
+		
+		for (E e : a)
+		{
+			if (!contains(ee -> eq.equals(e, ee), b))
+				return false;
+			
+			assert(count(x -> eq.equals(x, e), a) == 1);
+			assert(count(x -> eq.equals(x, e), b) == 1);
+		}
+		
+		return true;
 	}
 	
 	
@@ -4352,7 +4539,6 @@ _$$primxpconf:intsonly$$_
 		if (as == 0)
 		{
 			assert bs == 0;
-			
 			return true;
 		}
 		
@@ -4556,6 +4742,22 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	/**
+	 * Just the standard algorithm straight out of {@link Map#hashCode()} ^_^
+	 * 
+	 * int hashCode = 0;
+	 * for (Entry<K, V> e : map.entrySet())
+	 * 		hashCode += e.hashCode();
+	 */
+	public static <K, V> int defaultMapHashCode(Map<K, V> map)
+	{
+		int hashCode = 0;
+		for (Entry<K, V> e : map.entrySet())
+			hashCode += e.hashCode();
+		return hashCode;
+	}
 	
 	
 	
@@ -5492,9 +5694,17 @@ _$$primxpconf:intsonly$$_
 		return output;
 	}
 	
+	/**
+	 * @throws NonReverseInjectiveMapException can only happen if the input is not a Set!
+	 */
 	public static <K, V> Map<K, V> maptodictSameKeys(Mapper<K, V> function, Iterable<K> input) throws NonReverseInjectiveMapException
 	{
 		return maptodict(k -> new SimpleEntry<K, V>(k, function.f(k)), input);
+	}
+	
+	public static <K, V> Map<K, V> maptodictSameValues(Mapper<V, K> function, Iterable<V> input) throws NonReverseInjectiveMapException
+	{
+		return maptodict(v -> new SimpleEntry<K, V>(function.f(v), v), input);
 	}
 	
 	
@@ -5529,6 +5739,44 @@ _$$primxpconf:intsonly$$_
 	{
 		return mapdict(e -> new SimpleEntry<>(function.f(e.getKey()), e.getValue()), input);
 	}
+	
+	
+	
+	
+	
+	public static <I, Ko, Vo> Map<Ko, Set<Vo>> maptogendict(Mapper<I, Entry<Ko, Vo>> function, Iterable<I> input) throws NonReverseInjectiveMapException
+	{
+		Map<Ko, Set<Vo>> output = new HashMap<>();
+		
+		for (I in : input)
+		{
+			Entry<Ko, Vo> eOut;
+			try
+			{
+				eOut = function.f(in);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			if (eOut != null)
+			{
+				Ko key = eOut.getKey();
+				
+				Set<Vo> set = getOrCreate(output, key, HashSet::new);
+				
+				set.add(eOut.getValue());
+			}
+		}
+		
+		return output;
+	}
+	
+	
+	
+	
+	
 	
 	
 	
@@ -5868,6 +6116,22 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> newTableFromOther(@ReadonlyValue @SnapshotValue SimpleTable<E> contents)
+	{
+		SimpleTable<E> t = newTable();
+		t.setFrom(contents);
+		return t;
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	@WritableValue
+	public static <E> SimpleTable<E> writableTable(@PossiblySnapshotPossiblyLiveValue SimpleTable<E> contents)
+	{
+		return contents.isWritableTable() ? contents : newTableFromOther(contents);
+	}
+	
+	
 	
 	@ReadonlyValue
 	public static <E> SimpleTable<E> tableofArray(int width, E[] contents)
@@ -5971,8 +6235,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	
 	public static <K, I, O> O getAndDoOrDefault(Map<K, I> map, K key, UnaryFunction<I, O> function, O defaultValue)
 	{
 		I input = map.get(key);
@@ -6004,6 +6266,9 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	/**
+	 * Note: NOT weak map (weak-value or weak-key) safe!!
+	 */
 	public static <K, V> V getOrCreate(Map<K, V> map, K key, NullaryFunction<V> creator)
 	{
 		V v = map.get(key);
@@ -6285,6 +6550,12 @@ _$$primxpconf:intsonly$$_
 	public static <I, O, A extends I> O[] mapToNewArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, A[] input)
 	{
 		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(mapper, (Iterable)Arrays.asList(input)), outputComponentType);
+	}
+	
+	@ThrowAwayValue
+	public static <I, O> O[] mapToNewArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, Iterable<I> input)
+	{
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(mapper, input), outputComponentType);
 	}
 	
 	@ThrowAwayValue
@@ -7309,7 +7580,6 @@ _$$primxpconf:intsonly$$_
 		return true;
 	}
 	
-	
 	// >>>
 	
 	
@@ -7517,19 +7787,19 @@ _$$primxpconf:intsonly$$_
 				else
 				{
 					if (a instanceof List && b instanceof List)
-						return defaultListsEquivalent((List)a, (List)b);
+						return defaultListsEquivalent((List)a, (List)b, (aa, bb) -> eqv(aa, bb));
 					
 					else if (a instanceof Set && b instanceof Set)
-						return defaultSetsEquivalent((Set)a, (Set)b);
+						return defaultSetsEquivalent((Set)a, (Set)b, (aa, bb) -> eqv(aa, bb));
 					
 					else if (a instanceof Collection && b instanceof Collection)
-						return defaultMultiSetsEquivalent_SmallNaive((Collection)a, (Collection)b, NaturalEqualityComparator.I);  //Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+						return defaultMultiSetsEquivalent_SmallNaive((Collection)a, (Collection)b, (aa, bb) -> eqv(aa, bb));  //Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
 					
 					else if (a instanceof Map && b instanceof Map)
-						return defaultMapsEquivalent((Map)a, (Map)b);
+						return defaultMapsEquivalent((Map)a, (Map)b, (aa, bb) -> eqv(aa, bb));
 					
 					else
-						throw new UnsupportedOperationException();
+						throw new UnsupportedOperationException("eqv(a "+a.getClass().getName() + ", a " + b.getClass().getName()+")");
 				}
 			}
 		}
@@ -7563,7 +7833,7 @@ _$$primxpconf:intsonly$$_
 	public static <E> boolean eqvMultiSets(Collection<? extends E> a, Collection<? extends E> b)
 	{
 		//We can't go based on the runtime type because the Java Collections Framework doesn't really do inheritance right x'D
-		return eqvMultiSets(a, b, NaturalEqualityComparator.I);
+		return eqvMultiSets(a, b, DefaultEqualityComparator.I);
 	}
 	
 	public static <E> boolean eqvLists(List<? extends E> a, List<? extends E> b)
@@ -7601,16 +7871,46 @@ _$$primxpconf:intsonly$$_
 	public static int hashCodeOfContents(Object a)
 	{
 		if (a == null)
+		{
 			return 0;
+		}
 		else if (a instanceof Equivalenceable)
+		{
 			return ((Equivalenceable)a).hashCodeOfContents();
+		}
 		else if (isTrueAndNotNull(isThreadUnsafelyImmutable(a)))
+		{
 			return a.hashCode();
+		}
 		else
-			throw new UnsupportedOperationException();
+		{
+			try
+			{
+				return hashCodeOfContentsGrandfathering(a);
+			}
+			catch (NotSupportedReturnPath exc)
+			{
+				throw new UnsupportedOperationException();
+			}
+		}
 	}
 	
 	
+	
+	public static int hashCodeOfContentsGrandfathering(Object a) throws NotSupportedReturnPath
+	{
+		if (a instanceof List)
+			return defaultListHashCode((List)a);
+		if (a instanceof Set)
+			return defaultSetHashCode((Set)a);
+		if (a instanceof Collection)  //Must come after List and Set!!
+			return defaultMultiSetHashCode((Set)a);
+		
+		if (a instanceof Map)
+			return defaultMapHashCode((Map)a);
+		
+		throw NotSupportedReturnPath.I;
+	}
 	
 	
 	
@@ -7664,10 +7964,15 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <K, V> Map<V, K> inverseMapOPC(@ReadonlyValue Map<K, V> map) throws NonForwardInjectiveMapException
+	{
+		return inverseMapOP(map);  //Todo weak caching impl for immutable maps?
+	}
 	
 	
-	
-	public static <K, V> Map<V, K> inverseMapOP(Map<K, V> map) throws NonForwardInjectiveMapException
+	@ThrowAwayValue
+	public static <K, V> Map<V, K> inverseMapOP(@ReadonlyValue Map<K, V> map) throws NonForwardInjectiveMapException
 	{
 		//		Map<V, K> inverse = new HashMap<>();
 		//		
@@ -7843,6 +8148,10 @@ _$$primxpconf:intsonly$$_
 		if (!conflicts.isEmpty())
 			throw new AlreadyExistsException("Conflicts detected!: {"+reprListContentsSingleLine(conflicts)+"}");
 	}
+	
+	
+	
+	
 	
 	
 	
@@ -9019,48 +9328,110 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E> List<E> immutableCopy(List<E> list)
+	public static <E> List<E> immutableCopyList(List<E> list)
 	{
-		//TODO if (isImmutable(list)), making it idempotent ^^'
-		
+		if (isTrueAndNotNull(isThreadUnsafelyImmutable(list)))
+			return list;
 		
 		
 		/* <<<
 		primxp
 		
 		if (list instanceof _$$Primitive$$_List)
-			return (List<E>)Immutable_$$Primitive$$_ArrayList.newCopying((_$$Primitive$$_List)list);
+			return (List<E>)Immutable_$$Primitive$$_ArrayList.newCopying((List<_$$Primitive$$_>)list);
 		 */
 		
 		if (list instanceof BooleanList)
-			return (List<E>)ImmutableBooleanArrayList.newCopying((BooleanList)list);
+			return (List<E>)ImmutableBooleanArrayList.newCopying((List<Boolean>)list);
 		
 		if (list instanceof ByteList)
-			return (List<E>)ImmutableByteArrayList.newCopying((ByteList)list);
+			return (List<E>)ImmutableByteArrayList.newCopying((List<Byte>)list);
 		
 		if (list instanceof CharacterList)
-			return (List<E>)ImmutableCharacterArrayList.newCopying((CharacterList)list);
+			return (List<E>)ImmutableCharacterArrayList.newCopying((List<Character>)list);
 		
 		if (list instanceof ShortList)
-			return (List<E>)ImmutableShortArrayList.newCopying((ShortList)list);
+			return (List<E>)ImmutableShortArrayList.newCopying((List<Short>)list);
 		
 		if (list instanceof FloatList)
-			return (List<E>)ImmutableFloatArrayList.newCopying((FloatList)list);
+			return (List<E>)ImmutableFloatArrayList.newCopying((List<Float>)list);
 		
 		if (list instanceof IntegerList)
-			return (List<E>)ImmutableIntegerArrayList.newCopying((IntegerList)list);
+			return (List<E>)ImmutableIntegerArrayList.newCopying((List<Integer>)list);
 		
 		if (list instanceof DoubleList)
-			return (List<E>)ImmutableDoubleArrayList.newCopying((DoubleList)list);
+			return (List<E>)ImmutableDoubleArrayList.newCopying((List<Double>)list);
 		
 		if (list instanceof LongList)
-			return (List<E>)ImmutableLongArrayList.newCopying((LongList)list);
-		
+			return (List<E>)ImmutableLongArrayList.newCopying((List<Long>)list);
 		//>>>
 		
 		return Collections.unmodifiableList(new ArrayList<>(list));
 	}
 	
+	
+	
+	
+	
+	
+	public static <E> Set<E> immutableCopySet(Set<E> set)
+	{
+		if (isTrueAndNotNull(isThreadUnsafelyImmutable(set)))
+			return set;
+		
+		
+		/* <<<
+		primxp
+		_$$primxpconf:noboolean$$_
+		
+		if (set instanceof _$$Primitive$$_Collection)
+			return (Set<E>)new Sorted_$$Primitive$$_SetBackedByList(Immutable_$$Primitive$$_ArrayList.newCopying(Sorted_$$Primitive$$_SetBackedByList.sorted((Collection<_$$Primitive$$_>)set).getUnderlying()));
+		 */
+		
+		
+		if (set instanceof ByteCollection)
+			return (Set<E>)new SortedByteSetBackedByList(ImmutableByteArrayList.newCopying(SortedByteSetBackedByList.sorted((Collection<Byte>)set).getUnderlying()));
+		
+		
+		if (set instanceof CharacterCollection)
+			return (Set<E>)new SortedCharacterSetBackedByList(ImmutableCharacterArrayList.newCopying(SortedCharacterSetBackedByList.sorted((Collection<Character>)set).getUnderlying()));
+		
+		
+		if (set instanceof ShortCollection)
+			return (Set<E>)new SortedShortSetBackedByList(ImmutableShortArrayList.newCopying(SortedShortSetBackedByList.sorted((Collection<Short>)set).getUnderlying()));
+		
+		
+		if (set instanceof FloatCollection)
+			return (Set<E>)new SortedFloatSetBackedByList(ImmutableFloatArrayList.newCopying(SortedFloatSetBackedByList.sorted((Collection<Float>)set).getUnderlying()));
+		
+		
+		if (set instanceof IntegerCollection)
+			return (Set<E>)new SortedIntegerSetBackedByList(ImmutableIntegerArrayList.newCopying(SortedIntegerSetBackedByList.sorted((Collection<Integer>)set).getUnderlying()));
+		
+		
+		if (set instanceof DoubleCollection)
+			return (Set<E>)new SortedDoubleSetBackedByList(ImmutableDoubleArrayList.newCopying(SortedDoubleSetBackedByList.sorted((Collection<Double>)set).getUnderlying()));
+		
+		
+		if (set instanceof LongCollection)
+			return (Set<E>)new SortedLongSetBackedByList(ImmutableLongArrayList.newCopying(SortedLongSetBackedByList.sorted((Collection<Long>)set).getUnderlying()));
+		//>>>
+		
+		return Collections.unmodifiableSet(new HashSet<>(set));
+	}
+	
+	
+	
+	
+	
+	
+	public static <K, V> Map<K, V> immutableCopyMap(Map<K, V> map)
+	{
+		if (isTrueAndNotNull(isThreadUnsafelyImmutable(map)))
+			return map;
+		
+		return Collections.unmodifiableMap(new HashMap<>(map));
+	}
 	
 	
 	
@@ -9245,6 +9616,20 @@ _$$primxpconf:intsonly$$_
 		return hasMatching_C.get();
 	}
 	
+	
+	public static <E> E getArbitraryOrNullIfNoneWithObserver(UnaryProcedure<UnaryFunction<E, ContinueSignal>> observerUsingFunction)
+	{
+		ObjectContainer<E> c = new SimpleObjectContainer<>(null);
+		
+		observerUsingFunction.f(v ->
+		{
+			requireNonNull(v);
+			c.set(v);
+			return ContinueSignal.Stop;
+		});
+		
+		return c.get();
+	}
 	
 	
 	
@@ -9545,32 +9930,32 @@ _$$primxpconf:intsonly$$_
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterator<I> inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterator<I> inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, Iterable<I> inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, SimpleIterable<I> inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	public static <I, O> boolean eqMapping(Mapper<I, O> mapper, I[] inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	public static <I, O> boolean eqMappingV(Mapper<I, O> mapper, I... inputs)
 	{
-		return eqMapping(mapper, inputs, NaturalEqualityComparator.I);
+		return eqMapping(mapper, inputs, DefaultEqualityComparator.I);
 	}
 	
 	
@@ -10231,6 +10616,75 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	public static <E> E reduceWithIdentity(BinaryFunction<E, E, E> function, E identity, Iterable<E> inputs)
+	{
+		E current = identity;
+		
+		for (E e : inputs)
+		{
+			current = function.f(current, e);
+		}
+		
+		return current;
+	}
+	
+	
+	public static <E> E reduce(BinaryFunction<E, E, E> function, E identityIfListIsEmpty, Iterable<E> inputs)
+	{
+		try
+		{
+			return reduceRP(function, inputs);
+		}
+		catch (EmptyInputReturnPath rp)
+		{
+			return identityIfListIsEmpty;
+		}
+	}
+	
+	public static <E> E reduceNonempty(BinaryFunction<E, E, E> function, Iterable<E> inputs) throws EmptyInputException
+	{
+		try
+		{
+			return reduceRP(function, inputs);
+		}
+		catch (EmptyInputReturnPath rp)
+		{
+			throw rp.toException();
+		}
+	}
+	
+	public static <E> E reduceRP(BinaryFunction<E, E, E> function, Iterable<E> inputs) throws EmptyInputReturnPath
+	{
+		boolean has = false;
+		E current = null;
+		
+		for (E e : inputs)
+		{
+			if (has)
+			{
+				current = function.f(current, e);
+			}
+			else
+			{
+				current = e;
+				has = true;
+			}
+		}
+		
+		if (!has)
+			throw EmptyInputReturnPath.I;
+		
+		return current;
+	}
+	
+	
+	
+	
+	
 	public static interface InPlaceReducer<I, O>
 	{
 		public void f(@ReadonlyValue I input, @WritableValue O outputToMergeWith);
@@ -10248,6 +10702,8 @@ _$$primxpconf:intsonly$$_
 		
 		return mutableOutputStartingWithIdentity;
 	}
+	
+	
 	
 	
 	
@@ -10327,5 +10783,735 @@ _$$primxpconf:intsonly$$_
 			return false;
 		else
 			return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> boolean clearReturningIfChanged(Collection<E> c)
+	{
+		if (c.isEmpty())
+		{
+			return false;
+		}
+		else
+		{
+			c.clear();
+			return true;
+		}
+	}
+	
+	public static <K, V> boolean clearReturningIfChanged(Map<K, V> m)
+	{
+		if (m.isEmpty())
+		{
+			return false;
+		}
+		else
+		{
+			m.clear();
+			return true;
+		}
+	}
+	
+	
+	
+	
+	
+	public static <E> PairOrdered<E, Boolean> setReturningIfChanged(List<E> list, int index, E element)
+	{
+		E v = list.get(index);
+		
+		if (eq(v, element))
+		{
+			return pair(v, false);
+		}
+		else
+		{
+			list.set(index, element);
+			return pair(v, true);
+		}
+	}
+	
+	
+	public static <E> boolean replaceAllReturningIfChanged(List<E> list, UnaryOperator<E> operator)
+	{
+		boolean changed = false;
+		
+		ListIterator<E> li = list.listIterator();
+		
+		while (li.hasNext())
+		{
+			E oldValue = li.next();
+			E newValue = operator.apply(oldValue);
+			
+			if (!eq(newValue, oldValue))
+			{
+				li.set(newValue);
+				changed = true;
+			}
+		}
+		
+		return changed;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> mergeReturningIfChanged(Map<K, V> map, K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction)
+	{
+		requireNonNull(remappingFunction);
+		requireNonNull(value);
+		
+		PairOrdered<V, Boolean> r = getp(map, key);
+		V oldValue = r.getA();
+		V newValue = (oldValue == null) ? value : remappingFunction.apply(oldValue, value);
+		
+		boolean present = r.getB();
+		
+		if (newValue == null)
+		{
+			if (present)
+				map.remove(key);
+			
+			return pair(newValue, present);
+		}
+		else
+		{
+			if (present)
+			{
+				if (eq(oldValue, value))
+				{
+					return pair(newValue, false);
+				}
+				else
+				{
+					map.put(key, value);
+					return pair(newValue, true);
+				}
+			}
+			else
+			{
+				map.put(key, value);
+				return pair(newValue, true);
+			}
+		}
+	}
+	
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> putReturningIfChanged(Map<K, V> map, K key, V value)
+	{
+		PairOrdered<V, Boolean> p = getp(map, (K)key);
+		boolean present = p.getB();
+		
+		if (present)
+		{
+			V v = p.getA();
+			
+			if (eq(v, value))
+			{
+				return pair(v, false);
+			}
+			else
+			{
+				map.put(key, value);
+				return pair(v, true);
+			}
+		}
+		else
+		{
+			map.put(key, value);
+			return pair(null, true);
+		}
+	}
+	
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> removeReturningIfChanged(Map<K, V> map, Object key)
+	{
+		PairOrdered<V, Boolean> p = getp(map, (K)key);
+		
+		boolean present = p.getB();
+		if (present)
+		{
+			V n = map.remove(key);
+			
+			if (!eq(p.getA(), n))
+				logBug();
+		}
+		
+		return p;
+	}
+	
+	
+	
+	public static <K, V> boolean putAllReturningIfChanged(Map<K, V> map, Map<? extends K, ? extends V> source)
+	{
+		boolean changed = false;
+		
+		for (Entry<? extends K, ? extends V> e : source.entrySet())
+		{
+			V v;
+			try
+			{
+				v = getrp(map, e.getKey());
+			}
+			catch (NoSuchMappingReturnPath rp)
+			{
+				map.put(e.getKey(), e.getValue());
+				changed = true;
+				continue;
+			}
+			
+			if (!eq(v, e.getValue()))
+			{
+				map.put(e.getKey(), e.getValue());
+				changed = true;
+			}
+		}
+		
+		return changed;
+	}
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> putIfAbsentReturningIfChanged(Map<K, V> map, K key, V value)
+	{
+		PairOrdered<V, Boolean> p = getp(map, (K)key);
+		boolean present = p.getB();
+		
+		if (!present)
+		{
+			map.put(key, value);
+			return pair(p.getA(), true);
+		}
+		else
+		{
+			if (p.getA() != null)
+				logBug(repr(p.getA()));
+			
+			return pair(null, false);
+		}
+	}
+	
+	
+	public static <K, V> boolean replaceAllReturningIfChanged(Map<K, V> map, BiFunction<? super K, ? super V, ? extends V> function)
+	{
+		requireNonNull(function);
+		
+		boolean changed = false;
+		
+		HashMap<K, V> copy = new HashMap<>(map);
+		
+		for (Map.Entry<K, V> entry : map.entrySet())
+		{
+			K k;
+			V v;
+			try
+			{
+				k = entry.getKey();
+				v = entry.getValue();
+			}
+			catch (IllegalStateException exc)
+			{
+				//Undo!!
+				map.clear();
+				map.putAll(copy);
+				
+				// this usually means the entry is no longer in the map.
+				throw new ConcurrentModificationException(exc);
+			}
+			
+			// An IllegalStateException thrown from this function is not a concurrent modification problem!
+			V newValue = function.apply(k, v);
+			
+			if (!eq(newValue, v))
+			{
+				try
+				{
+					entry.setValue(newValue);
+				}
+				catch (IllegalStateException exc)
+				{
+					//Undo!!
+					map.clear();
+					map.putAll(copy);
+					
+					// this usually means the entry is no longer in the map.
+					throw new ConcurrentModificationException(exc);
+				}
+				
+				changed = true;
+			}
+		}
+		
+		return changed;
+	}
+	
+	
+	/**
+	 * Analog of {@link Map#replace(Object, Object)} (aka putIfPresent() X3 )
+	 */
+	public static <K, V> PairOrdered<V, Boolean> replaceReturningIfChanged(Map<K, V> map, K key, V value)
+	{
+		//		if (map.containsKey(key))
+		//		{
+		//			return map.put(key, value);
+		//		}
+		//		else
+		//		{
+		//			return null;
+		//		}
+		
+		PairOrdered<V, Boolean> p = getp(map, (K)key);
+		boolean present = p.getB();
+		
+		if (present)
+		{
+			V v = p.getA();
+			
+			if (eq(v, value))
+			{
+				return pair(v, false);
+			}
+			else
+			{
+				map.put(key, value);
+				return pair(v, true);
+			}
+		}
+		else
+		{
+			return pair(null, false);
+		}
+	}
+	
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> computeIfAbsentReturningIfChanged(Map<K, V> map, K key, Function<? super K, ? extends V> mappingFunction)
+	{
+		requireNonNull(mappingFunction);
+		
+		V v = map.get(key);
+		
+		if (v == null)  //the JRE equates null with absent here so we must, too!!
+		{
+			V newValue = mappingFunction.apply(key);
+			
+			if (newValue != null)
+			{
+				map.put(key, newValue);
+				return pair(newValue, true);
+			}
+			else
+			{
+				return pair(null, false);
+			}
+		}
+		else
+		{
+			return pair(v, false);
+		}
+	}
+	
+	public static <K, V> PairOrdered<V, Boolean> computeIfPresentReturningIfChanged(Map<K, V> map, K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+	{
+		requireNonNull(remappingFunction);
+		
+		V oldValue = map.get(key);
+		
+		if (oldValue != null)
+		{
+			V newValue = remappingFunction.apply(key, oldValue);
+			
+			if (newValue != null)
+			{
+				if (eq(oldValue, newValue))
+				{
+					map.put(key, newValue);
+					return pair(newValue, true);
+				}
+				else
+				{
+					return pair(newValue, false);
+				}
+			}
+			else
+			{
+				map.remove(key);
+				return pair(null, true);
+			}
+		}
+		else
+		{
+			return pair(null, false);  //the JRE equates null with absent here so we must, too!!
+		}
+	}
+	
+	
+	public static <K, V> PairOrdered<V, Boolean> computeReturningIfChanged(Map<K, V> map, K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction)
+	{
+		requireNonNull(remappingFunction);
+		
+		PairOrdered<V, Boolean> p = getp(map, (K)key);
+		V oldValue = p.getA();
+		
+		V newValue = remappingFunction.apply(key, oldValue);
+		if (newValue == null)
+		{
+			// delete mapping
+			if (p.getB())
+			{
+				// something to remove
+				map.remove(key);
+				return pair(null, true);
+			}
+			else
+			{
+				// nothing to do. Leave things as they were.
+				return pair(null, false);
+			}
+		}
+		else
+		{
+			// add or replace old mapping
+			boolean present = p.getB();
+			
+			if (present)
+			{
+				V v = p.getA();
+				
+				if (eq(v, newValue))
+				{
+					return pair(v, false);
+				}
+				else
+				{
+					map.put(key, newValue);
+					return pair(v, true);
+				}
+			}
+			else
+			{
+				map.put(key, newValue);
+				return pair(null, true);
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> void setCollectionFrom(Collection<E> dest, Collection<E> source)
+	{
+		setCollectionFromReturningIfChanged(dest, source);
+	}
+	
+	public static <K, V> void setMapFrom(Map<K, V> dest, Map<K, V> source)
+	{
+		setMapFromReturningIfChanged(dest, source);
+	}
+	
+	
+	
+	public static <E> boolean setCollectionFromReturningIfChanged(Collection<E> dest, Collection<E> source)
+	{
+		if (eqv(dest, source))
+		{
+			return false;
+		}
+		else
+		{
+			dest.clear();
+			dest.addAll(source);
+			return true;
+		}
+	}
+	
+	
+	public static <K, V> boolean setMapFromReturningIfChanged(Map<K, V> dest, Map<K, V> source)
+	{
+		if (eqv(dest, source))
+		{
+			return false;
+		}
+		else
+		{
+			dest.clear();
+			dest.putAll(source);
+			return true;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param map keys are the (zero-based) indexes for the list!
+	 */
+	@ReadonlyValue
+	public static <E> List<E> dict2list(Map<Integer, E> map) throws NonSurjectiveMapException
+	{
+		int n = map.size();
+		
+		List<E> list = (List<E>) asList(new Object[n]);
+		boolean[] has = new boolean[n];
+		
+		for (Entry<Integer, E> e : map.entrySet())
+		{
+			int index = e.getKey();
+			
+			asrt(!has[index]);  //how can a java.util.Map have duplicate keys?!? @,@   X'D
+			list.set(index, e.getValue());
+			has[index] = true;
+		}
+		
+		
+		for (int index = 0; index < n; index++)
+		{
+			if (!has[index])
+				throw new NonSurjectiveMapException("Computed indexes are not surjective!!  No entries were assigned to this index!!:  "+index);
+		}
+		
+		return list;
+	}
+	
+	
+	
+	
+	public static <I, Vo> List<Vo> mapToDictlist(Mapper<I, Entry<Integer, Vo>> function, Iterable<I> input) throws NonReverseInjectiveMapException, NonSurjectiveMapException
+	{
+		//Todo more efficient version ^^'  but keep this impl. to use for unit testing :>
+		Map<Integer, Vo> dict = maptodict(function, input);
+		return dict2list(dict);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	protected static final ListSet emptyListSet = new ListBackedSet(emptyList());
+	
+	public static <E> ListSet<E> emptyListSet()
+	{
+		return emptyListSet;
+	}
+	
+	public static <E> ListSet<E> singletonListSet(E member)
+	{
+		return new ListBackedSet(singletonList(member));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * When copying a subregion of a necklace (rotation-equivalent list aka modular list), two copies may be needed if the region crosses over the last-first element break.
+	 * This takes a modular start and end point—a modular interval—and returns two normal contiguous list-copy intervals.
+	 * (Note that the second one will be 0, 0 indicating an empty interval if only one copy region is needed :3 )
+	 * 
+	 * + Note that the inputs to this can't encode an Empty Necklace!  (Whereas IE can't encode a full one!)
+	 * 
+	 * @return {copyInterval0StartInclusive, copyInterval0EndExclusive,  copyInterval1StartInclusive, copyInterval1EndExclusive}
+	 */
+	public static int[] necklaceCopyIndexesII(int startInclusive, int endInclusive, int necklaceSize)
+	{
+		asrt(startInclusive >= 0);
+		asrt(endInclusive >= 0);
+		asrt(startInclusive < necklaceSize);
+		asrt(endInclusive < necklaceSize);
+		
+		if (endInclusive < startInclusive)
+		{
+			return new int[]{
+			startInclusive, necklaceSize,
+			0, endInclusive + 1,
+			};
+		}
+		else
+		{
+			return new int[]{
+			startInclusive, endInclusive + 1,
+			0, 0,
+			};
+		}
+	}
+	
+	/**
+	 * The same as {@link #necklaceCopyIndexesII(int, int, int)} except it accepts the endpoint of the input as exclusive not inclusive :3
+	 * + Note that the inputs to this can't encode a Full Necklace!  (Whereas II can't encode an empty one!)
+	 */
+	public static int[] necklaceCopyIndexesIE(int startInclusive, int endExclusive, int necklaceSize)
+	{
+		asrt(startInclusive >= 0);
+		asrt(endExclusive >= 0);
+		asrt(startInclusive < necklaceSize);
+		asrt(endExclusive <= necklaceSize);
+		
+		if (startInclusive == endExclusive)
+			return new int[]{0,0, 0,0};
+		else
+			return necklaceCopyIndexesII(startInclusive, endExclusive == 0 ? necklaceSize - 1 : endExclusive - 1, necklaceSize);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean isSmallFiniteSet(Set set)
+	{
+		if (set instanceof SmallFinite)
+			return ((SmallFinite)set).isSmallFinite();
+		else if (set instanceof ListBackedSet)
+			return isSmallFiniteList(((ListBackedSet)set).getBacking());
+		else if (set instanceof AssertedSet)
+			return isSmallFiniteCollection(((AssertedSet)set).getUnderlying());
+		else
+			return set == Collections.EMPTY_SET || set instanceof HashSet || set instanceof TreeSet || set.getClass() == singletonSet(null).getClass();
+	}
+	
+	public static boolean isSmallFiniteList(List list)
+	{
+		if (list instanceof SmallFinite)
+			return ((SmallFinite)list).isSmallFinite();
+		else
+			return list == Collections.EMPTY_LIST || list instanceof ArrayList || list instanceof Vector || list instanceof LinkedList || list.getClass() == singletonSet(null).getClass() || list.getClass() == Arrays.asList().getClass();
+	}
+	
+	public static boolean isSmallFiniteCollection(Collection c)
+	{
+		if (c instanceof Set)
+			return isSmallFiniteSet((Set)c);
+		else if (c instanceof List)
+			return isSmallFiniteList((List)c);
+		else
+			return SmallFinite.is(c);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Necklace<?> emptyNecklace()
+	{
+		return EmptyNecklace.I;
+	}
+	
+	public static <E> Necklace<E> singletonNecklace(E e)
+	{
+		return new SingletonNecklace<E>(e);
+	}
+	
+	public static <E> Necklace<E> precanonicalizedNecklace(List<E> canonicalRotation)
+	{
+		return new PrecanonicalizedNecklace<>(canonicalRotation);
+	}
+	
+	public static <E> Necklace<E> necklaceCanonicalizedBySmallestMember(List<E> arbitraryRotation, Comparator<E> comparison)
+	{
+		int indexOfSmallestMember = MathUtilities.least(intervalIntegersList(0, arbitraryRotation.size()), (a, b) -> comparison.compare(arbitraryRotation.get(a), arbitraryRotation.get(b)));
+		return precanonicalizedNecklace(rotated(arbitraryRotation, -indexOfSmallestMember));
+	}
+	
+	
+	
+	
+	
+	
+	public static Bracelet<?> emptyBracelet()
+	{
+		return EmptyBracelet.I;
+	}
+	
+	public static <E> Bracelet<E> singletonBracelet(E e)
+	{
+		return new SingletonBracelet<E>(e);
+	}
+	
+	public static <E> Bracelet<E> precanonicalizedBracelet(List<E> canonicalRotationAndReflection)
+	{
+		return new PrecanonicalizedBracelet<>(canonicalRotationAndReflection);
+	}
+	
+	public static <E> Bracelet<E> braceletCanonicalizedBySmallestMemberAndSmallestAscendingReflection(List<E> arbitraryRotation, Comparator<E> comparison)
+	{
+		int indexOfSmallestMember = MathUtilities.least(intervalIntegersList(0, arbitraryRotation.size()), (a, b) -> comparison.compare(arbitraryRotation.get(a), arbitraryRotation.get(b)));
+		List<E> l = rotated(arbitraryRotation, -indexOfSmallestMember);
+		
+		int n = l.size();
+		
+		if (n > 2)
+		{
+			E elementBeforeFirst = l.get(n - 1);
+			
+			//if the loop finishes without any being different, then it means all elements other than the first are equivalent, so we can't determine which reflection to use—but it doesn't matter because reflecting it wouldn't do anything anyway! XD
+			
+			for (int i = 1; i < n - 1; i++)
+			{
+				E elementAfterFirst = l.get(i);
+				
+				int r = comparison.compare(elementBeforeFirst, elementAfterFirst);
+				if (r < 0)
+					break;
+				else if (r > 0)
+				{
+					l = reversed(l);
+					l = rotated(l, 1);  //put the canonical starting element back at the start :3
+					break;
+				}
+				//else (if r == 0): continue
+			}
+		}
+		
+		return precanonicalizedBracelet(l);
 	}
 }
