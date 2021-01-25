@@ -190,8 +190,8 @@ implements JavaNamespace
 	//	/**
 	//	 * Returns number of times b fits into a (a / b) disregarding the remainder(a % b).
 	//	 */
-	//	@ActuallyUnsignedValue
-	//	public static short divide(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
+	//	@ActuallyUnsigned
+	//	public static short divide(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
 	//	{
 	//		//Speed daemons
 	//		if (b == 0)
@@ -341,8 +341,8 @@ implements JavaNamespace
 	//	/**
 	//	 * Returns remainder after finding number of times b fits into a.
 	//	 */
-	//	@ActuallyUnsignedValue
-	//	public static short modulus(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
+	//	@ActuallyUnsigned
+	//	public static short modulus(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
 	//	{
 	//		short div = divide(a, b);
 	//		short inaccurateA = (short)(div * b);
@@ -367,8 +367,12 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
 	public static boolean lessThanU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
@@ -382,42 +386,36 @@ implements JavaNamespace
 			return a < b;
 	}
 	
-	//	/**
-	//	 * If bits in a are less than than bits in b then return true.<br>
-	//	 * @return a < b
-	//	 */
-	//	public static boolean lessThan(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
-	//	{
-	//		//return a < b
-	//		if (a < 0 && b >= 0)
-	//			return false;
-	//		else if (a >= 0 && b < 0)
-	//			return true;
-	//		else
-	//			return a < b;
-	//	}
+	/**
+	 * @return a < b
+	 */
+	public static boolean lessThanU16(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
+	{
+		//return a < b
+		if (a < 0 && b >= 0)
+			return false;
+		else if (a >= 0 && b < 0)
+			return true;
+		else
+			return a < b;
+	}
 	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
 	public static boolean lessThanU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
 	{
 		//return a < b
 		
-		//highest bit is set in a not b, then a > b
-		if (a < 0 && b >= 0)
+		if (a < 0 && b >= 0) //highest bit is set in a not b, then a > b
 			return false;
-		//highest bit set in b not a, then a < b
-		else if (a >= 0 && b < 0)
+		else if (a >= 0 && b < 0)  //highest bit set in b not a, then a < b
 			return true;
-		//Otherwise normal works just fine
-		else
+		else  //Otherwise normal works just fine
 			return a < b;
 	}
 	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a < b
 	 */
 	public static boolean lessThanU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
@@ -438,7 +436,6 @@ implements JavaNamespace
 	
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
 	public static boolean greaterThanU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
@@ -452,23 +449,21 @@ implements JavaNamespace
 			return a > b;
 	}
 	
-	//	/**
-	//	 * If bits in a are greater than bits in b then return true.<br>
-	//	 * @return a > b
-	//	 */
-	//	public static boolean greaterThan(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
-	//	{
-	//		//return a > b
-	//		if (a < 0 && b >= 0)
-	//			return true;
-	//		else if (a >= 0 && b < 0)
-	//			return false;
-	//		else
-	//			return a > b;
-	//	}
+	/**
+	 * @return a > b
+	 */
+	public static boolean greaterThanU16(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
+	{
+		//return a > b
+		if (a < 0 && b >= 0)
+			return true;
+		else if (a >= 0 && b < 0)
+			return false;
+		else
+			return a > b;
+	}
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
 	public static boolean greaterThanU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
@@ -483,7 +478,6 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a > b
 	 */
 	public static boolean greaterThanU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
@@ -500,7 +494,6 @@ implements JavaNamespace
 	
 	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
 	public static boolean lessThanEqualToU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
@@ -514,29 +507,27 @@ implements JavaNamespace
 		else if (a >= 0 && b < 0)
 			return true;
 		else
-			return a < b;
+			return a <= b;
 	}
 	
-	//	/**
-	//	 * If bits in a are less than than bits in b then return true.<br>
-	//	 * @return a <= b
-	//	 */
-	//	public static boolean lessThanEqualTo(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
-	//	{
-	//		if (a == b)
-	//			return true;
-	//
-	//		//return a < b
-	//		if (a < 0 && b >= 0)
-	//			return false;
-	//		else if (a >= 0 && b < 0)
-	//			return true;
-	//		else
-	//			return a < b;
-	//	}
+	/**
+	 * @return a <= b
+	 */
+	public static boolean lessThanEqualToU16(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
+	{
+		if (a == b)
+			return true;
+		
+		//return a < b
+		if (a < 0 && b >= 0)
+			return false;
+		else if (a >= 0 && b < 0)
+			return true;
+		else
+			return a <= b;
+	}
 	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
 	public static boolean lessThanEqualToU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
@@ -545,19 +536,15 @@ implements JavaNamespace
 		if (a == b)
 			return true;
 		
-		//highest bit is set in a not b, then a > b
-		if (a < 0 && b >= 0)
+		if (a < 0 && b >= 0)  //highest bit is set in a not b, then a > b
 			return false;
-		//highest bit set in b not a, then a < b
-		else if (a >= 0 && b < 0)
+		else if (a >= 0 && b < 0)  //highest bit set in b not a, then a < b
 			return true;
-		//Otherwise normal works just fine
-		else
-			return a < b;
+		else  //Otherwise normal works just fine
+			return a <= b;
 	}
 	
 	/**
-	 * If bits in a are less than than bits in b then return true.<br>
 	 * @return a <= b
 	 */
 	public static boolean lessThanEqualToU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
@@ -571,7 +558,7 @@ implements JavaNamespace
 		else if (a >= 0 && b < 0)
 			return true;
 		else
-			return a < b;
+			return a <= b;
 	}
 	
 	
@@ -581,7 +568,6 @@ implements JavaNamespace
 	
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
 	public static boolean greaterThanEqualToU8(@ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
@@ -595,29 +581,27 @@ implements JavaNamespace
 		else if (a >= 0 && b < 0)
 			return false;
 		else
-			return a > b;
+			return a >= b;
 	}
 	
-	//	/**
-	//	 * If bits in a are greater than bits in b then return true.<br>
-	//	 * @return a >= b
-	//	 */
-	//	public static boolean greaterThanEqualTo(@ActuallyUnsignedValue short a, @ActuallyUnsignedValue short b)
-	//	{
-	//		if (a == b)
-	//			return true;
-	//
-	//		//return a > b
-	//		if (a < 0 && b >= 0)
-	//			return true;
-	//		else if (a >= 0 && b < 0)
-	//			return false;
-	//		else
-	//			return a > b;
-	//	}
+	/**
+	 * @return a >= b
+	 */
+	public static boolean greaterThanEqualToU16(@ActuallyUnsigned short a, @ActuallyUnsigned short b)
+	{
+		if (a == b)
+			return true;
+		
+		//return a > b
+		if (a < 0 && b >= 0)
+			return true;
+		else if (a >= 0 && b < 0)
+			return false;
+		else
+			return a >= b;
+	}
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
 	public static boolean greaterThanEqualToU32(@ActuallyUnsigned int a, @ActuallyUnsigned int b)
@@ -631,11 +615,10 @@ implements JavaNamespace
 		else if (b < 0 && a >= 0)
 			return false;
 		else
-			return a > b;
+			return a >= b;
 	}
 	
 	/**
-	 * If bits in a are greater than bits in b then return true.<br>
 	 * @return a >= b
 	 */
 	public static boolean greaterThanEqualToU64(@ActuallyUnsigned long a, @ActuallyUnsigned long b)
@@ -649,7 +632,7 @@ implements JavaNamespace
 		else if (a >= 0 && b < 0)
 			return false;
 		else
-			return a > b;
+			return a >= b;
 	}
 	
 	
