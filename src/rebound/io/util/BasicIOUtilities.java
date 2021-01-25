@@ -13,6 +13,7 @@ import rebound.io.iio.OutputByteStream;
 import rebound.io.iio.ResettableInputByteStream;
 import rebound.io.iio.unions.CloseableFlushableOutputByteStreamInterface;
 import rebound.io.iio.unions.CloseableInputByteStreamInterface;
+import rebound.util.collections.ArrayUtilities;
 import from.java.io.forr.rebound.io.iio.ByteArrayOutputByteStream;
 
 //Todo requirePositive(), requireNonNull(), @ActuallySigned, etc. as needed
@@ -199,15 +200,14 @@ public class BasicIOUtilities
 	public static void readFully(InputByteStream in, byte[] buff, int offset, int len) throws EOFException, IOException
 	{
 		int read = 0;
-		int r = 0;
 		while (true)
 		{
-			r = in.read(buff, offset + read, len - read);
+			if (read >= len)
+				return;
+			int r = in.read(buff, offset + read, len - read);
 			if (r < 0)
 				throw new EOFException("Premature EOF");
 			read += r;
-			if (read >= len)
-				return;
 		}
 	}
 	
@@ -218,9 +218,14 @@ public class BasicIOUtilities
 	
 	public static byte[] readFullyToNew(InputByteStream in, int length) throws EOFException, IOException
 	{
-		byte[] b = new byte[length];
-		readFully(in, b);
-		return b;
+		if (length == 0)
+			return ArrayUtilities.EmptyByteArray;
+		else
+		{
+			byte[] b = new byte[length];
+			readFully(in, b);
+			return b;
+		}
 	}
 	
 	

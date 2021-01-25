@@ -549,13 +549,13 @@ implements JavaNamespace
 		return buffer;
 	}
 	
-	public static void forceRead(InputStream in, byte[] buff, ProgressObserver progressObserver) throws EOFException, IOException
+	public static void readFully(InputStream in, byte[] buff, ProgressObserver progressObserver) throws EOFException, IOException
 	{
 		//Use other method rather than handle possibility of null
 		if (progressObserver == null)
 			JRECompatIOUtilities.readFully(in, buff);
 		else
-			ExtraIOUtilities.forceRead(in, buff, 0, buff.length, progressObserver);
+			ExtraIOUtilities.readFully(in, buff, 0, buff.length, progressObserver);
 	}
 	
 	/**
@@ -563,7 +563,7 @@ implements JavaNamespace
 	 * @throws EOFException If the underlying stream returns -1 bytes read
 	 * @throws IOException If the underlying stream throws one
 	 */
-	public static void forceRead(InputStream in, byte[] buff, int offset, int len, ProgressObserver progressObserver) throws EOFException, IOException
+	public static void readFully(InputStream in, byte[] buff, int offset, int len, ProgressObserver progressObserver) throws EOFException, IOException
 	{
 		//Use other method rather than handle possibility of null
 		if (progressObserver == null)
