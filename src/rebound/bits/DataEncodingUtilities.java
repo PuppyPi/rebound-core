@@ -21,6 +21,7 @@ import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteListRO;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterListRO;
+import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.objectutil.JavaNamespace;
 
 /**
@@ -112,6 +113,17 @@ implements JavaNamespace
 	public static final int
 	HEX_UPPERCASE = 0x07,
 	HEX_LOWERCASE = 0x27;
+	
+	
+	public static boolean isHexDigit(char c)
+	{
+		return
+		(c >= 'a' && c <= 'f') ||
+		(c >= 'A' && c <= 'F') ||
+		(c >= '0' && c <= '9');
+	}
+	
+	
 	
 	/**
 	 * Hexadecimal format encodes bytes as pairs of base-16 digits, optionally separated with a delimiter string, using the alphabet [0123456789ABCDEF] (case is specified in a parameter)
@@ -642,18 +654,17 @@ implements JavaNamespace
 	}
 	
 	
-	public static ByteList decodeHex(@Nonnull CharacterList source, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	public static ImmutableByteArrayList decodeHex(@Nonnull CharacterList source, int delimiterSize) throws EOFException, InvalidInputCharacterException
 	{
 		//DivideInt_ceiling, because "0d:21:" (6/3) should be 2 bytes, but "0d:21" (5/3) should also be 2 bytes
 		int length = getHexDatalenFromTextlen(source.size(), delimiterSize);
 		
-		ByteList dest = byteArrayAsList(new byte[length]);
-		decodeHex(source, dest, delimiterSize);
-		
-		return dest;
+		byte[] a = new byte[length];
+		decodeHex(source, byteArrayAsList(a), delimiterSize);
+		return ImmutableByteArrayList.newLIVE(a);
 	}
 	
-	public static ByteList decodeHexToList(@Nonnull String source, int delimiterSize) throws EOFException, InvalidInputCharacterException
+	public static ImmutableByteArrayList decodeHexToList(@Nonnull String source, int delimiterSize) throws EOFException, InvalidInputCharacterException
 	{
 		return decodeHex(stringToList(source), delimiterSize);
 	}
@@ -661,7 +672,7 @@ implements JavaNamespace
 	/**
 	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static ByteList decodeHexMandatoryToList(String source, int delimiterSize) throws ImpossibleException
+	public static ImmutableByteArrayList decodeHexMandatoryToList(String source, int delimiterSize) throws ImpossibleException
 	{
 		try
 		{
@@ -793,7 +804,7 @@ implements JavaNamespace
 	/**
 	 * Wraps the exceptions into {@link ImpossibleException}s, indicating that an error is to be counted as a bug in the code!! (eg, if the given data is hardcoded).
 	 */
-	public static ByteList decodeHexMandatoryNoDelimiterToList(String source) throws ImpossibleException
+	public static ImmutableByteArrayList decodeHexMandatoryNoDelimiterToList(String source) throws ImpossibleException
 	{
 		return decodeHexMandatoryToList(source, 0);
 	}

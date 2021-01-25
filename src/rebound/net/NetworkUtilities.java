@@ -4,8 +4,11 @@
  */
 package rebound.net;
 
+import static java.util.Objects.*;
+import static rebound.bits.DataEncodingUtilities.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
@@ -28,13 +31,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import rebound.bits.Bytes;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
 import rebound.bits.Unsigned;
 import rebound.exceptions.AddressLengthException;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.TextSyntaxCheckedException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.text.StringUtilities;
@@ -57,8 +60,8 @@ implements JavaNamespace
 	
 	
 	
-	public static final Inet4Address IPv4Wildcard = (Inet4Address) ipToOOP(new byte[LengthOfIPv4AddressInBytes]);
-	public static final Inet6Address IPv6Wildcard = (Inet6Address) ipToOOP(new byte[LengthOfIPv6AddressInBytes]);
+	public static final Inet4Address IPv4Wildcard = (Inet4Address) ipToJRE(new byte[LengthOfIPv4AddressInBytes]);
+	public static final Inet6Address IPv6Wildcard = (Inet6Address) ipToJRE(new byte[LengthOfIPv6AddressInBytes]);
 	
 	
 	protected static final boolean IsIPv6Preferred = InetAddress.getLoopbackAddress() instanceof Inet6Address;  //Todo get java.net.InetAddressImplFactory.isIPv6Supported() separately!
@@ -127,9 +130,9 @@ implements JavaNamespace
 	
 	
 	/**
-	 * Tests whether or not this IP address represents an IPv4 address.<br>
+	 * Tests whether or not this IP address represents an IPv4 address literally (4 bytes) or an IPv4-as-IPv6 address.
 	 */
-	public static boolean isIPv4(ByteList addr)
+	public static boolean isLogicallyIPv4(ByteList addr)
 	{
 		if (addr.size() == 4)
 		{
@@ -151,11 +154,51 @@ implements JavaNamespace
 			addr.getByte(9) == 0 &&
 			addr.getByte(10) == (byte)0xFF &&
 			addr.getByte(11) == (byte)0xFF
+			//subsequent ones can be anything :3
 			);
 		}
 		else
 		{
-			throw new AddressLengthException();
+			throw new AddressLengthException(addr.size());
+		}
+	}
+	
+	public static boolean isLogicallyIPv6(ByteList addr)
+	{
+		return !isLogicallyIPv4(addr);
+	}
+	
+	
+	public static boolean isLiterallyIPv4(ByteList addr)
+	{
+		return addr.size() == 4;
+	}
+	
+	public static boolean isLiterallyIPv6(ByteList addr)
+	{
+		return addr.size() == 16;
+	}
+	
+	
+	
+	
+	/**
+	 * @see #canonicalizeIP(ByteList, boolean)
+	 */
+	public static SimpleNetworkHost canonicalizeIP(SimpleNetworkHost src, boolean toV6)
+	{
+		if (src instanceof SimpleNetworkHostResolved)
+		{
+			SimpleNetworkHostResolved s = (SimpleNetworkHostResolved) src;
+			ImmutableByteArrayList in = s.getAddress();
+			
+			ImmutableByteArrayList out = canonicalizeIP(in, toV6);
+			
+			return out == in ? s : new SimpleNetworkHostResolved(out);
+		}
+		else
+		{
+			return src;
 		}
 	}
 	
@@ -163,11 +206,22 @@ implements JavaNamespace
 	
 	
 	
+	public static ImmutableByteArrayList canonicalizeIP(ImmutableByteArrayList src, boolean toV6)
+	{
+		return (ImmutableByteArrayList)canonicalizeIP((ByteList)src, toV6);
+	}
+	
 	/**
 	 * This removes the ambiguity between 4-Byte arrays (IPv4) and 16-Byte arrays (IPv6) that are mapped to IPv4 addresses.<br>
 	 * <br>
 	 * If <code>toV6</code> is <code>true</code>, then any IPv4 address is converted to the equivalent IPv6, 16-Byte array.<br>
 	 * If <code>toV6</code> is <code>false</code>, then IPv4 mapped IPv6 addresses will be converted into 4-Byte arrays, otherwise nothing will be done to <code>src</code>.<br>
+	 * 
+	 * Note that this does not canonicalize the loopback addresses!
+	 * (IPv4 loopback is 127.0.0.1 and embedded in IPv6 is ::FFFF:7F00:0001 which are considered equivalent by this method)
+	 * (IPv6 loopback is ::1 which is not considered equivalent to 127.0.0.1 by this method!)
+	 * 
+	 * @param toV6  If true, IPv4 addresses (4-byte lists) will be converted to IPv4-in-IPv6 ones (16-byte lists) and only 16-byte lists will be outputted!, if false IPv4-in-IPv6 addresses are converted to actual IPv4 addresses (4-byte lists) and either 4 or 16 byte lists can be output.
 	 */
 	public static ByteList canonicalizeIP(ByteList src, boolean toV6)
 	{
@@ -207,9 +261,9 @@ implements JavaNamespace
 			}
 			else if (src.size() == 16)
 			{
-				if (isIPv4(src))
+				if (isLogicallyIPv4(src))
 				{
-					return src.subListToEnd(12);
+					return ImmutableByteArrayList.newCopying(src.subListToEnd(12));
 				}
 				else
 				{
@@ -227,23 +281,71 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
 	/**
-	 * Convert IPv6 addresses that are actually IPv4 addresses into the actual IPv4 format :>
-	 * @return -1 if the IPv6 address doesn't map to an IPv4 one!
+	 * This is useful for canonicalizing network host names (particularly with IPv6, since "::1" == "::0001" == "::0000:0000::0001" == etc. XD'')
+	 * 
+	 * To canonicalize IPv4-as-IPv6 addresses and IPv4 addresses to the same thing, just pass the output of this through {@link #canonicalizeIP(SimpleNetworkHost, boolean)} :>
+	 * 
+	 * @throws IllegalArgumentException  If the input is empty only, no validation is done on unresolved hostnames.
+	 * @see #parseIP(String)
 	 */
-	public static long unmapToIPv4(long ipv6HighBE, long ipv6LowBE)
+	public static SimpleNetworkHost parseHost(@Nonnull String str) throws IllegalArgumentException
 	{
-		if (ipv6HighBE == 0 && ((ipv6LowBE & 0x0000FFFF_00000000l) == 0x0000FFFF_00000000l))
-		{
-			return ipv6LowBE & 0xFFFFFFFFl;
-		}
-		else
-		{
-			return -1;
-		}
+		requireNonNull(str);
+		if (str.isEmpty())
+			throw new IllegalArgumentException();
+		
+		ImmutableByteArrayList r = parseIPOrNullOnSyntaxError(str);
+		
+		return r == null ? new SimpleNetworkHostUnresolved(str) : new SimpleNetworkHostResolved(r);
 	}
 	
 	
+	
+	
+	
+	
+	
+	public static @Nullable ImmutableByteArrayList parseIPOrNullOnSyntaxError(@Nonnull String str)
+	{
+		try
+		{
+			return requireNonNull(parseIP(str));
+		}
+		catch (TextSyntaxCheckedException exc)
+		{
+			return null;
+		}
+	}
+	
+	public static @Nullable ImmutableByteArrayList parseIPv4OrNullOnSyntaxError(@Nonnull String str)
+	{
+		try
+		{
+			return requireNonNull(parseIPv4(str));
+		}
+		catch (TextSyntaxCheckedException exc)
+		{
+			return null;
+		}
+	}
+	
+	public static @Nullable ImmutableByteArrayList parseIPv6OrNullOnSyntaxError(@Nonnull String str)
+	{
+		try
+		{
+			return requireNonNull(parseIPv6(str));
+		}
+		catch (TextSyntaxCheckedException exc)
+		{
+			return null;
+		}
+	}
 	
 	
 	
@@ -251,189 +353,375 @@ implements JavaNamespace
 	 * This parses a textual representation of an IP address into the binary form.<br>
 	 * If the string is of an IPv4 address, the array will be 4-byte.<br>
 	 * Otherwise, even if it is an IPv4 address mapped to IPv6, the array will be 16-byte.<br>
+	 * @see #parseHost(String)
 	 */
-	public static ByteList parseIPToList(@Nonnull String str) throws TextSyntaxCheckedException
+	public static @Nonnull ImmutableByteArrayList parseIP(@Nonnull String str) throws TextSyntaxCheckedException
 	{
-		if (str == null)
-			throw new NullPointerException();
-		
-		//Eg: 0.0.0.0
-		if (str.length() < 7)
-			throw TextSyntaxCheckedException.inst("IP address is too small to possibly be valid.");
-		
-		byte[] addr = null;
+		requireNonNull(str);
 		
 		boolean v6 = str.indexOf(':') != -1;
-		boolean dotted = str.indexOf('.') != -1;
 		
-		if (v6)
+		return v6 ? parseIPv6(str) : parseIPv4(str);
+	}
+	
+	
+	public static @Nonnull ImmutableByteArrayList parseIPv4(@Nonnull String str) throws TextSyntaxCheckedException
+	{
+		int n = str.length();
+		
+		if (n < 7)  //Eg: 0.0.0.0
+			throw TextSyntaxCheckedException.inst("Input is too small ("+n+" characters) to possibly be a valid IPv4 address.");
+		if (n > 16)  //Eg: 000.000.000.000
+			throw TextSyntaxCheckedException.inst("Input is too large ("+n+" characters) to possibly be a valid IPv4 address.");
+		
+		byte[] addr = new byte[4];
+		
+		int index = 0;
+		for (int byteIndex = 0; byteIndex < 4; byteIndex++)
 		{
-			addr = new byte[16];
+			if (index >= n)
+				throw TextSyntaxCheckedException.inst("Input was too short to have four dotted quads!");
 			
-			//TODO
-			throw new NotYetImplementedException();
+			char c = str.charAt(index);
+			
+			if (c == '.')
+				throw TextSyntaxCheckedException.inst("Input has a dot with nothing following it!");
+			
+			byte b = 0;
+			{
+				b = decdigit(c);
+				
+				index++;
+				if (index != n)
+					c = str.charAt(index);
+				
+				if (index < n && c != '.')
+				{
+					b *= 10;
+					b += decdigit(c);
+					index++;
+					
+					if (index != n)
+						c = str.charAt(index);
+				}
+				
+				if (index < n && c != '.')
+				{
+					b *= 10;
+					b += decdigit(c);
+					index++;
+					
+					if (index != n)
+						c = str.charAt(index);
+				}
+				
+				if (index < n)
+				{
+					if (byteIndex == 3)
+						throw TextSyntaxCheckedException.inst("Input was excessive; expected only 4 dotted quads and nothing after!");
+					
+					if (c != '.')
+						throw TextSyntaxCheckedException.inst("Expected a dot for the dotted-quad syntax but instead, got "+repr(c));
+					
+					index++;
+				}
+			}
+			
+			
+			addr[byteIndex] = b;
+		}
+		
+		if (index != n)
+			throw TextSyntaxCheckedException.inst("Input was excessive; expected only 4 dotted quads and nothing after!");
+		
+		return ImmutableByteArrayList.newLIVE(addr);
+	}
+	
+	private static byte decdigit(char c) throws TextSyntaxCheckedException
+	{
+		if (c >= '0' && c <= '9')
+			return (byte)(c - '0');
+		else
+			throw TextSyntaxCheckedException.inst(c+" is not a valid digit in base 10");
+	}
+	
+	
+	
+	
+	
+	
+	public static @Nonnull ImmutableByteArrayList parseIPv6(@Nonnull String str) throws TextSyntaxCheckedException
+	{
+		byte[] addr = new byte[16];  //This is initialized to zero's so we don't need to worry about filling in the "::" part :>
+		
+		int n = str.length();
+		
+		if (n < 2)
+			throw TextSyntaxCheckedException.inst("Input is too small ("+n+") to possibly be a valid IPv6 address.");
+		
+		
+		/*
+		 * RFC 4291 § 2.2.2:
+		 * 		
+		 * 		The "::" can only appear once in an address.
+		 * 
+		 * So we need only parse both directions up and down to it if it's present and leave untouched bytes as zeros!  :D
+		 */
+		
+		//Parse the leading parts up to the end or double-colon
+		boolean upwardParseFinishedOnDoubleColon;
+		int bytesInUpwardParse;
+		int upwardParseDoubleColonStart = -1;
+		{
+			upwardParseFinishedOnDoubleColon = false;
+			
+			int addressByteCursor = 0;
+			
+			boolean afterColon = false;
+			int start = 0;
+			
+			for (int i = 0; i <= n; i++)
+			{
+				boolean eof = i == n;
+				
+				char c = eof ? 0 : str.charAt(i);
+				
+				if (eof || c == ':')
+				{
+					if (!eof && i == 0)
+					{
+						//Let's see if the next one is a colon!
+						afterColon = true;
+					}
+					else if (afterColon)
+					{
+						if (eof)
+							throw TextSyntaxCheckedException.inst("IPv6 address blocks can be 1 character but not 0 characters aside from the special \"::\", so they can end with the \"::\" but not with a single \":\"");
+						
+						upwardParseFinishedOnDoubleColon = true;
+						upwardParseDoubleColonStart = i - 1;
+						break;
+					}
+					else
+					{
+						String block = str.substring(start, i);
+						
+						if (block.length() > 4)
+							throw TextSyntaxCheckedException.inst("IPv6 hex blocks can't be more than 4 characters long!  Got: "+repr(block));
+						
+						asrt(!block.isEmpty());
+						
+						int v;
+						try
+						{
+							v = Integer.parseInt(block, 16);
+						}
+						catch (NumberFormatException exc)
+						{
+							throw new AssertionError(exc);  //We should have caught this earlier!!
+						}
+						
+						byte low = (byte)v;
+						byte high = (byte)(v >>> 8);
+						
+						if (addressByteCursor == addr.length)
+							throw TextSyntaxCheckedException.inst("There were too many blocks!  (Before the \"::\" if there was one)");
+						
+						addr[addressByteCursor] = high;
+						addressByteCursor++;
+						addr[addressByteCursor] = low;
+						addressByteCursor++;
+						
+						start = i+1;
+						afterColon = true;
+					}
+				}
+				else
+				{
+					if (i == 1 && afterColon)
+						throw TextSyntaxCheckedException.inst("IPv6 address blocks can be 1 character but not 0 characters aside from the special \"::\", so they can start with the \"::\" but not with a single \":\"");
+					
+					if (!isHexDigit(c))
+						throw TextSyntaxCheckedException.inst("Not a hex digit: "+repr(c));
+					
+					afterColon = false;
+				}
+			}
+			
+			
+			if (!upwardParseFinishedOnDoubleColon)
+			{
+				if (addressByteCursor != addr.length)
+					throw TextSyntaxCheckedException.inst("There were too few blocks!");
+			}
+			
+			
+			bytesInUpwardParse = addressByteCursor;
 		}
 		
 		
 		
-		else
+		
+		
+		if (upwardParseFinishedOnDoubleColon)
 		{
-			addr = new byte[4];
-			
-			if (dotted)
+			//Parse the trailing parts down to the start or double-colon :>
+			boolean downwardParseFinishedOnDoubleColon;
+			int downwardParseDoubleColonStart = -1;
 			{
-				int index = 0;
-				for (int i = 0; i < 4; i++)
+				downwardParseFinishedOnDoubleColon = false;
+				
+				int addressBytePastcursor = addr.length;
+				
+				boolean afterColon = false;
+				int end = n;
+				
+				for (int i = n; i >= 0;)
 				{
-					if (str.length() <= index || str.charAt(index) == '.')
-						throw TextSyntaxCheckedException.inst("IP Address has a dot with nothing following it!");
+					boolean bof = i == 0;
 					
-					byte b = 0;
+					i--;
+					
+					char c = bof ? 0 : str.charAt(i);
+					
+					if (bof || c == ':')
 					{
-						//Hex?
-						if (str.length() > index + 1 && str.charAt(index) == '0' && str.charAt(index+1) == 'x')
+						if (!bof && i == n - 1)  //we're after the i-- here
 						{
-							//Hex
-							
-							//Skip the '0x'
-							index += 2;
-							
-							if (str.length() <= index)
-								throw TextSyntaxCheckedException.inst("IP Address has a 0x, but nothing after it!");
-							
-							b = digit(str.charAt(index), 16);
-							
-							index++;
-							
-							if (str.length() > index)
-							{
-								b <<= 4;
-								b += digit(str.charAt(index), 16);
-								index++;
-							}
+							//Let's see if the next one is a colon!
+							afterColon = true;
 						}
-						
-						
-						
-						//Octal?
-						else if
-						(
-						(
-						str.length() > index + 4
-						&&
-						(
-						//0000.	Octal
-						//00.0.	Decimal
-						//0.00.	Decimal
-						str.charAt(index+4) == '.' &&
-						str.charAt(index+1) != '.' &&
-						str.charAt(index+2) != '.'
-						)
-						)
-						||
-						(
-						//0000$	Octal
-						//00.0$	Decimal
-						//0.00$	Decimal
-						str.length() == index + 4
-						&&
-						(
-						str.charAt(index+1) != '.' &&
-						str.charAt(index+2) != '.'
-						)
-						)
-						)
+						else if (afterColon)
 						{
-							//Octal.
+							if (bof)
+								throw TextSyntaxCheckedException.inst("IPv6 address blocks can be 1 character but not 0 characters aside from the special \"::\", so they can start with the \"::\" but not with a single \":\"");
 							
-							//Skip the prefixing '0'
-							b = (byte)(digit(str.charAt(index+1), 8) * 64);
-							b += digit(str.charAt(index+2), 8) * 8;
-							b += digit(str.charAt(index+3), 8);
-							
-							index += 4;
+							downwardParseFinishedOnDoubleColon = true;
+							downwardParseDoubleColonStart = i;
+							break;
 						}
-						
-						
-						
-						//Decimal?
 						else
 						{
-							b = digit(str.charAt(index), 10);
-							index++;
+							String block = str.substring(i+1, end);
 							
-							if (str.length() > index && str.charAt(index) != '.')
+							if (block.length() > 4)
+								throw TextSyntaxCheckedException.inst("IPv6 hex blocks can't be more than 4 characters long!  Got: "+repr(block));
+							
+							asrt(!block.isEmpty());
+							
+							int v;
+							try
 							{
-								b *= 10;
-								b += digit(str.charAt(index), 10);
-								index++;
+								v = Integer.parseInt(block, 16);
+							}
+							catch (NumberFormatException exc)
+							{
+								throw new AssertionError(exc);  //We should have caught this earlier!!
 							}
 							
-							if (str.length() > index && str.charAt(index) != '.')
-							{
-								b *= 10;
-								b += digit(str.charAt(index), 10);
-								index++;
-							}
+							byte low = (byte)v;
+							byte high = (byte)(v >>> 8);
+							
+							if (addressBytePastcursor == bytesInUpwardParse)
+								throw TextSyntaxCheckedException.inst("There were too many blocks after the \"::\"!");
+							
+							addressBytePastcursor--;
+							addr[addressBytePastcursor] = low;
+							addressBytePastcursor--;
+							addr[addressBytePastcursor] = high;
+							
+							end = i;
+							afterColon = true;
 						}
-						
-						index++;
 					}
-					
-					
-					addr[i] = b;
+					else
+					{
+						if (afterColon && i == n - 2)
+							throw TextSyntaxCheckedException.inst("IPv6 address blocks can be 1 character but not 0 characters aside from the special \"::\", so they can end with the \"::\" but not with a single \":\"");
+						
+						if (!isHexDigit(c))
+							throw TextSyntaxCheckedException.inst("Not a hex digit: "+repr(c));
+						
+						afterColon = false;
+					}
 				}
+				
+				
+				asrt(downwardParseFinishedOnDoubleColon);
+				asrt(downwardParseDoubleColonStart != -1);
+				asrt(upwardParseDoubleColonStart != -1);
+				
+				if (downwardParseDoubleColonStart != upwardParseDoubleColonStart)
+					throw TextSyntaxCheckedException.inst("There can only be one \"::\" in an IPv6 address (check RFC 4291 § 2.2.2 if you don't believe me!)");
 			}
-			else
-			{
-				//Eg: 0xC00002EB == 192.0.2.235
-				
-				int addrValue = 0;
-				
-				try
-				{
-					addrValue = Integer.parseInt(str);
-				}
-				catch (NumberFormatException exc)
-				{
-					throw TextSyntaxCheckedException.inst("Invalid raw IP address");
-				}
-				
-				Bytes.putBigInt(addr, 0, addrValue);
-			}
+			
+			assert upwardParseFinishedOnDoubleColon == downwardParseFinishedOnDoubleColon;
 		}
 		
 		return ImmutableByteArrayList.newLIVE(addr);
 	}
 	
-	private static byte digit(char c, int radix) throws TextSyntaxCheckedException
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String formatIPv4(ByteList ip)
 	{
-		int v = Character.digit(c, radix);
-		if (v == -1)
-			throw TextSyntaxCheckedException.inst(c+" is not a valid digit in base "+radix);
-		return (byte)v;
+		return formatIPv4(ip, false);
 	}
 	
 	
-	
-	public static int parseIPv4ToU32BE(@Nonnull String str) throws TextSyntaxCheckedException
+	/**
+	 * @param leadingZeros false for eg 127.0.0.1, true for eg 127.000.000.001  (like my wifi printer!)
+	 */
+	public static String formatIPv4(ByteList ip, boolean leadingZeros)
 	{
-		ByteList ip = parseIPToList(str);
+		StringBuilder buff = new StringBuilder();
 		
-		if (ip.size() == 4)
-			return Bytes.getBigInt(ip);
-		else if (ip.size() == 16)
-			throw TextSyntaxCheckedException.inst("IPv6 was given but IPv4 was requested");
-		else
-			throw new AssertionError();
+		ByteList ip4 = canonicalizeIP(ip, false);
+		
+		if (ip4.size() != 4)
+			throw new IllegalArgumentException("Cannot convert a non-mapped IPv6 address to an IPv4.");
+		
+		//Do the formatting
+		for (int i = 0; i < 4; i++)
+		{
+			String dec = StringUtilities.toStringU8(ip4.getByte(i));
+			
+			if (leadingZeros)
+			{
+				int missing = 3 - dec.length();
+				for (int e = 0; e < missing; e++)
+					buff.append('0');
+			}
+			
+			buff.append(dec);
+			
+			if (i < 3)
+				buff.append('.');
+		}
+		
+		return buff.toString();
 	}
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
@@ -442,219 +730,142 @@ implements JavaNamespace
 	
 	
 	/**
-	 * This formats a binary ip address into a textual representation in one of 10 possible formats.<br>
+	 * Formats an IPv6 address in the standard fashion.
+	 * Note: IPv6 mapped IPv4 addresses will be formatted in the IPv6 fashion (eg, ::ffff:f700:1).<br>
+	 */
+	public static String formatIPv6(ByteList addrBigEndian)
+	{
+		return formatIPv6(addrBigEndian, true, false);
+	}
+	
+	/**
+	 * This formats a binary IPv6 address into a textual representation in one of 4 possible formats.<br>
 	 * <br>
 	 * <br>
-	 * For 127.0.0.1 as an example, these are the possible formats:<br>
-	 * <br>
-	 * As IPv4 (<code>v4=true</code>):<br>
+	 * For ::ffff:7f00:1 as an example, these are the possible formats:<br>
 	 * <table>
-	 * <tr><th>Dotted</th><th>Leading Zeros</th><th>Text</th></tr>
-	 * <tr><td><code>false</code></td><td><code>false</code></td> <td>127.0.0.1</td></tr>
-	 * <tr><td><code>false</code></td><td><code>true</code></td> <td>127.000.000.1</td></tr>
-	 * <tr><td><code>true</code></td><td><code>false</code></td> <td>2130706433</td></tr>
-	 * <tr><td><code>true</code></td><td><code>true</code></td> <td>2130706433</td></tr>
-	 * </table>
-	 * <br>
-	 * As IPv6 (<code>v4=false</code>):<br>
-	 * <table>
-	 * 	<tr><th>Compact</th><th>Leading Zeros</th><th>Dotted</th><th>Text</th></tr>
-	 * 	<tr><td><code>true</code></td><td><code>false</code></td><td><code>false</code></td><td>::ffff:7f00:1</td></tr>
-	 * 	<tr><td><code>true</code></td><td><code>false</code></td><td><code>true</code></td><td>::ffff:127.0.0.1</td></tr>
-	 * 	<tr><td><code>true</code></td><td><code>true</code></td><td><code>false</code></td><td>::ffff:7f00:0001</td></tr>
-	 * 	<tr><td><code>true</code></td><td><code>true</code></td><td><code>true</code></td><td>::ffff:127.000.000.001</td></tr>
-	 * 	<tr><td><code>false</code></td><td><code>false</code></td><td><code>false</code></td><td>0:0:0:0:0:ffff:7f00:1</td></tr>
-	 * 	<tr><td><code>false</code></td><td><code>false</code></td><td><code>true</code></td><td>0:0:0:0:0:ffff:127.0.0.1</td></tr>
-	 * 	<tr><td><code>false</code></td><td><code>true</code></td><td><code>false</code></td><td>0000:0000:0000:0000:0000:ffff::7f00:0001</td></tr>
-	 * 	<tr><td><code>false</code></td><td><code>true</code></td><td><code>true</code></td><td>0000:0000:0000:0000:0000:ffff::127.000.000.001</td></tr>
+	 * 	<tr><th>Compact</th><th>Leading Zeros Inside Blocks</th><th>Text</th></tr>
+	 * 	<tr><td><code>false</code></td><td><code>false</code></td><td>0:0:0:0:0:ffff:7f00:1</td></tr>
+	 * 	<tr><td><code>true</code></td><td><code>false</code></td><td>::ffff:7f00:1</td></tr>
+	 * 	<tr><td><code>false</code></td><td><code>true</code></td><td>0000:0000:0000:0000:0000:ffff::7f00:0001</td></tr>
+	 * 	<tr><td><code>true</code></td><td><code>true</code></td><td>::ffff:7f00:0001</td></tr>
 	 * </table>
 	 */
-	public static String formatIP
-	(
-	ByteList ip,
-	
-	//<Format
-	boolean v4,
-	boolean compact,
-	boolean dotted,
-	boolean leadingZeros
-	//Format>
-	)
-	throws NullPointerException
-	
-	//TODO Add a Radix parameter (which only works for v4 || dotted)
+	public static String formatIPv6(ByteList ip6, boolean compact, boolean leadingZerosInsideBlocks)
 	{
 		StringBuilder buff = new StringBuilder();
 		
-		if (v4)
+		//Calculate the (first) best place to compact
+		int best_zerostrech_start = -1;
+		int best_zerostrech_size = 0;
 		{
-			ByteList ip4 = canonicalizeIP(ip, false);
-			
-			if (ip4.size() != 4)
-				throw new IllegalArgumentException("Cannot convert a non-mapped IPv6 address to an IPv4.");
-			
-			if (!dotted)
-				//TODO Make dotted==false apply to IPv4 addresses
-				throw new NotYetImplementedException();
-			
-			//Do the formatting
-			for (int i = 0; i < 4; i++)
+			if (compact)
 			{
-				String dec = StringUtilities.toStringU8(ip4.getByte(i));
+				int this_zerostrech_start = 0;
 				
-				if (leadingZeros)
+				int len = 8;
+				
+				for (int i = 0; i < len+1; i++)
 				{
-					int missing = 3 - dec.length();
-					for (int e = 0; e < missing; e++)
-						buff.append('0');
-				}
-				
-				buff.append(dec);
-				
-				if (i < 3)
-					buff.append('.');
-			}
-		}
-		
-		
-		
-		else
-		{
-			ByteList ip6 = canonicalizeIP(ip, true);
-			
-			boolean useDots = dotted && isIPv4(ip);
-			
-			//Calculate the (first) best place to compact
-			int best_zerostrech_start = -1;
-			int best_zerostrech_size = 0;
-			{
-				if (compact)
-				{
-					int this_zerostrech_start = 0;
-					
-					int len = useDots ? 6 : 8;
-					
-					for (int i = 0; i < len+1; i++)
+					if (i < len && ip6.getByte(i*2) == 0 && ip6.getByte(i*2+1) == 0)
 					{
-						if (i < len && ip6.getByte(i*2) == 0 && ip6.getByte(i*2+1) == 0)
+						if (this_zerostrech_start == -1)
 						{
-							if (this_zerostrech_start == -1)
-							{
-								this_zerostrech_start = i;
-							}
-						}
-						else
-						{
-							if (this_zerostrech_start != -1)
-							{
-								if ((i - this_zerostrech_start) > best_zerostrech_size)
-								{
-									//Replace the best with the this
-									best_zerostrech_start = this_zerostrech_start;
-									best_zerostrech_size = i - this_zerostrech_start;
-								}
-								
-								this_zerostrech_start = -1;
-							}
-						}
-					}
-				}
-			}
-			
-			
-			//Do the formatting
-			for (int i = 0; i < (useDots ? 6 : 8); i++)
-			{
-				if (i == best_zerostrech_start) //&& compact
-				{
-					if (i == 0)
-						buff.append(':');
-					buff.append(':');
-					
-					i += best_zerostrech_size-1;
-				}
-				else
-				{
-					byte a = ip6.getByte(i*2);
-					byte b = ip6.getByte(i*2+1);
-					
-					if (a != 0)
-					{
-						if (Unsigned.lessThanU32(a, 0x10))
-						{
-							if (leadingZeros)
-								buff.append('0');
-							buff.append(Character.forDigit(a, 16));
-						}
-						else
-						{
-							buff.append(Character.forDigit(a & 0xF0 >>> 4, 16));
-							buff.append(Character.forDigit(a & 0x0F, 16));
-						}
-						
-						
-						if (Unsigned.lessThanU32(b, 0x10))
-						{
-							buff.append('0');
-							buff.append(Character.forDigit(b, 16));
-						}
-						else
-						{
-							buff.append(Character.forDigit(b & 0xF0 >>> 4, 16));
-							buff.append(Character.forDigit(b & 0x0F, 16));
+							this_zerostrech_start = i;
 						}
 					}
 					else
 					{
-						if (leadingZeros)
+						if (this_zerostrech_start != -1)
 						{
-							buff.append('0');
-							buff.append('0');
-						}
-						
-						if (Unsigned.lessThanU32(b, 0x10))
-						{
-							if (leadingZeros)
-								buff.append('0');
-							buff.append(Character.forDigit(b, 16));
-						}
-						else
-						{
-							buff.append(Character.forDigit(b & 0xF0 >>> 4, 16));
-							buff.append(Character.forDigit(b & 0x0F, 16));
+							if ((i - this_zerostrech_start) > best_zerostrech_size)
+							{
+								//Replace the best with the this
+								best_zerostrech_start = this_zerostrech_start;
+								best_zerostrech_size = i - this_zerostrech_start;
+							}
+							
+							this_zerostrech_start = -1;
 						}
 					}
-					
-					if (i < 7)
-						buff.append(':');
-				}
-			}
-			
-			
-			if (useDots)
-			{
-				//Do the formatting
-				for (int i = 12; i < 16; i++)
-				{
-					String dec = StringUtilities.toStringU8(ip6.getByte(i));
-					
-					if (leadingZeros)
-					{
-						int missing = 3 - dec.length();
-						for (int e = 0; e < missing; e++)
-							buff.append('0');
-					}
-					
-					buff.append(dec);
-					
-					if (i < 16)
-						buff.append('.');
 				}
 			}
 		}
 		
+		
+		//Do the formatting
+		for (int addrWordIndex = 0; addrWordIndex < 8; addrWordIndex++)
+		{
+			if (addrWordIndex == best_zerostrech_start) //&& compact
+			{
+				if (addrWordIndex == 0)
+					buff.append(':');
+				buff.append(':');
+				
+				addrWordIndex += best_zerostrech_size-1;
+			}
+			else
+			{
+				byte a = ip6.getByte(addrWordIndex*2);
+				byte b = ip6.getByte(addrWordIndex*2+1);
+				
+				if (a != 0)
+				{
+					if (Unsigned.lessThanU8(a, (byte)0x10))
+					{
+						if (leadingZerosInsideBlocks)
+							buff.append('0');
+						buff.append(Character.forDigit(a, 16));
+					}
+					else
+					{
+						buff.append(Character.forDigit((a & 0xF0) >>> 4, 16));
+						buff.append(Character.forDigit(a & 0x0F, 16));
+					}
+					
+					
+					if (Unsigned.lessThanU8(b, (byte)0x10))
+					{
+						buff.append('0');
+						buff.append(Character.forDigit(b, 16));
+					}
+					else
+					{
+						buff.append(Character.forDigit((b & 0xF0) >>> 4, 16));
+						buff.append(Character.forDigit(b & 0x0F, 16));
+					}
+				}
+				else
+				{
+					if (leadingZerosInsideBlocks)
+					{
+						buff.append('0');
+						buff.append('0');
+					}
+					
+					if (Unsigned.lessThanU8(b, (byte)0x10))
+					{
+						if (leadingZerosInsideBlocks)
+							buff.append('0');
+						buff.append(Character.forDigit(b, 16));
+					}
+					else
+					{
+						buff.append(Character.forDigit((b & 0xF0) >>> 4, 16));
+						buff.append(Character.forDigit(b & 0x0F, 16));
+					}
+				}
+				
+				if (addrWordIndex < 7)
+					buff.append(':');
+			}
+		}
+		
+		
 		return buff.toString();
 	}
+	
+	
 	
 	
 	
@@ -666,23 +877,19 @@ implements JavaNamespace
 	{
 		if (ip.size() == 4)
 		{
-			return formatIP(ip, true, true, true, false);
+			return formatIPv4(ip);
 		}
 		else
 		{
-			return formatIP(ip, false, true, false, false);
+			return formatIPv6(ip);
 		}
 	}
 	
-	public static String formatIPv4(int addrBigEndian)
-	{
-		return formatIP(byteArrayAsList(Bytes.packBigInt(addrBigEndian)));
-	}
 	
-	public static String formatIPv6(long addrBigEndianHigh, long addrBigEndianLow)
-	{
-		return formatIP(byteArrayAsList(ArrayUtilities.concatArrays(Bytes.packBigLong(addrBigEndianHigh), Bytes.packBigLong(addrBigEndianLow))));
-	}
+	
+	
+	
+	
 	
 	
 	public static String formatMAC(ByteList addr)
@@ -692,7 +899,7 @@ implements JavaNamespace
 	
 	public static String formatMAC(long addrBigEndian)
 	{
-		return formatMAC(Bytes.packBigLong48(addrBigEndian));
+		return formatMAC(byteArrayAsList(Bytes.packBigLong48(addrBigEndian)));
 	}
 	
 	
@@ -720,10 +927,34 @@ implements JavaNamespace
 	}
 	
 	
-	public static long parseMACToBitfield(String str) throws TextSyntaxCheckedException
-	{
-		return Bytes.getBigULong48(parseMACToList(str));
-	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -1116,15 +1347,63 @@ implements JavaNamespace
 	
 	
 	
+	//<Bitfield forms!
+	public static String formatIPv4(int addrBigEndian)
+	{
+		return formatIPv4(byteArrayAsList(Bytes.packBigInt(addrBigEndian)));
+	}
+	
+	public static String formatIPv6(long addrBigEndianHigh, long addrBigEndianLow)
+	{
+		return formatIPv6(byteArrayAsList(ArrayUtilities.concatArrays(Bytes.packBigLong(addrBigEndianHigh), Bytes.packBigLong(addrBigEndianLow))));
+	}
+	
+	public static int parseIPv4ToU32BE(@Nonnull String str) throws TextSyntaxCheckedException
+	{
+		ByteList ip = parseIP(str);
+		
+		if (ip.size() == 4)
+			return Bytes.getBigInt(ip);
+		else if (ip.size() == 16)
+			throw TextSyntaxCheckedException.inst("IPv6 was given but IPv4 was requested");
+		else
+			throw new AssertionError();
+	}
+	
+	
+	/**
+	 * Convert IPv6 addresses that are actually IPv4 addresses into the actual IPv4 format :>
+	 * @return -1 if the IPv6 address doesn't map to an IPv4 one!
+	 */
+	public static long unmapToIPv4(long ipv6HighBE, long ipv6LowBE)
+	{
+		if (ipv6HighBE == 0 && ((ipv6LowBE & 0x0000FFFF_00000000l) == 0x0000FFFF_00000000l))
+		{
+			return ipv6LowBE & 0xFFFFFFFFl;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	
+	public static long parseMACToBitfield(String str) throws TextSyntaxCheckedException
+	{
+		return Bytes.getBigULong48(parseMACToList(str));
+	}
+	//Bitfield forms!>
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/////////////////// Old array-not-list code ///////////////////
-	
-	@Deprecated
-	public static boolean isIPv4(byte[] addr)
-	{
-		return isIPv4(byteArrayAsList(addr));
-	}
 	
 	@Deprecated
 	public static byte[] canonicalizeIP(byte[] src, boolean toV6)
@@ -1133,35 +1412,10 @@ implements JavaNamespace
 	}
 	
 	@Deprecated
-	public static String formatMAC(byte[] addr)
-	{
-		return formatMAC(byteArrayAsList(addr));
-	}
-	
-	@Deprecated
 	public static byte[] parseIPToArray(@Nonnull String str) throws TextSyntaxCheckedException
 	{
-		return parseIPToList(str).toByteArray();
+		return parseIP(str).toByteArray();
 	}
-	
-	
-	@Deprecated
-	public static String formatIP
-	(
-	byte[] ip,
-	
-	//<Format
-	boolean v4,
-	boolean compact,
-	boolean dotted,
-	boolean leadingZeros
-	//Format>
-	)
-	throws NullPointerException
-	{
-		return formatIP(byteArrayAsList(ip), v4, compact, dotted, leadingZeros);
-	}
-	
 	
 	@Deprecated
 	public static String formatIP(byte[] ip) throws NullPointerException
@@ -1169,13 +1423,6 @@ implements JavaNamespace
 		return formatIP(byteArrayAsList(ip));
 	}
 	
-	
-	
-	@Deprecated
-	public static @Nonnull byte[] parseMAC(String str) throws TextSyntaxCheckedException
-	{
-		return parseMACToList(str).toByteArray();
-	}
 	
 	
 	
@@ -1202,12 +1449,12 @@ implements JavaNamespace
 	
 	/////////////////// I don't like these because .toString() doesn't return something useful :< ///////////////////
 	
-	public static InetAddress parseIPToOOP(String s) throws TextSyntaxCheckedException
+	public static InetAddress parseIPToJRE(String s) throws TextSyntaxCheckedException
 	{
-		return ipToOOP(parseIPToArray(s));
+		return ipToJRE(parseIP(s).toByteArray());
 	}
 	
-	public static InetAddress ipToOOP(byte[] s)
+	public static InetAddress ipToJRE(byte[] s)
 	{
 		try
 		{

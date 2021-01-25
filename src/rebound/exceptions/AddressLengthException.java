@@ -17,21 +17,21 @@ extends RuntimeException
 	
 	public AddressLengthException()
 	{
-		super();
+		super("Invalid network address length!");
 		expectedLength = -1;
 		actualLength = -1;
 	}
 	
 	public AddressLengthException(int actualLength)
 	{
-		super();
+		super("Invalid network address length!  IPv4 is 4 bytes and IPv6 is 16 bytes, this was "+actualLength+" bytes!");
 		this.expectedLength = -1;
 		this.actualLength = actualLength;
 	}
 	
 	public AddressLengthException(int expectedLength, int actualLength)
 	{
-		super();
+		super("Invalid network address length!  Expected "+expectedLength+" but got "+actualLength+" bytes!");
 		this.expectedLength = expectedLength;
 		this.actualLength = actualLength;
 	}
