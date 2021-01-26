@@ -1,7 +1,7 @@
 package rebound.exceptions;
 
 /**
- * + Note, a {@link ClassCastException} may always be thrown instead of this!  You should catch them together and consider declarations of 'throws {@link GenericDatastructuresFormatException}' to be 'throws {@link GenericDatastructuresFormatException}, {@link ClassCastException}'
+ * + Note, a {@link ClassCastException} may always be thrown instead of this!  You should catch them together and consider declarations of 'throws {@link GenericDataStructuresFormatException}' to be 'throws {@link GenericDataStructuresFormatException}, {@link ClassCastException}'
  * 
  * Eg, you've parsed the JSON or XML successfully and it's valid! :D
  * ..except it's not XD
@@ -13,27 +13,27 @@ package rebound.exceptions;
  * 
  * @author RProgrammer
  */
-public class GenericDatastructuresFormatException
+public class GenericDataStructuresFormatException
 extends StructureFormatException
 {
 	private static final long serialVersionUID = 1L;
 	
-	public GenericDatastructuresFormatException()
+	public GenericDataStructuresFormatException()
 	{
 		super();
 	}
 	
-	public GenericDatastructuresFormatException(String message)
+	public GenericDataStructuresFormatException(String message)
 	{
 		super(message);
 	}
 	
-	public GenericDatastructuresFormatException(Throwable cause)
+	public GenericDataStructuresFormatException(Throwable cause)
 	{
 		super(cause);
 	}
 	
-	public GenericDatastructuresFormatException(String message, Throwable cause)
+	public GenericDataStructuresFormatException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}
