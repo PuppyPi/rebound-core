@@ -12,6 +12,7 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
+import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
@@ -74,7 +75,7 @@ import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.DuplicatesException;
 import rebound.exceptions.EmptyInputReturnPath;
 import rebound.exceptions.EmptyInputReturnPath.EmptyInputException;
-import rebound.exceptions.GenericDatastructuresFormatException;
+import rebound.exceptions.GenericDataStructuresFormatException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoSuchElementReturnPath;
 import rebound.exceptions.NoSuchMappingReturnPath;
@@ -95,6 +96,7 @@ import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
 import rebound.util.IdentityCardinality;
+import rebound.util.Maybe;
 import rebound.util.Primitives;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
@@ -5894,6 +5896,27 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	/**
+	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	public static Map mapofSome(Object... keysAndValues)
+	{
+		if (keysAndValues.length == 0)
+		{
+			return emptyMap();
+		}
+		else if (keysAndValues.length == 2)
+		{
+			return keysAndValues[1] == null ? emptyMap() : singletonMap(keysAndValues[0], ((Maybe)keysAndValues[1]).getJust());
+		}
+		else
+		{
+			return newMapMaybeArray(keysAndValues);
+		}
+	}
+	
+	
 	
 	
 	@ReadonlyValue
@@ -5918,6 +5941,34 @@ _$$primxpconf:intsonly$$_
 			return newMapInvertedArray(valuesAndKeys);
 	}
 	
+	
+	@ThrowAwayValue
+	public static Map newMapMaybeArray(Object[] keysAndValues)
+	{
+		if ((keysAndValues.length % 2) != 0)
+			throw new IllegalArgumentException();
+		
+		
+		Map m = new HashMap();
+		
+		for (int i = 0; i < keysAndValues.length; i += 2)
+		{
+			Object key = keysAndValues[i];
+			
+			if (m.containsKey(key))
+				throw new AlreadyExistsException();
+			
+			Maybe<?> valuem = (Maybe<?>) keysAndValues[i+1];
+			
+			if (valuem != null)
+			{
+				Object value = valuem.getJust();
+				m.put(key, value);
+			}
+		}
+		
+		return m;
+	}
 	
 	@ThrowAwayValue
 	public static Map newMapArray(Object[] keysAndValues)
@@ -6013,6 +6064,30 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	@ReadonlyValue
+	public static <E> Set<E> setofSome(Maybe<E>... members)
+	{
+		if (members.length == 0)
+		{
+			return emptySet();
+		}
+		else if (members.length == 1)
+		{
+			return members[0] == null ? emptySet() : singletonSet(members[0].getJust());
+		}
+		else
+		{
+			return mapToSet(m ->
+			{
+				if (m == null)
+					throw FilterAwayReturnPath.I;
+				else
+					return m.getJust();
+			}, members);
+		}
+	}
+	
+	
 	
 	
 	
@@ -6051,6 +6126,32 @@ _$$primxpconf:intsonly$$_
 	{
 		return newListArray(members);
 	}
+	
+	
+	@ReadonlyValue
+	public static <E> List<E> listofSome(Maybe<E>... members)
+	{
+		if (members.length == 0)
+		{
+			return emptyList();
+		}
+		else if (members.length == 1)
+		{
+			return members[0] == null ? emptyList() : singletonList(members[0].getJust());
+		}
+		else
+		{
+			return mapToList(m ->
+			{
+				if (m == null)
+					throw FilterAwayReturnPath.I;
+				else
+					return m.getJust();
+			}, members);
+		}
+	}
+	
+	
 	
 	
 	
@@ -8233,7 +8334,7 @@ _$$primxpconf:intsonly$$_
 		Set<String> actualHeadersLowercased = h.keySet();
 		
 		if (!expectedHeadersLowercased.equals(actualHeadersLowercased))
-			throw new GenericDatastructuresFormatException("Headers didn't match up--even case insensitively!!: (Actual="+reprSingleLine(actualHeadersLowercased)+", Expected="+reprSingleLine(expectedHeadersLowercased)+")");
+			throw new GenericDataStructuresFormatException("Headers didn't match up--even case insensitively!!: (Actual="+reprSingleLine(actualHeadersLowercased)+", Expected="+reprSingleLine(expectedHeadersLowercased)+")");
 		
 		return h;
 	}
@@ -11513,5 +11614,69 @@ _$$primxpconf:intsonly$$_
 		}
 		
 		return precanonicalizedBracelet(l);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E extends Comparable> int defaultCompareLists(List<? extends E> listA, List<? extends E> listB)
+	{
+		return defaultCompareLists(listA, listB, Comparator.naturalOrder());
+	}
+	
+	public static <E> int defaultCompareLists(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison)
+	{
+		return defaultCompareLists(listA, listB, comparison, false);
+	}
+	
+	public static <E> int defaultCompareLists(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison, boolean lengthsFirst)
+	{
+		if (lengthsFirst)
+		{
+			int r = cmp(listA.size(), listB.size());
+			if (r != 0) return r;
+		}
+		
+		Iterator<? extends E> ia = listA.iterator();
+		Iterator<? extends E> ib = listB.iterator();
+		
+		while (true)
+		{
+			boolean chesterton = ia.hasNext();
+			boolean ibn = ib.hasNext();
+			
+			if (chesterton != ibn)
+				return chesterton ? 1 : -1;
+			
+			if (!arbitrary(chesterton, ibn))
+				return 0;
+			
+			E a = ia.next();
+			E b = ib.next();
+			
+			int r = comparison.compare(a, b);
+			if (r != 0)  return r;
+		}
+	}
+	
+	public static <E> int defaultCompareLists(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison, boolean lengthsFirst, boolean invertElementComparison, boolean shorterIsLarger)
+	{
+		//Todo check my boolean math here XD''
+		boolean invertIn = invertElementComparison ^ shorterIsLarger;
+		boolean invertOut = shorterIsLarger;
+		
+		int r = defaultCompareLists(listA, listB, invertIn ? comparison.reversed() : comparison, lengthsFirst);
+		
+		return invertOut ? -r : r;
 	}
 }
