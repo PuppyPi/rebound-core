@@ -11629,17 +11629,17 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static <E extends Comparable> int defaultListsCompare(List<? extends E> listA, List<? extends E> listB)
+	public static <E extends Comparable> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB)
 	{
 		return defaultListsCompare(listA, listB, Comparator.naturalOrder());
 	}
 	
-	public static <E> int defaultListsCompare(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison)
+	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison)
 	{
 		return defaultListsCompare(listA, listB, comparison, false);
 	}
 	
-	public static <E> int defaultListsCompare(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison, boolean lengthsFirst)
+	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison, boolean lengthsFirst)
 	{
 		if (listA == null)
 			return listB == null ? 0 : -1;
@@ -11674,7 +11674,7 @@ _$$primxpconf:intsonly$$_
 		}
 	}
 	
-	public static <E> int defaultListsCompare(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison, boolean lengthsFirst, boolean invertElementComparison, boolean shorterIsLarger)
+	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison, boolean lengthsFirst, boolean invertElementComparison, boolean shorterIsLarger)
 	{
 		//Todo check my boolean math here XD''
 		boolean invertIn = invertElementComparison ^ shorterIsLarger;
