@@ -10,6 +10,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.util.Base64;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
@@ -971,4 +972,86 @@ implements JavaNamespace
 	//
 	//		return new String(hex);
 	//	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This is the flavor of Base64 that uses '+' and '/'
+	 */
+	public static String encodeBase64Standard(ByteList bytes)
+	{
+		return encodeBase64(Base64.getEncoder(), bytes);
+	}
+	
+	/**
+	 * This is the flavor of Base64 that uses '+' and '/'
+	 */
+	public static ImmutableByteArrayList decodeBase64Standard(String str)
+	{
+		return decodeBase64(Base64.getDecoder(), str);
+	}
+	
+	
+	/**
+	 * This is the flavor of Base64 that uses '-' and '_'
+	 */
+	public static String encodeBase64URL(ByteList bytes)
+	{
+		return encodeBase64(Base64.getUrlEncoder(), bytes);
+	}
+	
+	/**
+	 * This is the flavor of Base64 that uses '-' and '_'
+	 */
+	public static ImmutableByteArrayList decodeBase64URL(String str)
+	{
+		return decodeBase64(Base64.getUrlDecoder(), str);
+	}
+	
+	
+	/**
+	 * This is the flavor of Base64 that uses '+' and '/' and wraps lines at 76 characters
+	 */
+	public static String encodeBase64MIME(ByteList bytes)
+	{
+		return encodeBase64(Base64.getMimeEncoder(), bytes);
+	}
+	
+	/**
+	 * This is the flavor of Base64 that uses '+' and '/' and wraps lines at 76 characters
+	 */
+	public static ImmutableByteArrayList decodeBase64MIME(String str)
+	{
+		return decodeBase64(Base64.getMimeDecoder(), str);
+	}
+	
+	
+	
+	
+	
+	public static String encodeBase64(Base64.Encoder coder, ByteList bytes)
+	{
+		if (bytes instanceof ImmutableByteArrayList)
+			return coder.encodeToString(((ImmutableByteArrayList)bytes).getREADONLYLiveWholeArrayBackingUNSAFE());
+		else
+			return coder.encodeToString(bytes.toByteArrayPossiblyLive());
+	}
+	
+	public static ImmutableByteArrayList decodeBase64(Base64.Decoder coder, String s)
+	{
+		return ImmutableByteArrayList.newLIVE(coder.decode(s));
+	}
 }
