@@ -1602,4 +1602,16 @@ implements JavaNamespace
 		else
 			return null;
 	}
+	
+	
+	
+	
+	
+	
+	
+	public static void requireNull(Object x)
+	{
+		if (x != null)
+			throw new IllegalArgumentException("Object is not null when it should be null!");
+	}
 }
