@@ -11641,6 +11641,11 @@ _$$primxpconf:intsonly$$_
 	
 	public static <E> int defaultListsCompare(List<? extends E> listA, List<? extends E> listB, Comparator<E> comparison, boolean lengthsFirst)
 	{
+		if (listA == null)
+			return listB == null ? 0 : -1;
+		if (listB == null) //&& listA != null
+			return 1;
+		
 		if (lengthsFirst)
 		{
 			int r = cmp(listA.size(), listB.size());
