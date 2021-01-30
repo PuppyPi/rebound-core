@@ -1540,21 +1540,21 @@ implements JavaNamespace
 	public static @ActuallyUnsigned long safeCastIntegerToU64(Object input) throws OverflowException
 	{
 		if (input instanceof CastableToSmallIntegerTrait) //order is many importants here!!
-			return ((CastableToSmallIntegerTrait)input).toSmallInteger();
+			input = ((CastableToSmallIntegerTrait)input).toSmallInteger();
 		else if (input instanceof CastableToIntegerTrait)
 			input = ((CastableToIntegerTrait)input).toInteger(); //only one level deep srries
 		
 		if (input instanceof Byte)
-			return (Byte)input;
+			return safeCastS8toU64((Byte)input);
 		else if (input instanceof Short)
-			return (Short)input;
+			return safeCastS16toU64((Short)input);
 		else if (input instanceof Character)
 			return (Character)input;
 		else if (input instanceof Integer)
-			return (Integer)input;
+			return safeCastS32toU64((Integer)input);
 		
 		else if (input instanceof Long)
-			return (Long)input;
+			return safeCastS64toU64((Long)input);
 		
 		else if (input instanceof BigInteger)
 			return safeCastBigIntegerToU64((BigInteger)input);
