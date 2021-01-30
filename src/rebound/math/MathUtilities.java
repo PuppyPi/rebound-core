@@ -55,6 +55,8 @@ import rebound.util.functional.functions.DefaultComparisonNumericallyAbstract;
 import rebound.util.objectutil.JavaNamespace;
 import com.google.common.primitives.UnsignedLong;
 
+//Todo more optimizing-support for UnsignedLong!
+
 public class MathUtilities
 implements JavaNamespace
 {
@@ -1501,10 +1503,10 @@ implements JavaNamespace
 	
 	public static long safeCastIntegerToS64(Object input) throws OverflowException
 	{
-		if (input instanceof CastableToSmallIntegerTrait) //order is many importants here!!
+		if (input instanceof CastableToSmallIntegerTrait) //order is very important here!!
 			return ((CastableToSmallIntegerTrait)input).toSmallInteger();
 		else if (input instanceof CastableToIntegerTrait)
-			input = ((CastableToIntegerTrait)input).toInteger(); //only one level deep srries
+			input = ((CastableToIntegerTrait)input).toInteger();
 		
 		if (input instanceof Byte)
 			return (Byte)input;
@@ -1529,6 +1531,9 @@ implements JavaNamespace
 	
 	public static long safeCastAnythingToS64(Object input) throws OverflowException, TruncationException
 	{
+		if (input instanceof Rational)
+			input = reduce(input);
+		
 		if (isInteger(input))
 			return safeCastIntegerToS64(input);
 		
@@ -1546,10 +1551,10 @@ implements JavaNamespace
 	
 	public static @ActuallyUnsigned long safeCastIntegerToU64(Object input) throws OverflowException
 	{
-		if (input instanceof CastableToSmallIntegerTrait) //order is many importants here!!
+		if (input instanceof CastableToSmallIntegerTrait) //order is very important here!!
 			input = ((CastableToSmallIntegerTrait)input).toSmallInteger();
 		else if (input instanceof CastableToIntegerTrait)
-			input = ((CastableToIntegerTrait)input).toInteger(); //only one level deep srries
+			input = ((CastableToIntegerTrait)input).toInteger();
 		
 		if (input instanceof Byte)
 			return safeCastS8toU64((Byte)input);
@@ -1571,6 +1576,9 @@ implements JavaNamespace
 	
 	public static @ActuallyUnsigned long safeCastAnythingToU64(Object input) throws OverflowException, TruncationException
 	{
+		if (input instanceof Rational)
+			input = reduce(input);
+		
 		if (isInteger(input))
 			return safeCastIntegerToU64(input);
 		
@@ -1754,7 +1762,17 @@ implements JavaNamespace
 	
 	public static BigInteger safeCastAnythingToBigInteger(Object input) throws TruncationException
 	{
-		if (input instanceof Float)
+		if (input instanceof Rational)
+		{
+			input = reduce(input);
+			
+			if (input instanceof Rational)
+				throw new TruncationException();
+			else
+				return toBigInteger(input);
+		}
+		
+		else if (input instanceof Float)
 		{
 			float f = (Float)input;
 			
@@ -2309,6 +2327,11 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * Like {@link #matheq(Object, Object)} and {@link #mathcmp(Object, Object)}, this treats 42 as 42, no matter whether it's a {@link Short} or {@link Long} or {@link BigInteger} or etc.  :3
+	 * 
+	 * Not floats though—don't even rely on hashcodes for those X'D
+	 */
 	public static int mathhash(@Nonnull Object a)
 	{
 		requireNonNull(a);
@@ -2316,6 +2339,10 @@ implements JavaNamespace
 		if (isIntegerPrimitiveWrapperInstance(a))
 		{
 			return mathhashS64(((Number)a).longValue());
+		}
+		else if (a instanceof UnsignedLong)
+		{
+			return mathhashU64(((UnsignedLong)a).longValue());
 		}
 		else if (isInteger(a))
 		{
@@ -2334,8 +2361,8 @@ implements JavaNamespace
 			if (a instanceof BigInteger)
 			{
 				BigInteger bi = (BigInteger) a;
-				BigInteger i = bi.mod(BIGINT_ULONG_ABOVE_MAX_VAL);
-				return mathhashS64(i.longValueExact());
+				BigInteger i = bi.mod(BIGINT_ULONG_ABOVE_MAX_VAL);  //not remainder() !
+				return mathhashU64(i.longValueExact());
 			}
 			else if (a instanceof Rational)
 			{
@@ -2374,12 +2401,23 @@ implements JavaNamespace
 		}
 	}
 	
+	
+	
+	
 	public static int mathhashS64(long i)
 	{
 		if (i > Integer.MIN_VALUE && i < Integer.MAX_VALUE)
 			return (int)i;
 		else
 			return ((int)i) ^ ((int)(i >> 32));
+	}
+	
+	public static int mathhashU64(@ActuallyUnsigned long i)
+	{
+		if (i < Integer.MAX_VALUE)
+			return (int)i;
+		else
+			return ((int)i) ^ ((int)(i >> 32));  //the only time this deviates from mathhashS64() is when it's above Long.MAX_VALUE (or mathhashS64()'s argument is < 0) and so there's nothing to deviate from! XD
 	}
 	
 	
@@ -2424,6 +2462,18 @@ implements JavaNamespace
 		if (a instanceof Long && b instanceof Long)
 			return SmallIntegerMathUtilities.cmp((Long)a, (Long)b);
 		
+		if (a instanceof UnsignedLong && b instanceof UnsignedLong)
+			return ((UnsignedLong)a).compareTo((UnsignedLong)b);
+		
+		if (a instanceof Long && b instanceof UnsignedLong)
+		{
+			long av = (Long)a;
+			@ActuallyUnsigned long bv = ((UnsignedLong)b).longValue();
+			return av < 0 ? -1 : (bv < 0 ? -1 : SmallIntegerMathUtilities.cmp(av, bv));
+		}
+		
+		if (a instanceof UnsignedLong && b instanceof Long)
+			return -mathcmp(b, a);
 		
 		if (a instanceof BigInteger && b instanceof BigInteger)
 			return ((BigInteger)a).compareTo((BigInteger)b);
@@ -2431,8 +2481,14 @@ implements JavaNamespace
 		if (a instanceof BigInteger && b instanceof Long)
 			return ((BigInteger)a).compareTo(BigInteger.valueOf((Long)b));
 		
+		if (a instanceof BigInteger && b instanceof UnsignedLong)
+			return ((BigInteger)a).compareTo(((UnsignedLong)b).bigIntegerValue());
+		
 		if (a instanceof Long && b instanceof BigInteger)
 			return BigInteger.valueOf((Long)a).compareTo((BigInteger)b);
+		
+		if (a instanceof UnsignedLong && b instanceof BigInteger)
+			return ((UnsignedLong)a).bigIntegerValue().compareTo((BigInteger)b);
 		
 		
 		

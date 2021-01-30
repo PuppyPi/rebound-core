@@ -2,8 +2,8 @@ package rebound.math;
 
 import static rebound.math.MathUtilities.*;
 import java.math.BigInteger;
-import javax.annotation.Nonnegative;
 import rebound.annotations.semantic.SignalType;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.exceptions.OverflowException;
 
 /**
@@ -19,6 +19,7 @@ extends Comparable
 	 * Any integer! :D
 	 * Either {@link Long} or a big integer (eg {@link BigInteger java.math's one} :3 )
 	 */
+	@PolyInteger
 	public IntegerType getNumerator();
 	
 	/**
@@ -26,7 +27,8 @@ extends Comparable
 	 * 		(ie, not negative or zero :3 )
 	 * Either {@link Long} or a big integer (eg {@link BigInteger java.math's one} :3 )
 	 */
-	@Nonnegative
+	@Positive
+	@PolyInteger
 	public IntegerType getDenominator();
 	
 	
