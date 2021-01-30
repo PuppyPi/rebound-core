@@ -605,7 +605,7 @@ public class PrimitiveCollections
 		Arrays.sort(array, start, length);
 	}
 	//>>>
-		
+	
 	
 	
 	
@@ -3684,6 +3684,9 @@ primxp
 		
 		public static Immutable_$$Primitive$$_ArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<_$$Primitive$$_> data)
 		{
+			if (data instanceof Immutable_$$Primitive$$_ArrayList)  //No need to make a new copy X3
+				return (Immutable_$$Primitive$$_ArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -6986,6 +6989,9 @@ primxp
 		
 		public static ImmutableBooleanArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Boolean> data)
 		{
+			if (data instanceof ImmutableBooleanArrayList)  //No need to make a new copy X3
+				return (ImmutableBooleanArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -10287,6 +10293,9 @@ primxp
 		
 		public static ImmutableByteArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Byte> data)
 		{
+			if (data instanceof ImmutableByteArrayList)  //No need to make a new copy X3
+				return (ImmutableByteArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -13588,6 +13597,9 @@ primxp
 		
 		public static ImmutableCharacterArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Character> data)
 		{
+			if (data instanceof ImmutableCharacterArrayList)  //No need to make a new copy X3
+				return (ImmutableCharacterArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -16889,6 +16901,9 @@ primxp
 		
 		public static ImmutableShortArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Short> data)
 		{
+			if (data instanceof ImmutableShortArrayList)  //No need to make a new copy X3
+				return (ImmutableShortArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -20190,6 +20205,9 @@ primxp
 		
 		public static ImmutableFloatArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Float> data)
 		{
+			if (data instanceof ImmutableFloatArrayList)  //No need to make a new copy X3
+				return (ImmutableFloatArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -23491,6 +23509,9 @@ primxp
 		
 		public static ImmutableIntegerArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Integer> data)
 		{
+			if (data instanceof ImmutableIntegerArrayList)  //No need to make a new copy X3
+				return (ImmutableIntegerArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -26792,6 +26813,9 @@ primxp
 		
 		public static ImmutableDoubleArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Double> data)
 		{
+			if (data instanceof ImmutableDoubleArrayList)  //No need to make a new copy X3
+				return (ImmutableDoubleArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
@@ -30093,6 +30117,9 @@ primxp
 		
 		public static ImmutableLongArrayList newLIVEOrCopying(@PossiblySnapshotPossiblyLiveValue List<Long> data)
 		{
+			if (data instanceof ImmutableLongArrayList)  //No need to make a new copy X3
+				return (ImmutableLongArrayList)data;
+			
 			if (TransparentContiguousArrayBackedCollection.is(data))
 			{
 				Slice s = ((TransparentContiguousArrayBackedCollection)data).getLiveContiguousArrayBackingUNSAFE();
