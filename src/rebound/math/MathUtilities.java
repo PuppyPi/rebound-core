@@ -53,6 +53,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
 import rebound.util.functional.functions.DefaultComparisonNumericallyAbstract;
 import rebound.util.objectutil.JavaNamespace;
+import com.google.common.primitives.UnsignedLong;
 
 public class MathUtilities
 implements JavaNamespace
@@ -652,6 +653,9 @@ implements JavaNamespace
 		
 		else if (value instanceof Long)
 			return toBigInteger((long)(Long)value);
+		
+		else if (value instanceof UnsignedLong)
+			return ((UnsignedLong)value).bigIntegerValue();
 		
 		
 		else if (value instanceof BigInteger)
@@ -1514,6 +1518,9 @@ implements JavaNamespace
 		else if (input instanceof Long)
 			return (Long)input;
 		
+		else if (input instanceof UnsignedLong)
+			return safeCastU64toS64(((UnsignedLong)input).longValue());
+		
 		else if (input instanceof BigInteger)
 			return safeCastBigIntegerToS64((BigInteger)input);
 		
@@ -1592,6 +1599,8 @@ implements JavaNamespace
 			return false;
 		else if (input instanceof Long)
 			return false;
+		else if (input instanceof UnsignedLong)
+			return ((UnsignedLong)input).longValue() < 0;
 		
 		else if (input instanceof BigInteger)
 			return isOverflowsCastBigIntegerToS64((BigInteger)input);
@@ -1614,9 +1623,17 @@ implements JavaNamespace
 			return false;
 		
 		else if (input instanceof Long)
-		{ //oy Eclipse indenterrrr x'D
+		{
+			//oy Eclipse indenterrrr x'D
 			return (Long)input < Integer.MIN_VALUE || (Long)input > Integer.MAX_VALUE;
 		}
+		
+		else if (input instanceof UnsignedLong)
+		{
+			@ActuallyUnsigned long v = ((UnsignedLong)input).longValue();
+			return v < 0 || v > Integer.MAX_VALUE;  //can use signed > here :3
+		}
+		
 		else if (input instanceof BigInteger)
 			return isOverflowsCastBigIntegerToS32((BigInteger)input);
 		
@@ -2113,14 +2130,19 @@ implements JavaNamespace
 	
 	/**
 	 * Note: this does NOT perform fraction-reduction!!  It only performs type conversion (eg, (int)13 --> (long)13,  2/1 --> 2)
-	 * It DOES convert integer-type floats to
+	 * It DOES convert integer-type floats to integer types!
+	 * 
+	 * {@link Byte}, {@link Short}, {@link Integer}, {@link Character} are never returned by this method!
+	 * 
+	 * The only integer types returned are: {@link Long}, {@link UnsignedLong}, and {@link BigInteger}.
+	 * And non-integer rationals are always some subclass of {@link Rational}
 	 */
 	@NormalizesPrimitives
 	public static Object normalizeNumberToRationalOrInteger(Object a)
 	{
 		requireNonNull(a);
 		
-		if (a instanceof Long)
+		if (a instanceof Long || a instanceof UnsignedLong)
 			return a;
 		
 		if (a instanceof Integer || a instanceof Short || a instanceof Character || a instanceof Byte)
@@ -2138,6 +2160,8 @@ implements JavaNamespace
 		{
 			if (!isOverflowsCastBigIntegerToS64((BigInteger)a))
 				return ((BigInteger)a).longValue();
+			else if (!isOverflowsCastBigIntegerToU64((BigInteger)a))
+				return UnsignedLong.valueOf((BigInteger)a);
 			else
 				return a;
 		}
@@ -2434,7 +2458,7 @@ implements JavaNamespace
 	 */
 	public static boolean isInteger(Object x)
 	{
-		return x instanceof Long || x instanceof Integer || x instanceof Short || x instanceof Character || x instanceof Byte || x instanceof BigInteger;
+		return x instanceof Long || x instanceof Integer || x instanceof Short || x instanceof Character || x instanceof Byte || x instanceof UnsignedLong || x instanceof BigInteger;
 	}
 	
 	/**
