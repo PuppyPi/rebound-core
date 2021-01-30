@@ -560,4 +560,13 @@ implements JavaNamespace
 	{
 		return new Maybe<E>(e);
 	}
+	
+	/**
+	 * If the {@link Maybe} doesn't need to ever contain a null, this can be used to convert from nullable form to Maybe form :>
+	 * @return e == null ? null : just(e)
+	 */
+	public static <E> Maybe<E> maybeNonNull(@Nullable E e)
+	{
+		return e == null ? null : just(e);
+	}
 }
