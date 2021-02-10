@@ -98,6 +98,11 @@ import rebound.util.objectutil.RuntimeImmutability;
 import rebound.util.objectutil.Trimmable;
 import rebound.util.objectutil.UnderlyingInstanceAccessible;
 
+//TODO setof() setof(x) listof() listof(x)
+//TODO empty and singleton immutable primitive lists and sets!!
+
+
+
 //TODO make the setFrom() default implementation be overridden for fixed-length lists!!!
 //TODO Make FixedLengthBufferWrapperXyzList support efficient setAll()/etc. between array-backed primitive lists and other buffer-backed lists! :D
 

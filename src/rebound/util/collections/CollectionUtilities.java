@@ -5891,6 +5891,19 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapof()
+	{
+		return emptyMap();
+	}
+	
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapof(Object key, Object value)
+	{
+		return singletonMap(key, value);
+	}
 	
 	/**
 	 * This is not map() because that would conflict with the verb "map" as in {@link #map(Mapper, Iterator)} / etc. and also be confusing I think XD
@@ -5901,6 +5914,8 @@ _$$primxpconf:intsonly$$_
 	{
 		return mapofArray(keysAndValues);
 	}
+	
+	
 	
 	@ReadonlyValue
 	@HashableValue
@@ -6059,6 +6074,20 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@ReadonlyValue
+	@HashableValue
+	public static <E> Set<E> setof(E member)
+	{
+		return singletonSet(member);
+	}
+	
+	@ReadonlyValue
+	@HashableValue
+	public static <E> Set<E> setof()
+	{
+		return emptySet();
+	}
+	
 	/**
 	 * This is not set() because that would conflict with the verb "set", as in {@link ObjectContainer#get() get()}/{@link ObjectContainer#set(Object) set()} and also be confusing I think XD
 	 */
@@ -6068,6 +6097,8 @@ _$$primxpconf:intsonly$$_
 	{
 		return setofArray(members);
 	}
+	
+	
 	
 	@ThrowAwayValue
 	public static <E> Set<E> newSet(E... members)
@@ -6134,6 +6165,19 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@ReadonlyValue
+	@HashableValue
+	public static <E> List<E> listof()
+	{
+		return emptyList();
+	}
+	
+	@ReadonlyValue
+	@HashableValue
+	public static <E> List<E> listof(E member)
+	{
+		return singletonList(member);
+	}
 	
 	/**
 	 * This is not list() because that conflicts with the verb "list", as in {@link Container#list()} X'D
@@ -6144,6 +6188,8 @@ _$$primxpconf:intsonly$$_
 	{
 		return listofArray(members);
 	}
+	
+	
 	
 	@ThrowAwayValue
 	public static <E> List<E> newList(E... members)
