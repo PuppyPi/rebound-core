@@ -63,6 +63,7 @@ import javax.annotation.Signed;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
+import rebound.annotations.semantic.operationspecification.HashableValue;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
@@ -5872,12 +5873,14 @@ _$$primxpconf:intsonly$$_
 	 * This is not map() because that would conflict with the verb "map" as in {@link #map(Mapper, Iterator)} / etc. and also be confusing I think XD
 	 */
 	@ReadonlyValue
+	@HashableValue
 	public static Map mapof(Object... keysAndValues)
 	{
 		return mapofArray(keysAndValues);
 	}
 	
 	@ReadonlyValue
+	@HashableValue
 	public static Map mapofInverted(Object... valuesAndKeys)
 	{
 		return mapofInvertedArray(valuesAndKeys);
@@ -5900,6 +5903,7 @@ _$$primxpconf:intsonly$$_
 	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
 	 */
 	@ReadonlyValue
+	@HashableValue
 	public static Map mapofSome(Object... keysAndValues)
 	{
 		if (keysAndValues.length == 0)
@@ -5920,6 +5924,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue
 	public static Map mapofArray(Object[] keysAndValues)
 	{
 		if (keysAndValues.length == 0)
@@ -5931,6 +5936,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	@ReadonlyValue
+	@HashableValue
 	public static Map mapofInvertedArray(Object[] valuesAndKeys)
 	{
 		if (valuesAndKeys.length == 0)
@@ -6034,6 +6040,7 @@ _$$primxpconf:intsonly$$_
 	 * This is not set() because that would conflict with the verb "set", as in {@link ObjectContainer#get() get()}/{@link ObjectContainer#set(Object) set()} and also be confusing I think XD
 	 */
 	@ReadonlyValue
+	@HashableValue
 	public static <E> Set<E> setof(E... members)
 	{
 		return setofArray(members);
@@ -6047,8 +6054,11 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue
 	public static <E> Set<E> setofArray(E[] members)
 	{
+		//Todo performance threshold for when a naive set backed by a list should be used instead of a hashset!
+		
 		if (members.length == 0)
 			return emptySet();
 		else if (members.length == 1)
@@ -6065,6 +6075,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue
 	public static <E> Set<E> setofSome(Maybe<E>... members)
 	{
 		if (members.length == 0)
@@ -6105,6 +6116,7 @@ _$$primxpconf:intsonly$$_
 	 * This is not list() because that conflicts with the verb "list", as in {@link Container#list()} X'D
 	 */
 	@ReadonlyValue
+	@HashableValue
 	public static <E> List<E> listof(E... members)
 	{
 		return listofArray(members);
@@ -6129,6 +6141,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue
 	public static <E> List<E> listofSome(Maybe<E>... members)
 	{
 		if (members.length == 0)
@@ -6156,6 +6169,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue
 	public static <E> List<E> listofArray(E[] members)
 	{
 		if (members.length == 0)
@@ -6198,6 +6212,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	@ReadonlyValue
+	@HashableValue  //TODO is this respected??!
 	public static <E> SimpleTable<E> tableof(int width, E... contents)
 	{
 		return tableofArray(width, contents);
