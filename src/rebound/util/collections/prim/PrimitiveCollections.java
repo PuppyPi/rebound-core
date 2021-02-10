@@ -49,6 +49,7 @@ import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.TreatAsImmutableValue;
 import rebound.annotations.semantic.allowedoperations.VariableLengthValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.operationspecification.HashableType;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
@@ -622,7 +623,7 @@ public class PrimitiveCollections
 	/* << <   Disabled after one-time use X3
 	primxp
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsFor_$$Primitive$$_List
 	extends List<_$$Primitive$$_>
 	{
@@ -632,7 +633,7 @@ public class PrimitiveCollections
 	//>> >
 	
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForByteList
 	extends DefaultToArraysByteCollection
 	{
@@ -640,7 +641,7 @@ public class PrimitiveCollections
 	}
 	
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForCharacterList
 	extends CharSequence, DefaultToArraysCharacterCollection
 	{
@@ -673,35 +674,35 @@ public class PrimitiveCollections
 	}
 	
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForShortList
 	extends DefaultToArraysShortCollection
 	{
 		
 	}
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForFloatList
 	extends DefaultToArraysFloatCollection
 	{
 		
 	}
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForIntegerList
 	extends DefaultToArraysIntegerCollection
 	{
 		
 	}
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForDoubleList
 	extends DefaultToArraysDoubleCollection
 	{
 		
 	}
 	
-	@ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 	public static interface NonuniformMethodsForLongList
 	extends DefaultToArraysLongCollection
 	{
@@ -714,6 +715,75 @@ public class PrimitiveCollections
 	
 	
 	
+	
+	// /* << <   Disabled after one-time use X3
+	/* <<<
+	primxp
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsFor_$$Primitive$$_Set
+	extends DefaultToArrays_$$Primitive$$_Collection
+	{
+		
+	}
+	 */
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForBooleanSet
+	extends DefaultToArraysBooleanCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForByteSet
+	extends DefaultToArraysByteCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForCharacterSet
+	extends DefaultToArraysCharacterCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForShortSet
+	extends DefaultToArraysShortCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForFloatSet
+	extends DefaultToArraysFloatCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForIntegerSet
+	extends DefaultToArraysIntegerCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForDoubleSet
+	extends DefaultToArraysDoubleCollection
+	{
+		
+	}
+	
+	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
+	public static interface NonuniformMethodsForLongSet
+	extends DefaultToArraysLongCollection
+	{
+		
+	}
+	//>>>
 	
 	
 	
@@ -3488,6 +3558,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -3569,9 +3644,6 @@ primxp
 		
 		
 		protected final _$$prim$$_[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the _$$prim$$_array is large :33
 		
 		protected Immutable_$$Primitive$$_ArrayList(_$$prim$$_[] LIVEDATA)
 		{
@@ -3761,90 +3833,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof Immutable_$$Primitive$$_ArrayList)
-			{
-				Immutable_$$Primitive$$_ArrayList other = (Immutable_$$Primitive$$_ArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one _$$prim$$_ array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one _$$prim$$_ array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equals_$$Prim$$_Array(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue Immutable_$$Primitive$$_ArrayList other)
 		{
@@ -3958,6 +3946,49 @@ primxp
 		
 		public static final Comparator<Immutable_$$Primitive$$_ArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<Immutable_$$Primitive$$_ArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof Immutable_$$Primitive$$_ArrayList ? Arrays.equals(this.data, ((Immutable_$$Primitive$$_ArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -4382,7 +4413,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface _$$Primitive$$_Set
+	extends PrimitiveSet<_$$Primitive$$_, _$$prim$$_[]>, NonuniformMethodsFor_$$Primitive$$_Set
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<_$$Primitive$$_> iterator()
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends _$$Primitive$$_> c)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(_$$Primitive$$_ e)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsFor_$$Primitive$$_Set.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof _$$Primitive$$_Set)
+			{
+				return equivalent((_$$Primitive$$_Set)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				_$$Primitive$$_Set b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof _$$Primitive$$_)
+					{
+						if (!b.contains_$$Prim$$_((_$$Primitive$$_)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(_$$Primitive$$_Set other)
+		{
+			_$$Primitive$$_Set a = this;
+			_$$Primitive$$_Set b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			Simple_$$Primitive$$_Iterator i = a.newSimple_$$Primitive$$_Iterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.contains_$$Prim$$_(i.nextrp_$$Prim$$_()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			Simple_$$Primitive$$_Iterator i = this.newSimple_$$Primitive$$_Iterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrp_$$Prim$$_());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -6793,6 +7008,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -6874,9 +7094,6 @@ primxp
 		
 		
 		protected final boolean[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the booleanarray is large :33
 		
 		protected ImmutableBooleanArrayList(boolean[] LIVEDATA)
 		{
@@ -7066,90 +7283,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableBooleanArrayList)
-			{
-				ImmutableBooleanArrayList other = (ImmutableBooleanArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one boolean array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one boolean array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsBooleanArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableBooleanArrayList other)
 		{
@@ -7263,6 +7396,49 @@ primxp
 		
 		public static final Comparator<ImmutableBooleanArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableBooleanArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableBooleanArrayList ? Arrays.equals(this.data, ((ImmutableBooleanArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -7687,7 +7863,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface BooleanSet
+	extends PrimitiveSet<Boolean, boolean[]>, NonuniformMethodsForBooleanSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Boolean> iterator()
+		{
+			return NonuniformMethodsForBooleanSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Boolean> c)
+		{
+			return NonuniformMethodsForBooleanSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForBooleanSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForBooleanSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForBooleanSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Boolean e)
+		{
+			return NonuniformMethodsForBooleanSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForBooleanSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForBooleanSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForBooleanSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForBooleanSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof BooleanSet)
+			{
+				return equivalent((BooleanSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				BooleanSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Boolean)
+					{
+						if (!b.containsBoolean((Boolean)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(BooleanSet other)
+		{
+			BooleanSet a = this;
+			BooleanSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleBooleanIterator i = a.newSimpleBooleanIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsBoolean(i.nextrpBoolean()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleBooleanIterator i = this.newSimpleBooleanIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpBoolean());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -10097,6 +10457,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -10178,9 +10543,6 @@ primxp
 		
 		
 		protected final byte[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the bytearray is large :33
 		
 		protected ImmutableByteArrayList(byte[] LIVEDATA)
 		{
@@ -10370,90 +10732,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableByteArrayList)
-			{
-				ImmutableByteArrayList other = (ImmutableByteArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one byte array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one byte array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsByteArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableByteArrayList other)
 		{
@@ -10567,6 +10845,49 @@ primxp
 		
 		public static final Comparator<ImmutableByteArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableByteArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableByteArrayList ? Arrays.equals(this.data, ((ImmutableByteArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -10991,7 +11312,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface ByteSet
+	extends PrimitiveSet<Byte, byte[]>, NonuniformMethodsForByteSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Byte> iterator()
+		{
+			return NonuniformMethodsForByteSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Byte> c)
+		{
+			return NonuniformMethodsForByteSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForByteSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForByteSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForByteSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Byte e)
+		{
+			return NonuniformMethodsForByteSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForByteSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForByteSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForByteSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForByteSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof ByteSet)
+			{
+				return equivalent((ByteSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				ByteSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Byte)
+					{
+						if (!b.containsByte((Byte)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(ByteSet other)
+		{
+			ByteSet a = this;
+			ByteSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleByteIterator i = a.newSimpleByteIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsByte(i.nextrpByte()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleByteIterator i = this.newSimpleByteIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpByte());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -13401,6 +13906,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -13482,9 +13992,6 @@ primxp
 		
 		
 		protected final char[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the chararray is large :33
 		
 		protected ImmutableCharacterArrayList(char[] LIVEDATA)
 		{
@@ -13674,90 +14181,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableCharacterArrayList)
-			{
-				ImmutableCharacterArrayList other = (ImmutableCharacterArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one char array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one char array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsCharArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableCharacterArrayList other)
 		{
@@ -13871,6 +14294,49 @@ primxp
 		
 		public static final Comparator<ImmutableCharacterArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableCharacterArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableCharacterArrayList ? Arrays.equals(this.data, ((ImmutableCharacterArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -14295,7 +14761,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface CharacterSet
+	extends PrimitiveSet<Character, char[]>, NonuniformMethodsForCharacterSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Character> iterator()
+		{
+			return NonuniformMethodsForCharacterSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Character> c)
+		{
+			return NonuniformMethodsForCharacterSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForCharacterSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForCharacterSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForCharacterSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Character e)
+		{
+			return NonuniformMethodsForCharacterSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForCharacterSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForCharacterSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForCharacterSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForCharacterSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof CharacterSet)
+			{
+				return equivalent((CharacterSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				CharacterSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Character)
+					{
+						if (!b.containsChar((Character)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(CharacterSet other)
+		{
+			CharacterSet a = this;
+			CharacterSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleCharacterIterator i = a.newSimpleCharacterIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsChar(i.nextrpChar()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleCharacterIterator i = this.newSimpleCharacterIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpChar());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -16705,6 +17355,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -16786,9 +17441,6 @@ primxp
 		
 		
 		protected final short[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the shortarray is large :33
 		
 		protected ImmutableShortArrayList(short[] LIVEDATA)
 		{
@@ -16978,90 +17630,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableShortArrayList)
-			{
-				ImmutableShortArrayList other = (ImmutableShortArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one short array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one short array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsShortArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableShortArrayList other)
 		{
@@ -17175,6 +17743,49 @@ primxp
 		
 		public static final Comparator<ImmutableShortArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableShortArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableShortArrayList ? Arrays.equals(this.data, ((ImmutableShortArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -17599,7 +18210,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface ShortSet
+	extends PrimitiveSet<Short, short[]>, NonuniformMethodsForShortSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Short> iterator()
+		{
+			return NonuniformMethodsForShortSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Short> c)
+		{
+			return NonuniformMethodsForShortSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForShortSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForShortSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForShortSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Short e)
+		{
+			return NonuniformMethodsForShortSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForShortSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForShortSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForShortSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForShortSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof ShortSet)
+			{
+				return equivalent((ShortSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				ShortSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Short)
+					{
+						if (!b.containsShort((Short)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(ShortSet other)
+		{
+			ShortSet a = this;
+			ShortSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleShortIterator i = a.newSimpleShortIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsShort(i.nextrpShort()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleShortIterator i = this.newSimpleShortIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpShort());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -20009,6 +20804,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -20090,9 +20890,6 @@ primxp
 		
 		
 		protected final float[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the floatarray is large :33
 		
 		protected ImmutableFloatArrayList(float[] LIVEDATA)
 		{
@@ -20282,90 +21079,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableFloatArrayList)
-			{
-				ImmutableFloatArrayList other = (ImmutableFloatArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one float array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one float array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsFloatArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableFloatArrayList other)
 		{
@@ -20479,6 +21192,49 @@ primxp
 		
 		public static final Comparator<ImmutableFloatArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableFloatArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableFloatArrayList ? Arrays.equals(this.data, ((ImmutableFloatArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -20903,7 +21659,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface FloatSet
+	extends PrimitiveSet<Float, float[]>, NonuniformMethodsForFloatSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Float> iterator()
+		{
+			return NonuniformMethodsForFloatSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Float> c)
+		{
+			return NonuniformMethodsForFloatSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForFloatSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForFloatSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForFloatSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Float e)
+		{
+			return NonuniformMethodsForFloatSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForFloatSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForFloatSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForFloatSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForFloatSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof FloatSet)
+			{
+				return equivalent((FloatSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				FloatSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Float)
+					{
+						if (!b.containsFloat((Float)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(FloatSet other)
+		{
+			FloatSet a = this;
+			FloatSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleFloatIterator i = a.newSimpleFloatIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsFloat(i.nextrpFloat()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleFloatIterator i = this.newSimpleFloatIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpFloat());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -23313,6 +24253,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -23394,9 +24339,6 @@ primxp
 		
 		
 		protected final int[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the intarray is large :33
 		
 		protected ImmutableIntegerArrayList(int[] LIVEDATA)
 		{
@@ -23586,90 +24528,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableIntegerArrayList)
-			{
-				ImmutableIntegerArrayList other = (ImmutableIntegerArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one int array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one int array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsIntArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableIntegerArrayList other)
 		{
@@ -23783,6 +24641,49 @@ primxp
 		
 		public static final Comparator<ImmutableIntegerArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableIntegerArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableIntegerArrayList ? Arrays.equals(this.data, ((ImmutableIntegerArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -24207,7 +25108,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface IntegerSet
+	extends PrimitiveSet<Integer, int[]>, NonuniformMethodsForIntegerSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Integer> iterator()
+		{
+			return NonuniformMethodsForIntegerSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Integer> c)
+		{
+			return NonuniformMethodsForIntegerSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForIntegerSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForIntegerSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForIntegerSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Integer e)
+		{
+			return NonuniformMethodsForIntegerSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForIntegerSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForIntegerSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForIntegerSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForIntegerSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof IntegerSet)
+			{
+				return equivalent((IntegerSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				IntegerSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Integer)
+					{
+						if (!b.containsInt((Integer)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(IntegerSet other)
+		{
+			IntegerSet a = this;
+			IntegerSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleIntegerIterator i = a.newSimpleIntegerIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsInt(i.nextrpInt()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleIntegerIterator i = this.newSimpleIntegerIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpInt());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -26617,6 +27702,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -26698,9 +27788,6 @@ primxp
 		
 		
 		protected final double[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the doublearray is large :33
 		
 		protected ImmutableDoubleArrayList(double[] LIVEDATA)
 		{
@@ -26890,90 +27977,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableDoubleArrayList)
-			{
-				ImmutableDoubleArrayList other = (ImmutableDoubleArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one double array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one double array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsDoubleArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableDoubleArrayList other)
 		{
@@ -27087,6 +28090,49 @@ primxp
 		
 		public static final Comparator<ImmutableDoubleArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableDoubleArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableDoubleArrayList ? Arrays.equals(this.data, ((ImmutableDoubleArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -27511,7 +28557,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface DoubleSet
+	extends PrimitiveSet<Double, double[]>, NonuniformMethodsForDoubleSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Double> iterator()
+		{
+			return NonuniformMethodsForDoubleSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Double> c)
+		{
+			return NonuniformMethodsForDoubleSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForDoubleSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForDoubleSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForDoubleSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Double e)
+		{
+			return NonuniformMethodsForDoubleSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForDoubleSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForDoubleSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForDoubleSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForDoubleSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof DoubleSet)
+			{
+				return equivalent((DoubleSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				DoubleSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Double)
+					{
+						if (!b.containsDouble((Double)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(DoubleSet other)
+		{
+			DoubleSet a = this;
+			DoubleSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleDoubleIterator i = a.newSimpleDoubleIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsDouble(i.nextrpDouble()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleDoubleIterator i = this.newSimpleDoubleIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpDouble());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -29921,6 +31151,11 @@ primxp
 	
 	
 	
+	
+	
+	
+	
+	
 	@ThrowAwayValue
 	@WritableValue
 	@VariableLengthValue
@@ -30002,9 +31237,6 @@ primxp
 		
 		
 		protected final long[] data;
-		
-		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-		protected transient long hashCode;     //we cache it in case the longarray is large :33
 		
 		protected ImmutableLongArrayList(long[] LIVEDATA)
 		{
@@ -30194,90 +31426,6 @@ primxp
 		}
 		
 		
-		
-		
-		@Override
-		public int hashCode()
-		{
-			long hashCodeField = this.hashCode;
-			
-			boolean cached = hashCodeField != 0;
-			
-			
-			if (cached)
-			{
-				return (int)this.hashCode;
-			}
-			else
-			{
-				int hashCode = Arrays.hashCode(this.data);
-				this.hashCode = hashCode | 0xFFFF_FFFF_0000_0000l;  //hashCodes can be zero!  Not often XDD   But can be!  So it's not correct unless we account for that :>      (And if it was two fields then it'd be a concurrency bug!)
-				return hashCode;
-			}
-		}
-		
-		
-		
-		
-		@Override
-		public boolean equals(@ReadonlyValue Object obj)
-		{
-			if (obj == this)
-			{
-				return true;
-			}
-			else if (obj instanceof ImmutableLongArrayList)
-			{
-				ImmutableLongArrayList other = (ImmutableLongArrayList)obj;
-				
-				//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
-				
-				long thisHC = this.hashCode;
-				long otherHC = other.hashCode;
-				
-				boolean thisHashCodeCached = thisHC != 0;
-				boolean otherHashCodeCached = otherHC != 0;
-				
-				int thisHashCode = (int)thisHC;
-				int otherHashCode = (int)otherHC;
-				
-				if (thisHashCodeCached)
-				{
-					if (otherHashCodeCached)
-					{
-						if (thisHashCode != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Scanning one long array is faster than scanning two! :D
-						if (thisHashCode != other.hashCode())
-							return false;
-					}
-				}
-				else
-				{
-					if (otherHashCodeCached)
-					{
-						//Scanning one long array is faster than scanning two! :D
-						if (this.hashCode() != otherHashCode)
-							return false;
-					}
-					else
-					{
-						//Then don't make any hash codes X3
-					}
-				}
-				
-				return this.equalsLongArray(other.data);
-			}
-			else
-			{
-				return false;
-			}
-		}
-		
-		
 		@Override
 		public int compareTo(@ReadonlyValue ImmutableLongArrayList other)
 		{
@@ -30391,6 +31539,49 @@ primxp
 		
 		public static final Comparator<ImmutableLongArrayList> ComparatorLittleEndian = (a, b) -> a.compareTo(b);
 		public static final Comparator<ImmutableLongArrayList> ComparatorBigEndian = (a, b) -> a.compareToBigEndian(b);
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof List))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableLongArrayList ? Arrays.equals(this.data, ((ImmutableLongArrayList)obj).data) : this.equivalent(obj);
+		}
 	}
 	
 	
@@ -30815,7 +32006,191 @@ primxp
 	
 	
 	
-	
+	@SignalType
+	public static interface LongSet
+	extends PrimitiveSet<Long, long[]>, NonuniformMethodsForLongSet
+	{
+		// Multiple-Inheritance conflict resolvers X'3
+		
+		@Override
+		public default Iterator<Long> iterator()
+		{
+			return NonuniformMethodsForLongSet.super.iterator();
+		}
+		
+		@Override
+		public default boolean addAll(Collection<? extends Long> c)
+		{
+			return NonuniformMethodsForLongSet.super.addAll(c);
+		}
+		
+		@Override
+		public default boolean removeAll(Collection<?> c)
+		{
+			return NonuniformMethodsForLongSet.super.removeAll(c);
+		}
+		
+		@Override
+		public default boolean remove(Object o)
+		{
+			return NonuniformMethodsForLongSet.super.remove(o);
+		}
+		
+		@Override
+		public default boolean containsAll(Collection<?> c)
+		{
+			return NonuniformMethodsForLongSet.super.containsAll(c);
+		}
+		
+		@Override
+		public default boolean add(Long e)
+		{
+			return NonuniformMethodsForLongSet.super.add(e);
+		}
+		
+		@Override
+		public default boolean isEmpty()
+		{
+			return NonuniformMethodsForLongSet.super.isEmpty();
+		}
+		
+		@Override
+		public default boolean contains(Object o)
+		{
+			return NonuniformMethodsForLongSet.super.contains(o);
+		}
+		
+		@Override
+		public default void setFrom(Object source)
+		{
+			PrimitiveSet.super.setFrom(source);
+		}
+		
+		@Override
+		public default Object[] toArray()
+		{
+			return NonuniformMethodsForLongSet.super.toArray();
+		}
+		
+		@Override
+		public default <T> T[] toArray(T[] a)
+		{
+			return NonuniformMethodsForLongSet.super.toArray(a);
+		}
+		
+		/////////////////
+		
+		
+		
+		
+		
+		@Override
+		public default boolean equivalent(Object o)
+		{
+			if (o instanceof LongSet)
+			{
+				return equivalent((LongSet)o);
+			}
+			else if (o instanceof Set)
+			{
+				Set a = (Set)o;
+				LongSet b = this;
+				
+				if (a == b) return true;
+				if (a == null || b == null) return false;
+				
+				int as = a.size();
+				int bs = b.size();
+				
+				if (as != bs)
+					return false;
+				
+				if (arbitrary(as, bs) == 0)
+					return true;
+				
+				
+				for (Object an : a)
+				{
+					if (an instanceof Long)
+					{
+						if (!b.containsLong((Long)an))
+							return false;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		
+		
+		public default boolean equivalent(LongSet other)
+		{
+			LongSet a = this;
+			LongSet b = other;
+			
+			if (a == b) return true;
+			if (a == null || b == null) return false;
+			
+			int as = a.size();
+			int bs = b.size();
+			
+			if (as != bs)
+				return false;
+			
+			if (arbitrary(as, bs) == 0)
+				return true;
+			
+			
+			SimpleLongIterator i = a.newSimpleLongIterator();
+			
+			while (true)
+			{
+				try
+				{
+					if (!b.containsLong(i.nextrpLong()))
+						return false;
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return true;
+		}
+		
+		
+		@Override
+		public default int hashCodeOfContents()
+		{
+			int r = 1;
+			
+			SimpleLongIterator i = this.newSimpleLongIterator();
+			
+			while (true)
+			{
+				try
+				{
+					r += hashprim(i.nextrpLong());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					break;
+				}
+			}
+			
+			return r;
+		}
+	}
 	
 	
 	
@@ -31244,13 +32619,313 @@ primxp
 	/* <<<
 primxp
 _$$primxpconf:noboolean$$_
-
+	
+	
+	
+	@ImmutableValue
+	public static _$$Primitive$$_Set _$$prim$$_setof(@ReadonlyValue @LiveValue @TreatAsImmutableValue _$$prim$$_... array)
+	{
+		return new ImmutableSorted_$$Primitive$$_SetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 ⎋a/
+	@HashableType
+	public static class ImmutableSorted_$$Primitive$$_SetBackedByArray
+	implements Serializable, Comparable<ImmutableSorted_$$Primitive$$_SetBackedByArray>, _$$Primitive$$_Set, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected _$$prim$$_[] data;
+		
+		/**
+	 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 ⎋a/
+		public ImmutableSorted_$$Primitive$$_SetBackedByArray(@LiveValue _$$prim$$_[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSorted_$$Primitive$$_SetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<_$$Primitive$$_> c)
+		{
+			_$$prim$$_[] a = wrapped_$$Primitive$$_Collection(c).to_$$Prim$$_Array();
+			Arrays.sort(a);
+			return new ImmutableSorted_$$Primitive$$_SetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+	 * DO NOT MODIFY THIS X"D
+	 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 ⎋a/
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public _$$prim$$_[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean add_$$Prim$$_(_$$prim$$_ value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOf_$$Prim$$_(_$$prim$$_ value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean remove_$$Prim$$_(_$$prim$$_ value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean contains_$$Prim$$_(_$$prim$$_ value)
+		{
+			return indexOf_$$Prim$$_(value) != -1;
+		}
+		
+		/**
+	 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 ⎋a/
+		public boolean equivalent(ImmutableSorted_$$Primitive$$_SetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public _$$prim$$_[] to_$$Prim$$_Array()
+		{
+			return toSorted_$$Prim$$_Array();
+		}
+		
+		/**
+	 * This is a synonym to {@link #to_$$Prim$$_Array()} which should probably be used in preference to {@link #to_$$Prim$$_Array()} if your code relies on its sorted-ness, at least for clarity :>
+	 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 ⎋a/
+		@ThrowAwayValue
+		public _$$prim$$_[] toSorted_$$Prim$$_Array()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set _$$prim$$_ (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public _$$prim$$_ remove_$$Prim$$_ByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+	 * Remove all elements in the range (exclusive, like String).<br>
+	 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 ⎋a/
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public _$$prim$$_ get_$$Prim$$_(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public Simple_$$Primitive$$_Iterator newSimple_$$Primitive$$_Iterator()
+		{
+			return new Simple_$$Primitive$$_Iterator()
+			{
+				int i = 0;
+				
+				public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSorted_$$Primitive$$_SetBackedByArray clone()
+		{
+			return new ImmutableSorted_$$Primitive$$_SetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSorted_$$Primitive$$_SetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSorted_$$Primitive$$_SetBackedByArray ? Arrays.equals(this.data, ((ImmutableSorted_$$Primitive$$_SetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 ⎋a/
 	public static class Sorted_$$Primitive$$_SetBackedByList
-	implements Set<_$$Primitive$$_>, DefaultToArrays_$$Primitive$$_Collection, UnderlyingInstanceAccessible<_$$Primitive$$_List>, KnowsLengthFixedness
+	implements _$$Primitive$$_Set, UnderlyingInstanceAccessible<_$$Primitive$$_List>, KnowsLengthFixedness
 	{
 		protected _$$Primitive$$_List underlying;
 		
@@ -31465,78 +33140,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(_$$Primitive$$_ e)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends _$$Primitive$$_> c)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<_$$Primitive$$_> iterator()
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArrays_$$Primitive$$_Collection.super.toArray(a);
-		}
 	}
 	
 	
@@ -31555,8 +33158,307 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	
 	 */
+	
+	
+	
+	
+	@ImmutableValue
+	public static ByteSet bytesetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue byte... array)
+	{
+		return new ImmutableSortedByteSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedByteSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedByteSetBackedByArray>, ByteSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected byte[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedByteSetBackedByArray(@LiveValue byte[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedByteSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Byte> c)
+		{
+			byte[] a = wrappedByteCollection(c).toByteArray();
+			Arrays.sort(a);
+			return new ImmutableSortedByteSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public byte[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addByte(byte value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfByte(byte value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeByte(byte value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsByte(byte value)
+		{
+			return indexOfByte(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedByteSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public byte[] toByteArray()
+		{
+			return toSortedByteArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toByteArray()} which should probably be used in preference to {@link #toByteArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public byte[] toSortedByteArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set byte (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public byte removeByteByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public byte getByte(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleByteIterator newSimpleByteIterator()
+		{
+			return new SimpleByteIterator()
+			{
+				int i = 0;
+				
+				public byte nextrpByte() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedByteSetBackedByArray clone()
+		{
+			return new ImmutableSortedByteSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedByteSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedByteSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedByteSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	/**
@@ -31564,7 +33466,7 @@ _$$primxpconf:noboolean$$_
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedByteSetBackedByList
-	implements Set<Byte>, DefaultToArraysByteCollection, UnderlyingInstanceAccessible<ByteList>, KnowsLengthFixedness
+	implements ByteSet, UnderlyingInstanceAccessible<ByteList>, KnowsLengthFixedness
 	{
 		protected ByteList underlying;
 		
@@ -31779,78 +33681,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysByteCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysByteCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysByteCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysByteCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Byte e)
-		{
-			return DefaultToArraysByteCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Byte> c)
-		{
-			return DefaultToArraysByteCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysByteCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Byte> iterator()
-		{
-			return DefaultToArraysByteCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysByteCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysByteCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -31872,12 +33702,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static CharacterSet charsetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue char... array)
+	{
+		return new ImmutableSortedCharacterSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedCharacterSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedCharacterSetBackedByArray>, CharacterSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected char[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedCharacterSetBackedByArray(@LiveValue char[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedCharacterSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Character> c)
+		{
+			char[] a = wrappedCharacterCollection(c).toCharArray();
+			Arrays.sort(a);
+			return new ImmutableSortedCharacterSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public char[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addChar(char value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfChar(char value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeChar(char value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsChar(char value)
+		{
+			return indexOfChar(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedCharacterSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public char[] toCharArray()
+		{
+			return toSortedCharArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toCharArray()} which should probably be used in preference to {@link #toCharArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public char[] toSortedCharArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set char (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public char removeCharByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public char getChar(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleCharacterIterator newSimpleCharacterIterator()
+		{
+			return new SimpleCharacterIterator()
+			{
+				int i = 0;
+				
+				public char nextrpChar() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedCharacterSetBackedByArray clone()
+		{
+			return new ImmutableSortedCharacterSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedCharacterSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedCharacterSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedCharacterSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedCharacterSetBackedByList
-	implements Set<Character>, DefaultToArraysCharacterCollection, UnderlyingInstanceAccessible<CharacterList>, KnowsLengthFixedness
+	implements CharacterSet, UnderlyingInstanceAccessible<CharacterList>, KnowsLengthFixedness
 	{
 		protected CharacterList underlying;
 		
@@ -32092,78 +34221,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysCharacterCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysCharacterCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysCharacterCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysCharacterCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Character e)
-		{
-			return DefaultToArraysCharacterCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Character> c)
-		{
-			return DefaultToArraysCharacterCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysCharacterCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Character> iterator()
-		{
-			return DefaultToArraysCharacterCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysCharacterCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysCharacterCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -32185,12 +34242,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static ShortSet shortsetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue short... array)
+	{
+		return new ImmutableSortedShortSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedShortSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedShortSetBackedByArray>, ShortSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected short[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedShortSetBackedByArray(@LiveValue short[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedShortSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Short> c)
+		{
+			short[] a = wrappedShortCollection(c).toShortArray();
+			Arrays.sort(a);
+			return new ImmutableSortedShortSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public short[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addShort(short value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfShort(short value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeShort(short value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsShort(short value)
+		{
+			return indexOfShort(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedShortSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public short[] toShortArray()
+		{
+			return toSortedShortArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toShortArray()} which should probably be used in preference to {@link #toShortArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public short[] toSortedShortArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set short (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public short removeShortByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public short getShort(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleShortIterator newSimpleShortIterator()
+		{
+			return new SimpleShortIterator()
+			{
+				int i = 0;
+				
+				public short nextrpShort() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedShortSetBackedByArray clone()
+		{
+			return new ImmutableSortedShortSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedShortSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedShortSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedShortSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedShortSetBackedByList
-	implements Set<Short>, DefaultToArraysShortCollection, UnderlyingInstanceAccessible<ShortList>, KnowsLengthFixedness
+	implements ShortSet, UnderlyingInstanceAccessible<ShortList>, KnowsLengthFixedness
 	{
 		protected ShortList underlying;
 		
@@ -32405,78 +34761,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysShortCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysShortCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysShortCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysShortCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Short e)
-		{
-			return DefaultToArraysShortCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Short> c)
-		{
-			return DefaultToArraysShortCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysShortCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Short> iterator()
-		{
-			return DefaultToArraysShortCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysShortCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysShortCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -32498,12 +34782,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static FloatSet floatsetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue float... array)
+	{
+		return new ImmutableSortedFloatSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedFloatSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedFloatSetBackedByArray>, FloatSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected float[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedFloatSetBackedByArray(@LiveValue float[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedFloatSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Float> c)
+		{
+			float[] a = wrappedFloatCollection(c).toFloatArray();
+			Arrays.sort(a);
+			return new ImmutableSortedFloatSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public float[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addFloat(float value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfFloat(float value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeFloat(float value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsFloat(float value)
+		{
+			return indexOfFloat(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedFloatSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public float[] toFloatArray()
+		{
+			return toSortedFloatArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toFloatArray()} which should probably be used in preference to {@link #toFloatArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public float[] toSortedFloatArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set float (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public float removeFloatByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public float getFloat(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleFloatIterator newSimpleFloatIterator()
+		{
+			return new SimpleFloatIterator()
+			{
+				int i = 0;
+				
+				public float nextrpFloat() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedFloatSetBackedByArray clone()
+		{
+			return new ImmutableSortedFloatSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedFloatSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedFloatSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedFloatSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedFloatSetBackedByList
-	implements Set<Float>, DefaultToArraysFloatCollection, UnderlyingInstanceAccessible<FloatList>, KnowsLengthFixedness
+	implements FloatSet, UnderlyingInstanceAccessible<FloatList>, KnowsLengthFixedness
 	{
 		protected FloatList underlying;
 		
@@ -32718,78 +35301,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysFloatCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysFloatCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysFloatCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysFloatCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Float e)
-		{
-			return DefaultToArraysFloatCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Float> c)
-		{
-			return DefaultToArraysFloatCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysFloatCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Float> iterator()
-		{
-			return DefaultToArraysFloatCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysFloatCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysFloatCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -32811,12 +35322,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static IntegerSet intsetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue int... array)
+	{
+		return new ImmutableSortedIntegerSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedIntegerSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedIntegerSetBackedByArray>, IntegerSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected int[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedIntegerSetBackedByArray(@LiveValue int[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedIntegerSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Integer> c)
+		{
+			int[] a = wrappedIntegerCollection(c).toIntArray();
+			Arrays.sort(a);
+			return new ImmutableSortedIntegerSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public int[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addInt(int value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfInt(int value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeInt(int value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsInt(int value)
+		{
+			return indexOfInt(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedIntegerSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public int[] toIntArray()
+		{
+			return toSortedIntArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toIntArray()} which should probably be used in preference to {@link #toIntArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public int[] toSortedIntArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set int (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public int removeIntByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int getInt(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleIntegerIterator newSimpleIntegerIterator()
+		{
+			return new SimpleIntegerIterator()
+			{
+				int i = 0;
+				
+				public int nextrpInt() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedIntegerSetBackedByArray clone()
+		{
+			return new ImmutableSortedIntegerSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedIntegerSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedIntegerSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedIntegerSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedIntegerSetBackedByList
-	implements Set<Integer>, DefaultToArraysIntegerCollection, UnderlyingInstanceAccessible<IntegerList>, KnowsLengthFixedness
+	implements IntegerSet, UnderlyingInstanceAccessible<IntegerList>, KnowsLengthFixedness
 	{
 		protected IntegerList underlying;
 		
@@ -33031,78 +35841,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysIntegerCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysIntegerCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysIntegerCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysIntegerCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Integer e)
-		{
-			return DefaultToArraysIntegerCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Integer> c)
-		{
-			return DefaultToArraysIntegerCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysIntegerCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Integer> iterator()
-		{
-			return DefaultToArraysIntegerCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysIntegerCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysIntegerCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -33124,12 +35862,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static DoubleSet doublesetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue double... array)
+	{
+		return new ImmutableSortedDoubleSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedDoubleSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedDoubleSetBackedByArray>, DoubleSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected double[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedDoubleSetBackedByArray(@LiveValue double[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedDoubleSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Double> c)
+		{
+			double[] a = wrappedDoubleCollection(c).toDoubleArray();
+			Arrays.sort(a);
+			return new ImmutableSortedDoubleSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public double[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addDouble(double value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfDouble(double value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeDouble(double value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsDouble(double value)
+		{
+			return indexOfDouble(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedDoubleSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public double[] toDoubleArray()
+		{
+			return toSortedDoubleArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toDoubleArray()} which should probably be used in preference to {@link #toDoubleArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public double[] toSortedDoubleArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set double (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public double removeDoubleByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public double getDouble(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleDoubleIterator newSimpleDoubleIterator()
+		{
+			return new SimpleDoubleIterator()
+			{
+				int i = 0;
+				
+				public double nextrpDouble() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedDoubleSetBackedByArray clone()
+		{
+			return new ImmutableSortedDoubleSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedDoubleSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedDoubleSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedDoubleSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedDoubleSetBackedByList
-	implements Set<Double>, DefaultToArraysDoubleCollection, UnderlyingInstanceAccessible<DoubleList>, KnowsLengthFixedness
+	implements DoubleSet, UnderlyingInstanceAccessible<DoubleList>, KnowsLengthFixedness
 	{
 		protected DoubleList underlying;
 		
@@ -33344,78 +36381,6 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysDoubleCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysDoubleCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysDoubleCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysDoubleCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Double e)
-		{
-			return DefaultToArraysDoubleCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Double> c)
-		{
-			return DefaultToArraysDoubleCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysDoubleCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Double> iterator()
-		{
-			return DefaultToArraysDoubleCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysDoubleCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysDoubleCollection.super.toArray(a);
-		}
 	}
 	
 	
@@ -33437,12 +36402,311 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	
+	@ImmutableValue
+	public static LongSet longsetof(@ReadonlyValue @LiveValue @TreatAsImmutableValue long... array)
+	{
+		return new ImmutableSortedLongSetBackedByArray(array);
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * A set of primitives with the constraint that no two elements are duplicates and that
+	 * the collection is always sorted (ascending).
+	 */
+	@HashableType
+	public static class ImmutableSortedLongSetBackedByArray
+	implements Serializable, Comparable<ImmutableSortedLongSetBackedByArray>, LongSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	{
+		private static final long serialVersionUID = 1L;
+		
+		
+		
+		protected long[] data;
+		
+		/**
+		 * NOTE THAT IF IT'S NOT EMPTY IT MUST ALREADY BE SORTED!!
+		 */
+		public ImmutableSortedLongSetBackedByArray(@LiveValue long[] presortedOrEmptyUnderlying)
+		{
+			this.data = requireNonNull(presortedOrEmptyUnderlying);
+		}
+		
+		
+		public static ImmutableSortedLongSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Long> c)
+		{
+			long[] a = wrappedLongCollection(c).toLongArray();
+			Arrays.sort(a);
+			return new ImmutableSortedLongSetBackedByArray(a);
+		}
+		
+		
+		
+		
+		
+		/**
+		 * DO NOT MODIFY THIS X"D
+		 * ( THE HASH CODE IS CACHED FOR ONE, AND THIS MAY BE EMBEDDED IN HASHMAPS--THIS IS SUPPOSED TO BE IMMUTABLE AFTER ALL X'DDD )
+		 */
+		@ImplementationTransparency
+		@LiveValue
+		@ReadonlyValue //!!!!
+		public long[] getREADONLYLiveWholeArrayBackingUNSAFE()
+		{
+			return data;
+		}
+		
+		
+		@Override
+		public Boolean isFixedLengthNotVariableLength()
+		{
+			return true;
+		}
+		
+		@Override
+		public Boolean isWritableCollection()
+		{
+			return false;
+		}
+		
+		@Override
+		public JavaImmutability isImmutable()
+		{
+			return JavaImmutability.Concurrently_Immutable;
+		}
+		
+		
+		
+		
+		
+		
+		
+		//No easy way to add elements in bulk (that I'm aware of, or have the time to implement)
+		
+		@Override
+		public boolean addLong(long value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public int indexOfLong(long value)
+		{
+			//Better algorithm, no difference in API
+			return SortingUtilities.findIndexForValueInSortedSet(data, 0, size(), value);
+		}
+		
+		
+		
+		
+		
+		////  Use the better impl.s! :D  ////
+		
+		@Override
+		public boolean removeLong(long value)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public boolean containsLong(long value)
+		{
+			return indexOfLong(value) != -1;
+		}
+		
+		/**
+		 * A MUCH faster implementation (practically in every case and asymptotically! :D )
+		 */
+		public boolean equivalent(ImmutableSortedLongSetBackedByArray other)
+		{
+			return Arrays.equals(this.data, other.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		@Override
+		public long[] toLongArray()
+		{
+			return toSortedLongArray();
+		}
+		
+		/**
+		 * This is a synonym to {@link #toLongArray()} which should probably be used in preference to {@link #toLongArray()} if your code relies on its sorted-ness, at least for clarity :>
+		 * (Useful if someone else comes by and switches the instantiation to, say, Set&lt;Integer&gt; X'D )
+		 */
+		@ThrowAwayValue
+		public long[] toSortedLongArray()
+		{
+			return data.clone();
+		}
+		
+		
+		@Override
+		public boolean retainAll(Collection<?> c)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		
+		
+		//NOTE!  There is no set long (by index)!  It could easily de-sort the elements! XD      Remove it then add it again :3
+		
+		
+		
+		//// Simple delegates :3 ////equivalent
+		
+		@Override
+		public int size()
+		{
+			return data.length;
+		}
+		
+		public long removeLongByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public void removeByIndex(int index)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		/**
+		 * Remove all elements in the range (exclusive, like String).<br>
+		 * Then shifts all elements at- and to the right of- the <code>end</code>'th element left by the size() of the block removed to 'fill the void'.<br>
+		 */
+		public void removeRange(int start, int end)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public void clear()
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		public long getLong(int index)
+		{
+			return data[index];
+		}
+		
+		@Override
+		public void storeBoxingIntoArray(Slice<Object[]> array)
+		{
+			throw new ReadonlyUnsupportedOperationException();
+		}
+		
+		@Override
+		public SimpleLongIterator newSimpleLongIterator()
+		{
+			return new SimpleLongIterator()
+			{
+				int i = 0;
+				
+				public long nextrpLong() throws StopIterationReturnPath
+				{
+					int i = this.i;
+					
+					if (i >= data.length)
+						throw StopIterationReturnPath.I;
+					else
+					{
+						this.i = i + 1;
+						return data[i];
+					}
+				}
+			};
+		}
+		
+		@Override
+		public ImmutableSortedLongSetBackedByArray clone()
+		{
+			return new ImmutableSortedLongSetBackedByArray(data.clone());
+		}
+		
+		
+		@Override
+		public String toString()
+		{
+			return this._toString();
+		}
+		
+		
+		@Override
+		public int compareTo(ImmutableSortedLongSetBackedByArray o)
+		{
+			return ArrayUtilities.compareLittleEndianLengthsFirst(this.data, o.data);
+		}
+		
+		
+		
+		
+		
+		
+		
+		//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
+		protected transient volatile boolean hashCodeIsCached;
+		protected transient volatile int hashCodeCache;
+		
+		@Override
+		public int hashCode()
+		{
+			if (hashCodeIsCached)
+			{
+				return hashCodeCache;
+			}
+			else
+			{
+				int h = this.hashCodeOfContents();
+				this.hashCodeCache = h;
+				this.hashCodeIsCached = true;  //this exact order!!!
+				return h;
+			}
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (obj == this)
+				return true;
+			else if (obj == null)
+				return false;
+			else if (!(obj instanceof Set))
+				return false;
+			
+			//Checking the hashcodes is a VERY fast negative test and is almost always true-negative!! :DDD   (rarely it's false-positive, but never false-negative!)
+			if (this.hashCode() != obj.hashCode())
+				return false;
+			
+			return obj instanceof ImmutableSortedLongSetBackedByArray ? Arrays.equals(this.data, ((ImmutableSortedLongSetBackedByArray)obj).data) : this.equivalent(obj);
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * A set of primitives with the constraint that no two elements are duplicates and that
 	 * the collection is always sorted (ascending).
 	 */
 	public static class SortedLongSetBackedByList
-	implements Set<Long>, DefaultToArraysLongCollection, UnderlyingInstanceAccessible<LongList>, KnowsLengthFixedness
+	implements LongSet, UnderlyingInstanceAccessible<LongList>, KnowsLengthFixedness
 	{
 		protected LongList underlying;
 		
@@ -33657,80 +36921,7 @@ _$$primxpconf:noboolean$$_
 		{
 			return this._toString();
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		@Override
-		public boolean removeAll(Collection<?> c)
-		{
-			return DefaultToArraysLongCollection.super.removeAll(c);
-		}
-		
-		@Override
-		public boolean remove(Object o)
-		{
-			return DefaultToArraysLongCollection.super.remove(o);
-		}
-		
-		@Override
-		public boolean containsAll(Collection<?> c)
-		{
-			return DefaultToArraysLongCollection.super.containsAll(c);
-		}
-		
-		@Override
-		public boolean contains(Object o)
-		{
-			return DefaultToArraysLongCollection.super.contains(o);
-		}
-		
-		@Override
-		public boolean add(Long e)
-		{
-			return DefaultToArraysLongCollection.super.add(e);
-		}
-		
-		@Override
-		public boolean addAll(Collection<? extends Long> c)
-		{
-			return DefaultToArraysLongCollection.super.addAll(c);
-		}
-		
-		@Override
-		public boolean isEmpty()
-		{
-			return DefaultToArraysLongCollection.super.isEmpty();
-		}
-		
-		@Override
-		public Iterator<Long> iterator()
-		{
-			return DefaultToArraysLongCollection.super.iterator();
-		}
-		
-		@Override
-		public Object[] toArray()
-		{
-			return DefaultToArraysLongCollection.super.toArray();
-		}
-		
-		@Override
-		public <T> T[] toArray(T[] a)
-		{
-			return DefaultToArraysLongCollection.super.toArray(a);
-		}
 	}
-	
 	
 	
 	

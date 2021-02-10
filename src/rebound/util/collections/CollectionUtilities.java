@@ -4394,12 +4394,8 @@ _$$primxpconf:intsonly$$_
 		if (as != bs)
 			return false;
 		
-		if (as == 0)
-		{
-			assert bs == 0;
-			
+		if (arbitrary(as, bs) == 0)
 			return true;
-		}
 		
 		
 		Iterator<? extends E> ia = a.iterator();
@@ -4451,12 +4447,36 @@ _$$primxpconf:intsonly$$_
 		if (as != bs)
 			return false;
 		
-		if (as == 0)
-		{
-			assert bs == 0;
-			
+		if (arbitrary(as, bs) == 0)
 			return true;
+		
+		
+		for (E an : a)
+		{
+			if (!b.contains(an))
+				return false;
 		}
+		
+		return true;
+	}
+	
+	
+	
+	
+	
+	public static <E> boolean extraCheckingSetsEquivalent(Set<? extends E> a, Set<? extends E> b)
+	{
+		if (a == b) return true;
+		if (a == null || b == null) return false;
+		
+		int as = a.size();
+		int bs = b.size();
+		
+		if (as != bs)
+			return false;
+		
+		if (arbitrary(as, bs) == 0)
+			return true;
 		
 		
 		Iterator<? extends E> ia = a.iterator();
@@ -4489,6 +4509,9 @@ _$$primxpconf:intsonly$$_
 		
 		return true;
 	}
+	
+	
+	
 	
 	
 	public static <E> boolean defaultSetsEquivalent(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
