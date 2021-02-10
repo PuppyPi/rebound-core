@@ -18,6 +18,10 @@ import java.lang.annotation.Target;
  * Eg, {@link OutputStream#write(int)} would be {@link ActuallyBits}(8)
  * But {@link InputStream#read()} would be {@link ActuallyUnsigned}(8) since it's upcasted without sign extension, except that it can return 257 values (-1 for EOF) so it's not really XD
  * 
+ * This is to be considered equivalent to a corresponding {@link BoundedInt} or {@link BoundedLong}, which are more general versions of this.
+ * 
+ * @see BoundedInt
+ * @see BoundedLong
  * @see ActuallySigned
  * @author RProgrammer
  */
