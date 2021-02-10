@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
@@ -38,6 +39,7 @@ import rebound.util.collections.prim.PrimitiveCollections.FloatList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.container.ContainerInterfaces.ObjectContainer;
 import rebound.util.functional.EqualityComparator;
 import rebound.util.functional.FunctionInterfaces.BooleanEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.ByteEqualityComparator;
@@ -20150,5 +20152,42 @@ primxp
 		newa[n] = array[0];
 		
 		return newa;
+	}
+	
+	
+	
+	
+	
+	
+	public static byte[] getOrCreateBuffer(@Nullable ObjectContainer<byte[]> cache, int minSize)
+	{
+		if (cache == null)
+			return new byte[minSize];
+		else
+		{
+			byte[] v = cache.get();
+			
+			if (v == null || v.length < minSize)
+			{
+				v = new byte[minSize];
+				cache.set(v);
+			}
+			
+			return v;
+		}
+	}
+	
+	
+	public static byte[] getOrGrowBuffer(@Nonnull ObjectContainer<byte[]> holder, int minSize)
+	{
+		byte[] v = holder.get();
+		
+		if (v == null || v.length < minSize)
+		{
+			v = Arrays.copyOf(v, minSize);
+			holder.set(v);
+		}
+		
+		return v;
 	}
 }
