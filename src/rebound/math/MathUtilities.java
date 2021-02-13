@@ -4173,5 +4173,52 @@ implements JavaNamespace
 	
 	
 	
+	public static <T> T requirePositivePoly(T number)
+	{
+		if (mathcmp(number, 0l) <= 0)
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
 	
+	public static <T> T requireNegativePoly(T number)
+	{
+		if (mathcmp(number, 0l) >= 0)
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
+	
+	public static <T> T requireZeroPoly(T number)
+	{
+		if (!matheq(number, 0l))
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
+	
+	
+	public static <T> T requireNonNegativePoly(T number)
+	{
+		if (mathcmp(number, 0l) < 0)
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
+	
+	public static <T> T requireNonPositivePoly(T number)
+	{
+		if (mathcmp(number, 0l) > 0)
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
+	
+	public static <T> T requireNonZeroPoly(T number)
+	{
+		if (matheq(number, 0l))
+			throw new IllegalArgumentException("Was: "+number);
+		else
+			return number;
+	}
 }
