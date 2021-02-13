@@ -2,11 +2,11 @@ package rebound.text;
 
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 
-public class UCS4Codepoint
+public class UCS4CodePoint
 {
 	protected final int codeUnit;
 	
-	public UCS4Codepoint(@ActuallyUnsigned int codeUnit)
+	public UCS4CodePoint(@ActuallyUnsigned int codeUnit)
 	{
 		this.codeUnit = codeUnit;
 	}
@@ -35,7 +35,7 @@ public class UCS4Codepoint
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		UCS4Codepoint other = (UCS4Codepoint) obj;
+		UCS4CodePoint other = (UCS4CodePoint) obj;
 		if (codeUnit != other.codeUnit)
 			return false;
 		return true;
