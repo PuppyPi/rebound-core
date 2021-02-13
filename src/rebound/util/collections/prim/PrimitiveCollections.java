@@ -78,6 +78,7 @@ import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.ShiftableList;
 import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
+import rebound.util.collections.SimpleTable;
 import rebound.util.collections.Slice;
 import rebound.util.collections.SortingUtilities;
 import rebound.util.collections.Sublist;
@@ -101,6 +102,7 @@ import rebound.util.objectutil.UnderlyingInstanceAccessible;
 //TODO setof() setof(x) listof() listof(x)
 //TODO empty and singleton immutable primitive lists and sets!!
 
+//TODO Better primitive tables X3
 
 
 //TODO make the setFrom() default implementation be overridden for fixed-length lists!!!
@@ -721,8 +723,7 @@ public class PrimitiveCollections
 	
 	
 	
-	// /* << <   Disabled after one-time use X3
-	/* <<<
+	/* << <   Disabled after one-time use X3
 	primxp
 	
 	@ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
@@ -788,7 +789,7 @@ public class PrimitiveCollections
 	{
 		
 	}
-	//>>>
+	//>> >
 	
 	
 	
@@ -1305,6 +1306,31 @@ primxp
 	}
 	
 	
+	
+	@WritableValue
+	public static SimpleTable<Boolean> newBooleanTable()
+	{
+		//TODO More efficient implementation of these for all the primitives, then change the return value type to BooleanSimpleTable!
+		//TODO *Extra* more efficient implementation for Boolean!  8>!
+		return newTable();
+	}
+	
+	/**
+	 * • By "zero" we mean "false" ^^'
+	 */
+	@WritableValue
+	public static SimpleTable<Boolean> newBooleanTableZerofilled(int width, int height)
+	{
+		//TODO More efficient implementation of these for all the primitives, then change the return value type to BooleanSimpleTable!
+		//TODO *Extra* more efficient implementation for Boolean!  8>!
+		return newTableGivenfilled(width, height, false);
+	}
+	
+	
+	
+	
+	
+	
 	/* <<<
 primxp
 _$$primxpconf:noboolean$$_
@@ -1320,6 +1346,23 @@ _$$primxpconf:noboolean$$_
 	{
 		return new _$$Primitive$$_ArrayList(new _$$prim$$_[size], size);
 	}
+	
+	
+	
+	@WritableValue
+	public static SimpleTable<_$$Primitive$$_> new_$$Primitive$$_Table()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<_$$Primitive$$_> new_$$Primitive$$_TableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, _$$primdef$$_);
+	}
+	
+	
+	
 	 */
 	
 	
@@ -1336,6 +1379,23 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	@WritableValue
+	public static SimpleTable<Byte> newByteTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Byte> newByteTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, ((byte)0));
+	}
+	
+	
+	
+	
+	
 	@WritableValue
 	public static CharacterList newCharacterList()
 	{
@@ -1347,6 +1407,23 @@ _$$primxpconf:noboolean$$_
 	{
 		return new CharacterArrayList(new char[size], size);
 	}
+	
+	
+	
+	@WritableValue
+	public static SimpleTable<Character> newCharacterTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Character> newCharacterTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, ((char)0));
+	}
+	
+	
+	
 	
 	
 	@WritableValue
@@ -1362,6 +1439,23 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	@WritableValue
+	public static SimpleTable<Short> newShortTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Short> newShortTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, ((short)0));
+	}
+	
+	
+	
+	
+	
 	@WritableValue
 	public static FloatList newFloatList()
 	{
@@ -1373,6 +1467,23 @@ _$$primxpconf:noboolean$$_
 	{
 		return new FloatArrayList(new float[size], size);
 	}
+	
+	
+	
+	@WritableValue
+	public static SimpleTable<Float> newFloatTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Float> newFloatTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, 0.0f);
+	}
+	
+	
+	
 	
 	
 	@WritableValue
@@ -1388,6 +1499,23 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	@WritableValue
+	public static SimpleTable<Integer> newIntegerTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Integer> newIntegerTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, 0);
+	}
+	
+	
+	
+	
+	
 	@WritableValue
 	public static DoubleList newDoubleList()
 	{
@@ -1401,6 +1529,23 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	@WritableValue
+	public static SimpleTable<Double> newDoubleTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Double> newDoubleTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, 0.0d);
+	}
+	
+	
+	
+	
+	
 	@WritableValue
 	public static LongList newLongList()
 	{
@@ -1412,6 +1557,23 @@ _$$primxpconf:noboolean$$_
 	{
 		return new LongArrayList(new long[size], size);
 	}
+	
+	
+	
+	@WritableValue
+	public static SimpleTable<Long> newLongTable()
+	{
+		return newTable();
+	}
+	
+	@WritableValue
+	public static SimpleTable<Long> newLongTableZerofilled(int width, int height)
+	{
+		return newTableGivenfilled(width, height, 0l);
+	}
+	
+	
+	
 	// >>>
 	
 	
