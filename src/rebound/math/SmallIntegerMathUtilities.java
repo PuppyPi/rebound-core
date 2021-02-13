@@ -4,6 +4,7 @@ import static java.lang.Math.*;
 import static rebound.bits.BitUtilities.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallFloatMathUtilities.*;
+import java.util.Comparator;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -188,6 +189,17 @@ public class SmallIntegerMathUtilities
 	}
 	
 	
+	
+	
+	
+	
+	
+	
+	public static Comparator<Byte> ByteComparison = (a, b) -> cmp((byte)a, (byte)b);
+	public static Comparator<Short> ShortComparison = (a, b) -> cmp((short)a, (short)b);
+	public static Comparator<Character> CharacterComparison = (a, b) -> cmp((char)a, (char)b);
+	public static Comparator<Integer> IntComparison = (a, b) -> cmp((int)a, (int)b);
+	public static Comparator<Long> LongComparison = (a, b) -> cmp((long)a, (long)b);
 	
 	
 	public static int cmp(long a, long b)

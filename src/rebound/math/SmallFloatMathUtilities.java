@@ -5,6 +5,7 @@ import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.CodeHinting.*;
+import java.util.Comparator;
 import java.util.List;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -388,6 +389,12 @@ public class SmallFloatMathUtilities
 	
 	
 	
+	
+	
+	
+	
+	public static Comparator<Float> FloatComparison = (a, b) -> cmp((float)a, (float)b);
+	public static Comparator<Double> DoubleComparison = (a, b) -> cmp((double)a, (double)b);
 	
 	
 	public static int cmp(float a, float b)
