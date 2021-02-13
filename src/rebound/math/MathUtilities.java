@@ -24,7 +24,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
-import rebound.annotations.semantic.simpledata.NormalizesPrimitives;
+import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.bits.Bytes;
 import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.ImpossibleException;
@@ -636,7 +636,7 @@ implements JavaNamespace
 		return BigInteger.valueOf(value);
 	}
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static BigInteger toBigInteger(@PolyInteger Object value)
 	{
 		requireNonNull(value);
@@ -2155,7 +2155,7 @@ implements JavaNamespace
 	 * The only integer types returned are: {@link Long}, {@link UnsignedLong}, and {@link BigInteger}.
 	 * And non-integer rationals are always some subclass of {@link Rational}
 	 */
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static Object normalizeNumberToRationalOrInteger(Object a)
 	{
 		requireNonNull(a);
@@ -2196,7 +2196,7 @@ implements JavaNamespace
 		throw new StructuredClassCastException(a.getClass());
 	}
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static Rational normalizeNumberToRational(Object a)
 	{
 		@RationalOrInteger Object roi = normalizeNumberToRationalOrInteger(a);
@@ -2596,7 +2596,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	protected static Object internalRational(Object numerator, Object denominator)
 	{
 		numerator = normalizeNumberToRationalOrInteger(numerator);
@@ -2618,7 +2618,7 @@ implements JavaNamespace
 	 * Note that this *may* return an integer if the given fraction is in fact an integer!! \o/
 	 * (like 4/2 or 12/3 or anything/1! XD   ^_~  )
 	 */
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object rational(@PolyInteger Object numerator, @PolyInteger Object denominator)
 	{
 		return reduce(numerator, denominator);  //it needs to be reduced for hashcode/equals anyways--ohwell XD''
@@ -2684,8 +2684,8 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
-	public static @RationalOrInteger Object negate(@RationalOrInteger Object a)
+	@MayNormalizePrimitives
+	public static @RealNumeric Object negate(@RealNumeric Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
 		
@@ -2723,8 +2723,15 @@ implements JavaNamespace
 	
 	
 	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object absPoly(@RealNumeric Object x)
+	{
+		return mathcmp(x, 0) < 0 ? negate(x) : x;
+	}
 	
-	@NormalizesPrimitives
+	
+	
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object reciprocate(@RationalOrInteger Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
@@ -2757,7 +2764,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
@@ -2829,7 +2836,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
@@ -2899,7 +2906,7 @@ implements JavaNamespace
 		}
 	}
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		return multiply(a, b);
@@ -2910,7 +2917,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object pow(@RationalOrInteger Object base, @RationalOrInteger Object exponent)
 	{
 		base = normalizeNumberToRationalOrInteger(base);
@@ -3014,13 +3021,13 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object subtract(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
 	{
 		return add(minuend, negate(subtrahend));
 	}
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object divide(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
 	{
 		return multiply(dividend, reciprocate(divisor));
@@ -3028,13 +3035,13 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object sub(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
 	{
 		return subtract(minuend, subtrahend);
 	}
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object div(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
 	{
 		return divide(dividend, divisor);
@@ -3049,7 +3056,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object reduce(@RationalOrInteger Object a)
 	{
 		a = normalizeNumberToRationalOrInteger(a);
@@ -3073,7 +3080,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object reduce(@PolyInteger Object numerator, @PolyInteger Object denominator)
 	{
 		if (!isInteger(numerator))
@@ -3173,7 +3180,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> Object sumMapping(Mapper<I, Object> mapper, Iterable<I> inputs)
 	{
 		Object result = Zero;
@@ -3197,7 +3204,7 @@ implements JavaNamespace
 	}
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> Object productMapping(Mapper<I, Object> mapper, Iterable<I> inputs)
 	{
 		Object result = One;
@@ -3228,7 +3235,7 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> long sumMapping64(Mapper<I, Long> mapper, Iterable<I> inputs)
 	{
 		long result = 0;
@@ -3252,7 +3259,7 @@ implements JavaNamespace
 	}
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> long productMapping64(Mapper<I, Long> mapper, Iterable<I> inputs)
 	{
 		long result = 1;
@@ -3279,14 +3286,14 @@ implements JavaNamespace
 	
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> int sumMapping32(Mapper<I, Integer> mapper, Iterable<I> inputs)
 	{
 		return safeCastS64toS32(sumMapping64(i -> upcastNT(mapper.f(i)), inputs));
 	}
 	
 	
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public static <I> int productMapping32(Mapper<I, Integer> mapper, Iterable<I> inputs)
 	{
 		return safeCastS64toS32(productMapping64(i -> upcastNT(mapper.f(i)), inputs));

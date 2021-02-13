@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Something tagged with this converts some primitive wrappers into equivalent wrappers of some wider types!
+ * Something tagged with this *may* convert some primitive wrappers into equivalent wrappers of some wider types!
  * Eg, byte/short -> int/long, or float -> double
  * 
  * ^w^
@@ -17,6 +17,6 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-public @interface NormalizesPrimitives
+public @interface MayNormalizePrimitives
 {
 }

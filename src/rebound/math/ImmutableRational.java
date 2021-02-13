@@ -4,7 +4,7 @@ import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.math.MathUtilities.*;
 import java.io.Serializable;
 import rebound.annotations.hints.ImplementationTransparency;
-import rebound.annotations.semantic.simpledata.NormalizesPrimitives;
+import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.TruncationException;
@@ -32,7 +32,7 @@ implements Rational, Serializable, ValueType
 	//	 * Consider using {@link MathUtilities#rational(Object, Object)} instead, since that just efficiently returns the numerator if the denominator == 1  ^w^
 	//	 */
 	@ImplementationTransparency
-	@NormalizesPrimitives
+	@MayNormalizePrimitives
 	public ImmutableRational(Object numerator, Object denominator)
 	{
 		numerator = normalizeNumberToRationalOrInteger(numerator);
