@@ -3,6 +3,10 @@ package rebound.util;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 
+/**
+ * Arbitrary here means inconsistently-arbitrary; ie, the values could be from any possible random number generator (or incrementing counter) and everything still work!
+ * (In reality they're not for performance; they're just constants; but it could be different!  And that can be useful for code porting or code prooving or optimization!)
+ */
 public class CodeHinting
 {
 	/**
@@ -47,7 +51,6 @@ public class CodeHinting
 	}
 	
 	protected static volatile byte PointlessByte = 0;
-	
 	
 	
 	
@@ -324,6 +327,17 @@ public class CodeHinting
 	primxp
 	
 	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 ⎋a/
+	public static _$$prim$$_ arbitrary_$$Prim$$_()
+	{
+		return _$$primdef$$_;
+	}
+	
+	
+	
+	/**
 	 * This indicates the two values are equivalent for the purposes of the code; that either one could be used :3
 	 ⎋a/
 	public static _$$prim$$_ arbitrary(_$$prim$$_ a, _$$prim$$_ b)
@@ -433,6 +447,17 @@ public class CodeHinting
 	 */
 	
 	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static boolean arbitraryBoolean()
+	{
+		return false;
+	}
+	
+	
+	
+	/**
 	 * This indicates the two values are equivalent for the purposes of the code; that either one could be used :3
 	 */
 	public static boolean arbitrary(boolean a, boolean b)
@@ -537,6 +562,17 @@ public class CodeHinting
 		return x[0];
 	}
 	
+	
+	
+	
+	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static byte arbitraryByte()
+	{
+		return ((byte)0);
+	}
 	
 	
 	
@@ -649,6 +685,17 @@ public class CodeHinting
 	
 	
 	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static char arbitraryChar()
+	{
+		return ((char)0);
+	}
+	
+	
+	
+	/**
 	 * This indicates the two values are equivalent for the purposes of the code; that either one could be used :3
 	 */
 	public static char arbitrary(char a, char b)
@@ -753,6 +800,17 @@ public class CodeHinting
 		return x[0];
 	}
 	
+	
+	
+	
+	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static short arbitraryShort()
+	{
+		return ((short)0);
+	}
 	
 	
 	
@@ -865,6 +923,17 @@ public class CodeHinting
 	
 	
 	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static float arbitraryFloat()
+	{
+		return 0.0f;
+	}
+	
+	
+	
+	/**
 	 * This indicates the two values are equivalent for the purposes of the code; that either one could be used :3
 	 */
 	public static float arbitrary(float a, float b)
@@ -969,6 +1038,17 @@ public class CodeHinting
 		return x[0];
 	}
 	
+	
+	
+	
+	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static int arbitraryInt()
+	{
+		return 0;
+	}
 	
 	
 	
@@ -1081,6 +1161,17 @@ public class CodeHinting
 	
 	
 	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static double arbitraryDouble()
+	{
+		return 0.0d;
+	}
+	
+	
+	
+	/**
 	 * This indicates the two values are equivalent for the purposes of the code; that either one could be used :3
 	 */
 	public static double arbitrary(double a, double b)
@@ -1185,6 +1276,17 @@ public class CodeHinting
 		return x[0];
 	}
 	
+	
+	
+	
+	/**
+	 * This indicates that any value could be given and it should work the same!
+	 * (eg, if used in a condition or as a value)
+	 */
+	public static long arbitraryLong()
+	{
+		return 0l;
+	}
 	
 	
 	
@@ -1316,12 +1418,14 @@ public class CodeHinting
 	
 	
 	
-	
+	//TODO Is undefinedXyz() different from arbitraryXyz() ??
 	
 	public static <E> E undefined()
 	{
 		return null;
 	}
+	
+	
 	
 	
 	
