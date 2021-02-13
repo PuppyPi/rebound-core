@@ -6393,8 +6393,19 @@ _$$primxpconf:intsonly$$_
 	@ThrowAwayValue
 	public static <E> SimpleTable<E> newTableNullfilled(int width, int height)
 	{
+		//TODO A more efficient implementation!!
 		return new NestedListsSimpleTable<E>(width, height);
 	}
+	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> newTableGivenfilled(int width, int height, E initialValue)
+	{
+		//TODO A more efficient implementation!!
+		SimpleTable<E> t = newTableNullfilled(width, height);
+		t.setAllToSameValue(initialValue);
+		return t;
+	}
+	
 	
 	
 	@ReadonlyValue
@@ -8206,6 +8217,63 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <V> Map<V, Integer> inverseListmapOPC(@ReadonlyValue List<V> map) throws NonForwardInjectiveMapException
+	{
+		return inverseListmapOP(map);  //Todo weak caching impl for immutable maps?
+	}
+	
+	
+	@ThrowAwayValue
+	public static <V> Map<V, Integer> inverseListmapOP(@ReadonlyValue List<V> map) throws NonForwardInjectiveMapException
+	{
+		//		Map<V, Integer> inverse = new HashMap<>();
+		//		
+		//		for (Entry<V> e : map.entrySet())
+		//		{
+		//			if (inverse.containsKey(e.getValue()))
+		//				throw new NonForwardInjectiveMapException();
+		//			else
+		//				inverse.put(e.getValue(), e.getKey());
+		//		}
+		//		
+		//		return inverse;
+		
+		return inverseListmapOP(map.size(), map::get);
+	}
+	
+	
+	
+	public static <V> Map<V, Integer> inverseListmapOP(int size, Mapper<Integer, V> mapper) throws NonForwardInjectiveMapException
+	{
+		Map<V, Integer> inverse = new HashMap<>();
+		
+		for (int key = 0; key < size; key++)
+		{
+			V value;
+			try
+			{
+				value = mapper.f(key);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			if (inverse.containsKey(value))
+				throw new NonForwardInjectiveMapException("Duplicates of value-in-input / key-in-output "+repr(value));
+			else
+				inverse.put(value, key);
+		}
+		
+		return inverse;
+	}
+	
+	
+	
+	
+	
+	
 	
 	@ThrowAwayValue
 	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Map<K, V> inputMap)
@@ -8973,6 +9041,11 @@ _$$primxpconf:intsonly$$_
 	{
 		return prev != 0 ? prev : compareWithListOrdering(ordering, a, b);
 	}
+	
+	
+	
+	
+	
 	
 	
 	
@@ -11713,16 +11786,28 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
 	public static <E extends Comparable> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB)
 	{
 		return defaultListsCompare(listA, listB, Comparator.naturalOrder());
 	}
 	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
 	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison)
 	{
-		return defaultListsCompare(listA, listB, comparison, false);
+		return defaultListsCompare(listA, listB, comparison, true);
 	}
 	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
 	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison, boolean lengthsFirst)
 	{
 		if (listA == null)
@@ -11758,6 +11843,10 @@ _$$primxpconf:intsonly$$_
 		}
 	}
 	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
 	public static <E> int defaultListsCompare(@Nullable List<? extends E> listA, @Nullable List<? extends E> listB, @Nonnull Comparator<E> comparison, boolean lengthsFirst, boolean invertElementComparison, boolean shorterIsLarger)
 	{
 		//Todo check my boolean math here XD''
@@ -11767,5 +11856,177 @@ _$$primxpconf:intsonly$$_
 		int r = defaultListsCompare(listA, listB, invertIn ? comparison.reversed() : comparison, lengthsFirst);
 		
 		return invertOut ? -r : r;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <E> int defaultSetsCompare(@Nullable Set<? extends E> setA, @Nullable Set<? extends E> setB, Comparator<E> comparison)
+	{
+		return defaultSetsCompareFullRV(setA, setB, comparison).comparisonResult;
+	}
+	
+	
+	public static class defaultSetsCompareRV<E>
+	{
+		public final int comparisonResult;
+		public final @Nullable List<E> orderingOnA;  //*might* be null if comparisonResult != 0
+		public final @Nullable List<E> orderingOnB;  //*might* be null if comparisonResult != 0
+		
+		public defaultSetsCompareRV(int comparisonResult, List<E> orderingOnA, List<E> orderingOnB)
+		{
+			this.comparisonResult = comparisonResult;
+			
+			if (comparisonResult == 0)
+			{
+				requireNonNull(orderingOnA);
+				requireNonNull(orderingOnB);
+			}
+			
+			this.orderingOnA = orderingOnA;
+			this.orderingOnB = orderingOnB;
+		}
+	}
+	
+	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <E> defaultSetsCompareRV<? extends E> defaultSetsCompareFullRV(@Nullable Set<? extends E> setA, @Nullable Set<? extends E> setB, Comparator<E> comparison)
+	{
+		int r = cmp(setA.size(), setB.size());
+		if (r != 0)  return new defaultSetsCompareRV(r, null, null);
+		
+		List<? extends E> orderingOnA = sorted(setA, comparison);
+		List<? extends E> orderingOnB = sorted(setB, comparison);
+		
+		return new defaultSetsCompareRV(defaultListsCompare(orderingOnA, orderingOnB, comparison), orderingOnA, orderingOnB);
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Equivalent to {@link #defaultSetsCompare(Set, Set, Comparator)} with 2-element sets :3
+	 * 
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <E> int defaultDoubletonsCompare(@Nullable PairCommutative<? extends E> setA, @Nullable PairCommutative<? extends E> setB, Comparator<E> comparison)
+	{
+		final E a0, a1;
+		{
+			final E aA = setA.getA();
+			final E aB = setA.getB();
+			
+			if (comparison.compare(aA, aB) <= 0)
+			{
+				a0 = aA;
+				a1 = aB;
+			}
+			else
+			{
+				a0 = aB;
+				a1 = aA;
+			}
+		}
+		
+		
+		final E b0, b1;
+		{
+			final E bA = setB.getA();
+			final E bB = setB.getB();
+			
+			if (comparison.compare(bA, bB) <= 0)
+			{
+				b0 = bA;
+				b1 = bB;
+			}
+			else
+			{
+				b0 = bB;
+				b1 = bA;
+			}
+		}
+		
+		
+		int r = comparison.compare(a0, b0);
+		if (r != 0)  return r;
+		
+		return comparison.compare(a1, b1);
+	}
+	
+	
+	
+	/**
+	 * Compares the {@link PairOrdered#getA() A}'s first then the {@link PairOrdered#getB() B}'s
+	 * 
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <A, B> int comparePairNormal(PairOrdered<? extends A, ? extends B> pairA, PairOrdered<? extends A, ? extends B> pairB, Comparator<A> comparisonA, Comparator<B> comparisonB)
+	{
+		int r = comparisonA.compare(pairA.getA(), pairB.getA());
+		if (r != 0)  return r;
+		
+		return comparisonB.compare(pairA.getB(), pairB.getB());
+	}
+	
+	/**
+	 * Compares the {@link PairOrdered#getB() B}'s first then the {@link PairOrdered#getA() A}'s!
+	 * 
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <A, B> int comparePairReversed(PairOrdered<? extends A, ? extends B> pairA, PairOrdered<? extends A, ? extends B> pairB, Comparator<A> comparisonA, Comparator<B> comparisonB)
+	{
+		int r = comparisonB.compare(pairA.getB(), pairB.getB());
+		if (r != 0)  return r;
+		
+		return comparisonA.compare(pairA.getA(), pairB.getA());
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * NOTE THAT THIS EXACT ALGORITHM MUST NEVER CHANGE; DATABASES DEPEND ON IT
+	 * Any changes must keep this functionally equivalent!!!
+	 */
+	public static <K, V> int defaultMapsCompare(@Nullable Map<? extends K, ? extends V> mapA, @Nullable Map<? extends K, ? extends V> mapB, Comparator<K> keyComparison, Comparator<V> valueComparison)
+	{
+		defaultSetsCompareRV<? extends K> r = defaultSetsCompareFullRV(mapA.keySet(), mapB.keySet(), keyComparison);
+		
+		int rc = r.comparisonResult;
+		
+		if (rc != 0)
+		{
+			return rc;
+		}
+		else
+		{
+			//The keysets are the same, then!
+			List<? extends K> keysInOrder = arbitrary(requireNonNull(r.orderingOnA), requireNonNull(r.orderingOnB));
+			
+			List<? extends V> valuesInOrderA = (List)mapToList(k -> getMandatory((Map<K, V>)mapA, (K)k), keysInOrder);  //Todo a View list implementation would be good here :3
+			List<? extends V> valuesInOrderB = (List)mapToList(k -> getMandatory((Map<K, V>)mapB, (K)k), keysInOrder);  //Todo a View list implementation would be good here :3
+			
+			return defaultListsCompare(valuesInOrderA, valuesInOrderB, valueComparison);
+		}
 	}
 }
