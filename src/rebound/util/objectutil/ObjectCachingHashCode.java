@@ -1,5 +1,7 @@
 package rebound.util.objectutil;
 
+import static rebound.bits.Unsigned.*;
+
 public abstract class ObjectCachingHashCode<ThisType>
 {
 	protected abstract int _hashCode();
