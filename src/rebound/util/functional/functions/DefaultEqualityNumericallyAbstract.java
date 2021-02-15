@@ -1,7 +1,6 @@
 package rebound.util.functional.functions;
 
 import static rebound.math.MathUtilities.*;
-import static rebound.util.objectutil.BasicObjectUtilities.*;
 import rebound.math.MathUtilities;
 import rebound.util.functional.EqualityComparator;
 
@@ -16,6 +15,17 @@ implements EqualityComparator
 	@Override
 	public boolean equals(Object a, Object b)
 	{
-		return isRealNumber(a) || isRealNumber(b) ? matheq(a, b) : eq(a, b);
+		//return (isRealNumber(a) || isRealNumber(b)) ? matheq(a, b) : eq(a, b);
+		
+		if (a == b)
+			return true;
+		
+		if (a == null)  // || b == null)  //&& a != b
+			return false;
+		
+		if (a.equals(b))
+			return true;
+		
+		return (isRealNumber(a) && isRealNumber(b)) ? matheq(a, b) : false;
 	}
 }
