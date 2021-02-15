@@ -16,8 +16,10 @@ public abstract class ObjectCachingHashCode<ThisType>
 	
 	
 	
-	//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me X'D )
-	protected transient long hashCodeCache;  //storing a boolean too will probably get promoted on 64-bit machines anyway so, meh xD
+	//Yeah I know it's bad practice for a thread-safe immutable object to cache things, but at best effort is wasted, no constraints are violated!     (If I'm wrong, fire me XD)
+	//It's quite difficult if not impossible to use two fields (even volatile ones), a boolean for isCached and an int for cached, so we just use one long ^^'
+	//  storing a boolean too will probably get promoted on 64-bit machines anyway so it might actually be more efficient this way!! XD
+	protected transient long hashCodeCache;
 	
 	@Override
 	public int hashCode()
