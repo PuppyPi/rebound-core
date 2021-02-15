@@ -88,6 +88,128 @@ implements JavaNamespace
 	
 	
 	
+	public static Object emptyArrayByArrayType(Class arrayType)
+	{
+		if (arrayType == Object[].class)
+			return EmptyObjectArray;
+		/* <<< primxp
+		else if (arrayType == _$$prim$$_[].class)
+			return Empty_$$Prim$$_Array;
+		 */else if (arrayType == boolean[].class)
+			 return EmptyBooleanArray;
+		 else if (arrayType == byte[].class)
+			 return EmptyByteArray;
+		 else if (arrayType == char[].class)
+			 return EmptyCharArray;
+		 else if (arrayType == short[].class)
+			 return EmptyShortArray;
+		 else if (arrayType == float[].class)
+			 return EmptyFloatArray;
+		 else if (arrayType == int[].class)
+			 return EmptyIntArray;
+		 else if (arrayType == double[].class)
+			 return EmptyDoubleArray;
+		 else if (arrayType == long[].class)
+			 return EmptyLongArray;
+		// >>>
+		 else
+		 {
+			 if (arrayType.isArray())
+				 throw new AssertionError(String.valueOf(arrayType));
+			 else
+				 throw new IllegalArgumentException("Not an array type: "+arrayType);
+		 }
+	}
+	
+	public static Object emptyArrayByComponentType(Class componentType)
+	{
+		if (componentType == boolean.class)
+			return EmptyBooleanArray;
+		else if (componentType == byte.class)
+			return EmptyByteArray;
+		else if (componentType == char.class)
+			return EmptyCharArray;
+		else if (componentType == short.class)
+			return EmptyShortArray;
+		else if (componentType == float.class)
+			return EmptyFloatArray;
+		else if (componentType == int.class)
+			return EmptyIntArray;
+		else if (componentType == double.class)
+			return EmptyDoubleArray;
+		else if (componentType == long.class)
+			return EmptyLongArray;
+		else if (componentType == void.class)
+			throw new IllegalArgumentException("void.class was given");
+		else
+			return EmptyObjectArray;
+	}
+	
+	
+	
+	
+	
+	
+	public static Slice emptyArraySliceByArrayType(Class arrayType)
+	{
+		if (arrayType == Object[].class)
+			return EmptyObjectSlice;
+		/* <<< primxp
+		else if (arrayType == _$$prim$$_[].class)
+			return Empty_$$Prim$$_Slice;
+		 */else if (arrayType == boolean[].class)
+			 return EmptyBooleanSlice;
+		 else if (arrayType == byte[].class)
+			 return EmptyByteSlice;
+		 else if (arrayType == char[].class)
+			 return EmptyCharSlice;
+		 else if (arrayType == short[].class)
+			 return EmptyShortSlice;
+		 else if (arrayType == float[].class)
+			 return EmptyFloatSlice;
+		 else if (arrayType == int[].class)
+			 return EmptyIntSlice;
+		 else if (arrayType == double[].class)
+			 return EmptyDoubleSlice;
+		 else if (arrayType == long[].class)
+			 return EmptyLongSlice;
+		// >>>
+		 else
+		 {
+			 if (arrayType.isArray())
+				 throw new AssertionError(String.valueOf(arrayType));
+			 else
+				 throw new IllegalArgumentException("Not an array type: "+arrayType);
+		 }
+	}
+	
+	public static Slice emptyArraySliceByComponentType(Class componentType)
+	{
+		if (componentType == boolean.class)
+			return EmptyBooleanSlice;
+		else if (componentType == byte.class)
+			return EmptyByteSlice;
+		else if (componentType == char.class)
+			return EmptyCharSlice;
+		else if (componentType == short.class)
+			return EmptyShortSlice;
+		else if (componentType == float.class)
+			return EmptyFloatSlice;
+		else if (componentType == int.class)
+			return EmptyIntSlice;
+		else if (componentType == double.class)
+			return EmptyDoubleSlice;
+		else if (componentType == long.class)
+			return EmptyLongSlice;
+		else if (componentType == void.class)
+			throw new IllegalArgumentException("void.class was given");
+		else
+			return EmptyObjectSlice;
+	}
+	
+	
+	
+	
 	
 	public static boolean eqa(Object a, Object b)
 	{
