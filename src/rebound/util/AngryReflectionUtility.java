@@ -6,6 +6,7 @@ package rebound.util;
 
 import static java.util.Objects.*;
 import static rebound.util.BasicExceptionUtilities.*;
+import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -1945,5 +1946,79 @@ implements JavaNamespace
 	public static void setStaticUnchecked(Field x, Object newValue) throws RuntimeException
 	{
 		setUnchecked(x, null, newValue);
+	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This mirrors the syntactic sugar the Java Language does for varargs methods/constructors.
+	 * Given an {@link Executable} (a {@link Method} or {@link Constructor}) with N args plus last one being varargs,
+	 * You can provide it any number of arguments >= N in source code, and the compiler will convert that into taking any extra arguments after N and creating an array, putting them in that array, and making that be the real last arg.
+	 * 
+	 * This method simply does that for you :>
+	 * 
+	 * + Unlike {@link #prepareVarArgs(int, Class, Object[])}, this one also works for non-varargs executables :>
+	 */
+	public static Object[] prepareVarArgs(Executable e, Object[] sourceCodeStyleInputs)
+	{
+		if (e.isVarArgs())
+		{
+			int n = e.getParameterCount();
+			return prepareVarArgs(n, e.getParameterTypes()[n-1].getComponentType(), sourceCodeStyleInputs);
+		}
+		else
+		{
+			return sourceCodeStyleInputs;
+		}
+	}
+	
+	
+	/**
+	 * This mirrors the syntactic sugar the Java Language does for varargs methods/constructors.
+	 * Given an {@link Executable} (a {@link Method} or {@link Constructor}) with N args plus last one being varargs,
+	 * You can provide it any number of arguments >= N in source code, and the compiler will convert that into taking any extra arguments after N and creating an array, putting them in that array, and making that be the real last arg.
+	 * 
+	 * This method simply does that for you :>
+	 */
+	public static Object[] prepareVarArgs(int parameterCountIncludingVarArgs, Class varargsComponentType, Object[] sourceCodeStyleInputs)
+	{
+		//Take the first N inputs and put them as the actual inputs to the Java function
+		//Then take the rest and put them into a new Object[] and make that be the last input.
+		
+		int numberOfNonvarArgs = parameterCountIncludingVarArgs - 1;  //N
+		
+		if (numberOfNonvarArgs == 0)
+		{
+			return new Object[]{sourceCodeStyleInputs};
+		}
+		else
+		{
+			Object[] r = new Object[parameterCountIncludingVarArgs];
+			
+			int numberOfGivenArgs = sourceCodeStyleInputs.length;
+			
+			if (numberOfGivenArgs < numberOfNonvarArgs)
+				throw new IllegalArgumentException("Insufficient parameters provided to varargs function: At least "+numberOfNonvarArgs+" parameters must be provided (to make 0 varargs), but "+numberOfGivenArgs+" were provided.");
+			
+			int numberOfVarArgs = numberOfGivenArgs - numberOfNonvarArgs;
+			
+			Object vars;
+			{
+				if (numberOfVarArgs == 0)
+					vars = emptyArrayByComponentType(varargsComponentType);
+				else
+					vars = Array.newInstance(varargsComponentType, numberOfVarArgs);
+			}
+			
+			System.arraycopy(sourceCodeStyleInputs, 0, r, 0, numberOfNonvarArgs);
+			System.arraycopy(sourceCodeStyleInputs, numberOfNonvarArgs, vars, 0, numberOfVarArgs);
+			r[numberOfNonvarArgs] = vars;
+			
+			return r;
+		}
 	}
 }
