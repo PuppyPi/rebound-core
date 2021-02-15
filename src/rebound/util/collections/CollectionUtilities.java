@@ -7116,7 +7116,25 @@ _$$primxpconf:intsonly$$_
 	@ReadonlyValue
 	protected static <E> Collection<E> filterToCollection(Predicate<? super E> filter, Iterable<E> input, boolean setOutput)
 	{
-		return filterToMutableCollection(filter, input, setOutput);
+		if (input == null)
+			return null;
+		
+		Collection<E> newlist = null;
+		
+		for (E e : input)
+		{
+			if (filter.test(e))
+			{
+				if (newlist == null)
+				{
+					newlist = setOutput ? new HashSet<E>() : new ArrayList<E>(input instanceof Collection ? ((Collection)input).size() : 0);
+				}
+				
+				newlist.add(e);
+			}
+		}
+		
+		return newlist == null ? (setOutput ? emptySet() : emptyList()) : newlist;
 	}
 	
 	@ThrowAwayValue
@@ -7129,9 +7147,6 @@ _$$primxpconf:intsonly$$_
 		for (E e : input)
 			if (filter.test(e))
 				newlist.add(e);
-		
-		if (newlist instanceof ArrayList)
-			((ArrayList)newlist).trimToSize();
 		
 		return newlist;
 	}
