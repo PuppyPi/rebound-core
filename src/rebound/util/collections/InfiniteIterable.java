@@ -2,11 +2,13 @@ package rebound.util.collections;
 
 import java.util.Iterator;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 import rebound.exceptions.DefensivelyUnsupportedOperationException;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
 
+@FunctionalityType
 public interface InfiniteIterable<E>
 extends SimpleIterable<E>
 {

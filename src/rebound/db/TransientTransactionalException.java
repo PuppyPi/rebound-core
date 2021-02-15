@@ -1,8 +1,10 @@
 package rebound.db;
 
+import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 
+@FunctionalityType
 public interface TransientTransactionalException
 {
 	//<<< tp TransientTransactionalException
