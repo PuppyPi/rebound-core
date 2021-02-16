@@ -12044,4 +12044,249 @@ _$$primxpconf:intsonly$$_
 			return defaultListsCompare(valuesInOrderA, valuesInOrderB, valueComparison);
 		}
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Extracts the common leading elements of a list (out-of-place, readonly) and returns a new list of those elements, and new lists of the uncommon remainders of the original lists :>
+	 * + Always uses {@link List#subList(int, int)} for the outputs!
+	 * @return (common leading, newA, newB); or null for ([], a, b) ie no-commonalities
+	 */
+	@ReadonlyValue
+	public static @Nullable <E> List<E>[] extractCommonFirsts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
+	{
+		int an = a.size();
+		int bn = b.size();
+		
+		int n = least(an, bn);
+		
+		int firstDifferent = 0;
+		
+		while (true)
+		{
+			if (firstDifferent == n)
+				break;
+			
+			if (!eq.equals(a.get(firstDifferent), b.get(firstDifferent)))
+				break;
+			
+			firstDifferent++;
+		}
+		
+		if (firstDifferent == 0)
+		{
+			//There were no commonalities
+			//return new List[]{emptyList(), a, b};
+			return null;
+		}
+		else
+		{
+			List<E> common = arbitrary(a, b).subList(0, firstDifferent);
+			List<E> newA = a.subList(firstDifferent, an);
+			List<E> newB = b.subList(firstDifferent, bn);
+			
+			return new List[]{common, newA, newB};
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * Extracts the common trailing elements of a list (out-of-place, readonly) and returns new lists of the uncommon remainders of the original lists and a new list of those elements :>
+	 * + Always uses {@link List#subList(int, int)} for the outputs!
+	 * @return (newA, newB, common trailing); or null for (a, b, []) ie no-commonalities
+	 */
+	@ReadonlyValue
+	public static @Nullable <E> List<E>[] extractCommonLasts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
+	{
+		int an = a.size();
+		int bn = b.size();
+		
+		int n = least(an, bn);
+		
+		int firstDifferentReverseIndex = 0;
+		
+		while (true)
+		{
+			if (firstDifferentReverseIndex == n)
+				break;
+			
+			if (!eq.equals(a.get(an-firstDifferentReverseIndex-1), b.get(bn-firstDifferentReverseIndex-1)))
+				break;
+			
+			firstDifferentReverseIndex++;
+		}
+		
+		if (firstDifferentReverseIndex == 0)
+		{
+			//There were no commonalities
+			//return new List[]{a, b, emptyList()};
+			return null;
+		}
+		else
+		{
+			List<E> common = arbitraryBoolean() ? a.subList(an-firstDifferentReverseIndex, an) : b.subList(bn-firstDifferentReverseIndex, bn);
+			List<E> newA = a.subList(0, an-firstDifferentReverseIndex);
+			List<E> newB = b.subList(0, bn-firstDifferentReverseIndex);
+			
+			return new List[]{newA, newB, common};
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Extracts the common leading elements of a list (out-of-place, readonly) and returns a new list of those elements, and new lists of the uncommon remainders of the original lists :>
+	 * + Always uses {@link List#subList(int, int)} for the outputs!
+	 * @return (common leading, new lists); or null for ([], inputs) ie no-commonalities
+	 */
+	@ReadonlyValue
+	public static @Nullable <E> PairOrdered<List<E>, List<List<E>>> extractManyCommonFirsts(@ReadonlyValue List<List<E>> inputs, EqualityComparator<E> eq)
+	{
+		int nl = inputs.size();
+		
+		if (nl == 0)
+			return pair(emptyList(), emptyList());
+		
+		int n = leastMap(List::size, inputs);
+		
+		int firstDifferent;
+		{
+			int i = 0;
+			
+			while (true)
+			{
+				if (i == n)
+					break;
+				
+				boolean allEqual;
+				{
+					allEqual = true;
+					
+					E f = inputs.get(0).get(i);
+					
+					for (int listIndex = 1; listIndex < nl; listIndex++)
+					{
+						if (!eq.equals(f, inputs.get(listIndex).get(i)))
+						{
+							allEqual = false;
+							break;
+						}
+					}
+				}
+				
+				if (!allEqual)
+					break;
+				
+				i++;
+			}
+			
+			firstDifferent = i;
+		}
+		
+		if (firstDifferent == 0)
+		{
+			//There were no commonalities
+			//return pair(emptyList(), inputs);
+			return null;
+		}
+		else
+		{
+			List<E> cl = inputs.get(arbitraryIntNonnegative() % nl);
+			List<E> common = cl.subList(0, firstDifferent);
+			
+			List<List<E>> newLists = mapToList(l -> l.subList(firstDifferent, l.size()), inputs);
+			
+			return pair(common, newLists);
+		}
+	}
+	
+	
+	
+	
+	/**
+	 * Extracts the common trailing elements of a list (out-of-place, readonly) and returns new lists of the uncommon remainders of the original lists and a new list of those elements :>
+	 * + Always uses {@link List#subList(int, int)} for the outputs!
+	 * @return (new lists, common trailing); or null for (inputs, []) ie no-commonalities
+	 */
+	@ReadonlyValue
+	public static @Nullable <E> PairOrdered<List<List<E>>, List<E>> extractManyCommonLasts(@ReadonlyValue List<List<E>> inputs, EqualityComparator<E> eq)
+	{
+		int nl = inputs.size();
+		
+		if (nl == 0)
+			return pair(emptyList(), emptyList());
+		
+		int n = leastMap(List::size, inputs);
+		
+		int firstDifferentReverseIndex;
+		{
+			int i = 0;
+			
+			while (true)
+			{
+				if (i == n)
+					break;
+				
+				boolean allEqual;
+				{
+					allEqual = true;
+					
+					E f = inputs.get(0).get(i);
+					
+					for (int listIndex = 1; listIndex < nl; listIndex++)
+					{
+						if (!eq.equals(f, inputs.get(listIndex).get(i)))
+						{
+							allEqual = false;
+							break;
+						}
+					}
+				}
+				
+				if (!allEqual)
+					break;
+				
+				i++;
+			}
+			
+			firstDifferentReverseIndex = i;
+		}
+		
+		if (firstDifferentReverseIndex == 0)
+		{
+			//There were no commonalities
+			//return pair(inputs, emptyList());
+			return null;
+		}
+		else
+		{
+			List<E> cl = inputs.get(arbitraryIntNonnegative() % nl);
+			int cln = cl.size();
+			List<E> common = cl.subList(cln-firstDifferentReverseIndex, cln);
+			
+			List<List<E>> newLists = mapToList(l -> l.subList(0, l.size()-firstDifferentReverseIndex), inputs);
+			
+			return pair(newLists, common);
+		}
+	}
 }
