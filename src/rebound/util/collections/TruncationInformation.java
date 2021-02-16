@@ -21,6 +21,13 @@ public class TruncationInformation<E>
 		return truncated;
 	}
 	
+	public TruncationInformation<E> opposite()
+	{
+		return new TruncationInformation<>(value, !truncated);
+	}
+	
+	
+	
 	@Override
 	public int hashCode()
 	{
