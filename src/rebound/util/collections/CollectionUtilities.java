@@ -12063,7 +12063,7 @@ _$$primxpconf:intsonly$$_
 	 * @return (common leading, newA, newB); or null for ([], a, b) ie no-commonalities
 	 */
 	@ReadonlyValue
-	public static @Nullable <E> List<E>[] extractCommonFirsts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
+	public static @Nullable <E> TripleOrdered<List<E>, List<E>, List<E>> extractCommonFirsts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
 	{
 		int an = a.size();
 		int bn = b.size();
@@ -12095,7 +12095,7 @@ _$$primxpconf:intsonly$$_
 			List<E> newA = a.subList(firstDifferent, an);
 			List<E> newB = b.subList(firstDifferent, bn);
 			
-			return new List[]{common, newA, newB};
+			return triple(common, newA, newB);
 		}
 	}
 	
@@ -12108,7 +12108,7 @@ _$$primxpconf:intsonly$$_
 	 * @return (newA, newB, common trailing); or null for (a, b, []) ie no-commonalities
 	 */
 	@ReadonlyValue
-	public static @Nullable <E> List<E>[] extractCommonLasts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
+	public static @Nullable <E> TripleOrdered<List<E>, List<E>, List<E>> extractCommonLasts(@ReadonlyValue List<E> a, @ReadonlyValue List<E> b, EqualityComparator<E> eq)
 	{
 		int an = a.size();
 		int bn = b.size();
@@ -12140,7 +12140,7 @@ _$$primxpconf:intsonly$$_
 			List<E> newA = a.subList(0, an-firstDifferentReverseIndex);
 			List<E> newB = b.subList(0, bn-firstDifferentReverseIndex);
 			
-			return new List[]{newA, newB, common};
+			return triple(newA, newB, common);
 		}
 	}
 	

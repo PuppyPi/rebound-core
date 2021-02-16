@@ -1,6 +1,7 @@
 package rebound.util.collections;
 
 import static rebound.util.objectutil.BasicObjectUtilities.*;
+import java.util.Set;
 import rebound.annotations.semantic.operationspecification.HashableType;
 import rebound.text.StringUtilities.Reprable;
 import rebound.util.objectutil.DefaultEqualsRestrictionCircumvention;
@@ -17,6 +18,9 @@ extends DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumv
 	
 	
 	
+	/**
+	 * Same as a 2-element {@link Set}
+	 */
 	@Override
 	public default int _hashCode()
 	{

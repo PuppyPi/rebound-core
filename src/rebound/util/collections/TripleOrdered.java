@@ -9,28 +9,31 @@ import rebound.util.objectutil.DefaultHashCodeRestrictionCircumvention;
 import rebound.util.objectutil.DefaultToStringRestrictionCircumvention;
 
 @HashableType
-public interface PairOrdered<A, B>
+public interface TripleOrdered<A, B, C>
 extends DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumvention, DefaultToStringRestrictionCircumvention, Reprable
 {
 	public A getA();
 	public B getB();
+	public C getC();
 	
 	
 	
 	
 	/**
-	 * Same as a 2-element {@link List}
+	 * Same as a 3-element {@link List}
 	 */
 	@Override
 	public default int _hashCode()
 	{
 		A a = getA();
 		B b = getB();
+		C c = getC();
 		
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((a == null) ? 0 : a.hashCode());
 		result = prime * result + ((b == null) ? 0 : b.hashCode());
+		result = prime * result + ((c == null) ? 0 : c.hashCode());
 		return result;
 	}
 	
@@ -39,11 +42,11 @@ extends DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumv
 	{
 		if (this == obj)
 			return true;
-		if (!(obj instanceof PairOrdered))
+		if (!(obj instanceof TripleOrdered))
 			return false;
-		PairOrdered other = (PairOrdered) obj;
+		TripleOrdered other = (TripleOrdered) obj;
 		
-		return eq(this.getA(), other.getA()) && eq(this.getB(), other.getB());
+		return eq(this.getA(), other.getA()) && eq(this.getB(), other.getB()) && eq(this.getC(), other.getC());
 	}
 	
 	
@@ -52,6 +55,6 @@ extends DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumv
 	@Override
 	public default String _toString()
 	{
-		return "("+getA()+", "+getB()+")";
+		return "("+getA()+", "+getB()+", "+getC()+")";
 	}
 }

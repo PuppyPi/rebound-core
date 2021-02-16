@@ -551,10 +551,18 @@ implements JavaNamespace
 		return new PairOrderedImmutable<A, B>(a, b);
 	}
 	
+	public static <A, B, C> TripleOrdered<A, B, C> triple(A a, B b, C c)
+	{
+		return new TripleOrderedImmutable<A, B, C>(a, b, c);
+	}
+	
+	
 	public static <T> PairCommutative<T> doubleton(T a, T b)
 	{
 		return new PairCommutativeImmutable<T>(a, b);
 	}
+	
+	
 	
 	public static <E> Maybe<E> just(@Nullable E e)
 	{
