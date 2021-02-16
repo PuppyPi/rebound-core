@@ -90,7 +90,7 @@ public class PlatformNIOBufferUtilities
 		if (targetClass == null)
 			throw new UnsupportedOperationException(new ClassNotFoundException(targetClassName));
 		
-		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{int.class}, JavaVisibility.PUBLIC, ByteBuffer.class, true, true);
+		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{int.class}, JavaVisibility.Public, ByteBuffer.class, true, true);
 		
 		if (targetMethod == null)
 			throw new UnsupportedOperationException(new NoSuchMethodError(targetClassName+"."+targetMethodName));
@@ -134,7 +134,7 @@ public class PlatformNIOBufferUtilities
 		if (targetClass == null)
 			throw new UnsupportedOperationException(new ClassNotFoundException(targetClassName));
 		
-		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{ByteBuffer.class}, JavaVisibility.PUBLIC, void.class, true, true);
+		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{ByteBuffer.class}, JavaVisibility.Public, void.class, true, true);
 		
 		if (targetMethod == null)
 			throw new UnsupportedOperationException(new NoSuchMethodError(targetClassName+"."+targetMethodName));
@@ -170,7 +170,7 @@ public class PlatformNIOBufferUtilities
 		if (targetClass == null)
 			throw new UnsupportedOperationException(new ClassNotFoundException(targetClassName));
 		
-		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{ByteBuffer.class}, JavaVisibility.PUBLIC, null, true, true);
+		Method targetMethod = AngryReflectionUtility.getMethod(targetClass, targetMethodName, new Class[]{ByteBuffer.class}, JavaVisibility.Public, null, true, true);
 		
 		if (targetMethod == null)
 			throw new UnsupportedOperationException(new NoSuchMethodError(targetClassName+"."+targetMethodName));

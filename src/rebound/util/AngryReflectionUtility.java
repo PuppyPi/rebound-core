@@ -305,10 +305,10 @@ implements JavaNamespace
 	
 	public static enum JavaVisibility
 	{
-		PUBLIC ("public"),
-		PROTECTED ("protected"),
-		PACKAGE_PRIVATE (""),
-		PRIVATE ("private"),
+		Public ("public"),
+		Protected ("protected"),
+		PackagePrivate (""),
+		Private ("private"),
 		;
 		
 		protected String codeManifestation;
@@ -319,10 +319,10 @@ implements JavaNamespace
 		}
 		
 		/**
-		 * "public" for {@link #PUBLIC},
-		 * "protected" for {@link #PROTECTED},
-		 * "" for {@link #PACKAGE_PRIVATE}
-		 * "private" for {@link #PRIVATE}
+		 * "public" for {@link #Public},
+		 * "protected" for {@link #Protected},
+		 * "" for {@link #PackagePrivate}
+		 * "private" for {@link #Private}
 		 * 
 		 * ^_^
 		 */
@@ -332,17 +332,17 @@ implements JavaNamespace
 		}
 		
 		/**
-		 * "public" for {@link #PUBLIC},
-		 * "protected" for {@link #PROTECTED},
-		 * "<package private>" for {@link #PACKAGE_PRIVATE}
-		 * "private" for {@link #PRIVATE}
+		 * "public" for {@link #Public},
+		 * "protected" for {@link #Protected},
+		 * "<package private>" for {@link #PackagePrivate}
+		 * "private" for {@link #Private}
 		 * 
 		 * ^_^
 		 */
 		@Override
 		public String toString()
 		{
-			return this == PACKAGE_PRIVATE ? "<package private>" : getManifestationInCode();
+			return this == PackagePrivate ? "<package private>" : getManifestationInCode();
 		}
 		
 		
@@ -353,13 +353,13 @@ implements JavaNamespace
 			str = str.trim();
 			
 			if (BasicObjectUtilities.eq(str, "public"))
-				return PUBLIC;
+				return Public;
 			else if (BasicObjectUtilities.eq(str, "protected"))
-				return PROTECTED;
+				return Protected;
 			else if (BasicObjectUtilities.eq(str, "private"))
-				return PRIVATE;
+				return Private;
 			else if (str == null || str.isEmpty() || BasicObjectUtilities.eq(str, "package") || BasicObjectUtilities.eq(str, "<package private>"))
-				return PACKAGE_PRIVATE;
+				return PackagePrivate;
 			else
 				throw new IllegalArgumentException("Invalid Java Visibility: "+str);
 		}
@@ -438,13 +438,13 @@ implements JavaNamespace
 			throw new IllegalArgumentException("Invalid Java modifiers bitfield: "+modifiers);
 		
 		if (Modifier.isPublic(modifiers))
-			return JavaVisibility.PUBLIC;
+			return JavaVisibility.Public;
 		else if (Modifier.isProtected(modifiers))
-			return JavaVisibility.PROTECTED;
+			return JavaVisibility.Protected;
 		else if (Modifier.isPrivate(modifiers))
-			return JavaVisibility.PRIVATE;
+			return JavaVisibility.Private;
 		else
-			return JavaVisibility.PACKAGE_PRIVATE;
+			return JavaVisibility.PackagePrivate;
 	}
 	
 	public static JavaVisibility getVisibility(Class thing)
@@ -796,7 +796,7 @@ implements JavaNamespace
 	
 	public static @Nullable <T> Constructor<T> getPublicNoArgsConstructor(Class<T> c)
 	{
-		return getConstructor(c, new Class[]{}, JavaVisibility.PUBLIC);
+		return getConstructor(c, new Class[]{}, JavaVisibility.Public);
 	}
 	
 	
@@ -838,6 +838,11 @@ implements JavaNamespace
 			cls = cls.getSuperclass();
 		}
 		return methods.toArray(new Method[methods.size()]);
+	}
+	
+	public static Constructor[] getAllConstructors(Class c)
+	{
+		return c.getDeclaredConstructors();
 	}
 	
 	

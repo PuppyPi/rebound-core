@@ -202,7 +202,7 @@ implements JavaNamespace
 			{
 				try
 				{
-					if (AngryReflectionUtility.getVisibility(bb) != JavaVisibility.PUBLIC) //avoid causing SecurityExceptions if unnecessary
+					if (AngryReflectionUtility.getVisibility(bb) != JavaVisibility.Public) //avoid causing SecurityExceptions if unnecessary
 						bb.setAccessible(true);
 					
 					return (ByteBuffer)bb.get(buffer);
