@@ -2,6 +2,7 @@ package rebound.util;
 
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
+import javax.annotation.Nonnegative;
 
 /**
  * Arbitrary here means inconsistently-arbitrary; ie, the values could be from any possible random number generator (or incrementing counter) and everything still work!
@@ -59,6 +60,11 @@ public class CodeHinting
 	
 	
 	
+	@Nonnegative
+	public static int arbitraryIntNonnegative()
+	{
+		return 0;
+	}
 	
 	
 	
