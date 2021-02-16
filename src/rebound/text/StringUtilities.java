@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Predicate;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -6471,7 +6472,7 @@ implements JavaNamespace
 		o instanceof String || o instanceof StringBuffer || o instanceof StringBuilder ||
 		o instanceof ImmutableByteArrayList ||
 		o instanceof Class || //Todo more reflect things ._.
-		o instanceof Enum;
+		o instanceof Enum || o instanceof UUID;
 		
 		if (scalar)
 		{
@@ -6500,6 +6501,10 @@ implements JavaNamespace
 				return o.toString();
 			}
 			else if (o instanceof Boolean)
+			{
+				return o.toString();
+			}
+			else if (o instanceof UUID)
 			{
 				return o.toString();
 			}
