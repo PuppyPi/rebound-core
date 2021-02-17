@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import rebound.exceptions.StructuredClassCastException;
+import rebound.util.Maybe;
 import rebound.util.functional.EqualityComparator;
 import rebound.util.functional.functions.DefaultEqualityComparator;
 
@@ -166,6 +167,26 @@ implements JavaNamespace
 			}
 		};
 	}
+	
+	
+	/**
+	 * @return true if either is null (ie "whatever it needs to be"), otherwise {@link #eq(Object, Object)}
+	 */
+	public static boolean eqSome(@Nullable Object a, @Nullable Object b)
+	{
+		return a == null || b == null ? true : eq(a, b);
+	}
+	
+	/**
+	 * @return true if either is null (ie "whatever it needs to be"), otherwise {@link #eq(Object, Object) eq(a.getJust(), b.getJust())}
+	 */
+	public static boolean eqSomeMaybes(Maybe<Object> a, Maybe<Object> b)
+	{
+		return a == null || b == null ? true : eq(a.getJust(), b.getJust());
+	}
+	
+	
+	
 	
 	public static <T> EqualityComparator<T> getNaturalEqualityComparator()
 	{
