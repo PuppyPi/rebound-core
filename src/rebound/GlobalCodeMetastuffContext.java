@@ -1,6 +1,7 @@
 package rebound;
 
 import static rebound.text.StringUtilities.*;
+import static rebound.util.objectutil.ObjectUtilities.*;
 import java.io.File;
 import java.io.IOException;
 import javax.annotation.Nonnull;
@@ -211,9 +212,14 @@ implements JavaNamespace
 		getImpl().logBug();
 	}
 	
-	public static void logBug(String message)
+	public static void logBugMsg(@Nullable Object message)
 	{
-		getImpl().logBug(message);
+		logBug(toStringNT(message));
+	}
+	
+	public static void logBug(@Nullable String message)
+	{
+		getImpl().logBug(toStringNT(message));
 	}
 	
 	public static <T extends Throwable> T logBug(T exc)
