@@ -371,5 +371,4 @@ implements JavaNamespace
 	{
 		return value != null ? value : def;
 	}
-	
 }
