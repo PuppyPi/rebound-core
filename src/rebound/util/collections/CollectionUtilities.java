@@ -9991,6 +9991,69 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	
+	
+	
+	
+	
+	public static <T extends Iterable<?>> T requireInstanceOfElements(@NonnullElements T collection, Class c)
+	{
+		//Todo fast checks for PrimitiveCollections; perhaps trait predicates/overridability! :3
+		for (Object t : collection)
+			requireInstanceOf(t, c);
+		return collection;
+	}
+	
+	public static <T extends Map<?, ?>> T requireInstanceOfKeys(@NonnullKeys T map, Class c)
+	{
+		//Todo fast checks for PrimitiveCollections; perhaps trait predicates/overridability! :3
+		for (Object t : map.keySet())
+			requireInstanceOf(t, c);
+		return map;
+	}
+	
+	public static <T extends Map<?, ?>> T requireInstanceOfValues(@NonnullValues T map, Class c)
+	{
+		//Todo fast checks for PrimitiveCollections; perhaps trait predicates/overridability! :3
+		for (Object t : map.values())
+			requireInstanceOf(t, c);
+		return map;
+	}
+	
+	public static <T extends Map<?, ?>> T requireInstanceOfKeysAndValues(@NonnullKeys T map, Class c)
+	{
+		requireInstanceOfKeys(map, c);
+		requireInstanceOfValues(map, c);
+		return map;
+	}
+	
+	public static <T extends SimpleTable<?>> T requireInstanceOfCells(@NonnullElements T table, Class c)
+	{
+		table.apply(v -> requireInstanceOf(v, c));
+		return table;
+	}
+	
+	
+	
+	public static <T> T requireInstanceOf(@Nonnull T obj, Class c)
+	{
+		if (!c.isInstance(obj))
+			throw newClassCastExceptionOrNullPointerException(obj, c);
+		return obj;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static <E> Iterable<E> cloneIterable(Iterable<E> iterable)
 	{
 		if (iterable instanceof PubliclyCloneable)
