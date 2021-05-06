@@ -4,10 +4,13 @@
  */
 package rebound.util.classhacking.jre;
 
+import static rebound.util.AngryReflectionUtility.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.classhacking.jre.ClasshackingSunNIOUtilitiesOpportunisticHardlinked.BufferType.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
@@ -20,7 +23,6 @@ import rebound.util.classhacking.ClasshackingUtilities;
 import rebound.util.classhacking.HackedClassOrMemberUnavailableException;
 import rebound.util.objectutil.JavaNamespace;
 import sun.misc.Unsafe;
-import sun.nio.ch.DirectBuffer;
 
 /*
  * Some notes:
@@ -167,6 +169,21 @@ implements JavaNamespace
 	 */
 	
 	
+	protected static final Class DirectBuffer;
+	protected static final Method directBufferGetAttachment;
+	protected static final Method directBufferGetCleaner;
+	protected static final Method directBufferGetBaseAddress;
+	
+	static
+	{
+		DirectBuffer = forName("sun.nio.ch.DirectBuffer");
+		
+		directBufferGetAttachment = getMethod(DirectBuffer, "attachment", new Class[]{});
+		directBufferGetCleaner = getMethod(DirectBuffer, "cleaner", new Class[]{});
+		directBufferGetBaseAddress = getMethod(DirectBuffer, "address", new Class[]{});
+	}
+	
+	
 	/**
 	 * @return <code>null</code> if there is none! ^_^
 	 */
@@ -175,9 +192,29 @@ implements JavaNamespace
 		if (buffer == null)
 			return null; // >,>
 		
-		else if (buffer instanceof DirectBuffer)
+		else if (DirectBuffer.isInstance(buffer))
 		{
-			Object attachment = ((DirectBuffer)buffer).attachment();
+			Object attachment;
+			
+			try
+			{
+				attachment = directBufferGetAttachment.invoke(buffer);
+			}
+			catch (IllegalAccessException exc)
+			{
+				throw new ImpossibleException(exc);
+			}
+			catch (IllegalArgumentException exc)
+			{
+				throw new ImpossibleException(exc);
+			}
+			catch (InvocationTargetException exc)
+			{
+				rethrowSafe(exc);
+				throw new UnreachableCodeException();
+			}
+			
+			
 			if (attachment == null)
 			{
 				return buffer instanceof ByteBuffer ? (ByteBuffer)buffer : null;
@@ -238,9 +275,29 @@ implements JavaNamespace
 			return true;
 		else
 		{
-			if (buffer instanceof DirectBuffer)
+			if (DirectBuffer.isInstance(buffer))
 			{
-				return ((DirectBuffer)buffer).cleaner() != null;
+				Object cleaner;
+				
+				try
+				{
+					cleaner = directBufferGetCleaner.invoke(buffer);
+				}
+				catch (IllegalAccessException exc)
+				{
+					throw new ImpossibleException(exc);
+				}
+				catch (IllegalArgumentException exc)
+				{
+					throw new ImpossibleException(exc);
+				}
+				catch (InvocationTargetException exc)
+				{
+					rethrowSafe(exc);
+					throw new UnreachableCodeException();
+				}
+				
+				return cleaner != null;
 			}
 			else
 			{
@@ -323,8 +380,30 @@ implements JavaNamespace
 	 */
 	public static long getBufferBaseAddress(Buffer buffer) throws IllegalArgumentException
 	{
-		if (buffer instanceof DirectBuffer)
-			return ((DirectBuffer)buffer).address();
+		if (DirectBuffer.isInstance(buffer))
+		{
+			Object baseAddress;
+			
+			try
+			{
+				baseAddress = directBufferGetBaseAddress.invoke(buffer);
+			}
+			catch (IllegalAccessException exc)
+			{
+				throw new ImpossibleException(exc);
+			}
+			catch (IllegalArgumentException exc)
+			{
+				throw new ImpossibleException(exc);
+			}
+			catch (InvocationTargetException exc)
+			{
+				rethrowSafe(exc);
+				throw new UnreachableCodeException();
+			}
+			
+			return (Long)baseAddress;
+		}
 		else
 		{
 			if (!buffer.isDirect())
