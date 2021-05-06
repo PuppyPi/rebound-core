@@ -656,6 +656,12 @@ public class PrimitiveCollections
 		public CharacterList subList(int fromIndex, int toIndex);
 		
 		@Override
+		public default boolean isEmpty()
+		{
+			return DefaultToArraysCharacterCollection.super.isEmpty();
+		}
+		
+		@Override
 		public default char charAt(int index)
 		{
 			return getChar(index);
