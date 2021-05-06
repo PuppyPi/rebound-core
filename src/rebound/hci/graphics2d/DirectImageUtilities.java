@@ -53,9 +53,9 @@ import rebound.util.AngryReflectionUtility;
 import rebound.util.BufferAllocationType;
 import rebound.util.NIOBufferUtilities;
 import rebound.util.PlatformNIOBufferUtilities;
+import rebound.util.classhacking.jre.ClasshackingSunWritableRaster;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
-import sun.awt.image.SunWritableRaster;
 
 
 //TODO Make the actual Java AWT BufferredImage be created Lazilyyyyyyyyyy (because it might not ever be usedddddd)!!!  :DDDD
@@ -799,9 +799,9 @@ implements JavaNamespace
 		
 		WritableRaster raster;
 		{
-			if (backing instanceof ByteBuffer)
+			if (backing instanceof ByteBuffer && ClasshackingSunWritableRaster.has())  //hopefully the else{} clause will work on newer-than-Java-8 JRE's even if the backing is a ByteBuffer!  (until we get find a replacement for SunWritableRaster at least!)
 			{
-				raster = new SunWritableRaster(sampleModel, dataBuffer, new Point(0, 0));
+				raster = ClasshackingSunWritableRaster.newSunWritableRaster(sampleModel, dataBuffer, new Point(0, 0));
 			}
 			else
 			{
