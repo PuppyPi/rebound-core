@@ -19,7 +19,6 @@ import rebound.util.ExceptionUtilities;
 import rebound.util.classhacking.ClasshackingUtilities;
 import rebound.util.classhacking.HackedClassOrMemberUnavailableException;
 import rebound.util.objectutil.JavaNamespace;
-import sun.misc.Cleaner;
 import sun.misc.Unsafe;
 import sun.nio.ch.DirectBuffer;
 
@@ -269,12 +268,12 @@ implements JavaNamespace
 	 */
 	public static void makeDirectMemoryDeallocatedOnJavaObjectGarbageCollection(Object thing, long memoryAddress, long actualSizeOfMemory, int capacity)
 	{
-		Cleaner.create(thing, newTrackedDirectMemoryDeallocator(memoryAddress, actualSizeOfMemory, capacity));
+		ClasshackingCleaner.register(thing, newTrackedDirectMemoryDeallocator(memoryAddress, actualSizeOfMemory, capacity));
 	}
 	
 	public static void makeUntrackedCHeapMemoryDeallocatedOnJavaObjectGarbageCollection(Object thing, long memoryAddress)
 	{
-		Cleaner.create(thing, newUntrackedCHeapMemoryDeallocator(memoryAddress));
+		ClasshackingCleaner.register(thing, newUntrackedCHeapMemoryDeallocator(memoryAddress));
 	}
 	
 	
