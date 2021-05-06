@@ -717,6 +717,11 @@ implements JavaNamespace
 	
 	
 	//Todo write doc ._.
+	public static @Nullable <T> Constructor<T> getConstructor(Class<T> c, Class[] argumentTypes)
+	{
+		return getConstructor(c, argumentTypes, null);
+	}
+	
 	public static @Nullable <T> Constructor<T> getConstructor(Class<T> c, Class[] argumentTypes, JavaVisibility optionalVisibilityRequirement)
 	{
 		if (c == null || argumentTypes == null)
