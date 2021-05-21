@@ -11,6 +11,7 @@ import java.awt.geom.Rectangle2D;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.annotations.semantic.SemanticOrdinals;
 import rebound.hci.graphics2d.gui.util.ImmutableDimension2D;
 
 public interface Direction2D
@@ -23,6 +24,7 @@ public interface Direction2D
 	public static final Axis2D YVertical = Axis2D.YVertical;
 	
 	
+	@SemanticOrdinals
 	public static enum Axis2D
 	{
 		XHorizontal
