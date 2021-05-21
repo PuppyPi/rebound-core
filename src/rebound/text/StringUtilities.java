@@ -8950,11 +8950,78 @@ primxp
 		return b.toString();
 	}
 	
-	
 	public static <I> String mapToString(Mapper<I, Character> mapper, Iterable<I> input)
 	{
 		return mapToString(mapper, simpleIterator(input));
 	}
+	
+	
+	
+	public static <I> String mapToStringConcatenating(Mapper<I, ? extends CharSequence> mapper, SimpleIterator<I> input)
+	{
+		StringBuilder b = new StringBuilder();
+		
+		while (true)
+		{
+			I i;
+			try
+			{
+				i = input.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			CharSequence o;
+			try
+			{
+				o = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			b.append(o);
+		}
+		
+		return b.toString();
+	}
+	
+	public static <I> String mapToStringConcatenating(Mapper<I, ? extends CharSequence> mapper, Iterable<I> input)
+	{
+		return mapToStringConcatenating(mapper, simpleIterator(input));
+	}
+	
+	public static String mapToStringConcatenating(Mapper<Character, ? extends CharSequence> mapper, CharSequence input)
+	{
+		return mapToStringConcatenating(mapper, simpleIteratorChars(input));
+	}
+	
+	
+	public static SimpleIterator<Character> simpleIteratorChars(CharSequence x)
+	{
+		return new SimpleIterator<Character>()
+		{
+			int i = 0;
+			
+			@Override
+			public Character nextrp() throws StopIterationReturnPath
+			{
+				int i = this.i;
+				
+				if (i >= x.length())
+					throw StopIterationReturnPath.I;
+				else
+				{
+					this.i = i + 1;
+					return x.charAt(i);
+				}
+			}
+		};
+	}
+	
 	
 	
 	
