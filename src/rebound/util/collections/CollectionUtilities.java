@@ -7110,6 +7110,37 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	@ReadonlyValue
+	public static <I, O> List<O> mapToListConcatenating(Mapper<I, List<O>> mapper, Iterable<? extends I> input)
+	{
+		List<O> output = new ArrayList<>();
+		
+		for (I i : input)
+		{
+			List<O> l;
+			try
+			{
+				l = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			output.addAll(l);
+		}
+		
+		return output;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -9985,6 +10016,13 @@ _$$primxpconf:intsonly$$_
 		if (map.isEmpty())
 			throw new IllegalArgumentException();
 		return map;
+	}
+	
+	public static <T extends SimpleTable<?>> T requireNonEmpty(@Nonempty T table)
+	{
+		if (table.isEmpty())
+			throw new IllegalArgumentException();
+		return table;
 	}
 	
 	
