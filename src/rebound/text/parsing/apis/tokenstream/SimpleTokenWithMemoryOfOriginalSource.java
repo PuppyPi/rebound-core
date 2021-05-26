@@ -1,5 +1,6 @@
 package rebound.text.parsing.apis.tokenstream;
 
+import javax.annotation.Nonnull;
 import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
@@ -12,7 +13,14 @@ import rebound.util.collections.Slice;
 public interface SimpleTokenWithMemoryOfOriginalSource
 extends WherefulToken
 {
-	public String getOriginalSource();
+	public default @Nonnull String getOriginalSource()
+	{
+		return getOriginalSourceCharSequence().toString();
+	}
+	
+	
+	public @Nonnull CharSequence getOriginalSourceCharSequence();
+	
 	
 	@Override
 	public default Slice<CharSequence> getMaskedSourceSlice()

@@ -4,6 +4,7 @@
  */
 package rebound.text;
 
+import static java.lang.Character.*;
 import static java.lang.Math.*;
 import static java.util.Objects.*;
 import static rebound.bits.BitfieldSafeCasts.*;
@@ -9174,5 +9175,28 @@ primxp
 			return cmp2(a, b);
 		else
 			return a.compareToIgnoreCase(b);
+	}
+	
+	public static int codePointAt(CharSequence s, int index)
+	{
+		if (s instanceof String)
+		{
+			return ((String)s).codePointAt(index);
+		}
+		else
+		{
+			//Copied from java.lang.String
+			int limit = s.length();
+			char c1 = s.charAt(index);
+			if (isHighSurrogate(c1) && ++index < limit)
+			{
+				char c2 = s.charAt(index);
+				if (isLowSurrogate(c2))
+				{
+					return toCodePoint(c1, c2);
+				}
+			}
+			return c1;
+		}
 	}
 }
