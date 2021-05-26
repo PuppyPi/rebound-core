@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
  * Explicit opposite of {@link SemanticOrdinals} for being explicit X3
  * 
  * @author Puppy Pie ^_^
+ * @see SemanticOrdinals
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

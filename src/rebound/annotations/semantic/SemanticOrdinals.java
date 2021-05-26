@@ -14,6 +14,7 @@ import java.lang.annotation.Target;
  * The ordinals on this enum are important!!  Don't just reorder the members of it carelessly!!
  * 
  * @author Puppy Pie ^_^
+ * @see NonsemanticOrdinals
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
