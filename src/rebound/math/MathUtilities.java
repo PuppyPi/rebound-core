@@ -32,6 +32,7 @@ import rebound.exceptions.InfinityException;
 import rebound.exceptions.NonfiniteException;
 import rebound.exceptions.NotANumberException;
 import rebound.exceptions.NotYetImplementedException;
+import rebound.exceptions.OutOfDomainArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.TruncationException;
@@ -2831,6 +2832,20 @@ implements JavaNamespace
 		}
 	}
 	
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
+	{
+		return add(add(a, b), c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
+	{
+		return add(add(add(a, b), c), d);
+	}
+	
+	
+	
 	
 	
 	
@@ -2907,9 +2922,33 @@ implements JavaNamespace
 	}
 	
 	@MayNormalizePrimitives
+	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
+	{
+		return multiply(multiply(a, b), c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
+	{
+		return multiply(multiply(multiply(a, b), c), d);
+	}
+	
+	@MayNormalizePrimitives
 	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b)
 	{
 		return multiply(a, b);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
+	{
+		return multiply(a, b, c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
+	{
+		return multiply(a, b, c, d);
 	}
 	
 	
@@ -4227,5 +4266,81 @@ implements JavaNamespace
 			throw new IllegalArgumentException("Was: "+number);
 		else
 			return number;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Tries to give an exact value.
+	 * If the square root is rational, this always gives the rational result.
+	 * Otherwise this gives a rational that's to a high but undefined precision (better than 1e-12 probably)
+	 * @throws OutOfDomainArithmeticException if and only if it's negative
+	 */
+	@MayNormalizePrimitives
+	public static @RationalOrInteger Object sqrtROI(@RationalOrInteger Object value) throws OutOfDomainArithmeticException
+	{
+		value = normalizeIfIntegerPrimitive(value);
+		
+		if (value instanceof Rational)
+		{
+			Rational r = (Rational)value;
+			return rational(sqrtROI(r.getNumerator()), sqrtROI(r.getDenominator()));
+		}
+		
+		else if (value instanceof Long)
+		{
+			long v = (Long)value;
+			
+			if (v < 0)
+				throw new OutOfDomainArithmeticException();
+			
+			long r = SmallIntegerMathUtilities.floorSqrtS64(v);
+			
+			if (r * r == v)  //works for 0 and 1 :>
+				return r;
+			else
+				return convertFloatToRationalOrInteger(Math.sqrt(floatingApproximationDouble(value)));
+		}
+		
+		else if (value instanceof BigInteger)
+		{
+			BigInteger v = (BigInteger)value;
+			
+			if (v.signum() < 0)
+				throw new OutOfDomainArithmeticException();
+			
+			BigInteger r = floorSqrtBigInt(v);
+			
+			if (r.multiply(r).equals(v))  //works for 0 and 1 :>
+				return r;
+			else
+				return convertFloatToRationalOrInteger(Math.sqrt(floatingApproximationDouble(value)));
+		}
+		
+		else
+		{
+			throw newClassCastExceptionOrNullPointerException(value);
+		}
+	}
+	
+	
+	
+	
+	
+	public static BigInteger floorSqrtBigInt(@ActuallyUnsigned BigInteger v)
+	{
+		//TODO!
+		throw new NotYetImplementedException();
+	}
+	
+	public static BigInteger ceilSqrtBigInt(@ActuallyUnsigned BigInteger v)
+	{
+		//TODO!
+		throw new NotYetImplementedException();
 	}
 }

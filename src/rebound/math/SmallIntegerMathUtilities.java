@@ -3070,9 +3070,59 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static int ceilsqrtS32(int v)
+	@Nonnegative
+	public static int floorSqrtS32(@Nonnegative int v)
+	{
+		return (int)floorSqrtS64(v);
+	}
+	
+	@Nonnegative
+	public static int ceilSqrtS32(@Nonnegative int v)
+	{
+		return (int)ceilSqrtS64(v);
+	}
+	
+	
+	@Nonnegative
+	public static int floorSqrtU32(@ActuallyUnsigned int v)
+	{
+		return (int)floorSqrtS64(upcast(v));
+	}
+	
+	@Nonnegative
+	public static int ceilSqrtU32(@ActuallyUnsigned int v)
+	{
+		return (int)ceilSqrtS64(upcast(v));
+	}
+	
+	
+	
+	@Nonnegative
+	public static long floorSqrtS64(@Nonnegative long v)
 	{
 		//TODO X'D
-		return roundCeilS32(sqrt((double)v));
+		return roundFloorS64(sqrt((double)v));
+	}
+	
+	@Nonnegative
+	public static long ceilSqrtS64(@Nonnegative long v)
+	{
+		//TODO X'D
+		return roundCeilS64(sqrt((double)v));
+	}
+	
+	
+	@Nonnegative
+	public static long floorSqrtU64(@ActuallyUnsigned long v)
+	{
+		//TODO X'D
+		return roundFloorS64(sqrt(safeCastU64toF64(v)));
+	}
+	
+	@Nonnegative
+	public static long ceilSqrtU64(@ActuallyUnsigned long v)
+	{
+		//TODO X'D
+		return roundCeilS64(sqrt(safeCastU64toF64(v)));
 	}
 }
