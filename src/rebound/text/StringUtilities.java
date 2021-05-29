@@ -9199,4 +9199,10 @@ primxp
 			return c1;
 		}
 	}
+	
+	public static int lengthInCodePoints(CharSequence s)
+	{
+		//Todo better impl?
+		return safeCastS64toS32(s.codePoints().count());
+	}
 }
