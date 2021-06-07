@@ -72,6 +72,7 @@ import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.NonnullValues;
+import rebound.annotations.semantic.simpledata.NullableElements;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.DuplicatesException;
 import rebound.exceptions.EmptyInputReturnPath;
@@ -3648,6 +3649,67 @@ _$$primxpconf:intsonly$$_
 			
 			return output;
 		}
+	}
+	
+	public static <E> E intersectionSingletonOrNull(@NonnullElements Set<E> a, @NonnullElements Set<E> b) throws NotSingletonException
+	{
+		if (b.size() < a.size())
+		{
+			Set<E> c = b;
+			b = a;
+			a = c;
+		}
+		
+		//now a is the smaller :3
+		
+		E i = null;
+		
+		for (E e : a)
+		{
+			if (b.contains(e))
+			{
+				if (i != null)
+					throw new NotSingletonException();
+				else
+					i = e;
+			}
+		}
+		
+		return i;
+	}
+	
+	/**
+	 * Like {@link #intersectionSingletonOrNull(Set, Set)} but allows the {@link Set}s to contain nulls :3
+	 */
+	public static <E> Maybe<E> intersectionSingletonOrNothing(@NullableElements Set<E> a, @NullableElements Set<E> b) throws NotSingletonException
+	{
+		if (b.size() < a.size())
+		{
+			Set<E> c = b;
+			b = a;
+			a = c;
+		}
+		
+		//now a is the smaller :3
+		
+		boolean has = false;
+		E i = null;
+		
+		for (E e : a)
+		{
+			if (b.contains(e))
+			{
+				if (has)
+					throw new NotSingletonException();
+				else
+				{
+					i = e;
+					has = true;
+				}
+			}
+		}
+		
+		return has ? just(i) : nothing();
 	}
 	
 	
