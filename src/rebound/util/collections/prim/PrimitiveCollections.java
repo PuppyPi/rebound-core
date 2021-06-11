@@ -22,6 +22,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -1335,6 +1336,26 @@ primxp
 	
 	
 	
+	@ImmutableValue
+	public static BooleanList booleanlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue boolean... array)
+	{
+		int n = array.length;
+		
+		BitSet s = new BitSet(n);
+		
+		for (int i = 0; i < n; i++)
+			s.set(i);
+		
+		return new BitSetBackedBooleanList(s, n);
+		
+		//return ImmutableBooleanArrayList.newLIVE(array);
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	/* <<<
@@ -1368,6 +1389,12 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	@ImmutableValue
+	public static Immutable_$$Primitive$$_ArrayList _$$prim$$_listof(@ReadonlyValue @LiveValue @TreatAsImmutableValue _$$prim$$_... array)
+	{
+		return Immutable_$$Primitive$$_ArrayList.newLIVE(array);
+	}
+	
 	
 	 */
 	
@@ -1399,6 +1426,12 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	@ImmutableValue
+	public static ImmutableByteArrayList bytelistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue byte... array)
+	{
+		return ImmutableByteArrayList.newLIVE(array);
+	}
+	
 	
 	
 	
@@ -1428,6 +1461,12 @@ _$$primxpconf:noboolean$$_
 		return newTableGivenfilled(width, height, ((char)0));
 	}
 	
+	
+	@ImmutableValue
+	public static ImmutableCharacterArrayList charlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue char... array)
+	{
+		return ImmutableCharacterArrayList.newLIVE(array);
+	}
 	
 	
 	
@@ -1459,6 +1498,12 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	@ImmutableValue
+	public static ImmutableShortArrayList shortlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue short... array)
+	{
+		return ImmutableShortArrayList.newLIVE(array);
+	}
+	
 	
 	
 	
@@ -1488,6 +1533,12 @@ _$$primxpconf:noboolean$$_
 		return newTableGivenfilled(width, height, 0.0f);
 	}
 	
+	
+	@ImmutableValue
+	public static ImmutableFloatArrayList floatlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue float... array)
+	{
+		return ImmutableFloatArrayList.newLIVE(array);
+	}
 	
 	
 	
@@ -1519,6 +1570,12 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	@ImmutableValue
+	public static ImmutableIntegerArrayList intlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue int... array)
+	{
+		return ImmutableIntegerArrayList.newLIVE(array);
+	}
+	
 	
 	
 	
@@ -1549,6 +1606,12 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	@ImmutableValue
+	public static ImmutableDoubleArrayList doublelistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue double... array)
+	{
+		return ImmutableDoubleArrayList.newLIVE(array);
+	}
+	
 	
 	
 	
@@ -1578,6 +1641,12 @@ _$$primxpconf:noboolean$$_
 		return newTableGivenfilled(width, height, 0l);
 	}
 	
+	
+	@ImmutableValue
+	public static ImmutableLongArrayList longlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue long... array)
+	{
+		return ImmutableLongArrayList.newLIVE(array);
+	}
 	
 	
 	// >>>
@@ -3713,12 +3782,6 @@ primxp
 	public static _$$Primitive$$_List _$$prim$$_ArrayAsList(@LiveValue @WritableValue _$$prim$$_... array)
 	{
 		return new FixedLengthArrayWrapper_$$Primitive$$_List(array);
-	}
-	
-	@ImmutableValue
-	public static Immutable_$$Primitive$$_ArrayList _$$prim$$_listof(@ReadonlyValue @LiveValue @TreatAsImmutableValue _$$prim$$_... array)
-	{
-		return Immutable_$$Primitive$$_ArrayList.newLIVE(array);
 	}
 	
 	@WritableValue
@@ -7165,12 +7228,6 @@ primxp
 		return new FixedLengthArrayWrapperBooleanList(array);
 	}
 	
-	@ImmutableValue
-	public static ImmutableBooleanArrayList booleanlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue boolean... array)
-	{
-		return ImmutableBooleanArrayList.newLIVE(array);
-	}
-	
 	@WritableValue
 	@FixedLengthValue
 	public static BooleanList booleanArrayAsList(@LiveValue @WritableValue Slice<boolean[]> arraySlice)
@@ -10612,12 +10669,6 @@ primxp
 	public static ByteList byteArrayAsList(@LiveValue @WritableValue byte... array)
 	{
 		return new FixedLengthArrayWrapperByteList(array);
-	}
-	
-	@ImmutableValue
-	public static ImmutableByteArrayList bytelistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue byte... array)
-	{
-		return ImmutableByteArrayList.newLIVE(array);
 	}
 	
 	@WritableValue
@@ -14063,12 +14114,6 @@ primxp
 		return new FixedLengthArrayWrapperCharacterList(array);
 	}
 	
-	@ImmutableValue
-	public static ImmutableCharacterArrayList charlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue char... array)
-	{
-		return ImmutableCharacterArrayList.newLIVE(array);
-	}
-	
 	@WritableValue
 	@FixedLengthValue
 	public static CharacterList charArrayAsList(@LiveValue @WritableValue Slice<char[]> arraySlice)
@@ -17510,12 +17555,6 @@ primxp
 	public static ShortList shortArrayAsList(@LiveValue @WritableValue short... array)
 	{
 		return new FixedLengthArrayWrapperShortList(array);
-	}
-	
-	@ImmutableValue
-	public static ImmutableShortArrayList shortlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue short... array)
-	{
-		return ImmutableShortArrayList.newLIVE(array);
 	}
 	
 	@WritableValue
@@ -20961,12 +21000,6 @@ primxp
 		return new FixedLengthArrayWrapperFloatList(array);
 	}
 	
-	@ImmutableValue
-	public static ImmutableFloatArrayList floatlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue float... array)
-	{
-		return ImmutableFloatArrayList.newLIVE(array);
-	}
-	
 	@WritableValue
 	@FixedLengthValue
 	public static FloatList floatArrayAsList(@LiveValue @WritableValue Slice<float[]> arraySlice)
@@ -24408,12 +24441,6 @@ primxp
 	public static IntegerList intArrayAsList(@LiveValue @WritableValue int... array)
 	{
 		return new FixedLengthArrayWrapperIntegerList(array);
-	}
-	
-	@ImmutableValue
-	public static ImmutableIntegerArrayList intlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue int... array)
-	{
-		return ImmutableIntegerArrayList.newLIVE(array);
 	}
 	
 	@WritableValue
@@ -27859,12 +27886,6 @@ primxp
 		return new FixedLengthArrayWrapperDoubleList(array);
 	}
 	
-	@ImmutableValue
-	public static ImmutableDoubleArrayList doublelistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue double... array)
-	{
-		return ImmutableDoubleArrayList.newLIVE(array);
-	}
-	
 	@WritableValue
 	@FixedLengthValue
 	public static DoubleList doubleArrayAsList(@LiveValue @WritableValue Slice<double[]> arraySlice)
@@ -31306,12 +31327,6 @@ primxp
 	public static LongList longArrayAsList(@LiveValue @WritableValue long... array)
 	{
 		return new FixedLengthArrayWrapperLongList(array);
-	}
-	
-	@ImmutableValue
-	public static ImmutableLongArrayList longlistof(@ReadonlyValue @LiveValue @TreatAsImmutableValue long... array)
-	{
-		return ImmutableLongArrayList.newLIVE(array);
 	}
 	
 	@WritableValue

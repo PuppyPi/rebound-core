@@ -23,6 +23,27 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default int getNumberOfOnes()
+	{
+		int n = size();
+		int n1 = 0;
+		for (int i = 0; i < n; i++)
+			n1 += getBoolean(i) ? 1 : 0;
+		return n1;
+	}
+	
+	public default int getNumberOfZeros()
+	{
+		return size() - getNumberOfOnes();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public default long getBitfield(int offset, int length)

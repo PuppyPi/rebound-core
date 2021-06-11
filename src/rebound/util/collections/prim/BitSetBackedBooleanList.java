@@ -173,6 +173,12 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	
 	
 	
+	@Override
+	public int getNumberOfOnes()
+	{
+		return bitSet.cardinality();
+	}
+	
 	
 	
 	
