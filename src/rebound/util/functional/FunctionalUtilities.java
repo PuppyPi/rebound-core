@@ -68,6 +68,9 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
 	public static <E> EqualityComparator<E> equalityFromComparison(Comparator<E> comparison)
 	{
 		if (comparison == Comparator.naturalOrder())
@@ -84,6 +87,34 @@ implements JavaNamespace
 			return new EqualityFromComparison<>(comparison);
 		}
 	}
+	
+	
+	
+	
+	
+	
+	public static <E> NullaryFunction<E> cacher(NullaryFunction<E> compute)
+	{
+		return new NullaryFunction<E>()
+		{
+			boolean cached = false;
+			E cache;
+			
+			@Override
+			public E f()
+			{
+				if (cached)
+					return cache;
+				else
+				{
+					E c = compute.f();
+					cache = c;
+					return c;
+				}
+			}
+		};
+	}
+	
 	
 	
 	
