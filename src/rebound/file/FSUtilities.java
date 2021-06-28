@@ -2941,6 +2941,12 @@ implements JavaNamespace
 		return f.exists() || isSymlink(f);
 	}
 	
+	/**
+	 * + Cyclic symlinks count as broken here.
+	 * + For files that {@link #isSymlink(File) are symlinks}, this is exactly the inverse of {@link #isExtantSymlink(File)}
+	 * @see #isCyclicSymlink(File)
+	 * @see #isExtantSymlink(File)
+	 */
 	public static boolean isBrokenSymlink(File f)
 	{
 		requireNonNull(f);
@@ -2952,6 +2958,12 @@ implements JavaNamespace
 		return !f.exists() && isSymlink(f);
 	}
 	
+	/**
+	 * + Cyclic symlinks count as broken (non-extant) here.
+	 * + For files that {@link #isSymlink(File) are symlinks}, this is exactly the inverse of {@link #isBrokenSymlink(File)}
+	 * @see #isCyclicSymlink(File)
+	 * @see #isExtantSymlink(File)
+	 */
 	public static boolean isExtantSymlink(File f)
 	{
 		requireNonNull(f);
@@ -2964,6 +2976,41 @@ implements JavaNamespace
 	}
 	
 	
+	
+	
+	public static boolean isCyclicSymlink(File f)
+	{
+		if (isSymlink(f))
+		{
+			List<File> l = new ArrayList<>();
+			l.add(f);
+			return _isCyclicSymlink(f, l);
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	protected static boolean _isCyclicSymlink(File f, List<File> stack)
+	{
+		File t = readlinkAbsoluteRE(f);
+		
+		if (stack.contains(t))
+			return true;
+		else
+		{
+			if (isSymlink(t))
+			{
+				stack.add(t);
+				return _isCyclicSymlink(t, stack);
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
 	
 	
 	
