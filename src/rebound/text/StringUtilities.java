@@ -3866,6 +3866,18 @@ implements JavaNamespace
 		return decodeTextToString(bytes, offset, length, encoding, CodingErrorAction.REPORT, CodingErrorAction.REPORT);
 	}
 	
+	public static String decodeTextToStringReplacing(byte[] bytes, int offset, int length, Charset encoding)
+	{
+		try
+		{
+			return decodeTextToString(bytes, offset, length, encoding, CodingErrorAction.REPLACE, CodingErrorAction.REPLACE);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
 	
 	
 	
@@ -3893,6 +3905,18 @@ implements JavaNamespace
 		}
 	}
 	
+	public static String decodeTextToStringReplacing(byte[] bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encoding, CodingErrorAction.REPLACE, CodingErrorAction.REPLACE);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
 	
 	
 	public static String decodeTextToString(Slice<byte[]> bytes, Charset encoding, CodingErrorAction onUnmappableCharacter, CodingErrorAction onMalformedInput) throws CharacterCodingException
@@ -3917,6 +3941,18 @@ implements JavaNamespace
 		}
 	}
 	
+	public static String decodeTextToStringReplacing(Slice<byte[]> bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encoding, CodingErrorAction.REPLACE, CodingErrorAction.REPLACE);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
 	
 	
 	public static String decodeTextToString(ByteList bytes, Charset encoding, CodingErrorAction onUnmappableCharacter, CodingErrorAction onMalformedInput) throws CharacterCodingException
@@ -3938,6 +3974,18 @@ implements JavaNamespace
 		catch (CharacterCodingException exc)
 		{
 			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static String decodeTextToStringReplacing(ByteList bytes, Charset encoding) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encoding, CodingErrorAction.REPLACE, CodingErrorAction.REPLACE);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
 		}
 	}
 	
