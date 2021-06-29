@@ -614,7 +614,7 @@ public class PrimitiveCollections
 		Arrays.sort(array, start, length);
 	}
 	//>>>
-	
+		
 	
 	
 	
@@ -4949,6 +4949,72 @@ primxp
 	
 	
 	
+	@ThrowAwayValue
+	public static _$$prim$$_[] to_$$Prim$$_Array(Collection<_$$Primitive$$_> genericCollection)
+	{
+		if (genericCollection instanceof _$$Primitive$$_Collection)
+			return ((_$$Primitive$$_Collection)genericCollection).to_$$Prim$$_Array();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof _$$prim$$_[])
+			{
+				_$$prim$$_[] a = new _$$prim$$_[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			_$$prim$$_[] a = new _$$prim$$_[genericCollection.size()];
+			int i = 0;
+			for (_$$Primitive$$_ e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<_$$prim$$_[]> to_$$Prim$$_ArrayPossiblyLive(Collection<_$$Primitive$$_> genericCollection)
+	{
+		if (genericCollection instanceof _$$Primitive$$_Collection)
+			return ((_$$Primitive$$_Collection)genericCollection).to_$$Prim$$_ArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof _$$prim$$_[])
+				return (Slice<_$$prim$$_[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			_$$prim$$_[] a = new _$$prim$$_[genericCollection.size()];
+			int i = 0;
+			for (_$$Primitive$$_ e : genericCollection)
+				a[i++] = e;
+			return wholeArraySlice_$$Prim$$_(a);
+		}
+	}
+	
+	
 	
 	public static _$$Primitive$$_List as_$$Primitive$$_List(List<_$$Primitive$$_> genericList)
 	{
@@ -8391,6 +8457,72 @@ primxp
 	
 	
 	
+	
+	
+	@ThrowAwayValue
+	public static boolean[] toBooleanArray(Collection<Boolean> genericCollection)
+	{
+		if (genericCollection instanceof BooleanCollection)
+			return ((BooleanCollection)genericCollection).toBooleanArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof boolean[])
+			{
+				boolean[] a = new boolean[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			boolean[] a = new boolean[genericCollection.size()];
+			int i = 0;
+			for (Boolean e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<boolean[]> toBooleanArrayPossiblyLive(Collection<Boolean> genericCollection)
+	{
+		if (genericCollection instanceof BooleanCollection)
+			return ((BooleanCollection)genericCollection).toBooleanArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof boolean[])
+				return (Slice<boolean[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			boolean[] a = new boolean[genericCollection.size()];
+			int i = 0;
+			for (Boolean e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceBoolean(a);
+		}
+	}
 	
 	
 	
@@ -11836,6 +11968,72 @@ primxp
 	
 	
 	
+	@ThrowAwayValue
+	public static byte[] toByteArray(Collection<Byte> genericCollection)
+	{
+		if (genericCollection instanceof ByteCollection)
+			return ((ByteCollection)genericCollection).toByteArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof byte[])
+			{
+				byte[] a = new byte[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			byte[] a = new byte[genericCollection.size()];
+			int i = 0;
+			for (Byte e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<byte[]> toByteArrayPossiblyLive(Collection<Byte> genericCollection)
+	{
+		if (genericCollection instanceof ByteCollection)
+			return ((ByteCollection)genericCollection).toByteArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof byte[])
+				return (Slice<byte[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			byte[] a = new byte[genericCollection.size()];
+			int i = 0;
+			for (Byte e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceByte(a);
+		}
+	}
+	
+	
 	
 	public static ByteList asByteList(List<Byte> genericList)
 	{
@@ -15277,6 +15475,72 @@ primxp
 	
 	
 	
+	
+	
+	@ThrowAwayValue
+	public static char[] toCharArray(Collection<Character> genericCollection)
+	{
+		if (genericCollection instanceof CharacterCollection)
+			return ((CharacterCollection)genericCollection).toCharArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof char[])
+			{
+				char[] a = new char[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			char[] a = new char[genericCollection.size()];
+			int i = 0;
+			for (Character e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<char[]> toCharArrayPossiblyLive(Collection<Character> genericCollection)
+	{
+		if (genericCollection instanceof CharacterCollection)
+			return ((CharacterCollection)genericCollection).toCharArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof char[])
+				return (Slice<char[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			char[] a = new char[genericCollection.size()];
+			int i = 0;
+			for (Character e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceChar(a);
+		}
+	}
 	
 	
 	
@@ -18722,6 +18986,72 @@ primxp
 	
 	
 	
+	@ThrowAwayValue
+	public static short[] toShortArray(Collection<Short> genericCollection)
+	{
+		if (genericCollection instanceof ShortCollection)
+			return ((ShortCollection)genericCollection).toShortArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof short[])
+			{
+				short[] a = new short[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			short[] a = new short[genericCollection.size()];
+			int i = 0;
+			for (Short e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<short[]> toShortArrayPossiblyLive(Collection<Short> genericCollection)
+	{
+		if (genericCollection instanceof ShortCollection)
+			return ((ShortCollection)genericCollection).toShortArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof short[])
+				return (Slice<short[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			short[] a = new short[genericCollection.size()];
+			int i = 0;
+			for (Short e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceShort(a);
+		}
+	}
+	
+	
 	
 	public static ShortList asShortList(List<Short> genericList)
 	{
@@ -22163,6 +22493,72 @@ primxp
 	
 	
 	
+	
+	
+	@ThrowAwayValue
+	public static float[] toFloatArray(Collection<Float> genericCollection)
+	{
+		if (genericCollection instanceof FloatCollection)
+			return ((FloatCollection)genericCollection).toFloatArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof float[])
+			{
+				float[] a = new float[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			float[] a = new float[genericCollection.size()];
+			int i = 0;
+			for (Float e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<float[]> toFloatArrayPossiblyLive(Collection<Float> genericCollection)
+	{
+		if (genericCollection instanceof FloatCollection)
+			return ((FloatCollection)genericCollection).toFloatArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof float[])
+				return (Slice<float[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			float[] a = new float[genericCollection.size()];
+			int i = 0;
+			for (Float e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceFloat(a);
+		}
+	}
 	
 	
 	
@@ -25608,6 +26004,72 @@ primxp
 	
 	
 	
+	@ThrowAwayValue
+	public static int[] toIntArray(Collection<Integer> genericCollection)
+	{
+		if (genericCollection instanceof IntegerCollection)
+			return ((IntegerCollection)genericCollection).toIntArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof int[])
+			{
+				int[] a = new int[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			int[] a = new int[genericCollection.size()];
+			int i = 0;
+			for (Integer e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<int[]> toIntArrayPossiblyLive(Collection<Integer> genericCollection)
+	{
+		if (genericCollection instanceof IntegerCollection)
+			return ((IntegerCollection)genericCollection).toIntArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof int[])
+				return (Slice<int[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			int[] a = new int[genericCollection.size()];
+			int i = 0;
+			for (Integer e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceInt(a);
+		}
+	}
+	
+	
 	
 	public static IntegerList asIntegerList(List<Integer> genericList)
 	{
@@ -29049,6 +29511,72 @@ primxp
 	
 	
 	
+	
+	
+	@ThrowAwayValue
+	public static double[] toDoubleArray(Collection<Double> genericCollection)
+	{
+		if (genericCollection instanceof DoubleCollection)
+			return ((DoubleCollection)genericCollection).toDoubleArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof double[])
+			{
+				double[] a = new double[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			double[] a = new double[genericCollection.size()];
+			int i = 0;
+			for (Double e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<double[]> toDoubleArrayPossiblyLive(Collection<Double> genericCollection)
+	{
+		if (genericCollection instanceof DoubleCollection)
+			return ((DoubleCollection)genericCollection).toDoubleArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof double[])
+				return (Slice<double[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			double[] a = new double[genericCollection.size()];
+			int i = 0;
+			for (Double e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceDouble(a);
+		}
+	}
 	
 	
 	
@@ -32494,6 +33022,72 @@ primxp
 	
 	
 	
+	@ThrowAwayValue
+	public static long[] toLongArray(Collection<Long> genericCollection)
+	{
+		if (genericCollection instanceof LongCollection)
+			return ((LongCollection)genericCollection).toLongArray();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof long[])
+			{
+				long[] a = new long[size];
+				System.arraycopy(und, u.getOffset(), a, 0, size);
+				return a;
+			}
+		}
+		
+		//Default slow impl.
+		{
+			long[] a = new long[genericCollection.size()];
+			int i = 0;
+			for (Long e : genericCollection)
+				a[i++] = e;
+			return a;
+		}
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static Slice<long[]> toLongArrayPossiblyLive(Collection<Long> genericCollection)
+	{
+		if (genericCollection instanceof LongCollection)
+			return ((LongCollection)genericCollection).toLongArraySlicePossiblyLive();
+		
+		if (TransparentContiguousArrayBackedCollection.is(genericCollection))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)genericCollection).getLiveContiguousArrayBackingUNSAFE();
+			
+			int size = genericCollection.size();
+			
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			Object und = u.getUnderlying();
+			
+			if (und instanceof long[])
+				return (Slice<long[]>) u;
+		}
+		
+		//Default slow impl.
+		{
+			long[] a = new long[genericCollection.size()];
+			int i = 0;
+			for (Long e : genericCollection)
+				a[i++] = e;
+			return wholeArraySliceLong(a);
+		}
+	}
+	
+	
 	
 	public static LongList asLongList(List<Long> genericList)
 	{
@@ -32846,7 +33440,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSorted_$$Primitive$$_SetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<_$$Primitive$$_> c)
 		{
-			_$$prim$$_[] a = wrapped_$$Primitive$$_Collection(c).to_$$Prim$$_Array();
+			_$$prim$$_[] a = PrimitiveCollections.to_$$Prim$$_Array(c);
 			Arrays.sort(a);
 			return new ImmutableSorted_$$Primitive$$_SetBackedByArray(a);
 		}
@@ -33133,9 +33727,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static Sorted_$$Primitive$$_SetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<_$$Primitive$$_> c)
 		{
-			Sorted_$$Primitive$$_SetBackedByList set = new Sorted_$$Primitive$$_SetBackedByList();
-			set.addAll(c);
-			return set;
+			_$$prim$$_[] a = PrimitiveCollections.to_$$Prim$$_Array(c);
+			Arrays.sort(a);
+			return new Sorted_$$Primitive$$_SetBackedByList(new _$$Primitive$$_ArrayList(a));
 		}
 		
 		
@@ -33387,7 +33981,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedByteSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Byte> c)
 		{
-			byte[] a = wrappedByteCollection(c).toByteArray();
+			byte[] a = PrimitiveCollections.toByteArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedByteSetBackedByArray(a);
 		}
@@ -33674,9 +34268,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedByteSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Byte> c)
 		{
-			SortedByteSetBackedByList set = new SortedByteSetBackedByList();
-			set.addAll(c);
-			return set;
+			byte[] a = PrimitiveCollections.toByteArray(c);
+			Arrays.sort(a);
+			return new SortedByteSetBackedByList(new ByteArrayList(a));
 		}
 		
 		
@@ -33927,7 +34521,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedCharacterSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Character> c)
 		{
-			char[] a = wrappedCharacterCollection(c).toCharArray();
+			char[] a = PrimitiveCollections.toCharArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedCharacterSetBackedByArray(a);
 		}
@@ -34214,9 +34808,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedCharacterSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Character> c)
 		{
-			SortedCharacterSetBackedByList set = new SortedCharacterSetBackedByList();
-			set.addAll(c);
-			return set;
+			char[] a = PrimitiveCollections.toCharArray(c);
+			Arrays.sort(a);
+			return new SortedCharacterSetBackedByList(new CharacterArrayList(a));
 		}
 		
 		
@@ -34467,7 +35061,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedShortSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Short> c)
 		{
-			short[] a = wrappedShortCollection(c).toShortArray();
+			short[] a = PrimitiveCollections.toShortArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedShortSetBackedByArray(a);
 		}
@@ -34754,9 +35348,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedShortSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Short> c)
 		{
-			SortedShortSetBackedByList set = new SortedShortSetBackedByList();
-			set.addAll(c);
-			return set;
+			short[] a = PrimitiveCollections.toShortArray(c);
+			Arrays.sort(a);
+			return new SortedShortSetBackedByList(new ShortArrayList(a));
 		}
 		
 		
@@ -35007,7 +35601,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedFloatSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Float> c)
 		{
-			float[] a = wrappedFloatCollection(c).toFloatArray();
+			float[] a = PrimitiveCollections.toFloatArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedFloatSetBackedByArray(a);
 		}
@@ -35294,9 +35888,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedFloatSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Float> c)
 		{
-			SortedFloatSetBackedByList set = new SortedFloatSetBackedByList();
-			set.addAll(c);
-			return set;
+			float[] a = PrimitiveCollections.toFloatArray(c);
+			Arrays.sort(a);
+			return new SortedFloatSetBackedByList(new FloatArrayList(a));
 		}
 		
 		
@@ -35547,7 +36141,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedIntegerSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Integer> c)
 		{
-			int[] a = wrappedIntegerCollection(c).toIntArray();
+			int[] a = PrimitiveCollections.toIntArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedIntegerSetBackedByArray(a);
 		}
@@ -35834,9 +36428,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedIntegerSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Integer> c)
 		{
-			SortedIntegerSetBackedByList set = new SortedIntegerSetBackedByList();
-			set.addAll(c);
-			return set;
+			int[] a = PrimitiveCollections.toIntArray(c);
+			Arrays.sort(a);
+			return new SortedIntegerSetBackedByList(new IntegerArrayList(a));
 		}
 		
 		
@@ -36087,7 +36681,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedDoubleSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Double> c)
 		{
-			double[] a = wrappedDoubleCollection(c).toDoubleArray();
+			double[] a = PrimitiveCollections.toDoubleArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedDoubleSetBackedByArray(a);
 		}
@@ -36374,9 +36968,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedDoubleSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Double> c)
 		{
-			SortedDoubleSetBackedByList set = new SortedDoubleSetBackedByList();
-			set.addAll(c);
-			return set;
+			double[] a = PrimitiveCollections.toDoubleArray(c);
+			Arrays.sort(a);
+			return new SortedDoubleSetBackedByList(new DoubleArrayList(a));
 		}
 		
 		
@@ -36627,7 +37221,7 @@ _$$primxpconf:noboolean$$_
 		
 		public static ImmutableSortedLongSetBackedByArray sorted(@ReadonlyValue @SnapshotValue Collection<Long> c)
 		{
-			long[] a = wrappedLongCollection(c).toLongArray();
+			long[] a = PrimitiveCollections.toLongArray(c);
 			Arrays.sort(a);
 			return new ImmutableSortedLongSetBackedByArray(a);
 		}
@@ -36914,9 +37508,9 @@ _$$primxpconf:noboolean$$_
 		
 		public static SortedLongSetBackedByList sorted(@ReadonlyValue @SnapshotValue Collection<Long> c)
 		{
-			SortedLongSetBackedByList set = new SortedLongSetBackedByList();
-			set.addAll(c);
-			return set;
+			long[] a = PrimitiveCollections.toLongArray(c);
+			Arrays.sort(a);
+			return new SortedLongSetBackedByList(new LongArrayList(a));
 		}
 		
 		
