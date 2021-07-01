@@ -15,6 +15,8 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import rebound.io.HeadReopenableInputStream;
 import rebound.io.ucs4.UCS4ArrayWriter;
@@ -27,10 +29,7 @@ public class TextIOUtilities
 {
 	public static String readAllText(InputStream in, String encoding) throws IOException
 	{
-		if (encoding == null)
-			encoding = Charset.defaultCharset().name();
-		
-		return new String(TextIOUtilities.readAll(new InputStreamReader(in, encoding)));
+		return readAllText(in, Charset.forName(encoding));
 	}
 	
 	public static String readAllText(InputStream in, Charset encoding) throws IOException
@@ -38,7 +37,11 @@ public class TextIOUtilities
 		if (encoding == null)
 			encoding = Charset.defaultCharset();
 		
-		return new String(TextIOUtilities.readAll(new InputStreamReader(in, encoding)));
+		CharsetDecoder decoder = encoding.newDecoder();
+		decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+		decoder.onMalformedInput(CodingErrorAction.REPORT);
+		
+		return new String(TextIOUtilities.readAll(new InputStreamReader(in, decoder)));
 	}
 	
 	public static String readAllText(InputStream in, TextEncodingDetector encodingDetector) throws IOException

@@ -16,7 +16,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -233,19 +232,7 @@ public class FSIOUtilities
 	@Nonnull
 	public static String readAllText(File file, String encoding) throws IOException
 	{
-		if (encoding == null)
-			encoding = Charset.defaultCharset().name();
-		
-		Reader in = new InputStreamReader(new FileInputStream(file), encoding);
-		
-		try
-		{
-			return TextIOUtilities.readAllToString(in);
-		}
-		finally
-		{
-			TextIOUtilities.closeWithoutError(in);
-		}
+		return readAllText(file, Charset.forName(encoding));
 	}
 	
 	@Nonnull
@@ -254,15 +241,15 @@ public class FSIOUtilities
 		if (encoding == null)
 			encoding = Charset.defaultCharset();
 		
-		Reader in = new InputStreamReader(new FileInputStream(file), encoding);
+		InputStream in = new FileInputStream(file);
 		
 		try
 		{
-			return TextIOUtilities.readAllToString(in);
+			return TextIOUtilities.readAllText(in, encoding);
 		}
 		finally
 		{
-			TextIOUtilities.closeWithoutError(in);
+			closeWithoutError(in);
 		}
 	}
 	
