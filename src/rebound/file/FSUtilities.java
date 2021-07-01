@@ -38,6 +38,7 @@ import java.nio.channels.FileLock;
 import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
@@ -2927,7 +2928,31 @@ implements JavaNamespace
 		if (f instanceof NonExistantFile)
 			return false;
 		
-		return Files.isSymbolicLink(f.toPath());
+		try
+		{
+			return Files.isSymbolicLink(f.toPath());
+		}
+		catch (InvalidPathException exc)
+		{
+			return false;
+		}
+	}
+	
+	public static boolean fexists(File f)
+	{
+		requireNonNull(f);
+		
+		if (f instanceof NonExistantFile)
+			return false;
+		
+		try
+		{
+			return f.exists();
+		}
+		catch (InvalidPathException exc)
+		{
+			return false;
+		}
 	}
 	
 	public static boolean lexists(File f)
@@ -2937,8 +2962,15 @@ implements JavaNamespace
 		if (f instanceof NonExistantFile)
 			return false;
 		
-		//f.exists() catches real nodes, extant symlinks, but not broken; isInParentDirectoryListing() catches all those plus broken symlinks, but is slower
-		return f.exists() || isSymlink(f);
+		try
+		{
+			//f.exists() catches real nodes, extant symlinks, but not broken; isInParentDirectoryListing() catches all those plus broken symlinks, but is slower
+			return f.exists() || isSymlink(f);
+		}
+		catch (InvalidPathException exc)
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -2954,8 +2986,15 @@ implements JavaNamespace
 		if (f instanceof NonExistantFile)
 			return false;
 		
-		//broken links show up in directory listings, but not in exists()
-		return !f.exists() && isSymlink(f);
+		try
+		{
+			//broken links show up in directory listings, but not in exists()
+			return !f.exists() && isSymlink(f);
+		}
+		catch (InvalidPathException exc)
+		{
+			return false;
+		}
 	}
 	
 	/**
@@ -2971,8 +3010,15 @@ implements JavaNamespace
 		if (f instanceof NonExistantFile)
 			return false;
 		
-		//broken links show up in directory listings, but not in exists()
-		return f.exists() && isSymlink(f);
+		try
+		{
+			//broken links show up in directory listings, but not in exists()
+			return f.exists() && isSymlink(f);
+		}
+		catch (InvalidPathException exc)
+		{
+			return false;
+		}
 	}
 	
 	
