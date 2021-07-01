@@ -3416,7 +3416,16 @@ implements JavaNamespace
 				
 				final File dir = todo.pop();
 				
-				final File[] files = dir.listFiles();
+				File[] files;
+				try
+				{
+					files = dir.listFiles();
+				}
+				catch (OutOfMemoryError exc)
+				{
+					System.err.println("Out-of-memory error while listing "+repr(dir.getAbsolutePath()));
+					throw exc;
+				}
 				
 				if (files == null)
 					throw new WrappedThrowableRuntimeException(new IOException("Listing directory failed for: "+repr(dir.getAbsolutePath())));
