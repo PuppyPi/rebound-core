@@ -1,10 +1,11 @@
 package rebound.util.collections;
 
+import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.util.objectutil.ObjectMethodDefaultsAdapterSuperclass;
 
 public class PairCommutativeImmutable<E>
 extends ObjectMethodDefaultsAdapterSuperclass
-implements PairCommutative<E>
+implements PairCommutative<E>, StaticallyConcurrentlyImmutable
 {
 	protected final E a;
 	protected final E b;

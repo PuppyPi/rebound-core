@@ -1,10 +1,11 @@
 package rebound.util.collections;
 
+import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.util.objectutil.ObjectMethodDefaultsAdapterSuperclass;
 
 public class PairOrderedImmutable<A, B>
 extends ObjectMethodDefaultsAdapterSuperclass
-implements PairOrdered<A, B>
+implements PairOrdered<A, B>, StaticallyConcurrentlyImmutable
 {
 	protected final A a;
 	protected final B b;
