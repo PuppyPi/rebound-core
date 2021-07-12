@@ -3125,4 +3125,40 @@ _$$primxpconf:noboolean$$_
 		//TODO X'D
 		return roundCeilS64(sqrt(safeCastU64toF64(v)));
 	}
+	
+	
+	
+	
+	
+	/**
+	 * Negatives are interpreted like ∞-n and thus are greater than all other values, but still, the more negative they are, the less they get compared to each other.
+	 * This is how negative temperature works in physics!
+	 */
+	public static int reverseNegativesComparison(int a, int b)
+	{
+		if (a < 0)
+		{
+			if (b < 0)
+			{
+				return cmp(a, b);
+			}
+			else
+			{
+				//a is negative, b is not
+				return 1;  //a > b
+			}
+		}
+		else
+		{
+			if (b < 0)
+			{
+				//b is negative, b is not
+				return -1;  //a < b
+			}
+			else
+			{
+				return cmp(a, b);
+			}
+		}
+	}
 }

@@ -17,7 +17,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -26,7 +26,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -34,7 +34,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -42,7 +42,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -50,7 +50,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -58,7 +58,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -66,7 +66,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -74,7 +74,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -82,7 +82,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -90,7 +90,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -98,7 +98,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -106,7 +106,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -114,7 +114,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -122,7 +122,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -130,7 +130,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -138,7 +138,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -151,7 +151,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -160,7 +160,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -168,7 +168,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -176,7 +176,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -184,7 +184,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -192,7 +192,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -200,7 +200,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -208,7 +208,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -216,7 +216,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -224,7 +224,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -232,7 +232,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -240,7 +240,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -248,7 +248,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -256,7 +256,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -264,7 +264,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -272,7 +272,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -285,7 +285,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -294,7 +294,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -302,7 +302,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -310,7 +310,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -318,7 +318,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -326,7 +326,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -334,7 +334,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -342,7 +342,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -350,7 +350,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -358,7 +358,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -366,7 +366,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -374,7 +374,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -382,7 +382,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -390,7 +390,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -398,7 +398,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -406,7 +406,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -419,7 +419,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -428,7 +428,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -436,7 +436,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -444,7 +444,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -452,7 +452,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -460,7 +460,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -468,7 +468,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -476,7 +476,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -484,7 +484,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -492,7 +492,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -500,7 +500,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -508,7 +508,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -516,7 +516,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -524,7 +524,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -532,7 +532,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -540,7 +540,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -553,7 +553,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -562,7 +562,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -570,7 +570,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -578,7 +578,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -586,7 +586,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -594,7 +594,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -602,7 +602,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -610,7 +610,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -618,7 +618,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -626,7 +626,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -634,7 +634,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -642,7 +642,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -650,7 +650,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -658,7 +658,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -666,7 +666,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -674,7 +674,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -687,7 +687,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -696,7 +696,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -704,7 +704,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -712,7 +712,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -720,7 +720,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -728,7 +728,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -736,7 +736,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -744,7 +744,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -752,7 +752,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -760,7 +760,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -768,7 +768,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -776,7 +776,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -784,7 +784,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -792,7 +792,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -800,7 +800,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -808,7 +808,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -821,7 +821,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -830,7 +830,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -838,7 +838,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -846,7 +846,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -854,7 +854,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -862,7 +862,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -870,7 +870,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -878,7 +878,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -886,7 +886,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -894,7 +894,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -902,7 +902,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -910,7 +910,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -918,7 +918,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -926,7 +926,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -934,7 +934,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -942,7 +942,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = Unsigned.upcastTo64(input);
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -955,7 +955,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -964,7 +964,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -972,7 +972,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -980,7 +980,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -988,7 +988,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -996,7 +996,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1004,7 +1004,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1012,7 +1012,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1020,7 +1020,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1028,7 +1028,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1036,7 +1036,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1044,7 +1044,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1052,7 +1052,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1060,7 +1060,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1068,7 +1068,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1076,7 +1076,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1096,7 +1096,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1105,7 +1105,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1113,7 +1113,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1121,7 +1121,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1129,7 +1129,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1137,7 +1137,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1145,7 +1145,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1153,7 +1153,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1161,7 +1161,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1169,7 +1169,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1177,7 +1177,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1185,7 +1185,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1193,7 +1193,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1201,7 +1201,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1209,7 +1209,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1217,7 +1217,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1230,7 +1230,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1239,7 +1239,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1247,7 +1247,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1255,7 +1255,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1263,7 +1263,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1271,7 +1271,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1279,7 +1279,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1287,7 +1287,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1295,7 +1295,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1303,7 +1303,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1311,7 +1311,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1319,7 +1319,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1327,7 +1327,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1335,7 +1335,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1343,7 +1343,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1351,7 +1351,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1364,7 +1364,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1373,7 +1373,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1381,7 +1381,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1389,7 +1389,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1397,7 +1397,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1405,7 +1405,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1413,7 +1413,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1421,7 +1421,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1429,7 +1429,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1437,7 +1437,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1445,7 +1445,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1453,7 +1453,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1461,7 +1461,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1469,7 +1469,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1477,7 +1477,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1485,7 +1485,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1498,7 +1498,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1507,7 +1507,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1515,7 +1515,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1523,7 +1523,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1531,7 +1531,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1539,7 +1539,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1547,7 +1547,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1555,7 +1555,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1563,7 +1563,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1571,7 +1571,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1579,7 +1579,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1587,7 +1587,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1595,7 +1595,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1603,7 +1603,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1611,7 +1611,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1619,7 +1619,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1632,7 +1632,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1641,7 +1641,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1649,7 +1649,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1657,7 +1657,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1665,7 +1665,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1673,7 +1673,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1681,7 +1681,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1689,7 +1689,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1697,7 +1697,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1705,7 +1705,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1713,7 +1713,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1721,7 +1721,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1729,7 +1729,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1737,7 +1737,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1745,7 +1745,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1753,7 +1753,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1766,7 +1766,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1775,7 +1775,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1783,7 +1783,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1791,7 +1791,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1799,7 +1799,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1807,7 +1807,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1815,7 +1815,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1823,7 +1823,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1831,7 +1831,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1839,7 +1839,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1847,7 +1847,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1855,7 +1855,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1863,7 +1863,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1871,7 +1871,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1879,7 +1879,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1887,7 +1887,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -1901,7 +1901,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < _$$PrimShort$$__MIN_VALUE || u > _$$PrimShort$$__MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -1910,7 +1910,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S8_MIN_VALUE || u > S8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -1918,7 +1918,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S16_MIN_VALUE || u > S16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -1926,7 +1926,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S32_MIN_VALUE || u > S32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1934,7 +1934,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S64_MIN_VALUE || u > S64_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1942,7 +1942,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S24_MIN_VALUE || u > S24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1950,7 +1950,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S40_MIN_VALUE || u > S40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1958,7 +1958,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S48_MIN_VALUE || u > S48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1966,7 +1966,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < S56_MIN_VALUE || u > S56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1974,7 +1974,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U24_MIN_VALUE || u > U24_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
@@ -1982,7 +1982,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U40_MIN_VALUE || u > U40_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1990,7 +1990,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U48_MIN_VALUE || u > U48_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -1998,7 +1998,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U56_MIN_VALUE || u > U56_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
@@ -2006,7 +2006,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U8_MIN_VALUE || u > U8_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
@@ -2014,7 +2014,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U16_MIN_VALUE || u > U16_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
@@ -2022,7 +2022,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	{
 		long u = input;
 		if (u < U32_MIN_VALUE || u > U32_MAX_VALUE)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -2056,7 +2056,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	public static _$$@litprim$$_ safeCastU64to_$$PrimShort$$_(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > _$$PrimShort$$__MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (_$$litprim$$_)input;
 	}
 	 */
@@ -2064,105 +2064,105 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56,uint24,ulong40,
 	public static byte safeCastU64toS8(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S8_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
 	public static short safeCastU64toS16(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S16_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
 	public static int safeCastU64toS32(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S32_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
 	public static long safeCastU64toS64(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S64_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallySigned(24) int safeCastU64toS24(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S24_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
 	public static @ActuallySigned(40) long safeCastU64toS40(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S40_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallySigned(48) long safeCastU64toS48(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S48_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallySigned(56) long safeCastU64toS56(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > S56_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallyUnsigned(24) int safeCastU64toU24(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U24_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	
 	public static @ActuallyUnsigned(40) long safeCastU64toU40(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U40_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallyUnsigned(48) long safeCastU64toU48(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U48_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallyUnsigned(56) long safeCastU64toU56(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U56_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (long)input;
 	}
 	
 	public static @ActuallyUnsigned byte safeCastU64toU8(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U8_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (byte)input;
 	}
 	
 	public static @ActuallyUnsigned short safeCastU64toU16(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U16_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (short)input;
 	}
 	
 	public static @ActuallyUnsigned int safeCastU64toU32(@ActuallyUnsigned long input) throws OverflowException
 	{
 		if (input < 0 || input > U32_MAX_VALUE)  //the input will never "be negative", so < 0 means it's really freaking big; way bigger than this type! XD
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return (int)input;
 	}
 	// >>>
@@ -2182,7 +2182,7 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56$$_
 	public static @ActuallyUnsigned long safeCast_$$PrimShort$$_toU64(_$$@litprim$$_ input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	 */
@@ -2190,56 +2190,56 @@ _$$primxpconf:byte,short,int,long,sint24,slong40,slong48,slong56$$_
 	public static @ActuallyUnsigned long safeCastS8toU64(byte input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS16toU64(short input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS32toU64(int input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS64toU64(long input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS24toU64(@ActuallySigned(24) int input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS40toU64(@ActuallySigned(40) long input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS48toU64(@ActuallySigned(48) long input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	
 	public static @ActuallyUnsigned long safeCastS56toU64(@ActuallySigned(56) long input) throws OverflowException
 	{
 		if (input < 0)
-			throw new OverflowException();
+			throw new OverflowException(String.valueOf(input));
 		return input;
 	}
 	// >>>

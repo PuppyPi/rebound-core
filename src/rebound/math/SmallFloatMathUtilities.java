@@ -145,6 +145,18 @@ public class SmallFloatMathUtilities
 			return x;
 	}
 	
+	public static float requireNotNaN(float x) throws NotANumberException
+	{
+		checkNotNaN(x);
+		return x;
+	}
+	
+	public static double requireNotNaN(double x) throws NotANumberException
+	{
+		checkNotNaN(x);
+		return x;
+	}
+	
 	public static float checkNotZeroForDivide(float x)
 	{
 		if (x == 0)
@@ -2348,22 +2360,26 @@ public class SmallFloatMathUtilities
 	
 	public static int roundNearzeroS32(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)x;
 	}
 	
 	public static int roundNearzeroS32(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)x;
 	}
 	
 	
 	public static long roundNearzeroS64(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)x;
 	}
 	
 	public static long roundNearzeroS64(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)x;
 	}
 	
@@ -2373,22 +2389,26 @@ public class SmallFloatMathUtilities
 	
 	public static int roundFloorS32(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)Math.floor(x);
 	}
 	
 	public static int roundFloorS32(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)Math.floor(x);
 	}
 	
 	
 	public static long roundFloorS64(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)Math.floor(x);
 	}
 	
 	public static long roundFloorS64(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)Math.floor(x);
 	}
 	
@@ -2398,22 +2418,26 @@ public class SmallFloatMathUtilities
 	
 	public static int roundCeilS32(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)Math.ceil(x);
 	}
 	
 	public static int roundCeilS32(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (int)Math.ceil(x);
 	}
 	
 	
 	public static long roundCeilS64(float x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)Math.ceil(x);
 	}
 	
 	public static long roundCeilS64(double x)
 	{
+		//Todo overflow/NaN detection!
 		return (long)Math.ceil(x);
 	}
 	
@@ -2423,6 +2447,7 @@ public class SmallFloatMathUtilities
 	
 	public static int roundClosestArbtiesS32(float x)
 	{
+		//Todo overflow/NaN detection!
 		return Math.round(x);
 	}
 	
@@ -2434,13 +2459,44 @@ public class SmallFloatMathUtilities
 	
 	public static long roundClosestArbtiesS64(float x)
 	{
+		//Todo overflow detection!
 		return Math.round((double)x);
 	}
 	
 	public static long roundClosestArbtiesS64(double x)
 	{
+		//Todo overflow detection!
 		return Math.round(x);
 	}
+	
+	
+	
+	
+	
+	
+	//Todo more truncating ones ^^''
+	public static long roundTruncatingClosestArbtiesS64(double x)
+	{
+		requireNotNaN(x);
+		return Math.round(x);
+	}
+	
+	public static int roundTruncatingClosestArbtiesS32(double x)
+	{
+		requireNotNaN(x);
+		long i = Math.round(x);
+		i = SmallIntegerMathUtilities.greatest((long)Integer.MIN_VALUE, i);
+		i = SmallIntegerMathUtilities.least((long)Integer.MAX_VALUE, i);
+		return safeCastS64toS32(i);
+	}
+	
+	
+	public static int roundTruncatingClosestArbtiesS32(float x)
+	{
+		requireNotNaN(x);
+		return Math.round(x);
+	}
+	
 	
 	
 	
