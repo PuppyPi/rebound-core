@@ -282,30 +282,31 @@ public class CharacterPredicates
 	}
 	
 	
-	public static boolean isAsciiLowercase(char c)
+	
+	
+	public static boolean isAsciiLowercaseLetter(char c)
 	{
-		return c >= 97 && c <= 122;
+		return c >= 'a' && c <= 'z';
 	}
 	
-	public static boolean isAsciiUppercase(char c)
+	public static boolean isAsciiUppercaseLetter(char c)
 	{
-		return c >= 65 && c <= 90;
+		return c >= 'A' && c <= 'Z';
 	}
 	
 	public static boolean isAsciiDigit(char c)
 	{
-		return c >= 48 && c <= 57;
+		return c >= '0' && c <= '9';
 	}
 	
-	
-	public static boolean isAsciiAlpha(char c)
+	public static boolean isAsciiLetter(char c)
 	{
-		return isAsciiLowercase(c) || isAsciiUppercase(c);
+		return isAsciiLowercaseLetter(c) || isAsciiUppercaseLetter(c);
 	}
 	
-	public static boolean isAsciiAlphanum(char c)
+	public static boolean isAsciiAlphanumeric(char c)
 	{
-		return isAsciiAlpha(c) || isAsciiDigit(c);
+		return isAsciiLetter(c) || isAsciiDigit(c);
 	}
 	
 	
