@@ -5,6 +5,7 @@
 package rebound.io.util;
 
 import static java.util.Objects.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
@@ -23,6 +24,7 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import rebound.annotations.hints.Inline;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -36,6 +38,8 @@ import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureInt;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -232,6 +236,23 @@ implements JavaNamespace
 	 */
 	public static @ActuallySigned long pump(InputStream in, OutputStream out, int bufferSize) throws IOException
 	{
+		return pump(in, out, bufferSize, null);
+	}
+	
+	/**
+	 * @return the number of bytes we actually pumped! \o/
+	 */
+	public static long pump(InputStream in, OutputStream out) throws IOException
+	{
+		return pump(in, out, null);
+	}
+	
+	
+	/**
+	 * @return the number of bytes we actually pumped! \o/
+	 */
+	public static @ActuallySigned long pump(InputStream in, OutputStream out, int bufferSize, @Nullable UnaryProcedureLong progressObserver) throws IOException
+	{
 		@ActuallySigned long total = 0;
 		byte[] buffer = new byte[bufferSize];
 		
@@ -243,6 +264,9 @@ implements JavaNamespace
 			
 			out.write(buffer, 0, amt);
 			total = safe_add_s64(total, amt);
+			
+			if (progressObserver != null)
+				progressObserver.f(total);
 		}
 		
 		return total;
@@ -251,10 +275,15 @@ implements JavaNamespace
 	/**
 	 * @return the number of bytes we actually pumped! \o/
 	 */
-	public static long pump(InputStream in, OutputStream out) throws IOException
+	public static long pump(InputStream in, OutputStream out, @Nullable UnaryProcedureLong progressObserver) throws IOException
 	{
 		return pump(in, out, 4096);
 	}
+	
+	
+	
+	
+	
 	
 	public static long pumpThenCloseBoth(InputStream in, OutputStream out) throws IOException
 	{
@@ -712,6 +741,17 @@ implements JavaNamespace
 		
 		ByteArrayOutputStream buff = new ByteArrayOutputStream();
 		pump(in, buff);
+		return buff.toByteArray();
+	}
+	
+	
+	
+	public static byte[] readAll(@Nonnull InputStream in, @Nullable UnaryProcedureInt progressObserver) throws IOException
+	{
+		requireNonNull(in);
+		
+		ByteArrayOutputStream buff = new ByteArrayOutputStream();
+		pump(in, buff, progressObserver == null ? null : amt -> progressObserver.f(safeCastS64toS32(amt)));
 		return buff.toByteArray();
 	}
 	
