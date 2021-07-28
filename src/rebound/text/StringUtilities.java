@@ -7323,7 +7323,7 @@ implements JavaNamespace
 		{
 			for (char c : ca)
 			{
-				if (!(isAsciiLowercase(c) || isAsciiUppercase(c) || isAsciiDigit(c) || c == '_'))
+				if (!(isAsciiLowercaseLetter(c) || isAsciiUppercaseLetter(c) || isAsciiDigit(c) || c == '_'))
 				{
 					clean = false;
 					break;
@@ -7346,7 +7346,7 @@ implements JavaNamespace
 			{
 				char c = ca[i];
 				
-				if (!(isAsciiDigit(c) || isAsciiLowercase(c) || isAsciiUppercase(c)))
+				if (!(isAsciiDigit(c) || isAsciiLowercaseLetter(c) || isAsciiUppercaseLetter(c)))
 				{
 					if (cleanRegionStart - i > 0)
 						b.append(ca, cleanRegionStart, i - cleanRegionStart);
@@ -7378,7 +7378,7 @@ implements JavaNamespace
 		{
 			for (char c : ca)
 			{
-				if (!(isAsciiLowercase(c) || isAsciiUppercase(c) || isAsciiDigit(c) || c == '_'))
+				if (!(isAsciiLowercaseLetter(c) || isAsciiUppercaseLetter(c) || isAsciiDigit(c) || c == '_'))
 				{
 					clean = false;
 					break;
