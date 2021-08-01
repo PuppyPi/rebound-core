@@ -7,7 +7,7 @@ import rebound.text.StringUtilities;
  * {@link WherefulToken#getLengthOfMaskedSource()} *must* be == {@link #getMaskedSource()}.length()!!
  * And {@link WherefulToken#getCharacterInMaskedSource(int)} *must* be == {@link #getMaskedSource()}.charAt()!!
  * 
- * + Note: {@link #toString()} MUST delegate to {@link #getMaskedSource()}!!  So that things like {@link StringUtilities#concatList(Iterable)} will work!!
+ * + Note: {@link #toString()} MUST delegate to {@link #getMaskedSource()}!!  So that things like {@link StringUtilities#concatenateStrings(Iterable)} will work!!
  */
 @SignalType
 public interface WherefulToken

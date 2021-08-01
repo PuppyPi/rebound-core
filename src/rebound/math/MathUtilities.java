@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Comparator;
+import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -4342,5 +4343,52 @@ implements JavaNamespace
 	{
 		//TODO!
 		throw new NotYetImplementedException();
+	}
+	
+	
+	
+	
+	
+	
+	public static int sumS32(List<Integer> integers) throws OverflowException
+	{
+		int accumulator = 0;
+		
+		for (int v : integers)
+			accumulator = safe_add_s32(accumulator, v);
+		
+		return accumulator;
+	}
+	
+	public static int productS32(List<Integer> integers) throws OverflowException
+	{
+		int accumulator = 1;
+		
+		for (int v : integers)
+			accumulator = safe_mul_s32(accumulator, v);
+		
+		return accumulator;
+	}
+	
+	
+	
+	public static long sumS64(List<Long> integers) throws OverflowException
+	{
+		long accumulator = 0;
+		
+		for (long v : integers)
+			accumulator = safe_add_s64(accumulator, v);
+		
+		return accumulator;
+	}
+	
+	public static long productS64(List<Long> integers) throws OverflowException
+	{
+		long accumulator = 1;
+		
+		for (long v : integers)
+			accumulator = safe_mul_s64(accumulator, v);
+		
+		return accumulator;
 	}
 }

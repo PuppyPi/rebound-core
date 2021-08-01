@@ -1161,23 +1161,6 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	//TODO Error: floorLog(1 000 000, 10) == 5
-	public static int floorLog(int value, int base) throws ArithmeticException
-	{
-		if (value <= 0)
-			throw new ArithmeticException("Log of non-positive integer");
-		
-		double v = Math.log(value) / Math.log(base);
-		
-		if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE)
-			throw new OverflowException();
-		
-		int exponent = (int)v;
-		
-		//Todo check back through pow() to determine if it's accurate
-		
-		return exponent;
-	}
 	
 	public static int signum(long a)
 	{
@@ -2045,10 +2028,10 @@ _$$primxpconf:intsonly$$_
 		return r == 0 ? blockSizeAkaDenominator : r;
 	}
 	
-	public static int pow(int base, int length) throws ArithmeticException, OverflowException, TruncationException
+	public static int pow(int base, int exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		//TODO implement properly!!
-		long rv = pow((long)base, (long)length);
+		long rv = pow((long)base, (long)exponent);
 		if (((int)rv) != rv)
 			throw new OverflowException();
 		return (int)rv;
@@ -2552,6 +2535,87 @@ _$$primxpconf:intsonly$$_
 		long h = getHighestOneBit(value);
 		return dcd64(h) + (value != h ? 1 : 0);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int losslessLog(int value, int base) throws TruncationException
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		int exponent = floorLog(value, base);
+		
+		if (pow(base, exponent) != value)
+			throw new TruncationException("log["+base+"]("+value+") ≠ "+exponent);
+		
+		return exponent;
+	}
+	
+	public static int floorLog(int value, int base) throws ArithmeticException
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0)
+			throw new ComplexNumberArithmeticException();
+		
+		
+		double v = Math.log(value) / Math.log(base);
+		
+		if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE)
+			throw new OverflowException();
+		
+		int exponent;
+		
+		if (abs(round(v) - v) < 1e-12)
+			exponent = (int)roundClosestArbtiesS32(v);
+		else
+			exponent = (int)roundFloorS32(v);
+		
+		return exponent;
+	}
+	
+	
+	public static int ceilLog(int value, int base)
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0)
+			throw new ComplexNumberArithmeticException();
+		
+		
+		double v = Math.log(value) / Math.log(base);
+		
+		if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE)
+			throw new OverflowException();
+		
+		int exponent;
+		
+		if (abs(round(v) - v) < 1e-12)
+			exponent = (int)roundClosestArbtiesS32(v);
+		else
+			exponent = (int)roundCeilS32(v);
+		
+		return exponent;
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -3160,5 +3224,17 @@ _$$primxpconf:noboolean$$_
 				return cmp(a, b);
 			}
 		}
+	}
+	
+	
+	
+	public static final int AllIntegersSequenceEnd = Integer.MIN_VALUE;
+	
+	public static int allIntegersSequenceNext(int v) throws OverflowException
+	{
+		if (v == AllIntegersSequenceEnd)
+			throw new OverflowException();
+		
+		return v < 0 ? -v : -(v+1);
 	}
 }

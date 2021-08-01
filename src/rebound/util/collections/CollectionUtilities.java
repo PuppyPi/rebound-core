@@ -7,6 +7,7 @@ package rebound.util.collections;
 import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static rebound.GlobalCodeMetastuffContext.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
@@ -15,6 +16,7 @@ import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
+import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
 import java.awt.Container;
@@ -1112,16 +1114,57 @@ public class CollectionUtilities
 	}
 	
 	
+	/**
+	 * If one of these is a single-element list, this is guaranteed to do the singly-linked list cons()ing thing :3
+	 * 		(see {@link SinglyPreLinkedReadonlyList} and {@link SinglyPostLinkedReadonlyList} for an example implementation :3 )
+	 */
 	@PossiblySnapshotPossiblyLiveValue
 	@ReadonlyValue
 	public static <E> List<E> concatenateListsOPC(@ReadonlyValue Iterable<E> a, @ReadonlyValue Iterable<E> b)
 	{
-		if (a instanceof List && b instanceof Collection && ((Collection)b).isEmpty())
-			return (List)a;
-		else if (b instanceof List && a instanceof Collection && ((Collection)a).isEmpty())
-			return (List)b;
-		else
-			return concatenateListsOP(a, b);
+		if (a instanceof Collection && b instanceof Collection)
+		{
+			Collection aa = (Collection) a;
+			Collection bb = (Collection) b;
+			
+			int aSize = aa.size();
+			int bSize = bb.size();
+			
+			if (aSize == 0)
+			{
+				if (bSize == 0)
+				{
+					return emptyList();
+				}
+				else
+				{
+					return asList(b);
+				}
+			}
+			else if (bSize == 0)
+			{
+				return asList(a);
+			}
+			else
+			{
+				if (aSize == 1)
+				{
+					//this means we prefer SinglyPreLinkedReadonlyList over SinglyPostLinkedReadonlyList if they're both 1 element long..but it's an arbitrary preference X3
+					
+					if (b instanceof List)
+						return new SinglyPreLinkedReadonlyList<E>(getSingleElement(a), (List)b);
+					//else we'd need to recreate a list for b anyway, so we might as well just include a in it XD'
+				}
+				else if (bSize == 1)
+				{
+					if (a instanceof List)
+						return new SinglyPostLinkedReadonlyList<E>((List)a, getSingleElement(b));
+					//else we'd need to recreate a list for b anyway, so we might as well just include a in it XD'
+				}
+			}
+		}
+		
+		return concatenateListsOP(a, b);
 	}
 	
 	
@@ -1305,6 +1348,647 @@ public class CollectionUtilities
 	
 	
 	
+	public static <E> SimpleIterator<E> concatenateIteratorsOPC(SimpleIterator<E> first, SimpleIterator<E> second)
+	{
+		requireNonNull(first);
+		requireNonNull(second);
+		
+		if (second == first)
+			throw new IllegalArgumentException();
+		
+		
+		return new SimpleIterator<E>()
+		{
+			SimpleIterator<E> current = first;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					try
+					{
+						return current.nextrp();
+					}
+					catch (StopIterationReturnPath rp)
+					{
+						if (current == second)
+							throw rp;
+						else
+							current = second;
+					}
+				}
+			}
+		};
+	}
+	
+	public static <E> SimpleIterator<E> concatenateManyIteratorsOPC(Iterable<SimpleIterator<E>> iterators)
+	{
+		return concatenateManyIteratorsOPC(simpleIterator(iterators));
+	}
+	
+	public static <E> SimpleIterator<E> concatenateManyIteratorsOPC(SimpleIterator<SimpleIterator<E>> iterators)
+	{
+		return new SimpleIterator<E>()
+		{
+			SimpleIterator<E> current = null;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					if (current == null)
+						current = requireNonNull(iterators.nextrp());  //propagate StopIterationReturnPath :3
+					
+					try
+					{
+						return current.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						current = null;
+					}
+				}
+			}
+		};
+	}
+	
+	
+	public static <I, O> SimpleIterator<O> mapConcatenating(Mapper<I, SimpleIterator<O>> mapper, Iterable<I> underlying)
+	{
+		return mapConcatenating(mapper, simpleIterator(underlying));
+	}
+	
+	public static <I, O> SimpleIterator<O> mapConcatenating(Mapper<I, SimpleIterator<O>> mapper, SimpleIterator<I> underlying)
+	{
+		return new SimpleIterator<O>()
+		{
+			SimpleIterator<O> current = null;
+			
+			@Override
+			public O nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					if (current == null)
+					{
+						while (true)
+						{
+							try
+							{
+								current = requireNonNull(mapper.f(underlying.nextrp()));  //propagate StopIterationReturnPath :3
+								break;
+							}
+							catch (FilterAwayReturnPath exc)
+							{
+							}
+						}
+					}
+					
+					try
+					{
+						return current.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						current = null;
+					}
+				}
+			}
+		};
+	}
+	
+	
+	public static <E> SimpleIterator<E> concatenateGeneratorsOverIntegerInterval(int start, int count, UnaryFunctionIntToObject<SimpleIterator<E>> generatorProducer)
+	{
+		return mapConcatenating(generatorProducer::f, intervalIntegersList(start, count));
+	}
+	
+	
+	public static <E> SimpleIterator<E> concatenateGeneratorsOverAllIntegers(int start, UnaryFunctionIntToObject<SimpleIterator<E>> generatorProducer)
+	{
+		return mapConcatenating(i -> generatorProducer.f(i + start), AllNonnegativeIntegers);
+	}
+	
+	
+	
+	
+	
+	public static final SimpleIterable<Integer> AllNonnegativeIntegers = () -> new SimpleIterator<Integer>()
+	{
+		int v = 0;
+		boolean eof = false;
+		
+		@Override
+		public Integer nextrp() throws StopIterationReturnPath
+		{
+			if (eof)
+				throw new OverflowException();  //not StopIterationReturnPath because this is conceptually supposed to be ALL integers XD
+			
+			int v = this.v;
+			
+			if (v == Integer.MAX_VALUE)
+				eof = true;
+			else
+				this.v = v+1;
+			
+			return v;
+		}
+	};
+	
+	public static final SimpleIterable<Integer> AllIntegers = () -> new SimpleIterator<Integer>()
+	{
+		int v = 0;
+		boolean eof = false;
+		
+		@Override
+		public Integer nextrp() throws StopIterationReturnPath
+		{
+			if (eof)
+				throw new OverflowException();  //not StopIterationReturnPath because this is conceptually supposed to be ALL integers XD
+			
+			int v = this.v;
+			
+			if (v == AllIntegersSequenceEnd)
+				eof = true;
+			else
+			{
+				this.v = allIntegersSequenceNext(v);
+			}
+			
+			return v;
+		}
+	};
+	
+	
+	
+	
+	
+	
+	/**
+	 * Example:  base=[1,2,3], extras=[a,b,c], outputs will be:
+	 * 		[1,2,3]
+	 * 		[1,2,3,a]
+	 * 		[1,2,3,a,b]
+	 * 		[1,2,3,a,b,c]
+	 */
+	public static <E> SimpleIterator<List<E>> ascendingListAppensionGenerator(List<E> base, List<E> extras)
+	{
+		if (extras.isEmpty())
+		{
+			return singletonSimpleIterator(base);
+		}
+		else
+		{
+			return ascendingListAppensionGenerator(base, simpleIterator(extras));
+		}
+	}
+	
+	
+	public static <E> SimpleIterator<List<E>> ascendingListAppensionGenerator(List<E> base, SimpleIterator<E> extras)
+	{
+		requireNonNull(base);
+		requireNonNull(extras);
+		
+		return new SimpleIterator<List<E>>()
+		{
+			List<E> current = base;
+			
+			@Override
+			public List<E> nextrp() throws StopIterationReturnPath
+			{
+				if (current == null)  //eof
+					throw StopIterationReturnPath.I;
+				
+				List<E> c = current;
+				
+				try
+				{
+					current = new SinglyPostLinkedReadonlyList<E>(c, extras.nextrp());
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					current = null;
+				}
+				
+				return c;
+			}
+		};
+	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Example:  base=[1,2,3], extras=[a,b,c], outputs will be:
+	 * 		[1,2,3]
+	 * 		[a,1,2,3]
+	 * 		[b,a,1,2,3]
+	 * 		[c,b,a,1,2,3]
+	 */
+	public static <E> SimpleIterator<List<E>> ascendingListPrepensionGenerator(List<E> base, List<E> extras)
+	{
+		if (extras.isEmpty())
+		{
+			return singletonSimpleIterator(base);
+		}
+		else
+		{
+			return ascendingListPrepensionGenerator(base, simpleIterator(extras));
+		}
+	}
+	
+	
+	public static <E> SimpleIterator<List<E>> ascendingListPrepensionGenerator(List<E> base, SimpleIterator<E> extras)
+	{
+		requireNonNull(base);
+		requireNonNull(extras);
+		
+		return new SimpleIterator<List<E>>()
+		{
+			List<E> current = base;
+			
+			@Override
+			public List<E> nextrp() throws StopIterationReturnPath
+			{
+				if (current == null)  //eof
+					throw StopIterationReturnPath.I;
+				
+				List<E> c = current;
+				
+				try
+				{
+					current = new SinglyPreLinkedReadonlyList<E>(extras.nextrp(), c);
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					current = null;
+				}
+				
+				return c;
+			}
+		};
+	}
+	
+	
+	
+	
+	
+	
+	public static <E> SimpleIterator<E> repeatingGenerator(int number, E value)
+	{
+		return new SimpleIterator<E>()
+		{
+			int i = 0;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				if (i == number)
+					throw StopIterationReturnPath.I;
+				
+				i++;
+				
+				return value;
+			}
+		};
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Since the buckets can't hold zero in them, but must start at 1, the maximum number of buckets is always the total number of marbles :3
+	 * Ie, the shortest sequence is always [n] and the longest always [1,1,1,1,...] with length n  :3
+	 */
+	public static SimpleIterator<List<Integer>> marbleBucketsNonzeroBuckets(int totalMarbles)
+	{
+		return marbleBucketsMinimumBucketValue(totalMarbles, 1);
+	}
+	
+	
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValue(int totalMarbles, int minimumInBuckets)
+	{
+		return marbleBucketsMinimumBucketValueMinimumNumberOfBuckets(totalMarbles, minimumInBuckets, 1);
+	}
+	
+	
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueMinimumNumberOfBuckets(int totalMarbles, int minimumInBuckets, int minimumNumberOfBuckets)
+	{
+		if (minimumNumberOfBuckets < 1)
+			throw new IllegalArgumentException();
+		
+		if (minimumInBuckets < 0)
+			throw new IllegalArgumentException();
+		
+		if (minimumInBuckets == 0)
+			throw new IllegalArgumentException("That would cause immediate infinite recursion!");
+		
+		return marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, minimumInBuckets, l -> true, l -> l.size() >= minimumNumberOfBuckets);
+	}
+	
+	
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueMinimumMaximumNumberOfBuckets(int totalMarbles, int minimumInBuckets, int minimumNumberOfBuckets, int maximumNumberOfBucketsInclusive)
+	{
+		if (minimumInBuckets == 0)
+			return marbleBucketsMinimumMaximumNumberOfBuckets(totalMarbles, minimumNumberOfBuckets, maximumNumberOfBucketsInclusive);  //needs special stuff!
+		
+		
+		if (minimumNumberOfBuckets < 0)
+			throw new IllegalArgumentException();
+		
+		if (maximumNumberOfBucketsInclusive < minimumNumberOfBuckets)
+			throw new IllegalArgumentException();
+		
+		if (minimumInBuckets < 0)
+			throw new IllegalArgumentException();
+		
+		return marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, minimumInBuckets,
+		
+		l -> true,
+		
+		l ->
+		{
+			int n = l.size();
+			return n >= minimumNumberOfBuckets && n <= maximumNumberOfBucketsInclusive;
+		}
+		);
+	}
+	
+	
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumMaximumNumberOfBuckets(int totalMarbles, int minimumNumberOfBuckets, int maximumNumberOfBucketsInclusive)
+	{
+		if (minimumNumberOfBuckets < 0)
+			throw new IllegalArgumentException();
+		
+		if (maximumNumberOfBucketsInclusive < minimumNumberOfBuckets)
+			throw new IllegalArgumentException();
+		
+		
+		//So this can't create trailing zeros, so we just need to add them explicitly X3
+		
+		SimpleIterator<List<Integer>> i = marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, 0,
+		
+		//This prefilter is necessary for when minimumInBuckets == 0 to avoid infinite recursion!
+		l ->
+		{
+			int n = l.size();
+			return n <= maximumNumberOfBucketsInclusive;
+		},
+		
+		l ->
+		{
+			int n = l.size();
+			return n >= minimumNumberOfBuckets && n <= maximumNumberOfBucketsInclusive;
+		}
+		);
+		
+		return mapConcatenating(l ->
+		{
+			int n = l.size();
+			
+			int remainingBuckets = maximumNumberOfBucketsInclusive - n;
+			
+			asrt(remainingBuckets >= 0);
+			
+			if (remainingBuckets == 0)
+				return singletonSimpleIterator(l);
+			else
+				return ascendingListAppensionGenerator(l, repeatingGenerator(remainingBuckets, 0));
+			
+		}, i);
+	}
+	
+	
+	
+	
+	/**
+	 * @param minimumInBuckets  if this is 0 and builtInFilteringPredicate doesn't limit the maximum number of buckets somehow, then it's possible to immediately fall into infinite recursion with this trying to make an infinite integer list with infinite zero's (and some finite non-zeros XD) to output!
+	 */
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueGeneralListPredicate(int totalMarbles, int minimumInBuckets, Predicate<List<Integer>> preFilteringPredicateOnPartialLists, Predicate<List<Integer>> builtInFilteringPredicate)
+	{
+		//Todo maximum value in a bucket :3
+		
+		if (totalMarbles < 0)
+			throw new IllegalArgumentException();
+		
+		if (minimumInBuckets < 0)
+			throw new IllegalArgumentException();
+		
+		return combineGeneratorsGeneral(l ->
+		{
+			if (!preFilteringPredicateOnPartialLists.test(l))
+				return emptySimpleIterator();
+			
+			int remaining = totalMarbles - sumS32(l);  //remaining = inclusiveEnd
+			
+			if (remaining == 0)
+			{
+				return builtInFilteringPredicate.test(l) ? null : emptySimpleIterator();
+			}
+			else if (remaining < minimumInBuckets)
+			{
+				return emptySimpleIterator();
+			}
+			else
+			{
+				return simpleIterator(intervalIntegersListByInclusiveEnd(minimumInBuckets, remaining));
+			}
+		});
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Produces all sequences of the given length, of the given digits.
+	 * + This is big-endian
+	 * 
+	 * For integers, this is just the place value system! XD :D
+	 */
+	public static <E> SimpleIterator<List<E>> combineGeneratorsHomogeneous(int length, SimpleIterable<E> digits)
+	{
+		return combineGeneratorsGeneral(soFar -> soFar.size() >= length ? null : digits.simpleIterator());
+	}
+	
+	/**
+	 * Like {@link #combineGeneratorsHomogeneous(int, SimpleIterable)} but allows the equivalent of variable-base :3
+	 * Ie, the "ones" place can be [0,1,2,3] and the next place be [0,1,2,3] and the next place be [0,1,2,3] like normal.
+	 * But unlike the homogeneous version, the next place could be [0,1,2] and the next [0,1,2,3,4,5] and etc.
+	 * 
+	 * And of course they don't have to be integers!  They can be anything! :D
+	 */
+	public static <E> SimpleIterator<List<E>> combineGeneratorsAcontextual(List<SimpleIterator<E>> digits)
+	{
+		return combineGeneratorsAcontextual(digits.size(), digits::get);
+	}
+	public static <E> SimpleIterator<List<E>> combineGeneratorsAcontextual(int size, UnaryFunctionIntToObject<SimpleIterator<E>> digits)
+	{
+		return combineGeneratorsGeneral(soFar ->
+		{
+			int n = soFar.size();
+			return n >= size ? null : digits.f(n);
+		});
+	}
+	
+	
+	
+	/**
+	 * Like {@link #combineGeneratorsAcontextual(List)} but allows the "base" to vary not only by which digit-place it's in
+	 * But on the *actual contents* of the preceding digits! :D
+	 * 
+	 * So the "ones" place can be [0,1,2,3] and the next place be [0,1,2,3] if there's a 0 in the one's place, but be [0,1,2] if there's a 1 in the one's place!
+	 */
+	public static <E> SimpleIterator<List<E>> combineGeneratorsGeneral(UnaryFunction<List<E>, SimpleIterator<E>> digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd)
+	{
+		SimpleIterator<E> firstAlphabet = digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd.f(emptyList());
+		
+		if (firstAlphabet == null)
+			return emptySimpleIterator();
+		else
+			return _combineGeneratorsOverPlaceValueIncrementProgressionGeneral(firstAlphabet, digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd);
+	}
+	
+	protected static <E> SimpleIterator<List<E>> _combineGeneratorsOverPlaceValueIncrementProgressionGeneral(SimpleIterator<E> firstAlphabet, UnaryFunction<List<E>, SimpleIterator<E>> digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd)
+	{
+		SimpleIterator<PairOrdered<E, List<E>>> i = combineHighALowBGeneral(firstAlphabet, a ->
+		{
+			SimpleIterator<E> nextAlphabet = digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd.f(singletonList(a));
+			
+			if (nextAlphabet == null)
+			{
+				return simpleIterator(singletonList(emptyList()));
+			}
+			else
+			{
+				return _combineGeneratorsOverPlaceValueIncrementProgressionGeneral(nextAlphabet, l -> digitsForPlaceProvidedSequenceUpToThatPlaceOrNullForEnd.f(concatenateListsOPC(singletonList(a), l)));
+			}
+		});
+		
+		return map(p -> concatenateListsOPC(singletonList(p.getA()), p.getB()), i);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> combineHighALowBHomogeneous(SimpleIterator<A> alphabetA, SimpleIterable<B> alphabetB)
+	{
+		return combineHighALowBGeneral(alphabetA, a -> alphabetB.simpleIterator());
+	}
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> combineLowAHighBHomogeneous(SimpleIterable<A> alphabetA, SimpleIterator<B> alphabetB)
+	{
+		return combineLowAHighBGeneral(b -> alphabetA.simpleIterator(), alphabetB);
+	}
+	
+	
+	
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> combineHighALowBGeneral(SimpleIterator<A> alphabetA, UnaryFunction<A, SimpleIterator<B>> getAlphabetB)
+	{
+		return new SimpleIterator<PairOrdered<A,B>>()
+		{
+			A currentA;
+			SimpleIterator<B> currentBs = null;
+			
+			@Override
+			public PairOrdered<A, B> nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					if (currentBs == null)
+					{
+						currentA = alphabetA.nextrp();  //propagate StopIterationReturnPath :3
+						currentBs = getAlphabetB.f(currentA);
+					}
+					
+					B currentB;
+					try
+					{
+						currentB = currentBs.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						currentBs = null;
+						continue;
+					}
+					
+					return pair(currentA, currentB);
+				}
+			}
+		};
+	}
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> combineLowAHighBGeneral(UnaryFunction<B, SimpleIterator<A>> getAlphabetA, SimpleIterator<B> alphabetB)
+	{
+		return new SimpleIterator<PairOrdered<A,B>>()
+		{
+			SimpleIterator<A> currentAs = null;
+			B currentB;
+			
+			@Override
+			public PairOrdered<A, B> nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					if (currentAs == null)
+					{
+						currentB = alphabetB.nextrp();  //propagate StopIterationReturnPath :3
+						currentAs = getAlphabetA.f(currentB);
+					}
+					
+					A currentA;
+					try
+					{
+						currentA = currentAs.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						currentAs = null;
+						continue;
+					}
+					
+					return pair(currentA, currentB);
+				}
+			}
+		};
+	}
+	
+	
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> _combineHighALowBGeneral_alt1(SimpleIterator<A> alphabetA, UnaryFunction<A, SimpleIterator<B>> getAlphabetB)
+	{
+		return map(p -> swappair(p), combineLowAHighBGeneral(getAlphabetB, alphabetA));
+	}
+	
+	public static <A, B> SimpleIterator<PairOrdered<A, B>> _combineLowAHighBGeneral_alt1(UnaryFunction<B, SimpleIterator<A>> getAlphabetA, SimpleIterator<B> alphabetB)
+	{
+		return map(p -> swappair(p), combineHighALowBGeneral(alphabetB, getAlphabetA));
+	}
 	
 	
 	
@@ -2199,6 +2883,9 @@ public class CollectionUtilities
 	
 	
 	
+	
+	
+	
 	/* <<<
 primxp
 _$$primxpconf:intsonly$$_
@@ -2222,8 +2909,6 @@ _$$primxpconf:intsonly$$_
 	{
 		return new Immutable_$$Primitive$$_IntervalSet(first, count);
 	}
-	
-	
 	
 	
 	 */
@@ -2252,8 +2937,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	
 	public static char[] intervalCharactersArray(char first, int count)
 	{
 		char[] a = new char[count];
@@ -2273,8 +2956,6 @@ _$$primxpconf:intsonly$$_
 	{
 		return new ImmutableCharacterIntervalSet(first, count);
 	}
-	
-	
 	
 	
 	
@@ -2302,8 +2983,6 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	
 	public static int[] intervalIntegersArray(int first, int count)
 	{
 		int[] a = new int[count];
@@ -2323,8 +3002,6 @@ _$$primxpconf:intsonly$$_
 	{
 		return new ImmutableIntegerIntervalSet(first, count);
 	}
-	
-	
 	
 	
 	
@@ -2350,12 +3027,240 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
+	// >>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+primxp
+_$$primxpconf:byte,char,short,int$$_
+	
+	
+	public static _$$prim$$_[] interval_$$Primitive$$_sArrayByExclusiveEnd(_$$prim$$_ first, int pastEnd)
+	{
+		return interval_$$Primitive$$_sArray(first, pastEnd - first);
+	}
+	
+	public static Immutable_$$Primitive$$_IntervalList interval_$$Primitive$$_sListByExclusiveEnd(_$$prim$$_ first, int pastEnd)
+	{
+		return interval_$$Primitive$$_sList(first, pastEnd - first);
+	}
+	
+	public static Immutable_$$Primitive$$_IntervalSet interval_$$Primitive$$_sSetByExclusiveEnd(_$$prim$$_ first, int pastEnd)
+	{
+		return interval_$$Primitive$$_sSet(first, pastEnd - first);
+	}
+	
+	
+	
+	public static _$$prim$$_[] interval_$$Primitive$$_sArrayByInclusiveEnd(_$$prim$$_ first, _$$prim$$_ last)
+	{
+		return interval_$$Primitive$$_sArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static Immutable_$$Primitive$$_IntervalList interval_$$Primitive$$_sListByInclusiveEnd(_$$prim$$_ first, _$$prim$$_ last)
+	{
+		return interval_$$Primitive$$_sListByExclusiveEnd(first, last+1);
+	}
+	
+	public static Immutable_$$Primitive$$_IntervalSet interval_$$Primitive$$_sSetByInclusiveEnd(_$$prim$$_ first, _$$prim$$_ last)
+	{
+		return interval_$$Primitive$$_sSetByExclusiveEnd(first, last+1);
+	}
+	
+	
+	 */
+	
+	
+	
+	public static byte[] intervalBytesArrayByExclusiveEnd(byte first, int pastEnd)
+	{
+		return intervalBytesArray(first, pastEnd - first);
+	}
+	
+	public static ImmutableByteIntervalList intervalBytesListByExclusiveEnd(byte first, int pastEnd)
+	{
+		return intervalBytesList(first, pastEnd - first);
+	}
+	
+	public static ImmutableByteIntervalSet intervalBytesSetByExclusiveEnd(byte first, int pastEnd)
+	{
+		return intervalBytesSet(first, pastEnd - first);
+	}
+	
+	
+	
+	public static byte[] intervalBytesArrayByInclusiveEnd(byte first, byte last)
+	{
+		return intervalBytesArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableByteIntervalList intervalBytesListByInclusiveEnd(byte first, byte last)
+	{
+		return intervalBytesListByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableByteIntervalSet intervalBytesSetByInclusiveEnd(byte first, byte last)
+	{
+		return intervalBytesSetByExclusiveEnd(first, last+1);
+	}
+	
+	
+	
+	
+	
+	public static char[] intervalCharactersArrayByExclusiveEnd(char first, int pastEnd)
+	{
+		return intervalCharactersArray(first, pastEnd - first);
+	}
+	
+	public static ImmutableCharacterIntervalList intervalCharactersListByExclusiveEnd(char first, int pastEnd)
+	{
+		return intervalCharactersList(first, pastEnd - first);
+	}
+	
+	public static ImmutableCharacterIntervalSet intervalCharactersSetByExclusiveEnd(char first, int pastEnd)
+	{
+		return intervalCharactersSet(first, pastEnd - first);
+	}
+	
+	
+	
+	public static char[] intervalCharactersArrayByInclusiveEnd(char first, char last)
+	{
+		return intervalCharactersArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableCharacterIntervalList intervalCharactersListByInclusiveEnd(char first, char last)
+	{
+		return intervalCharactersListByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableCharacterIntervalSet intervalCharactersSetByInclusiveEnd(char first, char last)
+	{
+		return intervalCharactersSetByExclusiveEnd(first, last+1);
+	}
+	
+	
+	
+	
+	
+	public static short[] intervalShortsArrayByExclusiveEnd(short first, int pastEnd)
+	{
+		return intervalShortsArray(first, pastEnd - first);
+	}
+	
+	public static ImmutableShortIntervalList intervalShortsListByExclusiveEnd(short first, int pastEnd)
+	{
+		return intervalShortsList(first, pastEnd - first);
+	}
+	
+	public static ImmutableShortIntervalSet intervalShortsSetByExclusiveEnd(short first, int pastEnd)
+	{
+		return intervalShortsSet(first, pastEnd - first);
+	}
+	
+	
+	
+	public static short[] intervalShortsArrayByInclusiveEnd(short first, short last)
+	{
+		return intervalShortsArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableShortIntervalList intervalShortsListByInclusiveEnd(short first, short last)
+	{
+		return intervalShortsListByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableShortIntervalSet intervalShortsSetByInclusiveEnd(short first, short last)
+	{
+		return intervalShortsSetByExclusiveEnd(first, last+1);
+	}
+	
+	
+	
+	
+	
+	public static int[] intervalIntegersArrayByExclusiveEnd(int first, int pastEnd)
+	{
+		return intervalIntegersArray(first, pastEnd - first);
+	}
+	
+	public static ImmutableIntegerIntervalList intervalIntegersListByExclusiveEnd(int first, int pastEnd)
+	{
+		return intervalIntegersList(first, pastEnd - first);
+	}
+	
+	public static ImmutableIntegerIntervalSet intervalIntegersSetByExclusiveEnd(int first, int pastEnd)
+	{
+		return intervalIntegersSet(first, pastEnd - first);
+	}
+	
+	
+	
+	public static int[] intervalIntegersArrayByInclusiveEnd(int first, int last)
+	{
+		return intervalIntegersArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableIntegerIntervalList intervalIntegersListByInclusiveEnd(int first, int last)
+	{
+		return intervalIntegersListByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableIntegerIntervalSet intervalIntegersSetByInclusiveEnd(int first, int last)
+	{
+		return intervalIntegersSetByExclusiveEnd(first, last+1);
+	}
 	
 	
 	// >>>
 	
 	
 	
+	
+	
+	
+	
+	
+	public static long[] intervalLongsArrayByExclusiveEnd(long first, long pastEnd)
+	{
+		return intervalLongsArray(first, safeCastS64toS32(pastEnd - first));
+	}
+	
+	public static ImmutableLongIntervalList intervalLongsListByExclusiveEnd(long first, long pastEnd)
+	{
+		return intervalLongsList(first, safeCastS64toS32(pastEnd - first));
+	}
+	
+	public static ImmutableLongIntervalSet intervalLongsSetByExclusiveEnd(long first, long pastEnd)
+	{
+		return intervalLongsSet(first, safeCastS64toS32(pastEnd - first));
+	}
+	
+	
+	
+	public static long[] intervalLongsArrayByInclusiveEnd(long first, long last)
+	{
+		return intervalLongsArrayByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableLongIntervalList intervalLongsListByInclusiveEnd(long first, long last)
+	{
+		return intervalLongsListByExclusiveEnd(first, last+1);
+	}
+	
+	public static ImmutableLongIntervalSet intervalLongsSetByInclusiveEnd(long first, long last)
+	{
+		return intervalLongsSetByExclusiveEnd(first, last+1);
+	}
 	
 	
 	
@@ -2477,6 +3382,18 @@ _$$primxpconf:intsonly$$_
 		return iterable instanceof List ? (List<E>)iterable : toNewMutableVariablelengthList(iterable);
 	}
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asList(Iterator<E> iterator)
+	{
+		return toNewMutableVariablelengthList(iterator);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asList(SimpleIterator<E> iterator)
+	{
+		return toNewMutableVariablelengthList(iterator);
+	}
+	
 	//Importing java.util.Arrays.* conflicts with java.util.ArrayList so they can't both be imported! :[
 	//So we offer a delegate here to get around that! ^wwwww^
 	//(also it's not varargs (unless you want that with asListV()), since varargs with Object causes a lot of confusion when passing an Object[] to it X'D )
@@ -2492,6 +3409,146 @@ _$$primxpconf:intsonly$$_
 	{
 		return asList(array);
 	}
+	
+	
+	
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListByEndLenient(Iterable<E> iterable, int start, int pastEnd)
+	{
+		if (pastEnd < start)  throw new IllegalArgumentException();
+		
+		if (iterable instanceof List)
+		{
+			List<E> l = (List<E>) iterable;
+			int n = l.size();
+			return l.subList(least(start, n), least(pastEnd, n));
+		}
+		else
+		{
+			return toNewMutableVariablelengthSubListLenient(iterable, start, pastEnd);
+		}
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListByEndLenient(Iterator<E> iterator, int start, int pastEnd)
+	{
+		return toNewMutableVariablelengthSubListLenient(iterator, start, pastEnd);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListByEndLenient(SimpleIterator<E> iterator, int start, int pastEnd)
+	{
+		return toNewMutableVariablelengthSubListLenient(iterator, start, pastEnd);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@LiveValue
+	@WritableValue
+	public static <E> List<E> asSubListByEndLenient(E[] array, int start, int pastEnd)  //fixed-length but writable view of the array!
+	{
+		if (pastEnd < start)  throw new IllegalArgumentException();
+		
+		int n = array.length;
+		return Arrays.asList(array).subList(least(start, n), least(pastEnd, n));  //Arrays.asList() produces a view implementation, so this is fine :>
+	}
+	
+	
+	
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or size is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListBySizeLenient(Iterable<E> iterable, int start, int size)
+	{
+		return asSubListByEndLenient(iterable, start, start+size);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or size is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListBySizeLenient(Iterator<E> iterator, int start, int size)
+	{
+		return asSubListByEndLenient(iterator, start, start+size);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or size is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListBySizeLenient(SimpleIterator<E> iterator, int start, int size)
+	{
+		return asSubListByEndLenient(iterator, start, start+size);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or size is too big), this just returns as much as it can.
+	 */
+	@LiveValue
+	@WritableValue
+	public static <E> List<E> asSubListBySizeLenient(E[] array, int start, int size)  //fixed-length but writable view of the array!
+	{
+		return asSubListByEndLenient(array, start, start+size);
+	}
+	
+	
+	
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (because start is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListFromStartLenient(Iterable<E> iterable, int sizeWhichIsPastEnd)
+	{
+		return asSubListByEndLenient(iterable, 0, sizeWhichIsPastEnd);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (because start is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListFromStartLenient(Iterator<E> iterator, int sizeWhichIsPastEnd)
+	{
+		return asSubListByEndLenient(iterator, 0, sizeWhichIsPastEnd);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (because start is too big), this just returns as much as it can.
+	 */
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> asSubListFromStartLenient(SimpleIterator<E> iterator, int sizeWhichIsPastEnd)
+	{
+		return asSubListByEndLenient(iterator, 0, sizeWhichIsPastEnd);
+	}
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (because start is too big), this just returns as much as it can.
+	 */
+	@LiveValue
+	@WritableValue
+	public static <E> List<E> asSubListFromStartLenient(E[] array, int sizeWhichIsPastEnd)  //fixed-length but writable view of the array!
+	{
+		return asSubListByEndLenient(array, 0, sizeWhichIsPastEnd);
+	}
+	
+	
+	
 	
 	
 	
@@ -2528,17 +3585,145 @@ _$$primxpconf:intsonly$$_
 	public static <E> List<E> toNewMutableVariablelengthList(Iterable<E> iterable)
 	{
 		if (iterable instanceof Collection)
-		{
 			return new ArrayList<>((Collection)iterable);
-		}
+		else if (iterable instanceof SimpleIterable)
+			return toNewMutableVariablelengthList(((SimpleIterable)iterable).simpleIterator());
 		else
+			return toNewMutableVariablelengthList(iterable.iterator());
+	}
+	
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthList(Iterator<E> iterator)
+	{
+		List<E> list = new ArrayList<>();
+		for (E e : singleUseIterable(iterator))
+			list.add(e);
+		return list;
+	}
+	
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthList(SimpleIterator<E> iterator)
+	{
+		List<E> list = new ArrayList<>();
+		
+		while (true)
 		{
-			List<E> list = new ArrayList<>();
-			for (E e : iterable)
-				list.add(e);
-			return list;
+			E e;
+			try
+			{
+				e = iterator.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			list.add(e);
+		}
+		
+		return list;
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthSubListLenient(Iterable<E> iterable, int start, int pastEnd)
+	{
+		if (pastEnd < start)  throw new IllegalArgumentException();
+		
+		if (iterable instanceof Collection)
+		{
+			if (start == 0)
+			{
+				int size = ((Collection) iterable).size();
+				
+				if (size == pastEnd)
+				{
+					return new ArrayList<>((Collection)iterable);
+				}
+			}
+		}
+		
+		
+		//else
+		{
+			if (iterable instanceof SimpleIterable)
+				return toNewMutableVariablelengthSubListLenient(((SimpleIterable)iterable).simpleIterator(), start, pastEnd);
+			else
+				return toNewMutableVariablelengthSubListLenient(iterable.iterator(), start, pastEnd);
 		}
 	}
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthSubListLenient(Iterator<E> iterator, int start, int pastEnd)
+	{
+		if (pastEnd < start)  throw new IllegalArgumentException();
+		
+		List<E> list = new ArrayList<>(pastEnd - start);
+		
+		int i = 0;
+		for (E e : singleUseIterable(iterator))
+		{
+			if (i >= pastEnd)
+				break;
+			
+			if (i >= start)
+				list.add(e);
+			
+			i++;
+		}
+		
+		return list;
+	}
+	
+	
+	/**
+	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
+	 */
+	@ThrowAwayValue
+	public static <E> List<E> toNewMutableVariablelengthSubListLenient(SimpleIterator<E> iterator, int start, int pastEnd)
+	{
+		if (pastEnd < start)  throw new IllegalArgumentException();
+		
+		List<E> list = new ArrayList<>(pastEnd - start);
+		
+		int i = 0;
+		while (i < pastEnd)
+		{
+			E e;
+			try
+			{
+				e = iterator.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			if (i >= start)
+				list.add(e);
+			
+			i++;
+		}
+		
+		return list;
+	}
+	
+	
+	
+	
+	
+	
 	
 	@ThrowAwayValue
 	public static <E> List<E> toNewMutableVariablelengthList(E[] array)
@@ -12451,5 +13636,14 @@ _$$primxpconf:intsonly$$_
 			
 			return pair(newLists, common);
 		}
+	}
+	
+	
+	
+	
+	
+	public static <E extends Collection<?>> E altIfEmpty(E x, E alternate)
+	{
+		return x.isEmpty() ? alternate : x;
 	}
 }

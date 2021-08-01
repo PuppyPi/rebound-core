@@ -564,6 +564,17 @@ implements JavaNamespace
 	
 	
 	
+	public static <A, B> PairOrdered<B, A> swappair(PairOrdered<A, B> p)
+	{
+		return pair(p.getB(), p.getA());
+	}
+	
+	
+	
+	
+	
+	
+	
 	public static <E> Maybe<E> just(@Nullable E e)
 	{
 		return new Maybe<E>(e);

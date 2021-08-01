@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import rebound.exceptions.ReadonlyUnsupportedOperationException;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
 
-//TODO Test! :D
 public class CharSequenceBackedReadonlyCharacterList
 implements CharacterList
 {

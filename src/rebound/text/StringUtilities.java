@@ -98,6 +98,7 @@ import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.SimpleTable;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.CharSequenceBackedReadonlyCharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
@@ -1792,7 +1793,7 @@ implements JavaNamespace
 	
 	
 	
-	public static String concatList(Iterable<?> tokens)
+	public static String concatenateStrings(Iterable<?> tokens)
 	{
 		StringBuilder buff = new StringBuilder();
 		for (Object e : tokens)
@@ -1805,7 +1806,7 @@ implements JavaNamespace
 		return buff.toString();
 	}
 	
-	public static String concatArray(Object[] tokens)
+	public static String concatenateStrings(Object[] tokens)
 	{
 		StringBuilder buff = new StringBuilder();
 		for (Object e : tokens)
@@ -1818,7 +1819,7 @@ implements JavaNamespace
 		return buff.toString();
 	}
 	
-	public static String concatVarargs(Object... tokens)
+	public static String concatenateStringsV(Object... tokens)
 	{
 		StringBuilder buff = new StringBuilder();
 		for (Object e : tokens)
@@ -9252,5 +9253,19 @@ primxp
 	{
 		//Todo better impl?
 		return safeCastS64toS32(s.codePoints().count());
+	}
+	
+	
+	
+	public static List<Character> asCharList(CharSequence s)
+	{
+		return new CharSequenceBackedReadonlyCharacterList(s);
+	}
+	
+	
+	
+	public static <E extends CharSequence> E altIfEmpty(E x, E alternate)
+	{
+		return (x.length() == 0) ? alternate : x;
 	}
 }
