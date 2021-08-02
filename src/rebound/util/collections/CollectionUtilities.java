@@ -1659,6 +1659,59 @@ public class CollectionUtilities
 	}
 	
 	
+	/**
+	 * + This is "lenient" in the way that {@link #asSubListBySizeLenient(SimpleIterator, int, int)} is lenient—if there aren't enough values in the underlying stream, then it just stops there.  Ie, the number of elements in this stream is <code>{@link SmallIntegerMathUtilities#least(int, int) least}(number, theNumberOfElementsInThisStream)</code>  :3
+	 */
+	public static <E> SimpleIterator<E> truncatingGenerator(SimpleIterator<E> underlying, int number)
+	{
+		return new SimpleIterator<E>()
+		{
+			int i = 0;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				if (i == number)
+					throw StopIterationReturnPath.I;
+				
+				i++;
+				
+				return underlying.nextrp();  //Propagate StopIterationReturnPath  :3
+			}
+		};
+	}
+	
+	
+	/**
+	 * + This is "strict" in the way that {@link #asSubListBySizeLenient(SimpleIterator, int, int)} is lenient—if there aren't enough values in the underlying stream, then {@link NoSuchElementException} is thrown by {@link SimpleIterator#nextrp()}!
+	 */
+	public static <E> SimpleIterator<E> truncatingGeneratorStrict(SimpleIterator<E> underlying, int number)
+	{
+		return new SimpleIterator<E>()
+		{
+			int i = 0;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				if (i == number)
+					throw StopIterationReturnPath.I;
+				
+				i++;
+				
+				try
+				{
+					return underlying.nextrp();
+				}
+				catch (StopIterationReturnPath rp)
+				{
+					throw new NoSuchElementException("Only "+(i-1)+" elements were in the underlying stream, we expected "+number+"!");
+				}
+			}
+		};
+	}
+	
+	
 	
 	
 	
@@ -1846,6 +1899,10 @@ public class CollectionUtilities
 			int n = soFar.size();
 			return n >= size ? null : digits.f(n);
 		});
+	}
+	public static <I, O> SimpleIterator<List<O>> combineGeneratorsAcontextualMapping(UnaryFunction<I, SimpleIterator<O>> mapper, List<I> inputs)
+	{
+		return combineGeneratorsAcontextual(inputs.size(), i -> mapper.f(inputs.get(i)));
 	}
 	
 	
@@ -12285,6 +12342,66 @@ _$$primxpconf:byte,char,short,int$$_
 		
 		for (E e : inputs)
 		{
+			if (has)
+			{
+				current = function.f(current, e);
+			}
+			else
+			{
+				current = e;
+				has = true;
+			}
+		}
+		
+		if (!has)
+			throw EmptyInputReturnPath.I;
+		
+		return current;
+	}
+	
+	
+	
+	public static <I, O> O mapreduce(Mapper<I, O> mapper, BinaryFunction<O, O, O> function, O identityIfListIsEmpty, Iterable<I> inputs)
+	{
+		try
+		{
+			return mapreduceRP(mapper, function, inputs);
+		}
+		catch (EmptyInputReturnPath rp)
+		{
+			return identityIfListIsEmpty;
+		}
+	}
+	
+	public static <I, O> O mapreduceNonempty(Mapper<I, O> mapper, BinaryFunction<O, O, O> function, Iterable<I> inputs) throws EmptyInputException
+	{
+		try
+		{
+			return mapreduceRP(mapper, function, inputs);
+		}
+		catch (EmptyInputReturnPath rp)
+		{
+			throw rp.toException();
+		}
+	}
+	
+	public static <I, O> O mapreduceRP(Mapper<I, O> mapper, BinaryFunction<O, O, O> function, Iterable<I> inputs) throws EmptyInputReturnPath
+	{
+		boolean has = false;
+		O current = null;
+		
+		for (I i : inputs)
+		{
+			O e;
+			try
+			{
+				e = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
 			if (has)
 			{
 				current = function.f(current, e);
