@@ -13,7 +13,9 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import static rebound.util.BasicExceptionUtilities.*;
+import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -103,28 +105,19 @@ implements JavaNamespace
 	
 	
 	
-	public static enum Infinity
-	{
-		Negative,
-		Positive,
-	}
-	
-	
-	
-	
 	public static boolean isNegativeInfinity(Object o)
 	{
-		return eq(o, Float.NEGATIVE_INFINITY) || eq(o, Double.NEGATIVE_INFINITY) || o == Infinity.Negative;
+		return o == RealInfinity.Negative || eq(o, Double.NEGATIVE_INFINITY) || eq(o, Float.NEGATIVE_INFINITY);
 	}
 	
 	public static boolean isPositiveInfinity(Object o)
 	{
-		return eq(o, Float.POSITIVE_INFINITY) || eq(o, Double.POSITIVE_INFINITY) || o == Infinity.Positive;
+		return o == RealInfinity.Positive || eq(o, Double.POSITIVE_INFINITY) || eq(o, Float.POSITIVE_INFINITY);
 	}
 	
 	public static boolean isInfinity(Object o)
 	{
-		return isNegativeInfinity(o) || isPositiveInfinity(o);
+		return isPositiveInfinity(o) || isNegativeInfinity(o);
 	}
 	
 	
@@ -1267,6 +1260,12 @@ implements JavaNamespace
 	}
 	
 	@Nullable
+	public static <O> PairOrdered<Integer, O> leastPairIndexes(List<O> values, Comparator<O> comparison)
+	{
+		return leastMapPair(values::get, intervalIntegersList(0, values.size()), comparison);
+	}
+	
+	@Nullable
 	public static <I, O> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterable<I> inputs, Comparator<O> comparison)
 	{
 		boolean has = false;
@@ -1320,6 +1319,12 @@ implements JavaNamespace
 	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs)
 	{
 		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	@Nullable
+	public static <O> PairOrdered<Integer, O> greatestPairIndexes(List<O> values, Comparator<O> comparison)
+	{
+		return greatestMapPair(values::get, intervalIntegersList(0, values.size()), comparison);
 	}
 	
 	@Nullable
@@ -1543,6 +1548,8 @@ implements JavaNamespace
 			return safeCastIntegerToS64(safeCastFloatToInteger((Float)input));
 		else if (input instanceof Double)
 			return safeCastIntegerToS64(safeCastFloatToInteger((Double)input));
+		else if (input instanceof BigDecimal)
+			return safeCastIntegerToS64(safeCastFloatToInteger((BigDecimal)input));
 		
 		throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(input);
 	}
@@ -1659,9 +1666,6 @@ implements JavaNamespace
 			}
 			
 			return true;
-			
-			
-			
 		}
 	}
 	
@@ -1703,6 +1707,25 @@ implements JavaNamespace
 		else
 		{
 			return (long)f;
+		}
+	}
+	
+	public static Object safeCastFloatToInteger(BigDecimal f) throws TruncationException
+	{
+		try
+		{
+			return f.longValueExact();
+		}
+		catch (ArithmeticException exc)
+		{
+			try
+			{
+				return f.toBigIntegerExact();
+			}
+			catch (ArithmeticException exc2)
+			{
+				throw new TruncationException(exc2);
+			}
 		}
 	}
 	
@@ -1762,9 +1785,54 @@ implements JavaNamespace
 	
 	
 	
+	public static BigDecimal safeCastAnythingToBigDecimal(Object input) throws TruncationException
+	{
+		if (input instanceof BigDecimal)
+		{
+			return (BigDecimal)input;
+		}
+		
+		else if (input instanceof Float)
+		{
+			float f = (Float)input;
+			return BigDecimal.valueOf((double)f);
+		}
+		
+		else if (input instanceof Double)
+		{
+			double f = (Double)input;
+			return BigDecimal.valueOf(f);
+		}
+		
+		else if (input instanceof Rational)
+		{
+			BigDecimal n = safeCastAnythingToBigDecimal(((Rational) input).getNumerator());
+			BigDecimal d = safeCastAnythingToBigDecimal(((Rational) input).getNumerator());
+			return n.divide(d);
+		}
+		
+		else
+		{
+			input = normalizeIfIntegerPrimitive(input);
+			
+			if (input instanceof Long)
+				return BigDecimal.valueOf((Long)input);
+			else
+				return new BigDecimal(toBigInteger(input));
+		}
+	}
+	
+	
+	
+	
 	public static BigInteger safeCastAnythingToBigInteger(Object input) throws TruncationException
 	{
-		if (input instanceof Rational)
+		if (input instanceof BigInteger)
+		{
+			return (BigInteger)input;
+		}
+		
+		else if (input instanceof Rational)
 		{
 			input = reduce(input);
 			
@@ -2147,6 +2215,17 @@ implements JavaNamespace
 	
 	
 	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object normalizeNumberToReal(@RealNumeric Object a)
+	{
+		if (a instanceof Float)
+			return ((Float)a).doubleValue();
+		else if (a instanceof Double || a instanceof BigDecimal)
+			return a;
+		else
+			return normalizeNumberToRationalOrInteger(a);
+	}
+	
 	
 	/**
 	 * Note: this does NOT perform fraction-reduction!!  It only performs type conversion (eg, (int)13 --> (long)13,  2/1 --> 2)
@@ -2236,7 +2315,10 @@ implements JavaNamespace
 	
 	
 	//This is an example of what we *don't* need to tag with @NormalizesPrimitives :D
-	public static int signum(Object a)
+	/**
+	 * @return -1, 0, or +1  (never other positive or negative values)
+	 */
+	public static int signum(@RealNumeric Object a)
 	{
 		requireNonNull(a);
 		
@@ -2244,24 +2326,30 @@ implements JavaNamespace
 		if (a instanceof Double)
 		{
 			double aa = requireFinite((Double)a);
-			if (aa < 0)
-				return -1;
 			if (aa > 0)
 				return +1;
+			if (aa < 0)
+				return -1;
 			if (aa == 0)
 				return 0;
 			throw new AssertionError();
 		}
+		
 		if (a instanceof Float)
 		{
 			float aa = requireFinite((Float)a);
-			if (aa < 0)
-				return -1;
 			if (aa > 0)
 				return +1;
+			if (aa < 0)
+				return -1;
 			if (aa == 0)
 				return 0;
 			throw new AssertionError();
+		}
+		
+		if (a instanceof BigDecimal)
+		{
+			return ((BigDecimal) a).signum();
 		}
 		
 		
@@ -2334,7 +2422,7 @@ implements JavaNamespace
 	 * 
 	 * Not floats though—don't even rely on hashcodes for those X'D
 	 */
-	public static int mathhash(@Nonnull Object a)
+	public static int mathhash(@Nullable @RealNumeric Object a)
 	{
 		requireNonNull(a);
 		
@@ -2425,13 +2513,18 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean matheq(@Nonnull Object a, @Nonnull Object b)
+	
+	public static boolean matheq(@Nonnull @RealNumeric Object a, @Nonnull @RealNumeric Object b)
 	{
 		return mathcmp(a, b) == 0;
 	}
 	
-	//Todo more optimized versions??  (how well do they jit with Sun's jit!?)
-	public static int mathcmp(@Nonnull Object a, @Nonnull Object b)
+	
+	/**
+	 * @return -1, 0, or +1  (never other positive or negative values)
+	 */
+	//Todo more optimized versions??  (but only if they would actually be better, given jit! XD )
+	public static int mathcmp(@Nonnull @RealNumeric Object a, @Nonnull @RealNumeric Object b)
 	{
 		requireNonNull(a);
 		requireNonNull(b);
@@ -2440,22 +2533,25 @@ implements JavaNamespace
 			return 0;
 		
 		
+		
 		//Handle infinities :3
 		{
-			boolean ani = isNegativeInfinity(a);
-			boolean bni = isNegativeInfinity(b);
 			boolean api = isPositiveInfinity(a);
 			boolean bpi = isPositiveInfinity(b);
-			
-			if (ani)
-				return bni ? 0 : -1;
-			else if (bni)
-				return 1;
 			
 			if (api)
 				return bpi ? 0 : 1;
 			else if (bpi)
 				return -1;
+			
+			
+			boolean ani = isNegativeInfinity(a);
+			boolean bni = isNegativeInfinity(b);
+			
+			if (ani)
+				return bni ? 0 : -1;
+			else if (bni)
+				return 1;
 		}
 		
 		
@@ -2473,7 +2569,6 @@ implements JavaNamespace
 			@ActuallyUnsigned long bv = ((UnsignedLong)b).longValue();
 			return av < 0 ? -1 : (bv < 0 ? -1 : SmallIntegerMathUtilities.cmp(av, bv));
 		}
-		
 		if (a instanceof UnsignedLong && b instanceof Long)
 			return -mathcmp(b, a);
 		
@@ -2686,12 +2781,17 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
 	@MayNormalizePrimitives
 	public static @RealNumeric Object negate(@RealNumeric Object a)
 	{
-		a = normalizeNumberToRationalOrInteger(a);
+		a = normalizeNumberToReal(a);
 		
-		if (a instanceof Long)
+		if (a instanceof Long)  //small ints will be normalized to Longs :3
 		{
 			long l = (Long)a;
 			if (l == Long.MIN_VALUE)
@@ -2699,57 +2799,64 @@ implements JavaNamespace
 			else
 				return -l;
 		}
+		
 		else if (a instanceof Rational)
 		{
 			Rational r = (Rational)a;
 			
 			return rational(negate(r.getNumerator()), r.getDenominator());
 		}
+		
 		else if (a instanceof BigInteger)
-		{
 			return ((BigInteger)a).negate();
-		}
-		else if (a instanceof Double)
-		{
+		
+		else if (a instanceof Double)  //Floats will be normalized to Doubles :3
 			return -((Double)a);
-		}
+		
 		else if (a instanceof BigDecimal)
-		{
 			return ((BigDecimal)a).negate();
-		}
+		
+		else if (isPositiveInfinity(a))
+			return RealInfinity.Negative;
+		
+		else if (isNegativeInfinity(a))
+			return RealInfinity.Positive;
+		
 		else
-		{
 			throw new StructuredClassCastException(a.getClass());
+	}
+	
+	
+	
+	
+	/**
+	 * +0 = -0 so f(x) can't ≠ f(y) when x = y !
+	 * So {@link DivisionByZeroException} is thrown (not +∞ or -∞ returned) even when floats are given!
+	 */
+	@MayNormalizePrimitives
+	public static @RealNumeric Object reciprocate(@RealNumeric Object a) throws DivisionByZeroException
+	{
+		a = normalizeNumberToReal(a);
+		
+		
+		if (matheq(a, 0))
+			throw new DivisionByZeroException();
+		
+		
+		//Floating points...just smile and noddd xD
+		{
+			if (a instanceof BigDecimal)
+				return BigDecimal.ONE.divide((BigDecimal)a);
+			
+			if (a instanceof Double)  //Floats will be normalized to Doubles :3
+				return 1d / (Double)a;
 		}
-	}
-	
-	
-	
-	@MayNormalizePrimitives
-	public static @RealNumeric Object absPoly(@RealNumeric Object x)
-	{
-		return mathcmp(x, 0) < 0 ? negate(x) : x;
-	}
-	
-	
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object reciprocate(@RationalOrInteger Object a)
-	{
-		a = normalizeNumberToRationalOrInteger(a);
-		
-		
-		//		//Floating points...just smile and noddd xD
-		//		{
-		//			if (a instanceof Double)
-		//				return 1d / (Double)a;
-		//		}
 		
 		
 		//RRRRRRAtttionallssss! /o/ :D!
 		{
 			if (a instanceof Rational)
-				return rational(((Rational) a).getDenominator(), ((Rational) a).getNumerator());
+				return new ImmutableRational(((Rational) a).getDenominator(), ((Rational) a).getNumerator());  //no need to check the values or reduce the fraction with rational() or even internalRational(), that would already have been done! :3
 		}
 		
 		
@@ -2767,23 +2874,59 @@ implements JavaNamespace
 	
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b)
+	public static @RealNumeric Object add(@RealNumeric Object a, @RealNumeric Object b)
 	{
-		a = normalizeNumberToRationalOrInteger(a);
-		b = normalizeNumberToRationalOrInteger(b);
+		if (isPositiveInfinity(a))
+		{
+			if (isNegativeInfinity(b))
+				throw new ArithmeticException("∞ + -∞ attempted!");
+			return RealInfinity.Positive;
+		}
+		
+		if (isPositiveInfinity(b))
+		{
+			if (isNegativeInfinity(a))
+				throw new ArithmeticException("-∞ + ∞ attempted!");
+			return RealInfinity.Positive;
+		}
+		
+		if (isNegativeInfinity(a))
+		{
+			if (isPositiveInfinity(b))
+				throw new ArithmeticException("-∞ + ∞ attempted!");
+			return RealInfinity.Negative;
+		}
+		
+		if (isNegativeInfinity(b))
+		{
+			if (isPositiveInfinity(a))
+				throw new ArithmeticException("∞ + -∞ attempted!");
+			return RealInfinity.Negative;
+		}
+		
+		
+		a = normalizeNumberToReal(a);
+		b = normalizeNumberToReal(b);
 		
 		
 		
-		//		//Floating points...just smile and noddd xD
-		//		{
-		//			if (a instanceof Double || b instanceof Double)
-		//			{
-		//				a = ((Number)a).doubleValue();
-		//				b = ((Number)b).doubleValue();
-		//
-		//				return (Double)a + (Double)b;
-		//			}
-		//		}
+		//Floating points...just smile and noddd xD
+		{
+			if (a instanceof BigDecimal || b instanceof BigDecimal)
+			{
+				BigDecimal af = safeCastAnythingToBigDecimal(a);
+				BigDecimal bf = safeCastAnythingToBigDecimal(b);
+				return af.add(bf);
+			}
+			
+			if (a instanceof Double || b instanceof Double)  //Floats will be normalized to Doubles :3
+			{
+				double af = ((Number)a).doubleValue();
+				double bf = ((Number)b).doubleValue();
+				
+				return af + bf;
+			}
+		}
 		
 		
 		
@@ -2833,18 +2976,6 @@ implements JavaNamespace
 		}
 	}
 	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
-	{
-		return add(add(a, b), c);
-	}
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object add(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
-	{
-		return add(add(add(a, b), c), d);
-	}
-	
 	
 	
 	
@@ -2853,23 +2984,81 @@ implements JavaNamespace
 	
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b)
+	public static @RealNumeric Object multiply(@RealNumeric Object a, @RealNumeric Object b)
 	{
-		a = normalizeNumberToRationalOrInteger(a);
-		b = normalizeNumberToRationalOrInteger(b);
+		if (isPositiveInfinity(a))
+		{
+			int r = mathcmp(b, 0);  //also works for infinities :3
+			
+			if (r == 0)
+				throw new ArithmeticException("∞ * 0 attempted!");
+			else if (r > 0)
+				return RealInfinity.Positive;
+			else
+				return RealInfinity.Negative;
+		}
+		
+		if (isPositiveInfinity(b))
+		{
+			int r = mathcmp(a, 0);  //also works for infinities :3
+			
+			if (r == 0)
+				throw new ArithmeticException("0 * ∞ attempted!");
+			else if (r > 0)
+				return RealInfinity.Positive;
+			else
+				return RealInfinity.Negative;
+		}
+		
+		if (isNegativeInfinity(a))
+		{
+			int r = mathcmp(b, 0);  //also works for infinities :3
+			
+			if (r == 0)
+				throw new ArithmeticException("-∞ * 0 attempted!");
+			else if (r > 0)
+				return RealInfinity.Negative;
+			else
+				return RealInfinity.Positive;
+		}
+		
+		if (isNegativeInfinity(b))
+		{
+			int r = mathcmp(a, 0);  //also works for infinities :3
+			
+			if (r == 0)
+				throw new ArithmeticException("0 * -∞ attempted!");
+			else if (r > 0)
+				return RealInfinity.Negative;
+			else
+				return RealInfinity.Positive;
+		}
 		
 		
 		
-		//		//Floating points...just smile and noddd xD
-		//		{
-		//			if (a instanceof Double || b instanceof Double)
-		//			{
-		//				a = ((Number)a).doubleValue();
-		//				b = ((Number)b).doubleValue();
-		//
-		//				return (Double)a * (Double)b;
-		//			}
-		//		}
+		
+		a = normalizeNumberToReal(a);
+		b = normalizeNumberToReal(b);
+		
+		
+		
+		//Floating points...just smile and noddd xD
+		{
+			if (a instanceof BigDecimal || b instanceof BigDecimal)
+			{
+				BigDecimal af = safeCastAnythingToBigDecimal(a);
+				BigDecimal bf = safeCastAnythingToBigDecimal(b);
+				return af.multiply(bf);
+			}
+			
+			if (a instanceof Double || b instanceof Double)  //Floats will be normalized to Doubles :3
+			{
+				double af = ((Number)a).doubleValue();
+				double bf = ((Number)b).doubleValue();
+				
+				return af * bf;
+			}
+		}
 		
 		
 		
@@ -2922,46 +3111,16 @@ implements JavaNamespace
 		}
 	}
 	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
-	{
-		return multiply(multiply(a, b), c);
-	}
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object multiply(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
-	{
-		return multiply(multiply(multiply(a, b), c), d);
-	}
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b)
-	{
-		return multiply(a, b);
-	}
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c)
-	{
-		return multiply(a, b, c);
-	}
-	
-	@MayNormalizePrimitives
-	public static @RationalOrInteger Object mul(@RationalOrInteger Object a, @RationalOrInteger Object b, @RationalOrInteger Object c, @RationalOrInteger Object d)
-	{
-		return multiply(a, b, c, d);
-	}
-	
 	
 	
 	
 	
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object pow(@RationalOrInteger Object base, @RationalOrInteger Object exponent)
+	public static @RealNumeric Object pow(@RealNumeric Object base, @RealNumeric Object exponent)
 	{
-		base = normalizeNumberToRationalOrInteger(base);
-		exponent = normalizeNumberToRationalOrInteger(exponent);
+		base = normalizeNumberToReal(base);
+		exponent = normalizeNumberToReal(exponent);
 		
 		
 		if (isZero(exponent))
@@ -2969,21 +3128,37 @@ implements JavaNamespace
 			if (isZero(base))
 				throw new ArithmeticException("0 to the power of 0!!  :O");
 			else
-				return 1L;
+				return 1l;
+		}
+		else if (isZero(base))
+		{
+			return 0;
+		}
+		else if (matheq(base, 1l))
+		{
+			return 1l;
 		}
 		
 		
 		
-		//		//Floating points...just smile and noddd xD
-		//		{
-		//			if (a instanceof Double || b instanceof Double)
-		//			{
-		//				a = ((Number)a).doubleValue();
-		//				b = ((Number)b).doubleValue();
-		//
-		//				return Math.pow((Double)a, (Double)b);
-		//			}
-		//		}
+		
+		//Floating points...just smile and noddd xD
+		{
+			if (base instanceof BigDecimal || exponent instanceof BigDecimal)
+			{
+				BigDecimal bf = safeCastAnythingToBigDecimal(base);
+				int ef = safeCastAnythingToS32(exponent);
+				return bf.pow(ef);
+			}
+			
+			if (base instanceof Double || exponent instanceof Double)
+			{
+				double bf = ((Number)base).doubleValue();
+				double ef = ((Number)exponent).doubleValue();
+				
+				return Math.pow(bf, ef);
+			}
+		}
 		
 		
 		
@@ -3062,32 +3237,83 @@ implements JavaNamespace
 	
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object subtract(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
+	public static @RealNumeric Object subtract(@RealNumeric Object minuend, @RealNumeric Object subtrahend)
 	{
 		return add(minuend, negate(subtrahend));
 	}
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object divide(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
+	public static @RealNumeric Object divide(@RealNumeric Object dividend, @RealNumeric Object divisor)
 	{
 		return multiply(dividend, reciprocate(divisor));
 	}
 	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object absPoly(@RealNumeric Object x)
+	{
+		return mathcmp(x, 0) < 0 ? negate(x) : x;
+	}
+	
+	
+	
+	
 	
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object sub(@RationalOrInteger Object minuend, @RationalOrInteger Object subtrahend)
+	public static @RealNumeric Object sub(@RealNumeric Object minuend, @RealNumeric Object subtrahend)
 	{
 		return subtract(minuend, subtrahend);
 	}
 	
 	@MayNormalizePrimitives
-	public static @RationalOrInteger Object div(@RationalOrInteger Object dividend, @RationalOrInteger Object divisor)
+	public static @RealNumeric Object div(@RealNumeric Object dividend, @RealNumeric Object divisor)
 	{
 		return divide(dividend, divisor);
 	}
 	
 	
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object add(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c)
+	{
+		return add(add(a, b), c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object add(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c, @RealNumeric Object d)
+	{
+		return add(add(add(a, b), c), d);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object multiply(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c)
+	{
+		return multiply(multiply(a, b), c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object multiply(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c, @RealNumeric Object d)
+	{
+		return multiply(multiply(multiply(a, b), c), d);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object mul(@RealNumeric Object a, @RealNumeric Object b)
+	{
+		return multiply(a, b);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object mul(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c)
+	{
+		return multiply(a, b, c);
+	}
+	
+	@MayNormalizePrimitives
+	public static @RealNumeric Object mul(@RealNumeric Object a, @RealNumeric Object b, @RealNumeric Object c, @RealNumeric Object d)
+	{
+		return multiply(a, b, c, d);
+	}
 	
 	
 	
@@ -3821,286 +4047,6 @@ implements JavaNamespace
 	
 	
 	
-	//TODO Test theseeeeeeee! :D
-	
-	
-	/**
-	 * Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, "[x, x)" ) to represent a single point without needing to use a whole other format than interval-typed values :3
-	 */
-	public static final ArithmeticIntegerInterval EmptyInterval = new ArithmeticIntegerInterval(0, 0);
-	
-	public static ArithmeticIntegerInterval emptyInterval()
-	{
-		return EmptyInterval;
-	}
-	
-	
-	public static ArithmeticIntegerInterval singletonInterval(long v)
-	{
-		return intervalByPointAndSize(v, 1);
-	}
-	
-	
-	public static ArithmeticIntegerInterval intervalByPoints(long lowInclusive, long highExclusive)
-	{
-		return new ArithmeticIntegerInterval(lowInclusive, highExclusive - lowInclusive);
-	}
-	
-	public static ArithmeticIntegerInterval intervalByPointAndSize(long lowInclusive, long size)
-	{
-		return new ArithmeticIntegerInterval(lowInclusive, size);
-	}
-	
-	
-	public static ArithmeticIntegerInterval intervalByPointsOrEmptyIfReversed(long lowInclusive, long highExclusive)
-	{
-		return intervalByPointAndSizeOrEmptyIfReversed(lowInclusive, highExclusive - lowInclusive);
-	}
-	
-	public static ArithmeticIntegerInterval intervalByPointAndSizeOrEmptyIfReversed(long lowInclusive, long size)
-	{
-		if (size < 0)
-			return emptyInterval();
-		else
-			return intervalByPointAndSize(lowInclusive, size);
-	}
-	
-	
-	public static ArithmeticIntegerInterval intervalByIntervalExplicitBounds(ArithmeticIntegerInterval low, boolean lowInclusive, ArithmeticIntegerInterval high, boolean highInclusive)
-	{
-		long l = lowInclusive ? low.getStart() : low.getPastEnd();
-		long h = highInclusive ? high.getPastEnd() : high.getStart();
-		return intervalByPointsOrEmptyIfReversed(l, h);
-	}
-	
-	public static ArithmeticIntegerInterval intervalByExplicitBounds(long low, boolean lowInclusive, long high, boolean highInclusive)
-	{
-		//return intervalByIntervalExplicitBounds(intervalByPointAndSize(low, 1), lowInclusive, intervalByPointAndSize(high, 1), highInclusive);
-		long l = lowInclusive ? low : low+1;
-		long h = highInclusive ? high+1 : high;
-		return intervalByPointsOrEmptyIfReversed(l, h);
-	}
-	
-	
-	
-	
-	public static ArithmeticIntegerInterval intervalAdd(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		return intervalByPoints(al + bl, ah + bh);
-	}
-	
-	public static ArithmeticIntegerInterval intervalSubtract(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		return intervalByPoints(al - bh, ah - bl);
-	}
-	
-	public static ArithmeticIntegerInterval intervalNegate(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		
-		return intervalByPoints(-ah, -al);
-	}
-	
-	public static ArithmeticIntegerInterval intervalMultiply(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		long c0 = al*bl;
-		long c1 = ah*bl;
-		long c2 = al*bh;
-		long c3 = ah*bh;
-		
-		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
-	}
-	
-	/**
-	 * NOTE: This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b (the denominator) get close to and then include zero!  (eg, by being negative on one side and positive on the other!))
-	 */
-	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		if (b.containsPoint(0))
-			throw new DivisionByZeroException();
-		
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		long c0 = al/bl;
-		long c1 = ah/bl;
-		long c2 = al/bh;
-		long c3 = ah/bh;
-		
-		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
-	}
-	
-	
-	
-	
-	
-	
-	/**
-	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound intervals!)
-	 */
-	public static ArithmeticIntegerInterval intervalUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		//Check :>
-		{
-			long l = greatest(al, bl);
-			long h = least(ah, bh);
-			
-			if (l > h)
-				throw new IllegalArgumentException("Tried to union disjoint intervals: "+a+" ∪ "+b);
-		}
-		
-		long l = least(al, bl);
-		long h = greatest(ah, bh);
-		
-		return intervalByPoints(l, h);
-	}
-	
-	
-	/**
-	 * The lowest of the low to the highest of the high..including any space between the intervals even if that wasn't actually in either interval (which is what makes this different from {@link #intervalUnion(ArithmeticIntegerInterval, ArithmeticIntegerInterval)})
-	 */
-	public static ArithmeticIntegerInterval intervalBoundsUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		long l = least(al, bl);
-		long h = greatest(ah, bh);
-		
-		return intervalByPoints(l, h);
-	}
-	
-	
-	/**
-	 * @return an {@link #emptyInterval() empty interval} if they don't overlap (including if they just barely touch!)
-	 */
-	public static ArithmeticIntegerInterval intervalIntersection(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		long l = greatest(al, bl);
-		long h = least(ah, bh);
-		
-		return intervalByPointsOrEmptyIfReversed(l, h);
-	}
-	
-	
-	
-	public static long intervalMidpointFloor(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		return SmallIntegerMathUtilities.floorDivision(ah - al, 2);
-	}
-	
-	public static long intervalMidpointCeiling(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		return SmallIntegerMathUtilities.ceilingDivision(ah - al, 2);
-	}
-	
-	public static long intervalMidpointNearzero(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		return (ah - al) / 2;
-	}
-	
-	public static long intervalMidpointAwayzero(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		return SmallIntegerMathUtilities.awayfromzeroDivision(ah - al, 2);
-	}
-	
-	public static long intervalMidpointRounding(ArithmeticIntegerInterval a)
-	{
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		return SmallIntegerMathUtilities.roundingIntegerDivision(ah - al, 2);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	/**
-	 * @return null if super doesn't completely enclose sub!
-	 */
-	public static ArithmeticIntegerInterval intervalIntersectionOfSubset(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
-	{
-		return intervalIsSubsetOrEqual(superCandidate, subCandidate) ? subCandidate : null;
-	}
-	
-	
-	public static boolean intervalIsSubsetOrEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
-	{
-		ArithmeticIntegerInterval a = superCandidate;
-		ArithmeticIntegerInterval b = subCandidate;
-		
-		long al = a.getStart();
-		long ah = a.getPastEnd();
-		long bl = b.getStart();
-		long bh = b.getPastEnd();
-		
-		return al <= bl && ah >= bh;
-	}
-	
-	public static boolean intervalIsSubsetNotEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
-	{
-		return intervalIsSubsetOrEqual(superCandidate, subCandidate) && !eq(superCandidate, subCandidate);
-	}
-	
-	
-	/**
-	 * @return null if one doesn't completely enclose the other!
-	 */
-	public static ArithmeticIntegerInterval intervalIntersectionOfSubsetSymmetric(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
-	{
-		ArithmeticIntegerInterval r = intervalIntersectionOfSubset(a, b);
-		return r != null ? r : intervalIntersectionOfSubset(b, a);
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
@@ -4391,4 +4337,725 @@ implements JavaNamespace
 		
 		return accumulator;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/////////////////////////////// <Integer interval arithmetic! ///////////////////////////////
+	
+	
+	
+	//TODO Test theseeeeeeee! :D
+	
+	
+	/**
+	 * Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, "[x, x)" ) to represent a single point without needing to use a whole other format than interval-typed values :3
+	 */
+	public static final ArithmeticIntegerInterval EmptyInterval = new ArithmeticIntegerInterval(0, 0);
+	
+	public static ArithmeticIntegerInterval emptyInterval()
+	{
+		return EmptyInterval;
+	}
+	
+	
+	public static ArithmeticIntegerInterval singletonInterval(long v)
+	{
+		return intervalByPointAndSize(v, 1);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByPoints(long lowInclusive, long highExclusive)
+	{
+		return new ArithmeticIntegerInterval(lowInclusive, highExclusive - lowInclusive);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByPointAndSize(long lowInclusive, long size)
+	{
+		return new ArithmeticIntegerInterval(lowInclusive, size);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByPointsOrEmptyIfReversed(long lowInclusive, long highExclusive)
+	{
+		return intervalByPointAndSizeOrEmptyIfReversed(lowInclusive, highExclusive - lowInclusive);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByPointAndSizeOrEmptyIfReversed(long lowInclusive, long size)
+	{
+		if (size < 0)
+			return emptyInterval();
+		else
+			return intervalByPointAndSize(lowInclusive, size);
+	}
+	
+	
+	public static ArithmeticIntegerInterval intervalByIntervalExplicitBounds(ArithmeticIntegerInterval low, boolean lowInclusive, ArithmeticIntegerInterval high, boolean highInclusive)
+	{
+		long l = lowInclusive ? low.getStart() : low.getPastEnd();
+		long h = highInclusive ? high.getPastEnd() : high.getStart();
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	public static ArithmeticIntegerInterval intervalByExplicitBounds(long low, boolean lowInclusive, long high, boolean highInclusive)
+	{
+		//return intervalByIntervalExplicitBounds(intervalByPointAndSize(low, 1), lowInclusive, intervalByPointAndSize(high, 1), highInclusive);
+		long l = lowInclusive ? low : low+1;
+		long h = highInclusive ? high+1 : high;
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	
+	
+	
+	public static ArithmeticIntegerInterval intervalAdd(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return intervalByPoints(al + bl, ah + bh);
+	}
+	
+	public static ArithmeticIntegerInterval intervalSubtract(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return intervalByPoints(al - bh, ah - bl);
+	}
+	
+	public static ArithmeticIntegerInterval intervalNegate(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		
+		return intervalByPoints(-ah, -al);
+	}
+	
+	public static ArithmeticIntegerInterval intervalMultiply(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long c0 = al*bl;
+		long c1 = ah*bl;
+		long c2 = al*bh;
+		long c3 = ah*bh;
+		
+		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
+	}
+	
+	/**
+	 * NOTE: This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b (the denominator) get close to and then include zero!  (eg, by being negative on one side and positive on the other!))
+	 */
+	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		if (b.containsPoint(0))
+			throw new DivisionByZeroException();
+		
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long c0 = al/bl;
+		long c1 = ah/bl;
+		long c2 = al/bh;
+		long c3 = ah/bh;
+		
+		return intervalByPoints(SmallIntegerMathUtilities.least(c0, c1, c2, c3), SmallIntegerMathUtilities.greatest(c0, c1, c2, c3));
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound intervals!)
+	 */
+	public static ArithmeticIntegerInterval intervalUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		//Check :>
+		{
+			long l = greatest(al, bl);
+			long h = least(ah, bh);
+			
+			if (l > h)
+				throw new IllegalArgumentException("Tried to union disjoint intervals: "+a+" ∪ "+b);
+		}
+		
+		long l = least(al, bl);
+		long h = greatest(ah, bh);
+		
+		return intervalByPoints(l, h);
+	}
+	
+	
+	/**
+	 * The lowest of the low to the highest of the high..including any space between the intervals even if that wasn't actually in either interval (which is what makes this different from {@link #intervalUnion(ArithmeticIntegerInterval, ArithmeticIntegerInterval)})
+	 */
+	public static ArithmeticIntegerInterval intervalBoundsUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long l = least(al, bl);
+		long h = greatest(ah, bh);
+		
+		return intervalByPoints(l, h);
+	}
+	
+	
+	/**
+	 * @return an {@link #emptyInterval() empty interval} if they don't overlap (including if they just barely touch!)
+	 */
+	public static ArithmeticIntegerInterval intervalIntersection(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		long l = greatest(al, bl);
+		long h = least(ah, bh);
+		
+		return intervalByPointsOrEmptyIfReversed(l, h);
+	}
+	
+	
+	
+	public static long intervalMidpointFloor(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.floorDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointCeiling(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.ceilingDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointNearzero(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return (ah - al) / 2;
+	}
+	
+	public static long intervalMidpointAwayzero(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.awayfromzeroDivision(ah - al, 2);
+	}
+	
+	public static long intervalMidpointRounding(ArithmeticIntegerInterval a)
+	{
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		return SmallIntegerMathUtilities.roundingIntegerDivision(ah - al, 2);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @return null if super doesn't completely enclose sub!
+	 */
+	public static ArithmeticIntegerInterval intervalIntersectionOfSubset(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		return intervalIsSubsetOrEqual(superCandidate, subCandidate) ? subCandidate : null;
+	}
+	
+	
+	public static boolean intervalIsSubsetOrEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		ArithmeticIntegerInterval a = superCandidate;
+		ArithmeticIntegerInterval b = subCandidate;
+		
+		long al = a.getStart();
+		long ah = a.getPastEnd();
+		long bl = b.getStart();
+		long bh = b.getPastEnd();
+		
+		return al <= bl && ah >= bh;
+	}
+	
+	public static boolean intervalIsSubsetNotEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	{
+		return intervalIsSubsetOrEqual(superCandidate, subCandidate) && !eq(superCandidate, subCandidate);
+	}
+	
+	
+	/**
+	 * @return null if one doesn't completely enclose the other!
+	 */
+	public static ArithmeticIntegerInterval intervalIntersectionOfSubsetSymmetric(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	{
+		ArithmeticIntegerInterval r = intervalIntersectionOfSubset(a, b);
+		return r != null ? r : intervalIntersectionOfSubset(b, a);
+	}
+	/////////////////////////////// Integer interval arithmetic!> ///////////////////////////////
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/////////////////////////////// <Generic interval arithmetic! ///////////////////////////////
+	
+	
+	
+	//TODO Test theseeeeeeee! :D
+	
+	
+	public static final ArithmeticGenericInterval<?> DoublyEmptyGenericInterval = new ArithmeticGenericInterval(null, false, null, false);
+	
+	
+	public static @RealNumeric <N> ArithmeticGenericInterval<N> ginterval(@RealNumeric N start, boolean startInclusive, @RealNumeric N end, boolean endInclusive)
+	{
+		if (!startInclusive && !endInclusive)
+		{
+			if (start != null)  throw gintervalEmptyValidityFailureNonNullDoublyEmpty();
+			if (end != null)  throw gintervalEmptyValidityFailureNonNullDoublyEmpty();  //different line number :3
+			return gintervalDoublyEmpty();
+		}
+		else
+		{
+			int r = mathcmp(start, end);
+			
+			if (r == 0)
+			{
+				if (!startInclusive)  throw gintervalEmptyValidityFailureSinglyEmpty();
+				if (!endInclusive)  throw gintervalEmptyValidityFailureSinglyEmpty();  //different line number :3
+				return gintervalSinglyEmpty(arbitrary(start, end));
+			}
+			else if (r < 0)
+			{
+				throw new ImpossibleException("Invalid interval: end < start");
+			}
+			else
+			{
+				return new ArithmeticGenericInterval<>(start, startInclusive, end, endInclusive);
+			}
+		}
+	}
+	
+	public static ImpossibleException gintervalEmptyValidityFailureSinglyEmpty()
+	{
+		return new ImpossibleException("Empty intervals (in the ArithmeticGenericInterval system) must use either doubly-open or doubly-closed form when they both endpoints are the same.  Ie, (x,x) for a doubly-empty interval (no value for x, and x must be null) or [x,x] for a singly-empty interval (just the value x).  This ensures that equals() will work (or gintervalEquals() to use matheq() for comparing starts and ends).");
+	}
+	
+	public static ImpossibleException gintervalEmptyValidityFailureNonNullDoublyEmpty()
+	{
+		return new ImpossibleException("Doubly-Empty intervals (in the ArithmeticGenericInterval system) must use nulls for the start and end (ie, (null,null)).  This ensures that equals() will work (or gintervalEquals() to use matheq() for comparing starts and ends).");
+	}
+	
+	
+	
+	public static <N> ArithmeticGenericInterval<N> gintervalDoublyEmpty()
+	{
+		return (ArithmeticGenericInterval<N>) DoublyEmptyGenericInterval;
+	}
+	
+	/**
+	 * Note: unlike doubly-empty intervals (which represent an empty set), singly-empty intervals (which represent a finitely-sized set) are neither equivalent to each other nor interchangeable!  Many times code will use a singly-empty interval on a point (eg, "[x, x]" ) to perfectly represent a single point without needing to use a whole other format than interval-typed values! :D
+	 */
+	public static <N> ArithmeticGenericInterval<N> gintervalSinglyEmpty(@Nonnull N value)
+	{
+		requireNonNull(value);
+		return new ArithmeticGenericInterval<N>(value, true, value, true);
+	}
+	
+	
+	
+	public static boolean gintervalIsDoublyEmpty(@RealNumeric ArithmeticGenericInterval<?> i)
+	{
+		return !i.isStartInclusive() && !i.isEndInclusive();  //don't throw a NullPointerException for the standard empty ginterval!
+	}
+	
+	public static boolean gintervalIsSinglyEmpty(@RealNumeric ArithmeticGenericInterval<?> i)
+	{
+		if (gintervalIsDoublyEmpty(i))  //don't throw a NullPointerException for the standard empty ginterval!
+			return false;
+		
+		if (matheq(i.getStart(), i.getEnd()))
+		{
+			if (!i.isStartInclusive() || !i.isEndInclusive())
+				throw gintervalEmptyValidityFailureSinglyEmpty();
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+	
+	public static boolean gintervalIsEmpty(@RealNumeric ArithmeticGenericInterval<?> i)
+	{
+		if (gintervalIsDoublyEmpty(i))  //don't throw a NullPointerException for the standard empty ginterval!
+			return true;
+		
+		return gintervalIsSinglyEmpty(i);
+	}
+	
+	
+	public static boolean gintervalEquals(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
+	{
+		//Don't trip on null start/end for doubly-empty intervals!
+		if (a.isStartInclusive() != b.isStartInclusive())  return false;
+		if   (a.isEndInclusive() != b.isEndInclusive())    return false;
+		if (!arbitrary(a.isStartInclusive(), b.isStartInclusive()) && !arbitrary(a.isEndInclusive(), b.isEndInclusive()))   return true;
+		
+		return matheq(a.getStart(), b.getStart()) && matheq(a.getEnd(), b.getEnd());
+	}
+	
+	
+	public static int gintervalHashCode(@Nullable @RealNumeric ArithmeticGenericInterval<?> i)
+	{
+		if (i == null)
+			return 0;
+		
+		if (gintervalIsDoublyEmpty(i))
+			return 1;
+		
+		if (gintervalIsSinglyEmpty(i))
+			return mathhash(gintervalGetSinglyEmptyValue(i));
+		
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + mathhash(i.getStart());
+		result = prime * result + (i.isStartInclusive() ? 1231 : 1237);
+		result = prime * result + mathhash(i.getEnd());
+		result = prime * result + (i.isEndInclusive() ? 1231 : 1237);
+		return result;
+	}
+	
+	
+	public static <N> N gintervalGetSinglyEmptyValue(@Nonnull ArithmeticGenericInterval<N> i)
+	{
+		return arbitrary(i.getStart(), i.getEnd());  //one is elided when JITted
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param i  null is allowed to let you encode doubly-empty intervals :3
+	 */
+	public static ArithmeticGenericInterval<Long> gintervalFromIntegerInterval(@Nullable ArithmeticIntegerInterval i)
+	{
+		if (i == null)
+		{
+			return gintervalDoublyEmpty();
+		}
+		else if (i.getSize() == 0)
+		{
+			return gintervalSinglyEmpty(i.getStart());
+		}
+		else
+		{
+			return ginterval(i.getStart(), true, i.getPastEnd(), false);
+		}
+	}
+	
+	
+	
+	
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalAdd(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	{
+		//If either or both starts are open/exclusive, then that point won't be ever actually added to/from and so won't appear in the output interval!
+		//So the function is AND! :D
+		
+		if (gintervalIsDoublyEmpty(a) || gintervalIsDoublyEmpty(b))  //avoid NullPointerExceptions!
+			return gintervalDoublyEmpty();
+		else
+			return ginterval(add(a.getStart(), b.getStart()), a.isStartInclusive() && b.isStartInclusive(), add(a.getStart(), b.getStart()), a.isEndInclusive() && b.isEndInclusive());  //Nice that we made singly-empty intervals always have inclusive endpoints, huh?  ;D
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalMultiply(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	{
+		if (gintervalIsDoublyEmpty(a) || gintervalIsDoublyEmpty(b))  //avoid NullPointerExceptions!
+			return gintervalDoublyEmpty();
+		
+		@RealNumeric Object al = a.getStart();
+		@RealNumeric Object ah = a.getEnd();
+		@RealNumeric Object bl = b.getStart();
+		@RealNumeric Object bh = b.getEnd();
+		
+		boolean alI = a.isStartInclusive();
+		boolean ahI = a.isEndInclusive();
+		boolean blI = b.isStartInclusive();
+		boolean bhI = b.isEndInclusive();
+		
+		@RealNumeric Object c0 = multiply(al, bl);
+		@RealNumeric Object c1 = multiply(ah, bl);
+		@RealNumeric Object c2 = multiply(al, bh);
+		@RealNumeric Object c3 = multiply(ah, bh);
+		
+		boolean c0I = alI && blI;
+		boolean c1I = ahI && blI;
+		boolean c2I = alI && bhI;
+		boolean c3I = ahI && bhI;
+		
+		boolean[] cIs = {c0I, c1I, c2I, c3I};
+		PairOrdered<Integer, Object> lp = leastPairIndexes(listof(c0, c1, c2, c3), MathUtilities::mathcmp);
+		PairOrdered<Integer, Object> hp = greatestPairIndexes(listof(c0, c1, c2, c3), MathUtilities::mathcmp);
+		
+		return ginterval(lp.getB(), cIs[lp.getA()], hp.getB(), cIs[hp.getA()]);
+	}
+	
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalNegate(@RealNumeric ArithmeticGenericInterval<Object> a)
+	{
+		if (gintervalIsDoublyEmpty(a))  //avoid NullPointerExceptions!
+			return gintervalDoublyEmpty();
+		else
+			return ginterval(negate(a.getEnd()), a.isEndInclusive(), negate(a.getStart()), a.isStartInclusive());
+	}
+	
+	/**
+	 * This works when 0 isn't included in the interval :3
+	 * But if it's an excluded endpoint, infinity must result in the output excluded endpoint!
+	 */
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalReciprocate(@RealNumeric ArithmeticGenericInterval<Object> a) throws DivisionByZeroException
+	{
+		if (gintervalIsDoublyEmpty(a))  //avoid NullPointerExceptions!
+			return gintervalDoublyEmpty();
+		else
+		{
+			int lc = mathcmp(a.getStart(), 0);
+			int hc = mathcmp(a.getEnd(), 0);
+			
+			if (lc == 0)
+			{
+				if (a.isStartInclusive())
+					throw new DivisionByZeroException();
+				
+				if (isPositiveInfinity(a.getEnd()))
+				{
+					// (0,∞)
+					asrt(!a.isEndInclusive());
+					return a;  //it's already what we would return! XD
+				}
+				
+				return ginterval(a.getEnd(), a.isEndInclusive(), RealInfinity.Positive, false);
+			}
+			
+			if (hc == 0)
+			{
+				if (a.isEndInclusive())
+					throw new DivisionByZeroException();
+				
+				if (isNegativeInfinity(a.getStart()))
+				{
+					// (-∞,0)
+					asrt(!a.isStartInclusive());
+					return a;  //it's already what we would return! XD
+				}
+				
+				return ginterval(RealInfinity.Negative, false, a.getStart(), a.isStartInclusive());
+			}
+			
+			if (lc == hc)
+			{
+				//Same sign
+				return ginterval(reciprocate(a.getEnd()), a.isEndInclusive(), reciprocate(a.getStart()), a.isStartInclusive());
+			}
+			else
+			{
+				//Opposite signs!  Zero is included!
+				throw new DivisionByZeroException();
+			}
+		}
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalSubtract(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	{
+		return gintervalAdd(a, gintervalNegate(b));
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalDivide(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b) throws DivisionByZeroException
+	{
+		return gintervalMultiply(a, gintervalReciprocate(b));
+	}
+	
+	
+	
+	
+	
+	
+	//Todo the others XD''
+	
+	//	/**
+	//	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound gintervals!)
+	//	 */
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalUnion(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	{
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		long bl = b.getStart();
+	//		long bh = b.getPastEnd();
+	//		
+	//		//Check :>
+	//		{
+	//			long l = greatest(al, bl);
+	//			long h = least(ah, bh);
+	//			
+	//			if (l > h)
+	//				throw new IllegalArgumentException("Tried to union disjoint gintervals: "+a+" ∪ "+b);
+	//		}
+	//		
+	//		long l = least(al, bl);
+	//		long h = greatest(ah, bh);
+	//		
+	//		return gintervalByPoints(l, h);
+	//	}
+	//	
+	//	
+	//	/**
+	//	 * The lowest of the low to the highest of the high..including any space between the gintervals even if that wasn't actually in either ginterval (which is what makes this different from {@link #gintervalUnion(ArithmeticGenericInterval, ArithmeticGenericInterval)})
+	//	 */
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalBoundsUnion(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	{
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		long bl = b.getStart();
+	//		long bh = b.getPastEnd();
+	//		
+	//		long l = least(al, bl);
+	//		long h = greatest(ah, bh);
+	//		
+	//		return gintervalByPoints(l, h);
+	//	}
+	//	
+	//	
+	//	/**
+	//	 * @return an {@link #emptyInterval() empty ginterval} if they don't overlap (including if they just barely touch!)
+	//	 */
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersection(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	{
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		long bl = b.getStart();
+	//		long bh = b.getPastEnd();
+	//		
+	//		long l = greatest(al, bl);
+	//		long h = least(ah, bh);
+	//		
+	//		return gintervalByPointsOrEmptyIfReversed(l, h);
+	//	}
+	//	
+	//	
+	//	
+	//	public static @RealNumeric Object gintervalMidpoint(@RealNumeric ArithmeticGenericInterval<Object> a)
+	//	{
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		return SmallIntegerMathUtilities.floorDivision(ah - al, 2);
+	//	}
+	//	
+	//	
+	//	
+	//	
+	//	
+	//	
+	//	
+	//	
+	//	/**
+	//	 * @return null if super doesn't completely enclose sub!
+	//	 */
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersectionOfSubset(@RealNumeric ArithmeticGenericInterval<Object> superCandidate, @RealNumeric ArithmeticGenericInterval<Object> subCandidate)
+	//	{
+	//		return gintervalIsSubsetOrEqual(superCandidate, subCandidate) ? subCandidate : null;
+	//	}
+	//	
+	//	
+	//	public static boolean gintervalIsSubsetOrEqual(@RealNumeric ArithmeticGenericInterval<Object> superCandidate, @RealNumeric ArithmeticGenericInterval<Object> subCandidate)
+	//	{
+	//		ArithmeticGenericInterval a = superCandidate;
+	//		ArithmeticGenericInterval b = subCandidate;
+	//		
+	//		long al = a.getStart();
+	//		long ah = a.getPastEnd();
+	//		long bl = b.getStart();
+	//		long bh = b.getPastEnd();
+	//		
+	//		return al <= bl && ah >= bh;
+	//	}
+	//	
+	//	public static boolean gintervalIsSubsetNotEqual(@RealNumeric ArithmeticGenericInterval<Object> superCandidate, @RealNumeric ArithmeticGenericInterval<Object> subCandidate)
+	//	{
+	//		return gintervalIsSubsetOrEqual(superCandidate, subCandidate) && !eq(superCandidate, subCandidate);
+	//	}
+	//	
+	//	
+	//	/**
+	//	 * @return null if one doesn't completely enclose the other!
+	//	 */
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersectionOfSubsetSymmetric(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	{
+	//		ArithmeticGenericInterval r = gintervalIntersectionOfSubset(a, b);
+	//		return r != null ? r : gintervalIntersectionOfSubset(b, a);
+	//	}
+	/////////////////////////////// Generic interval arithmetic!> ///////////////////////////////
 }
