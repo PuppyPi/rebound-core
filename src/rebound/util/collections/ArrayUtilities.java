@@ -1865,17 +1865,17 @@ primxp
 	
 	public static <E> int indexOf(E[] array, E value)
 	{
-		return indexOf(array, value, getNaturalEqualityComparator());
+		return indexOf(array, value, getDefaultEqualityComparator());
 	}
 	
 	public static <E> int indexOf(E[] array, int subArrayStart, E value)
 	{
-		return indexOf(array, subArrayStart, value, getNaturalEqualityComparator());
+		return indexOf(array, subArrayStart, value, getDefaultEqualityComparator());
 	}
 	
 	public static <E> int indexOf(E[] array, int subArrayStart, int subArrayLength, E value)
 	{
-		return indexOf(array, subArrayStart, subArrayLength, value, getNaturalEqualityComparator());
+		return indexOf(array, subArrayStart, subArrayLength, value, getDefaultEqualityComparator());
 	}
 	
 	
@@ -1914,17 +1914,17 @@ primxp
 	
 	public static <E> boolean contains(E[] array, E value)
 	{
-		return contains(array, value, getNaturalEqualityComparator());
+		return contains(array, value, getDefaultEqualityComparator());
 	}
 	
 	public static <E> boolean contains(E[] array, int subArrayStart, E value)
 	{
-		return contains(array, subArrayStart, value, getNaturalEqualityComparator());
+		return contains(array, subArrayStart, value, getDefaultEqualityComparator());
 	}
 	
 	public static <E> boolean contains(E[] array, int subArrayStart, int subArrayLength, E value)
 	{
-		return contains(array, subArrayStart, subArrayLength, value, getNaturalEqualityComparator());
+		return contains(array, subArrayStart, subArrayLength, value, getDefaultEqualityComparator());
 	}
 	
 	
@@ -6260,7 +6260,7 @@ primxp
 	
 	public static <E> E[] uniqed(E[] input)
 	{
-		return uniqed(input, (EqualityComparator<E>)getNaturalEqualityComparator());
+		return uniqed(input, (EqualityComparator<E>)getDefaultEqualityComparator());
 	}
 	
 	

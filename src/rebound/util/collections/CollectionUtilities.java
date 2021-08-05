@@ -758,7 +758,7 @@ public class CollectionUtilities
 		if (map instanceof MapWithBoundKeyEqualityComparator)
 			return ((MapWithBoundKeyEqualityComparator)map).getKeyEqualityComparator();
 		else
-			return BasicObjectUtilities.getNaturalEqualityComparator();
+			return getDefaultEqualityComparator();
 	}
 	
 	
@@ -767,7 +767,7 @@ public class CollectionUtilities
 		if (map instanceof MapWithBoundValueEqualityComparator)
 			return ((MapWithBoundValueEqualityComparator)map).getValueEqualityComparator();
 		else
-			return BasicObjectUtilities.getNaturalEqualityComparator();
+			return getDefaultEqualityComparator();
 	}
 	
 	
@@ -1716,71 +1716,117 @@ public class CollectionUtilities
 	
 	
 	
+	/**
+	 * If they aren't the same length, the output stops at whichever is shorter.
+	 */
+	public static <E> SimpleIterator<PairOrdered<E, E>> unmatchingPairs(SimpleIterator<E> a, SimpleIterator<E> b, EqualityComparator<? super E> equals)
+	{
+		return new SimpleIterator<PairOrdered<E, E>>()
+		{
+			@Override
+			public PairOrdered<E, E> nextrp() throws StopIterationReturnPath
+			{
+				while (true)
+				{
+					E ae = a.nextrp();  //propagate StopIterationReturnPath :3
+					E be = b.nextrp();  //propagate StopIterationReturnPath :3
+					
+					if (!equals.equals(ae, be))
+						return pair(ae, be);
+				}
+			}
+		};
+	}
+	
+	public static <E> SimpleIterator<PairOrdered<E, E>> unmatchingPairs(SimpleIterator<E> a, SimpleIterator<E> b)
+	{
+		return unmatchingPairs(a, b, getDefaultEqualityComparator());
+	}
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static enum CommutativeMarbleBuckets
+	{
+		Commutative,
+		Noncommutative,
+	}
 	
 	
 	/**
 	 * Since the buckets can't hold zero in them, but must start at 1, the maximum number of buckets is always the total number of marbles :3
 	 * Ie, the shortest sequence is always [n] and the longest always [1,1,1,1,...] with length n  :3
 	 */
-	public static SimpleIterator<List<Integer>> marbleBucketsNonzeroBuckets(int totalMarbles)
+	public static SimpleIterator<List<Integer>> marbleBucketsSimple(int totalMarbles, @Nonnull CommutativeMarbleBuckets commutative)
 	{
-		return marbleBucketsMinimumBucketValue(totalMarbles, 1);
+		return marbleBucketsRanges(totalMarbles, 1, null, 0, null, commutative);
 	}
 	
 	
-	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValue(int totalMarbles, int minimumInBuckets)
-	{
-		return marbleBucketsMinimumBucketValueMinimumNumberOfBuckets(totalMarbles, minimumInBuckets, 1);
-	}
 	
 	
-	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueMinimumNumberOfBuckets(int totalMarbles, int minimumInBuckets, int minimumNumberOfBuckets)
+	
+	public static SimpleIterator<List<Integer>> marbleBucketsRanges(int totalMarbles, int minimumInBuckets, @Nullable Integer maximumInBucketsInclusive, int minimumNumberOfBuckets, @Nullable Integer maximumNumberOfBucketsInclusive, @Nonnull CommutativeMarbleBuckets commutative)
 	{
-		if (minimumNumberOfBuckets < 1)
-			throw new IllegalArgumentException();
+		if (minimumInBuckets == 0&& totalMarbles != 0)
+		{
+			if (maximumNumberOfBucketsInclusive == null)
+				throw new IllegalArgumentException("That would cause immediate infinite recursion!");
+			else
+				return _marbleBucketsMaximumBucketValueMinimumMaximumNumberOfBuckets(totalMarbles, maximumInBucketsInclusive, minimumNumberOfBuckets, maximumNumberOfBucketsInclusive, commutative);  //needs special stuff!
+		}
+		
 		
 		if (minimumInBuckets < 0)
 			throw new IllegalArgumentException();
 		
-		if (minimumInBuckets == 0)
-			throw new IllegalArgumentException("That would cause immediate infinite recursion!");
-		
-		return marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, minimumInBuckets, l -> true, l -> l.size() >= minimumNumberOfBuckets);
-	}
-	
-	
-	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueMinimumMaximumNumberOfBuckets(int totalMarbles, int minimumInBuckets, int minimumNumberOfBuckets, int maximumNumberOfBucketsInclusive)
-	{
-		if (minimumInBuckets == 0)
-			return marbleBucketsMinimumMaximumNumberOfBuckets(totalMarbles, minimumNumberOfBuckets, maximumNumberOfBucketsInclusive);  //needs special stuff!
+		if (maximumInBucketsInclusive != null && maximumInBucketsInclusive < minimumInBuckets)
+			throw new IllegalArgumentException();
 		
 		
 		if (minimumNumberOfBuckets < 0)
 			throw new IllegalArgumentException();
 		
-		if (maximumNumberOfBucketsInclusive < minimumNumberOfBuckets)
+		if (maximumNumberOfBucketsInclusive != null && maximumNumberOfBucketsInclusive < minimumNumberOfBuckets)
 			throw new IllegalArgumentException();
 		
-		if (minimumInBuckets < 0)
-			throw new IllegalArgumentException();
 		
-		return marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, minimumInBuckets,
+		
+		return marbleBucketsMinimumMaximumBucketValueGeneralListPredicate(totalMarbles, minimumInBuckets, maximumInBucketsInclusive,
 		
 		l -> true,
 		
 		l ->
 		{
 			int n = l.size();
-			return n >= minimumNumberOfBuckets && n <= maximumNumberOfBucketsInclusive;
-		}
+			return n >= minimumNumberOfBuckets && (maximumNumberOfBucketsInclusive == null || n <= maximumNumberOfBucketsInclusive);
+		},
+		
+		commutative
 		);
 	}
 	
 	
-	public static SimpleIterator<List<Integer>> marbleBucketsMinimumMaximumNumberOfBuckets(int totalMarbles, int minimumNumberOfBuckets, int maximumNumberOfBucketsInclusive)
+	
+	/**
+	 * minimumInBuckets is zero
+	 * maximumNumberOfBucketsInclusive is never null
+	 */
+	protected static SimpleIterator<List<Integer>> _marbleBucketsMaximumBucketValueMinimumMaximumNumberOfBuckets(int totalMarbles, @Nullable Integer maximumInBucketsInclusive, int minimumNumberOfBuckets, int maximumNumberOfBucketsInclusive, @Nonnull CommutativeMarbleBuckets commutative)
 	{
+		requireNonNull(commutative);
+		
+		if (maximumInBucketsInclusive != null && maximumInBucketsInclusive < 0)
+			throw new IllegalArgumentException();
+		
 		if (minimumNumberOfBuckets < 0)
 			throw new IllegalArgumentException();
 		
@@ -1790,7 +1836,7 @@ public class CollectionUtilities
 		
 		//So this can't create trailing zeros, so we just need to add them explicitly X3
 		
-		SimpleIterator<List<Integer>> i = marbleBucketsMinimumBucketValueGeneralListPredicate(totalMarbles, 0,
+		SimpleIterator<List<Integer>> i = marbleBucketsMinimumMaximumBucketValueGeneralListPredicate(totalMarbles, commutative == CommutativeMarbleBuckets.Commutative ? 1 : 0, maximumInBucketsInclusive,
 		
 		//This prefilter is necessary for when minimumInBuckets == 0 to avoid infinite recursion!
 		l ->
@@ -1802,22 +1848,30 @@ public class CollectionUtilities
 		l ->
 		{
 			int n = l.size();
-			return n >= minimumNumberOfBuckets && n <= maximumNumberOfBucketsInclusive;
-		}
+			//return n >= minimumNumberOfBuckets && n <= maximumNumberOfBucketsInclusive;
+			return n <= maximumNumberOfBucketsInclusive;  //don't impose a minimum because we can always pad it with zeros on the end to reach the minimum!
+		},
+		
+		commutative
 		);
 		
 		return mapConcatenating(l ->
 		{
 			int n = l.size();
 			
-			int remainingBuckets = maximumNumberOfBucketsInclusive - n;
+			int remainingForMin = greatest(minimumNumberOfBuckets - n, 0);
+			int remainingBucketsForMax = maximumNumberOfBucketsInclusive - n;
 			
-			asrt(remainingBuckets >= 0);
+			asrt(remainingBucketsForMax >= 0);
 			
-			if (remainingBuckets == 0)
-				return singletonSimpleIterator(l);
+			if (remainingBucketsForMax == 0)
+				return singletonSimpleIterator(remainingForMin == 0 ? l : concatenateListsOPC(l, repeatedList(0, remainingForMin)));
+			else if (remainingForMin == remainingBucketsForMax)
+				return singletonSimpleIterator(concatenateListsOPC(l, repeatedList(0, remainingForMin)));
+			else if (remainingForMin == 0)
+				return ascendingListAppensionGenerator(l, repeatingGenerator(remainingBucketsForMax, 0));
 			else
-				return ascendingListAppensionGenerator(l, repeatingGenerator(remainingBuckets, 0));
+				return ascendingListAppensionGenerator(concatenateListsOPC(l, repeatedList(0, remainingForMin)), repeatingGenerator(remainingBucketsForMax-remainingForMin, 0));
 			
 		}, i);
 	}
@@ -1825,12 +1879,20 @@ public class CollectionUtilities
 	
 	
 	
+	
 	/**
+	 * ===Commutative version===
+	 * Like non-commutative marble-buckets, but the order doesn't matter and the produced lists are always sorted high to low.
+	 * It will produce all possible duplicates within a list though, like [3, 2, 2, 1] but never [3, 2, 1, 2].
+	 * 
+	 * So like, it's the same output as non-commutative marble-buckets, but the lists are sorted and duplicate lists elided.
+	 * ===/===
+	 * 
 	 * @param minimumInBuckets  if this is 0 and builtInFilteringPredicate doesn't limit the maximum number of buckets somehow, then it's possible to immediately fall into infinite recursion with this trying to make an infinite integer list with infinite zero's (and some finite non-zeros XD) to output!
 	 */
-	public static SimpleIterator<List<Integer>> marbleBucketsMinimumBucketValueGeneralListPredicate(int totalMarbles, int minimumInBuckets, Predicate<List<Integer>> preFilteringPredicateOnPartialLists, Predicate<List<Integer>> builtInFilteringPredicate)
+	public static SimpleIterator<List<Integer>> marbleBucketsMinimumMaximumBucketValueGeneralListPredicate(int totalMarbles, int minimumInBuckets, @Nullable Integer maximumInBucketsInclusive, @Nonnull Predicate<List<Integer>> preFilteringPredicateOnPartialLists, @Nonnull Predicate<List<Integer>> builtInFilteringPredicate, @Nonnull CommutativeMarbleBuckets commutative)
 	{
-		//Todo maximum value in a bucket :3
+		requireNonNull(commutative);
 		
 		if (totalMarbles < 0)
 			throw new IllegalArgumentException();
@@ -1838,27 +1900,74 @@ public class CollectionUtilities
 		if (minimumInBuckets < 0)
 			throw new IllegalArgumentException();
 		
-		return combineGeneratorsGeneral(l ->
+		if (totalMarbles == 0)
 		{
-			if (!preFilteringPredicateOnPartialLists.test(l))
-				return emptySimpleIterator();
-			
-			int remaining = totalMarbles - sumS32(l);  //remaining = inclusiveEnd
-			
-			if (remaining == 0)
-			{
-				return builtInFilteringPredicate.test(l) ? null : emptySimpleIterator();
-			}
-			else if (remaining < minimumInBuckets)
-			{
-				return emptySimpleIterator();
-			}
+			if (builtInFilteringPredicate.test(emptyList()) && minimumInBuckets == 0)
+				return singletonSimpleIterator(emptyList());
 			else
+				return emptySimpleIterator();
+		}
+		else
+		{
+			return combineGeneratorsGeneral(l ->
 			{
-				return simpleIterator(intervalIntegersListByInclusiveEnd(minimumInBuckets, remaining));
-			}
-		});
+				if (!preFilteringPredicateOnPartialLists.test(l))
+					return emptySimpleIterator();
+				
+				int remaining = totalMarbles - sumS32(l);  //remaining = inclusiveEnd
+				
+				if (remaining == 0)
+				{
+					return builtInFilteringPredicate.test(l) ? null : emptySimpleIterator();
+				}
+				else if (remaining < minimumInBuckets)
+				{
+					return emptySimpleIterator();
+				}
+				else
+				{
+					int maxIntrinsic = (commutative == CommutativeMarbleBuckets.Noncommutative || l.isEmpty()) ? remaining : least(remaining, (int)l.get(l.size()-1));
+					
+					int max = maximumInBucketsInclusive == null ? maxIntrinsic : least(maxIntrinsic, (int)maximumInBucketsInclusive);
+					
+					return max < minimumInBuckets ? emptySimpleIterator() : simpleIterator(intervalIntegersListByInclusiveEnd(minimumInBuckets, max));
+				}
+			});
+		}
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This converts the output of noncommutative marble-buckets into the equivalent output from commutative marble-buckets by removing duplicates and resorting everything! :D
+	 */
+	public static List<List<Integer>> produceCommutativeMarbleBucketsFromNonCommutativeOutput(List<List<Integer>> noncommutative)
+	{
+		//defaultListsCompare(a, b, getDefaultOrderingComparator(), lengthsFirst, invertElementComparison, shorterIsLarger);
+		
+		List<List<Integer>> l = mapToList(o -> reversed(sorted(o)), noncommutative);  //reversed(sorted(x)) is the order that the commutative generator natively puts out! :3
+		l = sorted(l, (a, b) -> defaultListsCompare(a, b, getDefaultOrderingComparator(), false, false, false));  //this is the order that the commutative generator natively puts out! :3
+		return uniqueifiedPresortedToListOPC(l, (List<Integer> a, List<Integer> b) -> eqv(a, b));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -4761,17 +4870,118 @@ _$$primxpconf:byte,char,short,int$$_
 	 */
 	public static <E> void uniqueifyPresortedIP(@WritableValue Iterable<E> input)
 	{
-		uniqueifyPresortedIP(input, BasicObjectUtilities.getNaturalEqualityComparator());
+		uniqueifyPresortedIP(input, getDefaultEqualityComparator());
 	}
 	
 	
 	
-	public static <E> List<E> uniqueifyPresortedOPC(Iterable<E> input)
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> uniqueifiedPresortedToListOPC(Iterable<E> input)
 	{
-		List<E> l = new ArrayList<>(toList(input));
-		uniqueifyPresortedIP(l);
-		return l;
+		if (!(input instanceof List) || hasAdjacentDuplicates(input))
+			return uniqueifiedPresortedToListOP(input);
+		else
+			return (List<E>)input;
 	}
+	
+	@SnapshotValue
+	public static <E> List<E> uniqueifiedPresortedToListOP(Iterable<E> input)
+	{
+		return asList(uniqueifiedPresorted(simpleIterator(input)));
+	}
+	
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> List<E> uniqueifiedPresortedToListOPC(Iterable<E> input, EqualityComparator<? super E> equalityComparator)
+	{
+		if (!(input instanceof List) || hasAdjacentDuplicates(input, equalityComparator))
+			return uniqueifiedPresortedToListOP(input, equalityComparator);
+		else
+			return (List<E>)input;
+	}
+	
+	@SnapshotValue
+	public static <E> List<E> uniqueifiedPresortedToListOP(Iterable<E> input, EqualityComparator<? super E> equalityComparator)
+	{
+		return asList(uniqueifiedPresorted(simpleIterator(input), equalityComparator));
+	}
+	
+	
+	
+	
+	/**
+	 * Analogous to the Unix command 'uniq' :>
+	 */
+	public static <E> SimpleIterator<E> uniqueifiedPresorted(@WritableValue SimpleIterator<E> input, EqualityComparator<? super E> equalityComparator)
+	{
+		return new SimpleIterator<E>()
+		{
+			boolean eof = false;
+			E last = null;
+			boolean hasLast = false;
+			
+			@Override
+			public E nextrp() throws StopIterationReturnPath
+			{
+				if (eof)
+					throw StopIterationReturnPath.I;
+				
+				while (true)
+				{
+					asrt(!eof);
+					
+					E current;
+					try
+					{
+						current = input.nextrp();
+					}
+					catch (StopIterationReturnPath rp)
+					{
+						if (hasLast)
+						{
+							eof = true;
+							E l = last;
+							last = null;  //for garbage collection :3
+							return l;
+						}
+						else
+						{
+							throw rp;
+						}
+					}
+					
+					if (hasLast)
+					{
+						if (!equalityComparator.equals(current, last))
+						{
+							E l = last;
+							last = current;
+							return l;
+						}
+					}
+					else
+					{
+						last = current;
+						hasLast = true;
+					}
+				}
+			}
+		};
+	}
+	
+	/**
+	 * Analogous to the Unix command 'uniq' :>
+	 */
+	public static <E> SimpleIterator<E> uniqueifiedPresorted(@WritableValue SimpleIterator<E> input)
+	{
+		return uniqueifiedPresorted(input, getDefaultEqualityComparator());
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -5243,7 +5453,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	/**
 	 * Returns the default-equality comparator for a collection.
-	 * Returns {@link BasicObjectUtilities#getNaturalEqualityComparator()} for grandfathered collections :>
+	 * Returns {@link BasicObjectUtilities#getDefaultEqualityComparator()} for grandfathered collections :>
 	 */
 	public static <E> EqualityComparator<E> getBoundCollectionEqualityComparator(Collection<E> collection)
 	{
@@ -5253,7 +5463,7 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		else
 		{
-			return BasicObjectUtilities.getNaturalEqualityComparator();
+			return getDefaultEqualityComparator();
 		}
 	}
 	
@@ -5673,7 +5883,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> boolean defaultSizelessListsEquivalent(Iterable<E> a, Iterable<E> b)
 	{
-		return defaultSizelessListsEquivalent(a, b, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultSizelessListsEquivalent(a, b, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	
@@ -5685,6 +5895,11 @@ _$$primxpconf:byte,char,short,int$$_
 	public static <E> boolean defaultListsEquivalentDeep(List<? extends E> a, List<? extends E> b)
 	{
 		return defaultListsEquivalent(a, b, (x, y) -> x instanceof List && y instanceof List ? defaultListsEquivalentDeep((List)x, (List)y) : eq(x, y));
+	}
+	
+	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b)
+	{
+		return defaultListsEquivalent(a, b, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b, EqualityComparator<E> equalityComparator)
@@ -5729,11 +5944,6 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		
 		return true;
-	}
-	
-	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b)
-	{
-		return defaultListsEquivalent(a, b, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
 	}
 	
 	
@@ -5966,7 +6176,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <K, V> boolean defaultMapsEquivalent(Map<? extends K, ? extends V> a, Map<? extends K, ? extends V> b)
 	{
-		return defaultMapsEquivalent(a, b, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultMapsEquivalent(a, b, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	
@@ -6107,7 +6317,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> boolean defaultContains(Iterable<E> list, Object item)
 	{
-		return defaultContains(list, item, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultContains(list, item, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	
@@ -6128,7 +6338,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> int defaultListIndexOf(Iterable<E> list, Object item)
 	{
-		return defaultListIndexOf(list, item, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultListIndexOf(list, item, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	
@@ -6157,7 +6367,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> int defaultListLastIndexOf(List<E> list, Object item)
 	{
-		return defaultListIndexOf(list, item, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultListIndexOf(list, item, (EqualityComparator)getDefaultEqualityComparator());
 	}
 	
 	
@@ -6204,7 +6414,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> boolean defaultRemoveBySearch(Iterable<E> list, Object item)
 	{
-		return defaultRemoveBySearch(list, item, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+		return defaultRemoveBySearch(list, item, getDefaultEqualityComparator());
 	}
 	
 	
@@ -9756,6 +9966,30 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <E> boolean hasAdjacentDuplicates(Iterable<E> input)
+	{
+		return hasAdjacentDuplicates(input, getDefaultEqualityComparator());
+	}
+	
+	public static <E> boolean hasAdjacentDuplicates(Iterable<E> input, EqualityComparator<? super E> equals)
+	{
+		boolean first = true;
+		E prev = null;
+		
+		for (E e : input)
+		{
+			if (first)
+				first = false;
+			else if (equals.equals(prev, e))
+				return true;
+			
+			prev = e;
+		}
+		
+		return false;
+	}
+	
+	
 	
 	
 	
@@ -10325,6 +10559,17 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	
+	
+	public static <E> List<E> repeatedList(E value, int count)
+	{
+		Object[] a = new Object[count];
+		for (int i = 0; i < count; i++)
+			a[i] = value;
+		return (List<E>)asList(a);
+	}
+	
+	
 	public static <E> void fillBySetting(List<? super E> list, E e)
 	{
 		fillBySetting(list, 0, list.size(), e);
@@ -10366,6 +10611,186 @@ _$$primxpconf:byte,char,short,int$$_
 			for (int i = 0; i < number; i++)
 				collection.add(fill);
 		}
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * Contracts contiguous strings of duplicates into {@link PairOrdered}s :3
+	 * 
+	 * @return a list of the original elements, or {@link PairOrdered}(element, numberOfDuplicates)
+	 */
+	public static <E> List<Object> contractDuplicatesOPC(List<E> list)
+	{
+		return contractDuplicatesOPC(list, getDefaultEqualityComparator());
+	}
+	
+	public static <E> List<Object> contractDuplicatesOPC(List<E> list, EqualityComparator<? super E> equals)
+	{
+		int runStart = -1;
+		int i = 0;
+		E prev = null;
+		
+		List<Object> output = null;
+		
+		for (E e : list)
+		{
+			if (i == 0)
+			{
+				prev = e;
+			}
+			else
+			{
+				if (output == null)
+				{
+					if (equals.equals(prev, e))
+					{
+						runStart = i-1;
+						output = new ArrayList<>(list.size());
+						output.addAll(list.subList(0, i-1));
+					}
+					else
+					{
+						prev = e;
+					}
+				}
+				else
+				{
+					if (equals.equals(prev, e))
+					{
+						if (runStart == -1)
+							runStart = i-1;
+					}
+					else
+					{
+						if (runStart == -1)
+						{
+							output.add(prev);
+						}
+						else
+						{
+							output.add(pair(prev, i - runStart));
+							runStart = -1;
+						}
+						
+						prev = e;
+					}
+				}
+			}
+			
+			i++;
+		}
+		
+		if (output == null)
+		{
+			return (List)list;
+		}
+		else
+		{
+			if (runStart == -1)
+			{
+				if (i != 0)
+					output.add(prev);
+			}
+			else
+			{
+				output.add(pair(prev, i - runStart));
+			}
+			
+			return output;
+		}
+	}
+	
+	
+	
+	
+	public static <E> SimpleIterator<Object> contractDuplicates(SimpleIterator<E> input)
+	{
+		return contractDuplicates(input, getDefaultEqualityComparator());
+	}
+	
+	public static <E> SimpleIterator<Object> contractDuplicates(SimpleIterator<E> input, EqualityComparator<? super E> equals)
+	{
+		return new SimpleIterator<Object>()
+		{
+			boolean eof = false;
+			int runLength = 0;
+			E runRepresentativeOrPrevious;
+			
+			
+			@Override
+			public Object nextrp() throws StopIterationReturnPath
+			{
+				if (eof)
+					throw StopIterationReturnPath.I;
+				
+				
+				while (true)
+				{
+					asrt(!eof);
+					
+					final E current;
+					
+					try
+					{
+						current = input.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						final int length = runLength;
+						
+						final boolean bof = length == 0;
+						
+						if (bof)
+						{
+							throw StopIterationReturnPath.I;
+						}
+						else
+						{
+							final E prev = runRepresentativeOrPrevious;
+							
+							eof = true;
+							runLength = -1;  //it doesn't hurt X3
+							runRepresentativeOrPrevious = null;  //for garbage collection!
+							return length == 1 ? prev : pair(prev, length);
+						}
+					}
+					
+					
+					
+					
+					
+					final int length = runLength;
+					final boolean bof = length == 0;
+					
+					if (bof)
+					{
+						runRepresentativeOrPrevious = current;
+						runLength = 1;
+					}
+					else
+					{
+						final E prev = runRepresentativeOrPrevious;
+						
+						final boolean matches = equals.equals(current, prev);
+						
+						if (matches)
+						{
+							runLength = length + 1;
+						}
+						else
+						{
+							runLength = 1;
+							runRepresentativeOrPrevious = current;
+							return length == 1 ? prev : pair(prev, length);
+						}
+					}
+				}
+			}
+		};
 	}
 	
 	

@@ -188,7 +188,7 @@ implements JavaNamespace
 	
 	
 	
-	public static <T> EqualityComparator<T> getNaturalEqualityComparator()
+	public static <T> EqualityComparator<T> getDefaultEqualityComparator()
 	{
 		return DefaultEqualityComparator.I;
 	}
@@ -289,7 +289,7 @@ implements JavaNamespace
 	
 	
 	
-	protected static final Comparator NaturalOrderingComparator = new Comparator()
+	protected static final Comparator DefaultOrderingComparator = new Comparator()
 	{
 		@Override
 		public int compare(Object a, Object b)
@@ -300,12 +300,12 @@ implements JavaNamespace
 		@Override
 		public Comparator reversed()
 		{
-			return ReverseNaturalOrderingComparator;
+			return ReverseDefaultOrderingComparator;
 		}
 	};
 	
 	
-	protected static final Comparator ReverseNaturalOrderingComparator = new Comparator()
+	protected static final Comparator ReverseDefaultOrderingComparator = new Comparator()
 	{
 		@Override
 		public int compare(Object a, Object b)
@@ -316,7 +316,7 @@ implements JavaNamespace
 		@Override
 		public Comparator reversed()
 		{
-			return NaturalOrderingComparator;
+			return DefaultOrderingComparator;
 		}
 	};
 	
@@ -328,17 +328,17 @@ implements JavaNamespace
 	/**
 	 * Just invokes {@link #cmp2(Object, Object)} on everything ^_^
 	 */
-	public static <E extends Comparable<E>> Comparator<E> getNaturalOrderingComparator()
+	public static <E extends Comparable<E>> Comparator<E> getDefaultOrderingComparator()
 	{
-		return NaturalOrderingComparator;
+		return DefaultOrderingComparator;
 	}
 	
 	/**
-	 * Reverse of {@link #getNaturalOrderingComparator()} ^_^
+	 * Reverse of {@link #getDefaultOrderingComparator()} ^_^
 	 */
-	public static <E extends Comparable<E>> Comparator<E> getReverseNaturalOrderingComparator()
+	public static <E extends Comparable<E>> Comparator<E> getReverseDefaultOrderingComparator()
 	{
-		return ReverseNaturalOrderingComparator;
+		return ReverseDefaultOrderingComparator;
 	}
 	
 	public static <T> T notnull(T object) throws NullPointerException
@@ -351,7 +351,7 @@ implements JavaNamespace
 	
 	public static int hashNT(Object o)
 	{
-		return o == null ? 0 : o.hashCode(); //0 is as per System.identityHashCode ^_^
+		return o == null ? 0 : o.hashCode();  //0 is as per System.identityHashCode ^_^
 	}
 	
 	public static Class getClassNT(Object o)

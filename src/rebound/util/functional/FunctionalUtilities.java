@@ -443,7 +443,7 @@ implements JavaNamespace
 		
 		public SingletonObjectEqualityPredicate(Input target)
 		{
-			this(target, (EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator());
+			this(target, (EqualityComparator)BasicObjectUtilities.getDefaultEqualityComparator());
 		}
 		
 		public Input getTarget()
@@ -476,7 +476,7 @@ implements JavaNamespace
 		@EscapesVarargs
 		public NaiveObjectArraySearchPredicate(Input... targetArray)
 		{
-			this((EqualityComparator)BasicObjectUtilities.getNaturalEqualityComparator(), targetArray);
+			this((EqualityComparator)BasicObjectUtilities.getDefaultEqualityComparator(), targetArray);
 		}
 		
 		public Input[] getTargets()

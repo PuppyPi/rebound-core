@@ -4,6 +4,8 @@ import static rebound.util.collections.CollectionUtilities.*;
 import java.util.List;
 import javax.annotation.Nullable;
 
+//TODO fast iterator for long singly-linked lists!
+
 public class SinglyPreLinkedReadonlyList<E>
 implements DefaultReadonlyList<E>
 {
