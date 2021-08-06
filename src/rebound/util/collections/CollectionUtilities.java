@@ -1257,7 +1257,7 @@ public class CollectionUtilities
 			{
 				if (nonEmpty == null)
 				{
-					if (totalSize != 0) throw new AssertionError();
+					asrt(totalSize == 0);
 					
 					return emptyList();
 				}
@@ -1279,6 +1279,58 @@ public class CollectionUtilities
 			return l;
 		}
 	}
+	
+	
+	@SnapshotValue
+	@ReadonlyValue
+	public static <I, O, Ol extends Iterable<O>> List<O> concatenateManyListsMappingOP(Mapper<I, Ol> mapper, @ReadonlyValue Collection<I> inputs)
+	{
+		int n = inputs.size();
+		
+		if (n == 0)
+		{
+			return emptyList();
+		}
+		else if (n == 1)
+		{
+			Ol o;
+			
+			try
+			{
+				o = mapper.f(getSingleElement(inputs));
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				return emptyList();
+			}
+			
+			return asList(o);
+		}
+		else
+		{
+			List<O> l = new ArrayList<>(inputs.size());
+			
+			for (I i : inputs)
+			{
+				Ol o;
+				
+				try
+				{
+					o = mapper.f(i);
+				}
+				catch (FilterAwayReturnPath exc)
+				{
+					continue;
+				}
+				
+				addAll(l, o);
+			}
+			
+			return l;
+		}
+	}
+	
+	
 	
 	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> toList(Iterable<E> i)
@@ -1639,7 +1691,7 @@ public class CollectionUtilities
 	
 	
 	
-	public static <E> SimpleIterator<E> repeatingGenerator(int number, E value)
+	public static <E> SimpleIterator<E> repeatingGenerator(E value, int number)
 	{
 		return new SimpleIterator<E>()
 		{
@@ -1869,9 +1921,9 @@ public class CollectionUtilities
 			else if (remainingForMin == remainingBucketsForMax)
 				return singletonSimpleIterator(concatenateListsOPC(l, repeatedList(0, remainingForMin)));
 			else if (remainingForMin == 0)
-				return ascendingListAppensionGenerator(l, repeatingGenerator(remainingBucketsForMax, 0));
+				return ascendingListAppensionGenerator(l, repeatingGenerator(0, remainingBucketsForMax));
 			else
-				return ascendingListAppensionGenerator(concatenateListsOPC(l, repeatedList(0, remainingForMin)), repeatingGenerator(remainingBucketsForMax-remainingForMin, 0));
+				return ascendingListAppensionGenerator(concatenateListsOPC(l, repeatedList(0, remainingForMin)), repeatingGenerator(0, remainingBucketsForMax-remainingForMin));
 			
 		}, i);
 	}
