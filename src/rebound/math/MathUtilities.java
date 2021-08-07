@@ -4667,12 +4667,36 @@ implements JavaNamespace
 	{
 		if (!startInclusive && !endInclusive)
 		{
-			if (start != null)  throw gintervalEmptyValidityFailureNonNullDoublyEmpty();
-			if (end != null)  throw gintervalEmptyValidityFailureNonNullDoublyEmpty();  //different line number :3
-			return gintervalDoublyEmpty();
+			if (start == null)
+			{
+				if (end == null)
+					return gintervalDoublyEmpty();
+				else
+					throw gintervalEmptyValidityFailureNonNullDoublyEmpty();
+			}
+			else if (end == null)
+			{
+				throw gintervalEmptyValidityFailureNonNullDoublyEmpty();
+			}
+			else
+			{
+				int r = mathcmp(start, end);
+				
+				if (r == 0)
+				{
+					throw gintervalEmptyValidityFailureNonNullDoublyEmpty();
+				}
+				else
+				{
+					return new ArithmeticGenericInterval<>(start, startInclusive, end, endInclusive);
+				}
+			}
 		}
 		else
 		{
+			requireNonNull(start);  //only allowed on doubly-empty intervals
+			requireNonNull(end);    //only allowed on doubly-empty intervals
+			
 			int r = mathcmp(start, end);
 			
 			if (r == 0)
@@ -4681,7 +4705,7 @@ implements JavaNamespace
 				if (!endInclusive)  throw gintervalEmptyValidityFailureSinglyEmpty();  //different line number :3
 				return gintervalSinglyEmpty(arbitrary(start, end));
 			}
-			else if (r < 0)
+			else if (r > 0)
 			{
 				throw new ImpossibleException("Invalid interval: end < start");
 			}
@@ -4821,7 +4845,7 @@ implements JavaNamespace
 	
 	
 	
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalAdd(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalAdd(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	{
 		//If either or both starts are open/exclusive, then that point won't be ever actually added to/from and so won't appear in the output interval!
 		//So the function is AND! :D
@@ -4829,10 +4853,10 @@ implements JavaNamespace
 		if (gintervalIsDoublyEmpty(a) || gintervalIsDoublyEmpty(b))  //avoid NullPointerExceptions!
 			return gintervalDoublyEmpty();
 		else
-			return ginterval(add(a.getStart(), b.getStart()), a.isStartInclusive() && b.isStartInclusive(), add(a.getStart(), b.getStart()), a.isEndInclusive() && b.isEndInclusive());  //Nice that we made singly-empty intervals always have inclusive endpoints, huh?  ;D
+			return ginterval(add(a.getStart(), b.getStart()), a.isStartInclusive() && b.isStartInclusive(), add(a.getEnd(), b.getEnd()), a.isEndInclusive() && b.isEndInclusive());  //Nice that we made singly-empty intervals always have inclusive endpoints, huh?  ;D
 	}
 	
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalMultiply(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalMultiply(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	{
 		if (gintervalIsDoublyEmpty(a) || gintervalIsDoublyEmpty(b))  //avoid NullPointerExceptions!
 			return gintervalDoublyEmpty();
@@ -4865,7 +4889,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalNegate(@RealNumeric ArithmeticGenericInterval<Object> a)
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalNegate(@RealNumeric ArithmeticGenericInterval<?> a)
 	{
 		if (gintervalIsDoublyEmpty(a))  //avoid NullPointerExceptions!
 			return gintervalDoublyEmpty();
@@ -4877,7 +4901,7 @@ implements JavaNamespace
 	 * This works when 0 isn't included in the interval :3
 	 * But if it's an excluded endpoint, infinity must result in the output excluded endpoint!
 	 */
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalReciprocate(@RealNumeric ArithmeticGenericInterval<Object> a) throws DivisionByZeroException
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalReciprocate(@RealNumeric ArithmeticGenericInterval<?> a) throws DivisionByZeroException
 	{
 		if (gintervalIsDoublyEmpty(a))  //avoid NullPointerExceptions!
 			return gintervalDoublyEmpty();
@@ -4895,7 +4919,7 @@ implements JavaNamespace
 				{
 					// (0,∞)
 					asrt(!a.isEndInclusive());
-					return a;  //it's already what we would return! XD
+					return (ArithmeticGenericInterval<Object>)a;  //it's already what we would return! XD
 				}
 				
 				return ginterval(a.getEnd(), a.isEndInclusive(), RealInfinity.Positive, false);
@@ -4910,7 +4934,7 @@ implements JavaNamespace
 				{
 					// (-∞,0)
 					asrt(!a.isStartInclusive());
-					return a;  //it's already what we would return! XD
+					return (ArithmeticGenericInterval<Object>)a;  //it's already what we would return! XD
 				}
 				
 				return ginterval(RealInfinity.Negative, false, a.getStart(), a.isStartInclusive());
@@ -4929,12 +4953,12 @@ implements JavaNamespace
 		}
 	}
 	
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalSubtract(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalSubtract(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	{
 		return gintervalAdd(a, gintervalNegate(b));
 	}
 	
-	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalDivide(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b) throws DivisionByZeroException
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalDivide(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b) throws DivisionByZeroException
 	{
 		return gintervalMultiply(a, gintervalReciprocate(b));
 	}
@@ -4949,7 +4973,7 @@ implements JavaNamespace
 	//	/**
 	//	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound gintervals!)
 	//	 */
-	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalUnion(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalUnion(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	//	{
 	//		long al = a.getStart();
 	//		long ah = a.getPastEnd();
@@ -4975,7 +4999,7 @@ implements JavaNamespace
 	//	/**
 	//	 * The lowest of the low to the highest of the high..including any space between the gintervals even if that wasn't actually in either ginterval (which is what makes this different from {@link #gintervalUnion(ArithmeticGenericInterval, ArithmeticGenericInterval)})
 	//	 */
-	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalBoundsUnion(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalBoundsUnion(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	//	{
 	//		long al = a.getStart();
 	//		long ah = a.getPastEnd();
@@ -4992,7 +5016,7 @@ implements JavaNamespace
 	//	/**
 	//	 * @return an {@link #emptyInterval() empty ginterval} if they don't overlap (including if they just barely touch!)
 	//	 */
-	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersection(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersection(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	//	{
 	//		long al = a.getStart();
 	//		long ah = a.getPastEnd();
@@ -5007,7 +5031,7 @@ implements JavaNamespace
 	//	
 	//	
 	//	
-	//	public static @RealNumeric Object gintervalMidpoint(@RealNumeric ArithmeticGenericInterval<Object> a)
+	//	public static @RealNumeric Object gintervalMidpoint(@RealNumeric ArithmeticGenericInterval<?> a)
 	//	{
 	//		long al = a.getStart();
 	//		long ah = a.getPastEnd();
@@ -5052,7 +5076,7 @@ implements JavaNamespace
 	//	/**
 	//	 * @return null if one doesn't completely enclose the other!
 	//	 */
-	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersectionOfSubsetSymmetric(@RealNumeric ArithmeticGenericInterval<Object> a, @RealNumeric ArithmeticGenericInterval<Object> b)
+	//	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalIntersectionOfSubsetSymmetric(@RealNumeric ArithmeticGenericInterval<?> a, @RealNumeric ArithmeticGenericInterval<?> b)
 	//	{
 	//		ArithmeticGenericInterval r = gintervalIntersectionOfSubset(a, b);
 	//		return r != null ? r : gintervalIntersectionOfSubset(b, a);
