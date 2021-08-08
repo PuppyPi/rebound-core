@@ -23,6 +23,9 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -2590,8 +2593,14 @@ implements JavaNamespace
 		
 		
 		
-		if (a instanceof Comparable && a.getClass() == b.getClass())
-			return ((Comparable) a).compareTo(b);
+		if (a.getClass() == b.getClass() && arbitrary(a, b) instanceof Comparable)
+		{
+			if (!MathUtilitiesBasedComparison.is(a))
+				return ((Comparable) a).compareTo(b);
+			else if (!MathUtilitiesBasedComparison.is(b))
+				return -((Comparable) b).compareTo(a);
+		}
+		
 		
 		return signum(subtract(a, b));
 	}
@@ -3974,6 +3983,63 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * Supports these suffixes/units:
+	 * 		
+	 * 		(none)
+	 * 		p1
+	 * 		p100, pc, %
+	 * 		p1000, ppt, ‰
+	 * 		p10000, ‱
+	 * 		ppm
+	 * 		ppb
+	 * 		ppt
+	 * 
+	 * @see #RatioUnits
+	 */
+	public static @Nonnull @RationalOrInteger Number parseRationalOrIntegerRatio(@Nonnull String text) throws NumberFormatException
+	{
+		text = trim(text);
+		
+		for (Entry<String, Long> e : RatioUnits.entrySet())
+		{
+			String k = e.getKey();
+			Long denominator = e.getValue();
+			
+			String s = rtrimstrOrNull(text, k);
+			
+			if (s != null)
+			{
+				s = trim(s);
+				Number numerator = parseRationalOrInteger(s);
+				
+				return (Number)divide(numerator, denominator);
+			}
+		}
+		
+		return parseRationalOrInteger(text);
+	}
+	
+	
+	/**
+	 * @see #parseRationalOrIntegerRatio(String)
+	 */
+	public static final Map<String, Long> RatioUnits = unmodifiableMap(mapof(
+	"p1", 1l,
+	"p100", 100l,
+	"p1000", 1000l,
+	"p10000", 10000l,
+	
+	"%", 100l,
+	"‰", 1000l,
+	"‱", 10000l,
+	
+	"pc", 100l,
+	"ppk", 1000l,
+	"ppm", 1000_000l,
+	"ppb", 1000_000_000l,
+	"ppt", 1000_000_000_000l
+	));
 	
 	
 	
@@ -4840,6 +4906,49 @@ implements JavaNamespace
 			return ginterval(i.getStart(), true, i.getPastEnd(), false);
 		}
 	}
+	
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalFromValueAndAbsoluteTolerance(@RealNumeric Object midpoint, @RealNumeric Object plusOrMinus, boolean startInclusive, boolean endInclusive)
+	{
+		return ginterval(subtract(midpoint, plusOrMinus), startInclusive, add(midpoint, plusOrMinus), endInclusive);
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalFromValueAndAbsoluteTolerance(@RealNumeric Object midpoint, @RealNumeric Object plusOrMinus)
+	{
+		return gintervalFromValueAndRelativeTolerance(midpoint, plusOrMinus, true, true);
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalFromValueAndRelativeTolerance(@RealNumeric Object midpoint, @RealNumeric Object plusOrMinusPerun, boolean startInclusive, boolean endInclusive)
+	{
+		return gintervalFromValueAndAbsoluteTolerance(midpoint, multiply(midpoint, plusOrMinusPerun), startInclusive, endInclusive);
+	}
+	
+	public static @RealNumeric ArithmeticGenericInterval<Object> gintervalFromValueAndRelativeTolerance(@RealNumeric Object midpoint, @RealNumeric Object plusOrMinusPerun)
+	{
+		return gintervalFromValueAndRelativeTolerance(midpoint, plusOrMinusPerun, true, true);
+	}
+	
+	
+	/**
+	 * @throws NoSuchElementException  if it's a doubly-empty interval (with no elements within it!)
+	 */
+	public static @RealNumeric Object gintervalMidpoint(@RealNumeric ArithmeticGenericInterval<?> interval) throws NoSuchElementException
+	{
+		if (gintervalIsDoublyEmpty(interval))
+			throw new NoSuchElementException();
+		else
+		{
+			Object l = interval.getStart();
+			Object h = interval.getEnd();
+			
+			return matheq(l, h) ? arbitrary(l, h) : divide(add(l, h), 2);
+		}
+	}
+	
+	
+	
+	
+	
 	
 	
 	

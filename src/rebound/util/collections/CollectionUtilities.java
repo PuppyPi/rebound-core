@@ -1826,9 +1826,26 @@ public class CollectionUtilities
 	
 	
 	
+	public static SimpleIterator<List<Integer>> marbleBucketsRangesForMaxMarbles(@Nullable Integer maxTotalMarbles, int minimumInBuckets, @Nullable Integer maximumInBucketsInclusive, int minimumNumberOfBuckets, @Nullable Integer maximumNumberOfBucketsInclusive, @Nonnull CommutativeMarbleBuckets commutative)
+	{
+		if (maxTotalMarbles == null)
+		{
+			if (maximumInBucketsInclusive == null)
+				throw new IllegalArgumentException("That would be an infinite amount of output!");
+			
+			if (maximumNumberOfBucketsInclusive == null)
+				throw new IllegalArgumentException("That would be an infinite amount of output!");
+			
+			maxTotalMarbles = maximumInBucketsInclusive * maximumNumberOfBucketsInclusive;
+		}
+		
+		return mapConcatenating(n -> marbleBucketsRanges(n, minimumInBuckets, maximumInBucketsInclusive, minimumNumberOfBuckets, maximumNumberOfBucketsInclusive, commutative), intervalIntegersList(0, maxTotalMarbles+1));
+	}
+	
+	
 	public static SimpleIterator<List<Integer>> marbleBucketsRanges(int totalMarbles, int minimumInBuckets, @Nullable Integer maximumInBucketsInclusive, int minimumNumberOfBuckets, @Nullable Integer maximumNumberOfBucketsInclusive, @Nonnull CommutativeMarbleBuckets commutative)
 	{
-		if (minimumInBuckets == 0&& totalMarbles != 0)
+		if (minimumInBuckets == 0)
 		{
 			if (maximumNumberOfBucketsInclusive == null)
 				throw new IllegalArgumentException("That would cause immediate infinite recursion!");
@@ -1849,6 +1866,7 @@ public class CollectionUtilities
 		
 		if (maximumNumberOfBucketsInclusive != null && maximumNumberOfBucketsInclusive < minimumNumberOfBuckets)
 			throw new IllegalArgumentException();
+		
 		
 		
 		
@@ -1888,7 +1906,8 @@ public class CollectionUtilities
 		
 		//So this can't create trailing zeros, so we just need to add them explicitly X3
 		
-		SimpleIterator<List<Integer>> i = marbleBucketsMinimumMaximumBucketValueGeneralListPredicate(totalMarbles, commutative == CommutativeMarbleBuckets.Commutative ? 1 : 0, maximumInBucketsInclusive,
+		int minimumInBucketsOptimized = (commutative == CommutativeMarbleBuckets.Commutative && totalMarbles > 0) ? 1 : 0;  //making this be 1 is an optimization because if the first bucket is 0 then all buckets have to be zero, but if there's > 0 marbles, then the first bucket can't ever be zero of course! and thus no bucket can be zero!, but it doesn't work if there are zero marbles or we'll see [] not [[0]] !
+		SimpleIterator<List<Integer>> i = marbleBucketsMinimumMaximumBucketValueGeneralListPredicate(totalMarbles, minimumInBucketsOptimized, maximumInBucketsInclusive,
 		
 		//This prefilter is necessary for when minimumInBuckets == 0 to avoid infinite recursion!
 		l ->
@@ -2207,6 +2226,28 @@ public class CollectionUtilities
 	{
 		return map(p -> swappair(p), combineHighALowBGeneral(alphabetB, getAlphabetA));
 	}
+	
+	
+	
+	
+	
+	
+	
+	public static <E> SimpleIterator<PairOrdered<E, E>> combineHighALowBHomogeneousCommutative(List<E> alphabet)
+	{
+		SimpleIterator<PairOrdered<Integer, Integer>> i = combineHighALowBGeneral(simpleIterator(intervalIntegersList(0, alphabet.size())), a -> simpleIterator(intervalIntegersList(0, a+1)));
+		return map(p -> pair(alphabet.get(p.getA()), alphabet.get(p.getB())), i);
+	}
+	
+	public static <E> SimpleIterator<PairOrdered<E, E>> combineLowAHighBHomogeneousCommutative(List<E> alphabet)
+	{
+		SimpleIterator<PairOrdered<Integer, Integer>> i = combineLowAHighBGeneral(b -> simpleIterator(intervalIntegersList(0, b+1)), simpleIterator(intervalIntegersList(0, alphabet.size())));
+		return map(p -> pair(alphabet.get(p.getA()), alphabet.get(p.getB())), i);
+	}
+	
+	
+	
+	
 	
 	
 	
@@ -4297,33 +4338,6 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	
-	public static <E> SimpleIterator<E> singletonSimpleIterator(final E singleElement)
-	{
-		return new SimpleIterator<E>()
-		{
-			boolean atEnd = false;
-			
-			@Override
-			public E nextrp() throws StopIterationReturnPath
-			{
-				if (!this.atEnd)
-				{
-					this.atEnd = true;
-					return singleElement;
-				}
-				else
-				{
-					throw StopIterationReturnPath.I;
-				}
-			}
-		};
-	}
-	
-	public static <E> SimpleIterable<E> singletonSimpleIterable(final E singleElement)
-	{
-		return () -> singletonSimpleIterator(singleElement);
-	}
 	
 	
 	
@@ -8182,7 +8196,7 @@ _$$primxpconf:byte,char,short,int$$_
 	//Todo primitive versions :>  (primxp ftw! 0_0 XD)
 	
 	
-	public static <I, O> SimpleIterator<O> map(Mapper<I, O> mapper, SimpleIterator<I> underlying)
+	public static <I, O> SimpleIterator<O> map(Mapper<I, O> mapper, SimpleIterator<? extends I> underlying)
 	{
 		return () ->
 		{
@@ -8619,7 +8633,19 @@ _$$primxpconf:byte,char,short,int$$_
 	@ReadonlyValue
 	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Enumeration<? extends I> input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(map(mapper, (Iterator)enumerationToIterator(input)));
+		return mapToList(mapper, enumerationToIterator(input));
+	}
+	
+	@ReadonlyValue
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Iterator<? extends I> input)
+	{
+		return mapToList(mapper, simpleIterator(input));
+	}
+	
+	@ReadonlyValue
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	{
+		return asList(map(mapper, input));
 	}
 	
 	@ReadonlyValue

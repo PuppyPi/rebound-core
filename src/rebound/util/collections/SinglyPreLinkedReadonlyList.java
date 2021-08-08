@@ -5,6 +5,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 //TODO fast iterator for long singly-linked lists!
+//TODO fast subList() special case for long singly-linked lists!
 
 public class SinglyPreLinkedReadonlyList<E>
 implements DefaultReadonlyList<E>

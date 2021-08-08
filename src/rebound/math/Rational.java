@@ -13,7 +13,7 @@ import rebound.exceptions.OverflowException;
  */
 @SignalType
 public interface Rational<IntegerType>
-extends Comparable
+extends Comparable, MathUtilitiesBasedComparison
 {
 	/**
 	 * Any integer! :D

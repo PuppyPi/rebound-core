@@ -101,8 +101,17 @@ public interface SimpleIterator<E>
 		
 		
 		
-		public static final SimpleIterable<?> EmptySimpleIterable = () -> EmptySimpleIterator;
+		public static final SimpleIterable EmptySimpleIterable = () -> EmptySimpleIterator;
 		
+		public static <D> SimpleIterable<D> emptySimpleIterable(Iterable<D> iterable)
+		{
+			return (SimpleIterable<D>)EmptySimpleIterable;
+		}
+		
+		public static <D> SimpleIterable<D> singletonSimpleIterable(D element)
+		{
+			return () -> singletonSimpleIterator(element);
+		}
 		
 		//Todo simpleIterable(...) :>
 		
@@ -166,8 +175,7 @@ public interface SimpleIterator<E>
 	
 	public static <E> Iterator<E> defaultToIterator(SimpleIterator<E> i)
 	{
-		return new Iterator<E>
-		()
+		return new Iterator<E>()
 		{
 			boolean eof;
 			boolean hasBuff;
@@ -282,6 +290,11 @@ public interface SimpleIterator<E>
 	
 	public static final SimpleIterator EmptySimpleIterator = () -> {throw StopIterationReturnPath.I;};
 	
+	
+	public static <E> SimpleIterator<E> emptySimpleIterator(E onlyElement)
+	{
+		return (SimpleIterator<E>)EmptySimpleIterator;
+	}
 	
 	public static <E> SimpleIterator<E> singletonSimpleIterator(E onlyElement)
 	{
