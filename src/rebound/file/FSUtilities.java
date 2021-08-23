@@ -39,8 +39,11 @@ import java.nio.channels.OverlappingFileLockException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -5297,5 +5300,42 @@ implements JavaNamespace
 				deleteRecursivelyThrowing(t, false);
 			}
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int getPosixFilePermissionsMode(File f) throws IOException
+	{
+		PosixFileAttributeView v = Files.getFileAttributeView(f.toPath(), PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+		PosixFileAttributes a = v.readAttributes();
+		Set<PosixFilePermission> perms = a.permissions();
+		
+		int mode = 0;
+		
+		// rwx rwx rwx
+		// 421 421 421
+		// owner
+		//     group
+		//         other
+		
+		mode |= (perms.contains(PosixFilePermission.OWNER_READ) ? 0400 : 0000);
+		mode |= (perms.contains(PosixFilePermission.OWNER_WRITE) ? 0200 : 0000);
+		mode |= (perms.contains(PosixFilePermission.OWNER_EXECUTE) ? 0100 : 0000);
+		
+		mode |= (perms.contains(PosixFilePermission.GROUP_READ) ? 0040 : 0000);
+		mode |= (perms.contains(PosixFilePermission.GROUP_WRITE) ? 0020 : 0000);
+		mode |= (perms.contains(PosixFilePermission.GROUP_EXECUTE) ? 0010 : 0000);
+		
+		mode |= (perms.contains(PosixFilePermission.OTHERS_READ) ? 0004 : 0000);
+		mode |= (perms.contains(PosixFilePermission.OTHERS_WRITE) ? 0002 : 0000);
+		mode |= (perms.contains(PosixFilePermission.OTHERS_EXECUTE) ? 0001 : 0000);
+		
+		return mode;
 	}
 }
