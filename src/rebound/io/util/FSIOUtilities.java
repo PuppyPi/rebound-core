@@ -271,70 +271,73 @@ public class FSIOUtilities
 		}
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, byte[] data) throws IOException
 	{
 		writeAll(file, data, false);
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, byte[] data, boolean append) throws IOException
 	{
 		writeAll(file, wholeArraySliceByte(data), append);
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, Slice<byte[]> data) throws IOException
 	{
 		writeAll(file, data, false);
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, Slice<byte[]> data, boolean append) throws IOException
 	{
-		OutputStream out = new FileOutputStream(file, append);
-		
-		try
+		try (OutputStream out = new FileOutputStream(file, append))
 		{
 			out.write(data.getUnderlying(), data.getOffset(), data.getLength());
 		}
-		catch (IOException exc)
-		{
-			closeWithoutError(out);
-			throw exc;
-		}
-		
-		//else
-		out.close();
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, ByteBuffer data, boolean append) throws IOException
 	{
-		FileChannel channel = !append ? FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING) :
-			FileChannel.open(file.toPath(), StandardOpenOption.APPEND, StandardOpenOption.CREATE);
-		
-		try
+		try (FileChannel channel = !append ? FileChannel.open(file.toPath(), StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING) : FileChannel.open(file.toPath(), StandardOpenOption.APPEND, StandardOpenOption.CREATE))
 		{
 			while (data.hasRemaining())
 				channel.write(data);
 		}
-		catch (IOException exc)
-		{
-			closeWithoutError(channel);
-			throw exc;
-		}
-		
-		//else
-		channel.close();
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, ByteBuffer data) throws IOException
 	{
 		writeAll(file, data, true);
 	}
 	
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, ByteList data) throws IOException
 	{
 		writeAll(file, data, false);
 	}
 	
+	/**
+	 * Guaranteed to work even if the file is a symlink!  (Ie, it won't delete and recreate it and break the symlinkness! It'll put data directly into the file)
+	 */
 	public static void writeAll(File file, ByteList data, boolean append) throws IOException
 	{
 		writeAll(file, data.toByteArraySlicePossiblyLive(), append);
