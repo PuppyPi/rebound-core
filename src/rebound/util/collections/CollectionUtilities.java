@@ -10908,6 +10908,26 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <I, O> SimpleTable<O> mapTableOP(UnaryFunction<I, O> mapper, SimpleTable<I> input)
+	{
+		int w = input.getNumberOfColumns();
+		int h = input.getNumberOfRows();
+		
+		SimpleTable<O> output = newTableNullfilled(w, h);
+		
+		for (int r = 0; r < h; r++)
+		{
+			for (int c = 0; c < w; c++)
+			{
+				output.setCellContents(c, r, mapper.f(input.getCellContents(c, r)));
+			}
+		}
+		
+		return output;
+	}
+	
+	
+	
 	
 	
 	public static <E> SimpleTable<E> transposeOP(SimpleTable<E> input)
