@@ -49,7 +49,8 @@ public class CharacterPredicates
 	
 	
 	
-	public static final UnaryFunctionCharToBoolean WHITESPACE_PATTERN = c -> Character.isWhitespace(c);
+	public static final UnaryFunctionCharToBoolean BREAKING_WHITESPACE_PATTERN = c -> Character.isWhitespace(c);
+	public static final UnaryFunctionCharToBoolean ALL_WHITESPACE_PATTERN = c -> Character.isWhitespace(c) || c == '\u00A0';  //Todo any other non-"whitespace" whitespaces? XD'
 	
 	public static final UnaryFunctionCharToBoolean NONNEWLINE_WHITESPACE_PATTERN = c -> Character.getType(c) != Character.LINE_SEPARATOR && Character.isWhitespace(c);
 	
@@ -87,7 +88,8 @@ public class CharacterPredicates
 	public static final UnaryFunctionCharToBoolean NOT_SURROGATE_PATTERN_INVERSE = new InverseCharacterPattern(NOT_SURROGATE_PATTERN);
 	public static final UnaryFunctionCharToBoolean GENERALLY_PRINTABLE_CHARS_INVERSE = new InverseCharacterPattern(GENERALLY_PRINTABLE_CHARS);
 	public static final UnaryFunctionCharToBoolean GENERALLY_PRINTABLE_NONNEWLINE_CHARS_INVERSE = new InverseCharacterPattern(GENERALLY_PRINTABLE_NONNEWLINE_CHARS);
-	public static final UnaryFunctionCharToBoolean WHITESPACE_PATTERN_INVERSE = new InverseCharacterPattern(WHITESPACE_PATTERN);
+	public static final UnaryFunctionCharToBoolean BREAKING_WHITESPACE_PATTERN_INVERSE = new InverseCharacterPattern(BREAKING_WHITESPACE_PATTERN);
+	public static final UnaryFunctionCharToBoolean ALL_WHITESPACE_PATTERN_INVERSE = new InverseCharacterPattern(ALL_WHITESPACE_PATTERN);
 	public static final UnaryFunctionCharToBoolean NONNEWLINE_WHITESPACE_PATTERN_INVERSE = new InverseCharacterPattern(NONNEWLINE_WHITESPACE_PATTERN);
 	public static final UnaryFunctionCharToBoolean SPACE_PATTERN_INVERSE = new InverseCharacterPattern(SPACE_PATTERN);
 	public static final UnaryFunctionCharToBoolean DIGIT_PATTERN_INVERSE = new InverseCharacterPattern(DIGIT_PATTERN);
@@ -316,15 +318,5 @@ public class CharacterPredicates
 	public static final Predicate StringPattern_IsEmpty = input -> getLength(input) == 0;
 	
 	public static final Predicate StringPattern_IsNotEmpty = input -> getLength(input) != 0;
-	
-	
-	
-	public static final Predicate StringPattern_IsAllWhitespace = input -> isUniform(input, WHITESPACE_PATTERN);
-	
-	public static final Predicate StringPattern_IsNotAllWhitespace = input -> !isUniform(input, WHITESPACE_PATTERN);
-	
-	public static final Predicate StringPattern_IsAllNotwhitespace = input -> isUniform(input, WHITESPACE_PATTERN_INVERSE);
-	
-	public static final Predicate StringPattern_IsNotAllNotwhitespace = input -> !isUniform(input, WHITESPACE_PATTERN_INVERSE);
 	//Patterns and such>
 }

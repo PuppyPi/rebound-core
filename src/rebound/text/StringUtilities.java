@@ -1136,12 +1136,12 @@ implements JavaNamespace
 	
 	public static String[] splitwhitespace(String original, int limitInMaximumNumberOfDelimiterSplits)
 	{
-		return split(original, WHITESPACE_PATTERN, limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties.LeaveOutEmpties);
+		return split(original, ALL_WHITESPACE_PATTERN, limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties.LeaveOutEmpties);
 	}
 	
 	public static String[] rsplitwhitespace(String original, int limitInMaximumNumberOfDelimiterSplits)
 	{
-		return rsplit(original, WHITESPACE_PATTERN, limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties.LeaveOutEmpties);
+		return rsplit(original, ALL_WHITESPACE_PATTERN, limitInMaximumNumberOfDelimiterSplits, WhatToDoWithEmpties.LeaveOutEmpties);
 	}
 	
 	
@@ -2567,7 +2567,7 @@ implements JavaNamespace
 	
 	public static boolean containsWhitespace(String s)
 	{
-		return contains(s, WHITESPACE_PATTERN);
+		return contains(s, ALL_WHITESPACE_PATTERN);
 	}
 	
 	
@@ -2664,7 +2664,7 @@ implements JavaNamespace
 	
 	public static boolean isAllWhitespace(CharSequence s)
 	{
-		return forAll(WHITESPACE_PATTERN, s);
+		return forAll(ALL_WHITESPACE_PATTERN, s);
 	}
 	
 	
@@ -2865,15 +2865,15 @@ implements JavaNamespace
 	
 	public static String ltrim(String s)
 	{
-		return ltrim(s, WHITESPACE_PATTERN);
+		return ltrim(s, ALL_WHITESPACE_PATTERN);
 	}
 	public static String rtrim(String s)
 	{
-		return rtrim(s, WHITESPACE_PATTERN);
+		return rtrim(s, ALL_WHITESPACE_PATTERN);
 	}
 	public static String trim(String s)
 	{
-		return trim(s, WHITESPACE_PATTERN);
+		return trim(s, ALL_WHITESPACE_PATTERN);
 	}
 	
 	
@@ -3111,12 +3111,12 @@ implements JavaNamespace
 	
 	public static String lmatchingWhitespace(String str)
 	{
-		return lmatchingStr(str, WHITESPACE_PATTERN);
+		return lmatchingStr(str, ALL_WHITESPACE_PATTERN);
 	}
 	
 	public static String rmatchingWhitespace(String str)
 	{
-		return rmatchingStr(str, WHITESPACE_PATTERN);
+		return rmatchingStr(str, ALL_WHITESPACE_PATTERN);
 	}
 	
 	
@@ -5182,15 +5182,15 @@ implements JavaNamespace
 	
 	public static Object[] parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes_DoubleSingleAndBacktickQuotes_WhitespaceBreakingSpace_BackslashEscapes(Object source, boolean skipEscapesInsideUnquoteds, boolean throwSyntaxExceptionOnEoffedQuotedTokens)
 	{
-		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, ThreeQuotesPattern, WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
+		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, ThreeQuotesPattern, ALL_WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
 	}
 	public static Object[] parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes_DoubleAndSingleQuotes_WhitespaceBreakingSpace_BackslashEscapes(Object source, boolean skipEscapesInsideUnquoteds, boolean throwSyntaxExceptionOnEoffedQuotedTokens)
 	{
-		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, TwoQuotesPattern, WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
+		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, TwoQuotesPattern, ALL_WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
 	}
 	public static Object[] parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes_DoubleQuotes_WhitespaceBreakingSpace_BackslashEscapes(Object source, boolean skipEscapesInsideUnquoteds, boolean throwSyntaxExceptionOnEoffedQuotedTokens)
 	{
-		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, JustDoubleQuotesPattern, WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
+		return parsePossiblyFlatlyQuotedWhitespaceSepararedTokensSkippingSimpleEscapes(source, JustDoubleQuotesPattern, ALL_WHITESPACE_PATTERN, BackslashPattern, skipEscapesInsideUnquoteds, throwSyntaxExceptionOnEoffedQuotedTokens);
 	}
 	
 	
@@ -5500,7 +5500,7 @@ implements JavaNamespace
 	
 	public static List<Object> parseStandardPrefixnotationNestedFunctionInvocationExpression(Reader r) throws IOException, TextSyntaxCheckedException
 	{
-		return parsePrefixnotationNestedFunctionInvocationExpression(r, '(', ')', ',', WHITESPACE_PATTERN);
+		return parsePrefixnotationNestedFunctionInvocationExpression(r, '(', ')', ',', ALL_WHITESPACE_PATTERN);
 	}
 	
 	
@@ -7963,7 +7963,7 @@ primxp
 	
 	public static String replaceWhitespace(String s, char replacement)
 	{
-		return replaceCharsByPattern(s, WHITESPACE_PATTERN, replacement);
+		return replaceCharsByPattern(s, ALL_WHITESPACE_PATTERN, replacement);
 	}
 	
 	public static String replaceCharsByPattern(String s, UnaryFunctionCharToBoolean charPattern, char replacement)
@@ -7982,7 +7982,7 @@ primxp
 	
 	public static String replaceWhitespace(String s, String replacement)
 	{
-		return replaceCharsWithStringsByPattern(s, WHITESPACE_PATTERN, replacement);
+		return replaceCharsWithStringsByPattern(s, ALL_WHITESPACE_PATTERN, replacement);
 	}
 	
 	public static String replaceCharsWithStringsByPattern(String s, UnaryFunctionCharToBoolean charPattern, String replacement)
@@ -8037,7 +8037,7 @@ primxp
 	
 	public static String filterAwayWhitespace(String s)
 	{
-		return filterString(WHITESPACE_PATTERN_INVERSE, s);
+		return filterString(ALL_WHITESPACE_PATTERN_INVERSE, s);
 	}
 	
 	
