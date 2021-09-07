@@ -4857,12 +4857,17 @@ _$$primxpconf:byte,char,short,int$$_
 		if (x == null)
 			throw new NullPointerException();
 		
-		Set s = PolymorphicCollectionUtilities.anyToSet(x);
+		Set s = new HashSet<>();
 		
 		List l = new ArrayList();
 		for (Object e : x)
-			if (s.contains(e))
+		{
+			if (!s.contains(e))
+			{
 				l.add(e);
+				s.add(e);
+			}
+		}
 		
 		return l;
 	}
@@ -4871,27 +4876,30 @@ _$$primxpconf:byte,char,short,int$$_
 	@ReadonlyValue //we may check if it's already uniqued and pass it through, unmodified in the future; who knows! :>
 	public static <E> E[] uniqueifyArrayOrderPreservingOPC(@ReadonlyValue E[] x)
 	{
-		if (x == null)
-			throw new NullPointerException();
+		//		if (x == null)
+		//			throw new NullPointerException();
+		//		
+		//		Set s = PolymorphicCollectionUtilities.anyToSet(x);
+		//		
+		//		E[] a = (E[])Array.newInstance(x.getClass().getComponentType(), x.length);
+		//		int i = 0;
+		//		for (E e : x)
+		//			if (s.contains(e))
+		//				a[i++] = e;
+		//		
+		//		int size = i;
+		//		
+		//		if (size < a.length)
+		//		{
+		//			E[] n = (E[])Array.newInstance(x.getClass().getComponentType(), size);
+		//			System.arraycopy(a, 0, n, 0, size);
+		//			a = n;
+		//		}
+		//		
+		//		return a;
 		
-		Set s = PolymorphicCollectionUtilities.anyToSet(x);
-		
-		E[] a = (E[])Array.newInstance(x.getClass().getComponentType(), x.length);
-		int i = 0;
-		for (E e : x)
-			if (s.contains(e))
-				a[i++] = e;
-		
-		int size = i;
-		
-		if (size < a.length)
-		{
-			E[] n = (E[])Array.newInstance(x.getClass().getComponentType(), size);
-			System.arraycopy(a, 0, n, 0, size);
-			a = n;
-		}
-		
-		return a;
+		List r = uniqueifyListOrderPreservingOPC(asList(x));
+		return (E[]) r.toArray(Arrays.copyOf(x, r.size()));
 	}
 	
 	
