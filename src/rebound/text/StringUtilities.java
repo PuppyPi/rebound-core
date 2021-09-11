@@ -13,6 +13,7 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
 import static rebound.util.collections.ArrayUtilities.*;
+import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
@@ -56,6 +57,7 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.BitfieldSafeCasts;
@@ -3405,7 +3407,7 @@ implements JavaNamespace
 		if (n <= 1)
 			return "";
 		
-		if (isLowSurrogate(s.charAt(n-1)))
+		if (n >= 2 && isHighSurrogate(s.charAt(n-2)) && isLowSurrogate(s.charAt(n-1)))
 			return s.substring(0, n-2);
 		else
 			return s.substring(0, n-1);
@@ -3418,10 +3420,44 @@ implements JavaNamespace
 		if (n <= 1)
 			return "";
 		
-		if (isHighSurrogate(s.charAt(0)))
+		if (n >= 2 && isHighSurrogate(s.charAt(0)) && isLowSurrogate(s.charAt(1)))
 			return s.substring(2);
 		else
 			return s.substring(1);
+	}
+	
+	
+	
+	/**
+	 * @return (the emptyable trimmed string, the nonempty bit trimmed off), neither of which are ever null
+	 */
+	public static @Nonnull PairOrdered<String, String> removeAndReturnLastUCS4Character(@Nonnull @Nonempty String s)
+	{
+		int n = s.length();
+		
+		if (n == 0)
+			throw new IllegalArgumentException();
+		
+		if (n >= 2 && isHighSurrogate(s.charAt(n-2)) && isLowSurrogate(s.charAt(n-1)))
+			return pair(s.substring(0, n-2), s.substring(n-2));
+		else
+			return pair(s.substring(0, n-1), s.substring(n-1));
+	}
+	
+	/**
+	 * @return (the nonempty bit trimmed off, the emptyable trimmed string), neither of which are ever null
+	 */
+	public static @Nonnull PairOrdered<String, String> removeAndReturnFirstUCS4Character(@Nonnull @Nonempty String s)
+	{
+		int n = s.length();
+		
+		if (n == 0)
+			throw new IllegalArgumentException();
+		
+		if (n >= 2 && isHighSurrogate(s.charAt(0)) && isLowSurrogate(s.charAt(1)))
+			return pair(s.substring(0, 2), s.substring(2));
+		else
+			return pair(s.substring(0, 1), s.substring(1));
 	}
 	
 	
