@@ -3398,6 +3398,32 @@ implements JavaNamespace
 	
 	
 	
+	public static @Nonnull String removeLastUCS4Character(@Nonnull String s)
+	{
+		int n = s.length();
+		
+		if (n <= 1)
+			return "";
+		
+		if (isLowSurrogate(s.charAt(n-1)))
+			return s.substring(0, n-2);
+		else
+			return s.substring(0, n-1);
+	}
+	
+	public static @Nonnull String removeFirstUCS4Character(@Nonnull String s)
+	{
+		int n = s.length();
+		
+		if (n <= 1)
+			return "";
+		
+		if (isHighSurrogate(s.charAt(0)))
+			return s.substring(2);
+		else
+			return s.substring(1);
+	}
+	
 	
 	
 	
