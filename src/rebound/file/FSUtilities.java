@@ -113,7 +113,11 @@ import rebound.util.objectutil.JavaNamespace;
 public class FSUtilities
 implements JavaNamespace
 {
-	public static final File UserUUIDBase = new File(System.getProperty("user.home"), ".uuid");
+	public static final File UserHome = new File(System.getProperty("user.home"));
+	public static final File JVMCurrentWorkingDirectory = new File(System.getProperty("user.dir"));
+	public static final File TemporaryFilesDirectory = new File(System.getProperty("java.io.tmpdir"));
+	
+	public static final File UserUUIDBase = new File(UserHome, ".uuid");
 	
 	
 	
