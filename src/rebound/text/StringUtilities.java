@@ -100,6 +100,7 @@ import rebound.util.collections.PolymorphicCollectionUtilities;
 import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.SimpleTable;
 import rebound.util.collections.Slice;
+import rebound.util.collections.TripleOrdered;
 import rebound.util.collections.prim.CharSequenceBackedReadonlyCharacterList;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.CharacterList;
@@ -9329,5 +9330,32 @@ primxp
 	public static <E extends CharSequence> E altIfEmpty(E x, E alternate)
 	{
 		return (x.length() == 0) ? alternate : x;
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * @return null ifF there is no word wrapping to be done  (note that (if not null) the start or end strings can be empty if the word wrap break character is at the start or end of the original string, respectively!)
+	 */
+	public static @Nullable TripleOrdered<String, Character, String> wordWrapOnSingleCharacterBreak(String line, List<UnaryFunctionCharToBoolean> wrapTypesInPreferenceOrder)
+	{
+		for (UnaryFunctionCharToBoolean breaks : wrapTypesInPreferenceOrder)
+		{
+			int i = lastIndexOf(line, breaks);
+			
+			if (i != -1)
+				return triple(line.substring(0, i), line.charAt(i), line.substring(i+1));
+		}
+		
+		return null;
+	}
+	
+	
+	public static boolean isSingleCodepointString(String s)
+	{
+		return s.length() == 1 || (s.length() == 2 && isSurrogatePair(s.charAt(0), s.charAt(1)));
 	}
 }
