@@ -1,7 +1,6 @@
 package rebound.text;
 
 import static java.lang.Character.*;
-import static rebound.bits.Unsigned.*;
 import static rebound.text.StringUtilities.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
