@@ -1,5 +1,7 @@
 package rebound.text;
 
+import static java.lang.Character.*;
+import static rebound.bits.Unsigned.*;
 import static rebound.text.StringUtilities.*;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -80,6 +82,18 @@ public class CharacterPredicates
 	public static final UnaryFunctionCharToBoolean UPPERCASE_PATTERN = c -> Character.isUpperCase(c);
 	
 	public static final UnaryFunctionCharToBoolean TITLECASE_PATTERN = c -> Character.isTitleCase(c);
+	
+	public static final UnaryFunctionCharToBoolean COMBINING_CHARACTER = c ->
+	{
+		int t = Character.getType(c);
+		return (t & upcast(COMBINING_SPACING_MARK)) != 0 || (t & upcast(ENCLOSING_MARK)) != 0 || (t & upcast(NON_SPACING_MARK)) != 0;
+	};
+	
+	/**
+	 * The characters you'd prefer not to make a word-wrap break on, but might have to.
+	 * + Includes nbsp!
+	 */
+	public static final UnaryFunctionCharToBoolean WORD_WRAP_BREAK_CHARACTERS_OTHER_THAN_WHITESPACE = c -> !Character.isLetter(c) && !Character.isIdeographic(c) && !COMBINING_CHARACTER.f(c) && !Character.isSurrogate(c);
 	
 	
 	
