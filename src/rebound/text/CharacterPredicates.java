@@ -86,7 +86,7 @@ public class CharacterPredicates
 	public static final UnaryFunctionCharToBoolean COMBINING_CHARACTER = c ->
 	{
 		int t = Character.getType(c);
-		return (t & upcast(COMBINING_SPACING_MARK)) != 0 || (t & upcast(ENCLOSING_MARK)) != 0 || (t & upcast(NON_SPACING_MARK)) != 0;
+		return t == COMBINING_SPACING_MARK || t == ENCLOSING_MARK|| t == NON_SPACING_MARK;
 	};
 	
 	/**
