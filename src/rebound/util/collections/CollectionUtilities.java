@@ -5450,6 +5450,50 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	
+	@ThrowAwayValue
+	public static <E> SimpleTable<E> cartesianListProductManyToTableOP(List<List<E>> inputs)
+	{
+		int width = inputs.size();
+		
+		if (width == 0)
+			return newTable();
+		
+		int height = productMapping32(i -> i.size(), inputs);
+		
+		if (height == 0)
+			return newTable();
+		
+		
+		SimpleTable<E> out = newTableNullfilled(width, height);
+		
+		
+		int[] exclusiveHighBounds;
+		{
+			exclusiveHighBounds = new int[width];
+			
+			for (int i = 0; i < width; i++)
+				exclusiveHighBounds[i] = inputs.get(i).size();
+		}
+		
+		
+		int[] indexesForColumns = new int[width];
+		int rowIndex = 0;
+		
+		while (true)
+		{
+			for (int columnIndex = 0; columnIndex < width; columnIndex++)
+				out.setCellContents(columnIndex, rowIndex, inputs.get(columnIndex).get(indexesForColumns[columnIndex]));
+			
+			if (increment(indexesForColumns, 0, exclusiveHighBounds))
+				break;
+			
+			rowIndex++;
+		}
+		
+		return out;
+	}
+	
+	
 	
 	
 	@PossiblySnapshotPossiblyLiveValue
