@@ -5484,7 +5484,7 @@ _$$primxpconf:byte,char,short,int$$_
 			for (int columnIndex = 0; columnIndex < width; columnIndex++)
 				out.setCellContents(columnIndex, rowIndex, inputs.get(columnIndex).get(indexesForColumns[columnIndex]));
 			
-			if (increment(indexesForColumns, 0, exclusiveHighBounds))
+			if (!increment(indexesForColumns, 0, exclusiveHighBounds))
 				break;
 			
 			rowIndex++;
