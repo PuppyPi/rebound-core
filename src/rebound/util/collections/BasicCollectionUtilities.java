@@ -10,6 +10,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
 import rebound.exceptions.NotSingletonException;
@@ -200,6 +201,162 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E first(Iterable<E> collection) throws NoSuchElementException
+	{
+		return first(collection.iterator());
+	}
+	
+	public static <E> E firstOrNone(Iterable<E> collection, @Nullable E sentinelIfNone)
+	{
+		return firstOrNone(collection.iterator(), sentinelIfNone);
+	}
+	
+	@Nullable
+	public static <E> E firstOrNullIfNone(Iterable<E> collection)
+	{
+		return firstOrNone(collection, null);
+	}
+	
+	
+	
+	
+	
+	
+	public static <E> E first(SimpleIterable<E> collection) throws NoSuchElementException
+	{
+		return first(collection.simpleIterator());
+	}
+	
+	public static <E> E firstOrNone(SimpleIterable<E> collection, @Nullable E sentinelIfNone)
+	{
+		return firstOrNone(collection.simpleIterator(), sentinelIfNone);
+	}
+	
+	
+	@Nullable
+	public static <E> E firstOrNullIfNone(SimpleIterable<E> collection)
+	{
+		return firstOrNone(collection, null);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E first(Iterator<E> i) throws NoSuchElementException
+	{
+		return i.next();
+	}
+	
+	public static <E> E firstOrNone(Iterator<E> i, @Nullable E sentinelIfNone)
+	{
+		if (!i.hasNext())
+			return sentinelIfNone;
+		return i.next();
+	}
+	
+	@Nullable
+	public static <E> E firstOrNullIfNone(Iterator<E> collection)
+	{
+		return firstOrNone(collection, null);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E first(SimpleIterator<E> collection) throws NoSuchElementException
+	{
+		SimpleIterator<E> i = collection;
+		
+		try
+		{
+			return i.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			throw new NoSuchElementException();
+		}
+	}
+	
+	public static <E> E firstOrNone(SimpleIterator<E> collection, @Nullable E sentinelIfNone)
+	{
+		SimpleIterator<E> i = collection;
+		
+		try
+		{
+			return i.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			return sentinelIfNone;
+		}
+	}
+	
+	@Nullable
+	public static <E> E firstOrNullIfNone(SimpleIterator<E> collection)
+	{
+		return firstOrNone(collection, null);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E last(List<E> list) throws NoSuchElementException
+	{
+		if (list.isEmpty())
+			throw new NoSuchElementException();
+		else
+			return list.get(list.size() - 1);
+	}
+	
+	public static <E> E lastOrNone(List<E> list, @Nullable E sentinelIfNone)
+	{
+		if (list.isEmpty())
+			return sentinelIfNone;
+		else
+			return list.get(list.size() - 1);
+	}
+	
+	@Nullable
+	public static <E> E lastOrNullIfNone(List<E> collection)
+	{
+		return lastOrNone(collection, null);
+	}
 	
 	
 	
