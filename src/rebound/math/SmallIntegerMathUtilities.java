@@ -191,6 +191,48 @@ public class SmallIntegerMathUtilities
 	
 	
 	
+	/**
+	 * Like modulus but only wraps to 0
+	 */
+	public static byte wrap(byte x, byte exclusiveHighBound)
+	{
+		return x == exclusiveHighBound ? 0 : x;
+	}
+	
+	/**
+	 * Like modulus but only wraps to 0
+	 */
+	public static short wrap(short x, short exclusiveHighBound)
+	{
+		return x == exclusiveHighBound ? 0 : x;
+	}
+	
+	/**
+	 * Like modulus but only wraps to 0
+	 */
+	public static char wrap(char x, char exclusiveHighBound)
+	{
+		return x == exclusiveHighBound ? 0 : x;
+	}
+	
+	/**
+	 * Like modulus but only wraps to 0
+	 */
+	public static int wrap(int x, int exclusiveHighBound)
+	{
+		return x == exclusiveHighBound ? 0 : x;
+	}
+	
+	/**
+	 * Like modulus but only wraps to 0
+	 */
+	public static long wrap(long x, long exclusiveHighBound)
+	{
+		return x == exclusiveHighBound ? 0 : x;
+	}
+	
+	
+	
 	
 	
 	
