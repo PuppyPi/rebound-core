@@ -92,4 +92,42 @@ public class Interval<RuntimeType extends Interval<RuntimeType>>
 	{
 		return subslice(0, lengthOrExclusiveEndingBound);
 	}
+	
+	
+	
+	
+	
+	
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + length;
+		result = prime * result + offset;
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Interval other = (Interval) obj;
+		if (length != other.length)
+			return false;
+		if (offset != other.offset)
+			return false;
+		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return "["+getOffset()+", "+(getOffset()+getLength())+") : "+getLength();
+	}
 }

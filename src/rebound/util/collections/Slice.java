@@ -41,4 +41,37 @@ extends Interval<Slice<A>>
 	{
 		return new Slice<A>(this.underlying, this.offset + offset, length);
 	}
+	
+	
+	
+	
+	
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + ((underlying == null) ? 0 : underlying.hashCode());
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+			return true;
+		if (!super.equals(obj))
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Slice other = (Slice) obj;
+		if (underlying == null)
+		{
+			if (other.underlying != null)
+				return false;
+		}
+		else if (!underlying.equals(other.underlying))
+			return false;
+		return true;
+	}
 }
