@@ -10134,6 +10134,12 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	@ThrowAwayValue
+	public static <I,O> Map<O, Integer> getColumnHeadersToIndexesMap(SimpleTable<I> table, int headerRowIndex) throws NonForwardInjectiveMapException
+	{
+		return getColumnHeadersToIndexesMap(table, headerRowIndex, null);
+	}
+	
+	@ThrowAwayValue
 	public static <I,O> Map<O, Integer> getColumnHeadersToIndexesMap(SimpleTable<I> table, int headerRowIndex, @Nullable Mapper<I, O> columnHeaderMapperAndFilter) throws NonForwardInjectiveMapException
 	{
 		return getColumnHeadersToIndexesMap(table.rowToList(headerRowIndex), columnHeaderMapperAndFilter);
