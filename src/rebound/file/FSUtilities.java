@@ -15,7 +15,6 @@ import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
-import static rebound.util.objectutil.ObjectUtilities.*;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
@@ -86,6 +85,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.BinaryProcedureThrowingIOException;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingIOException;
+import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryFunctionThrowingIOException;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.UnaryProcedureThrowingIOException;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -2305,6 +2305,49 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	
+	public static void copy(File source, File dest) throws IOException
+	{
+		copyOrMove(false, source, dest);
+	}
+	
+	public static void copy(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
+	{
+		copyOrMove(false, source, dest, handleUnmoveableSourceDestFilePair, handleExistingDest);
+	}
+	
+	public static void copyMergingDirectoryTrees(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
+	{
+		copyOrMoveMergingDirectoryTrees(false, source, dest, handleUnmoveableSourceDestFilePair, handleExistingDest);
+	}
+	
+	
+	
+	public static void move(File source, File dest) throws IOException
+	{
+		copyOrMove(true, source, dest);
+	}
+	
+	public static void move(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
+	{
+		copyOrMove(true, source, dest, handleUnmoveableSourceDestFilePair, handleExistingDest);
+	}
+	
+	public static void moveMergingDirectoryTrees(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
+	{
+		copyOrMoveMergingDirectoryTrees(true, source, dest, handleUnmoveableSourceDestFilePair, handleExistingDest);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * This tries to move source to dest (move != copy) first by renaming, then by copying and deleting source if that fails.
 	 * + Guaranteed to preserve symlinks exactly if source is (itself) a symlink (broken or not!).  Dest will be too and no transformation on target pathname will be done :3
@@ -2314,28 +2357,42 @@ implements JavaNamespace
 	 * And thus if the move fails, the source might not have been fully moved but the dest was deleted.
 	 * However, *source* will definitely not be deleted until after a completely successful move :)
 	 */
-	public static void move(File source, File dest) throws IOException
+	public static void copyOrMove(boolean move, File source, File dest) throws IOException
 	{
-		move(source, dest, (s, d) ->
+		copyOrMove(move, source, dest, (s, d) ->
 		{
 			throw new IOException("Couldn't move inner file while copy-moving directory tree: "+repr(s.getPath())+" -> "+repr(d.getPath()));
-		});
+		},
+		
+		d ->
+		{
+			deleteThrowing(d);
+			return d;
+		}
+		);
 	}
 	
-	public static void move(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair) throws IOException
+	
+	/**
+	 * @param handleExistingDest  returns if the operation should continue because the pre-existing dest was removed somehow (this simply returns the same dest) or the destination file renamed (this returns some other pathname) or should abort (this returns null)
+	 */
+	public static void copyOrMove(boolean move, File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
 	{
-		if (lexists(dest))
-			dest.delete();
+		while (lexists(dest))
+		{
+			dest = handleExistingDest.f(dest);
+			
+			if (dest == null)
+				return;
+		}
 		
-		if (lexists(dest))
-			throw new IOException("Could not delete pre-existing destination: "+repr(dest.getAbsolutePath()));
 		
 		
-		
-		
-		if (source.renameTo(dest))
-			return;
-		
+		if (move)
+		{
+			if (source.renameTo(dest))
+				return;
+		}
 		
 		
 		if (isSymlink(source))
@@ -2346,8 +2403,11 @@ implements JavaNamespace
 			
 			dest.setLastModified(source.lastModified());
 			
-			//Do this last!!  So that we don't delete source if an exception occurred!!
-			source.delete();
+			if (move)
+			{
+				//Do this last!!  So that we don't delete source if an exception occurred!!
+				source.delete();
+			}
 		}
 		else if (source.isFile())
 		{
@@ -2378,15 +2438,20 @@ implements JavaNamespace
 			
 			dest.setLastModified(source.lastModified());  //Do this AFTER writing to it! XD!
 			
-			//Do this last!!  So that we don't delete source if an exception occurred!!
-			source.delete();
+			if (move)
+			{
+				//Do this last!!  So that we don't delete source if an exception occurred!!
+				source.delete();
+			}
 		}
 		else if (source.isDirectory())
 		{
 			//Todo remove the preemptive NYI in the UIDSFS-Complete dependent of this function :D    (perhaps do a reverse-search to find all the other dependents of this function!!)
 			//throw new NotYetImplementedException("NYI: Recursively copying directories across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
 			
-			moveMergingDirectoryTrees(source, dest, handleUnmoveableSourceDestFilePair);
+			//Todo softcode what happens in this case!
+			
+			copyOrMoveMergingDirectoryTrees(move, source, dest, handleUnmoveableSourceDestFilePair, handleExistingDest);
 		}
 		else if (source.exists())
 		{
@@ -2394,7 +2459,7 @@ implements JavaNamespace
 			
 			//throw new NotYetImplementedException("NYI: Moving special files (eg, devices and fifos) across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
 			
-			List<String> cmdAndArgs = listof("mv", source.getAbsolutePath(), dest.getAbsolutePath());
+			List<String> cmdAndArgs = move ? listof("mv", source.getAbsolutePath(), dest.getAbsolutePath()) : listof("cp", "-Pi", "--preserve=all", source.getAbsolutePath(), dest.getAbsolutePath());
 			
 			try
 			{
@@ -2433,9 +2498,10 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	public static void moveMergingDirectoryTrees(File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair) throws IOException
+	/**
+	 * @param handleExistingDest  returns if the operation should continue because the pre-existing dest was removed somehow (this simply returns the same dest) or the destination file renamed (this returns some other pathname) or should abort (this returns null)
+	 */
+	public static void copyOrMoveMergingDirectoryTrees(boolean move, File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
 	{
 		if (source.isDirectory())
 		{
@@ -2451,7 +2517,7 @@ implements JavaNamespace
 			{
 				if (isSymlink(source))
 				{
-					move(source, dest);
+					copyOrMove(move, source, dest);
 					return;
 				}
 				
@@ -2466,19 +2532,20 @@ implements JavaNamespace
 				File s = new File(source, c);
 				File d = new File(dest, c);
 				
-				moveMergingDirectoryTrees(s, d, handleUnmoveableSourceDestFilePair);  //Since we just up and move symlinks to directories via a call to move() when possible..does that mean we don't have to worry about symlink cycles??
+				copyOrMoveMergingDirectoryTrees(move, s, d, handleUnmoveableSourceDestFilePair, handleExistingDest);  //Since we just up and move symlinks to directories via a call to move() when possible..does that mean we don't have to worry about symlink cycles??
 			}
 			
-			if (!isSymlink(source) && listDirectoryBasenamesOrThrow(source).length == 0)  //let's not delete symlinks juuuust in case they're important information to leave behind (eg, /uid/ symlinks!), given we might have merged them into a non-symlink dir ^^'
-				deleteThrowing(source);
+			if (move)
+			{
+				if (!isSymlink(source) && listDirectoryBasenamesOrThrow(source).length == 0)  //let's not delete symlinks juuuust in case they're important information to leave behind (eg, /uid/ symlinks!), given we might have merged them into a non-symlink dir ^^'
+					deleteThrowing(source);
+			}
 		}
 		else
 		{
-			move(source, dest);
+			copyOrMove(move, source, dest);
 		}
 	}
-	
-	
 	
 	
 	
