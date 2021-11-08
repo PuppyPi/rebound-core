@@ -1827,7 +1827,7 @@ public class PolymorphicCollectionUtilities
 		else
 		{
 			for (Boolean e : (Iterable<Boolean>)anyToSingleUseIterable(listOfBooleans))
-				if (!e)
+				if (e)
 					return true;
 			return false;
 		}
