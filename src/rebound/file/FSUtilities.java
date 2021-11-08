@@ -4614,6 +4614,9 @@ implements JavaNamespace
 	}
 	
 	
+	/**
+	 * @return null if the file is locked by something else
+	 */
 	@Nullable
 	public static SimpleFileLock lockFileNonblocking(File f) throws IOException
 	{
@@ -4650,6 +4653,16 @@ implements JavaNamespace
 				}
 			}
 		};
+	}
+	
+	public static boolean isFileLocked(File f) throws IOException
+	{
+		SimpleFileLock l = lockFileNonblocking(f);
+		
+		if (l != null)
+			l.close();
+		
+		return l == null;
 	}
 	
 	
