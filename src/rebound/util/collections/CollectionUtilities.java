@@ -145,6 +145,8 @@ import rebound.util.collections.prim.PrimitiveCollections.LongCollection;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
 import rebound.util.collections.prim.PrimitiveCollections.ShortCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterable;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterator;
 import rebound.util.collections.prim.PrimitiveCollections.SortedByteSetBackedByList;
 import rebound.util.collections.prim.PrimitiveCollections.SortedCharacterSetBackedByList;
 import rebound.util.collections.prim.PrimitiveCollections.SortedDoubleSetBackedByList;
@@ -14343,5 +14345,68 @@ _$$primxpconf:byte,char,short,int$$_
 	public static <E extends Collection<?>> E altIfEmpty(E x, E alternate)
 	{
 		return x.isEmpty() ? alternate : x;
+	}
+	
+	
+	
+	
+	
+	
+	public static boolean isAll(Iterable<Boolean> l)
+	{
+		for (Boolean e : l)
+			if (!e)
+				return false;
+		return true;
+	}
+	
+	public static boolean isAny(Iterable<Boolean> l)
+	{
+		for (Boolean e : l)
+			if (e)
+				return true;
+		return false;
+	}
+	
+	
+	
+	public static boolean isAll(SimpleBooleanIterable l)
+	{
+		SimpleBooleanIterator i = l.newSimpleBooleanIterator();
+		
+		while (true)
+		{
+			try
+			{
+				if (!i.nextrpBoolean())
+					return false;
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+		}
+		
+		return true;
+	}
+	
+	public static boolean isAny(SimpleBooleanIterable l)
+	{
+		SimpleBooleanIterator i = l.newSimpleBooleanIterator();
+		
+		while (true)
+		{
+			try
+			{
+				if (i.nextrpBoolean())
+					return true;
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+		}
+		
+		return false;
 	}
 }
