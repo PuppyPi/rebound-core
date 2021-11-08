@@ -408,14 +408,14 @@ implements JavaNamespace
 	{
 		if (!isSpecialFile(f) && f.length() == 0)
 		{
-			byte[] a = new byte[1];
+			int n;
 			
 			try (InputStream i = new FileInputStream(f))
 			{
-				readFully(i, a);
+				n = readAsMuchAsPossibleToNew(i, 1).length;
 			}
 			
-			return a.length == 0;
+			return n == 0;
 		}
 		else
 		{
