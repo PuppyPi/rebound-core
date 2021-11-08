@@ -400,7 +400,28 @@ implements JavaNamespace
 	}
 	
 	
-	
+	/**
+	 * Not as easy as {@link File#length()} == 0 since that's what it returns on error!
+	 * This always returns false for special files (since they may be fifo or device or etc. and we shouldn't read from them!!)
+	 */
+	public static boolean isFileEmpty(File f) throws IOException
+	{
+		if (!isSpecialFile(f) && f.length() == 0)
+		{
+			byte[] a = new byte[1];
+			
+			try (InputStream i = new FileInputStream(f))
+			{
+				readFully(i, a);
+			}
+			
+			return a.length == 0;
+		}
+		else
+		{
+			return false;
+		}
+	}
 	
 	
 	
