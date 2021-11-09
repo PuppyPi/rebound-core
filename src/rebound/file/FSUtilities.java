@@ -65,6 +65,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.exceptions.AbortRecursiveIOOperation;
 import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NoFreeResourceFoundException;
@@ -2395,6 +2396,7 @@ implements JavaNamespace
 	
 	
 	/**
+	 * Both callbacks can throw {@link AbortRecursiveIOOperation} to abort the whole thing!
 	 * @param handleExistingDest  returns if the operation should continue because the pre-existing dest was removed somehow (this simply returns the same dest) or the destination file renamed (this returns some other pathname) or should abort (this returns null)
 	 */
 	public static void copyOrMove(boolean move, File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
