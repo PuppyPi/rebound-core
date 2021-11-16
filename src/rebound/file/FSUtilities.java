@@ -2553,7 +2553,7 @@ implements JavaNamespace
 			asrt(source.isDirectory());
 			asrt(dest.isDirectory());
 			
-			for (String c : listDirectoryBasenamesOrThrow(source))
+			for (String c : sorted(listDirectoryBasenamesOrThrow(source)))
 			{
 				File s = new File(source, c);
 				File d = new File(dest, c);
