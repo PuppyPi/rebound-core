@@ -2401,6 +2401,9 @@ implements JavaNamespace
 	 */
 	public static void copyOrMove(boolean move, File source, File dest, BinaryProcedureThrowingIOException<File, File> handleUnmoveableSourceDestFilePair, UnaryFunctionThrowingIOException<File, File> handleExistingDest) throws IOException
 	{
+		if (!dest.getParentFile().isDirectory())
+			throw new IOException("Can't "+(move ? "move" : "copy")+" "+repr(source.getPath())+" to "+repr(dest.getPath())+" because parent directory of destination is not a directory!");
+		
 		while (lexists(dest))
 		{
 			dest = handleExistingDest.f(dest);
