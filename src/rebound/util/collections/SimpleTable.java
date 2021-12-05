@@ -100,6 +100,44 @@ extends Copyable, Equivalenceable
 	}
 	
 	
+	
+	
+	public default void insertNewColumn(int insertionColumnIndex, E valueForNewCells)
+	{
+		insertEmptyColumn(insertionColumnIndex);
+		int nr = this.getNumberOfRows();  //can change from one loop iteration to another!
+		for (int r = 0; r < nr; r++)
+			this.setCellContents(insertionColumnIndex, r, valueForNewCells);
+	}
+	
+	public default void insertNewRow(int insertionRowIndex, E valueForNewCells)
+	{
+		insertEmptyRow(insertionRowIndex);
+		int nc = this.getNumberOfColumns();  //can change from one loop iteration to another!
+		for (int c = 0; c < nc; c++)
+			this.setCellContents(c, insertionRowIndex, valueForNewCells);
+	}
+	
+	
+	/**
+	 * @see #insertNewColumn(int, Object)
+	 */
+	public default void appendNewColumn(E valueForNewCells)
+	{
+		insertNewColumn(getNumberOfColumns(), valueForNewCells);
+	}
+	
+	/**
+	 * @see #insertNewRow(int, Object)
+	 */
+	public default void appendNewRow(E valueForNewCells)
+	{
+		insertNewRow(getNumberOfRows(), valueForNewCells);
+	}
+	
+	
+	
+	
 	public void redimToZeroByZeroErasingAllContents();
 	public void redimPossiblyWithoutClearing(int numberOfColumns, int numberOfRows);
 	
