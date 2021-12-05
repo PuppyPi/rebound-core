@@ -77,4 +77,11 @@ public class Either3<A, B, C>
 		else
 			throw new NotThisException();
 	}
+	
+	
+	@Override
+	public String toString()
+	{
+		return isA() ? ("A:"+getValueIfA()) : (isB() ? ("B:"+getValueIfB()) : ("C:"+getValueIfC()));
+	}
 }

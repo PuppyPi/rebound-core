@@ -59,4 +59,11 @@ public class Either<A, B>
 		else
 			throw new NotThisException();
 	}
+	
+	
+	@Override
+	public String toString()
+	{
+		return isA() ? ("A:"+getValueIfA()) : ("B:"+getValueIfB());
+	}
 }
