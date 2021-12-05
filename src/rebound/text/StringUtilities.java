@@ -3912,6 +3912,32 @@ implements JavaNamespace
 	
 	
 	
+	public static CharSequence decodeTextToCharSequenceReportingUnchecked(byte[] bytes, int offset, int length, Charset encoding)
+	{
+		try
+		{
+			return decodeTextToCharSequenceReporting(bytes, offset, length, encoding);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static CharSequence decodeTextToCharSequenceReportingUnchecked(byte[] bytes, Charset encoding)
+	{
+		try
+		{
+			return decodeTextToCharSequenceReporting(bytes, encoding);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	
+	
 	
 	
 	
