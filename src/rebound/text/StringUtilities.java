@@ -2962,7 +2962,7 @@ implements JavaNamespace
 		if (str.startsWith(trimmand))
 			return str.substring(trimmand.length());
 		else
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(repr(str)+", "+repr(trimmand));
 	}
 	
 	public static @Nullable String rtrimstrOrThrow(String str, String trimmand)
@@ -2970,7 +2970,7 @@ implements JavaNamespace
 		if (str.endsWith(trimmand))
 			return str.substring(0, str.length() - trimmand.length());
 		else
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(repr(str)+", "+repr(trimmand));
 	}
 	
 	
@@ -2979,7 +2979,7 @@ implements JavaNamespace
 		if (startsWithCaseInsensitively(str, trimmand))
 			return str.substring(trimmand.length());
 		else
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(repr(str)+", "+repr(trimmand));
 	}
 	
 	public static @Nullable String rtrimstrOrThrowCaseInsensitive(String str, String trimmand)
@@ -2987,7 +2987,7 @@ implements JavaNamespace
 		if (endsWithCaseInsensitively(str, trimmand))
 			return str.substring(0, str.length() - trimmand.length());
 		else
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(repr(str)+", "+repr(trimmand));
 	}
 	
 	
