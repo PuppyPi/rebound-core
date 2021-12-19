@@ -2,6 +2,7 @@ package rebound.exceptions;
 
 public class ClosedException
 extends IllegalStateException
+implements ClosedExceptionType
 {
 	private static final long serialVersionUID = 1L;
 	

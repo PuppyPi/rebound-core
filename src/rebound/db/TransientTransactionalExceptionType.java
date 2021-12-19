@@ -3,7 +3,11 @@ package rebound.db;
 import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
+import rebound.exceptions.ClosedExceptionType;
 
+/**
+ * Compare to {@link ClosedExceptionType}
+ */
 @FunctionalityType
 public interface TransientTransactionalExceptionType
 {

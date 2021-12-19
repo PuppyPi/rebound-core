@@ -4,6 +4,7 @@ import java.io.IOException;
 
 public class ClosedIOException
 extends IOException
+implements ClosedExceptionType
 {
 	private static final long serialVersionUID = 1L;
 	
