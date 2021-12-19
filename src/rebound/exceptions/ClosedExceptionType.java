@@ -13,9 +13,9 @@ import rebound.db.TransientTransactionalExceptionType;
 @FunctionalityType
 public interface ClosedExceptionType
 {
-	//<<< tp ClosedDatabaseException
+	//<<< tp ClosedDatabaseExceptionType
 	@TraitPredicate
-	public default boolean isClosedDatabaseException()
+	public default boolean isClosedDatabaseExceptionType()
 	{
 		return true;
 	}
@@ -23,7 +23,7 @@ public interface ClosedExceptionType
 	@StaticTraitPredicate
 	public static boolean is(Object x)
 	{
-		return x instanceof ClosedExceptionType && ((ClosedExceptionType)x).isClosedDatabaseException();
+		return x instanceof ClosedExceptionType && ((ClosedExceptionType)x).isClosedDatabaseExceptionType();
 	}
 	//>>>
 }

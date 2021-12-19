@@ -11,9 +11,9 @@ import rebound.exceptions.ClosedExceptionType;
 @FunctionalityType
 public interface TransientTransactionalExceptionType
 {
-	//<<< tp TransientTransactionalException
+	//<<< tp TransientTransactionalExceptionType
 	@TraitPredicate
-	public default boolean isTransientTransactionalException()
+	public default boolean isTransientTransactionalExceptionType()
 	{
 		return true;
 	}
@@ -21,7 +21,7 @@ public interface TransientTransactionalExceptionType
 	@StaticTraitPredicate
 	public static boolean is(Object x)
 	{
-		return x instanceof TransientTransactionalExceptionType && ((TransientTransactionalExceptionType)x).isTransientTransactionalException();
+		return x instanceof TransientTransactionalExceptionType && ((TransientTransactionalExceptionType)x).isTransientTransactionalExceptionType();
 	}
 	//>>>
 }
