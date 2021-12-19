@@ -5,7 +5,7 @@ import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
 
 @FunctionalityType
-public interface TransientTransactionalException
+public interface TransientTransactionalExceptionType
 {
 	//<<< tp TransientTransactionalException
 	@TraitPredicate
@@ -17,7 +17,7 @@ public interface TransientTransactionalException
 	@StaticTraitPredicate
 	public static boolean is(Object x)
 	{
-		return x instanceof TransientTransactionalException && ((TransientTransactionalException)x).isTransientTransactionalException();
+		return x instanceof TransientTransactionalExceptionType && ((TransientTransactionalExceptionType)x).isTransientTransactionalException();
 	}
 	//>>>
 }
