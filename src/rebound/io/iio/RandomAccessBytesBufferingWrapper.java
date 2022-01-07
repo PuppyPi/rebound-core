@@ -27,6 +27,11 @@ implements CloseableFlushableRandomAccessBytesInterface
 		this.lengthCache = underlying.length();
 	}
 	
+	public RandomAccessBytesBufferingWrapper(CloseableFlushableRandomAccessBytesInterface underlying) throws IOException
+	{
+		this(underlying, 4096);
+	}
+	
 	
 	
 	public boolean isBufferValid()
