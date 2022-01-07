@@ -6551,6 +6551,7 @@ implements JavaNamespace
 	
 	/**
 	 * A separate overload since this is so common :3
+	 * This is guaranteed to produce Java Source Code that reproduces a {@link String} equivalent to s.toString()  :>
 	 */
 	public static String repr(CharSequence s)
 	{
