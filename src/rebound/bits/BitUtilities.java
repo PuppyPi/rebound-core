@@ -43,28 +43,68 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean getBit(long value, long bitIndex)
+	public static boolean getBit(long value, int bitIndex)
 	{
 		if (bitIndex < 0 || bitIndex >= 64) throw new IllegalArgumentException();
 		
 		return (value & (1 << bitIndex)) != 0;
 	}
 	
-	
-	//Todo primxp
-	public static long setBit(long value, long bitIndex, boolean newBitValue)
+	public static long setBit(long value, int bitIndex, boolean newBitValue)
 	{
 		if (bitIndex < 0 || bitIndex >= 64) throw new IllegalArgumentException();
 		
 		if (newBitValue)
 		{
-			return value | (1 << bitIndex);
+			return value | (1l << bitIndex);
 		}
 		else
 		{
-			return value & ~(1 << bitIndex);
+			return value & ~(1l << bitIndex);
 		}
 	}
+	
+	//Todo primxp
+	
+	public static boolean getBit(byte value, int bitIndex)
+	{
+		if (bitIndex < 0 || bitIndex >= 8) throw new IllegalArgumentException();
+		
+		return (value & (1 << bitIndex)) != 0;
+	}
+	
+	public static byte setBit(byte value, int bitIndex, boolean newBitValue)
+	{
+		if (bitIndex < 0 || bitIndex >= 8) throw new IllegalArgumentException();
+		
+		if (newBitValue)
+		{
+			return (byte)(value | (1 << bitIndex));
+		}
+		else
+		{
+			return (byte)(value & ~(1 << bitIndex));
+		}
+	}
+	
+	
+	
+	
+	
+	public static boolean getBit(@ReadonlyValue byte[] array, int bitIndex)
+	{
+		byte b = array[bitIndex / 8];
+		return getBit(b, bitIndex % 8);
+	}
+	
+	public static void setBit(@WritableValue byte[] array, int bitIndex, boolean newBitValue)
+	{
+		byte b = array[bitIndex / 8];
+		array[bitIndex] = setBit(b, bitIndex % 8, newBitValue);
+	}
+	
+	
+	
 	
 	
 	
@@ -96,7 +136,7 @@ implements JavaNamespace
 		v = v >>> 1 | v;
 			v = v >>> 2 | v;
 		v = v >>> 4 | v;
-		v = v >>> 8 | v;
+			v = v >>> 8 | v;
 		v = v >>> 16 | v;
 		
 		//Kill all bits below the highest
