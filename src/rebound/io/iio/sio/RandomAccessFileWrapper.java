@@ -97,6 +97,7 @@ implements CloseableFlushableRandomAccessBytesInterface
 	@Override
 	public long skip(long amount) throws IOException
 	{
+		// We're allowed to short-read(skip)  (ie, do less than asked for as long as we return how much we did do), so no worries about truncation to 32-bits for many-gigabyte files! :>
 		if (amount > Integer.MAX_VALUE)
 			amount = Integer.MAX_VALUE;
 		if (amount < Integer.MIN_VALUE)
