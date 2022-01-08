@@ -3833,6 +3833,26 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetThrowing(Iterable<E> iterable) throws AlreadyExistsException
+	{
+		return iterable instanceof Set ? (Set<E>)iterable : toNewMutableSetThrowing(iterable);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetThrowing(E[] array) throws AlreadyExistsException
+	{
+		return asSetThrowing(asList(array));
+	}
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetThrowingV(E... array) throws AlreadyExistsException
+	{
+		return asSetThrowing(array);
+	}
+	
+	
+	
+	
 	
 	
 	
@@ -4025,6 +4045,37 @@ _$$primxpconf:byte,char,short,int$$_
 	public static <E> Set<E> toNewMutableSetUniqueifyingV(E... array)
 	{
 		return toNewMutableSetUniqueifying(array);
+	}
+	
+	
+	
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetThrowing(Iterable<E> iterable) throws AlreadyExistsException
+	{
+		if (iterable instanceof Collection)
+		{
+			return new HashSet<>((Collection)iterable);
+		}
+		else
+		{
+			Set<E> set = new HashSet<>();
+			for (E e : iterable)
+				if (!set.add(e))
+					throw new AlreadyExistsException("Duplicate element: "+e);
+			return set;
+		}
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetThrowing(E[] array) throws AlreadyExistsException
+	{
+		return toNewMutableSetThrowing(asList(array));
+	}
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetThrowingV(E... array) throws AlreadyExistsException
+	{
+		return toNewMutableSetThrowing(array);
 	}
 	
 	
