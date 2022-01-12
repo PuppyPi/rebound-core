@@ -8301,38 +8301,64 @@ _$$primxpconf:byte,char,short,int$$_
 	//Todo primitive versions :>  (primxp ftw! 0_0 XD)
 	
 	
+	/**
+	 * Guaranteed to propagate {@link SimpleIterator#drain()} (which is used instead of a close() method to explicitly close stream resources in some systems that auto-close on EOF!)
+	 */
 	public static <I, O> SimpleIterator<O> map(Mapper<I, O> mapper, SimpleIterator<? extends I> underlying)
 	{
-		return () ->
+		return new SimpleIterator<O>()
 		{
-			while (true)
+			@Override
+			public O nextrp() throws StopIterationReturnPath
 			{
-				I i = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
-				
-				try
+				while (true)
 				{
-					return mapper.f(i);
+					I i = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
+					
+					try
+					{
+						return mapper.f(i);
+					}
+					catch (FilterAwayReturnPath e)
+					{
+						continue;
+					}
 				}
-				catch (FilterAwayReturnPath e)
-				{
-					continue;
-				}
+			}
+			
+			@Override
+			public void drain()
+			{
+				underlying.drain();
 			}
 		};
 	}
 	
+	/**
+	 * Guaranteed to propagate {@link SimpleIterator#drain()} (which is used instead of a close() method to explicitly close stream resources in some systems that auto-close on EOF!)
+	 */
 	public static <E> SimpleIterator<E> filter(Predicate<E> predicate, SimpleIterator<E> underlying)
 	{
-		return () ->
+		return new SimpleIterator<E>()
 		{
-			while (true)
+			@Override
+			public E nextrp() throws StopIterationReturnPath
 			{
-				E e = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
-				
-				if (predicate.test(e))
-					return e;
-				else
-					continue;
+				while (true)
+				{
+					E e = underlying.nextrp();  //propagate StopIterationReturnPath!  ^,^
+					
+					if (predicate.test(e))
+						return e;
+					else
+						continue;
+				}
+			}
+			
+			@Override
+			public void drain()
+			{
+				underlying.drain();
 			}
 		};
 	}

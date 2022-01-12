@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
 import rebound.annotations.semantic.SignalType;
+import rebound.annotations.semantic.temporal.IdempotentOperation;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.StopIterationReturnPath;
 
@@ -15,9 +16,28 @@ import rebound.exceptions.StopIterationReturnPath;
 @FunctionalInterface
 public interface SimpleIterator<E>
 {
+	/**
+	 * Can be called more than once once it's at EOF and it will keep throwing {@link StopIterationReturnPath}!
+	 */
 	public E nextrp() throws StopIterationReturnPath;
 	
 	
+	
+	@IdempotentOperation
+	public default void drain()
+	{
+		while (true)
+		{
+			try
+			{
+				nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+		}
+	}
 	
 	
 	//should really be <C super E> but that gives a compiler error for some reason???
@@ -34,7 +54,6 @@ public interface SimpleIterator<E>
 		this.drainTo(l);
 		return l.toArray();
 	}
-	
 	
 	
 	public default int drainTo(Collection<? super E> sink)
