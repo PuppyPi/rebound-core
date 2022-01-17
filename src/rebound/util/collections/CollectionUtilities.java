@@ -2981,7 +2981,7 @@ public class CollectionUtilities
 	
 	
 	
-	public static Object findFirst(Predicate predicate, @CollectionValue Object list)
+	public static @Nullable Object findFirst(Predicate predicate, @CollectionValue Object list)
 	{
 		try
 		{
@@ -2993,7 +2993,7 @@ public class CollectionUtilities
 		}
 	}
 	
-	public static <E> E findFirst(Predicate<E> predicate, @CollectionValue E[] list)
+	public static @Nullable <E> E findFirst(Predicate<E> predicate, @CollectionValue E[] list)
 	{
 		try
 		{
@@ -3005,7 +3005,7 @@ public class CollectionUtilities
 		}
 	}
 	
-	public static <E> E findFirst(Predicate<E> predicate, @CollectionValue List<E> list)
+	public static @Nullable <E> E findFirst(Predicate<E> predicate, @CollectionValue List<E> list)
 	{
 		try
 		{
@@ -11016,6 +11016,15 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <E> List<E> sortedWithListOrdering(@ReadonlyValue Collection<E> input, List<E> ordering)
+	{
+		return sorted(input, (a, b) -> compareWithListOrdering(ordering, a, b));
+	}
+	
+	public static <E> void sortWithListOrdering(@WritableValue List<E> list, List<E> ordering)
+	{
+		sort(list, (a, b) -> compareWithListOrdering(ordering, a, b));
+	}
 	
 	
 	
