@@ -8866,6 +8866,8 @@ _$$primxpconf:byte,char,short,int$$_
 		return mapToList(mapper, asList(input));
 	}
 	
+	
+	
 	@ReadonlyValue
 	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
@@ -8890,6 +8892,36 @@ _$$primxpconf:byte,char,short,int$$_
 		return mapToSet(mapper, asList(input));
 	}
 	
+	
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterable<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input), true);
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterator<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (Iterator)input), true);
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (SimpleIterator)input), true);
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, I[] input)
+	{
+		return mapToSetThrowingOnDuplicates(mapper, asList(input));
+	}
+	
+	
+	
+	
+	
 	//The array comes before the input so the input can come last like all the other map/filter/reduce's, because the input might be chained from something else!
 	@ReadonlyValue
 	public static <I, O, A extends I> O[] mapToArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, A[] input)
@@ -8907,20 +8939,6 @@ _$$primxpconf:byte,char,short,int$$_
 	public static <I, O, A extends I> Object[] mapToObjectArrayV(Mapper<I, O> mapper, A... input)
 	{
 		return mapToArray(mapper, Object.class, input);
-	}
-	
-	
-	
-	@ReadonlyValue
-	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterable<? extends I> input)
-	{
-		return PolymorphicCollectionUtilities.anyToNewMutableSet(mapped(mapper, (Iterable)input), true);
-	}
-	
-	@ReadonlyValue
-	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, I[] input)
-	{
-		return mapToSetThrowingOnDuplicates(mapper, asList(input));
 	}
 	
 	
