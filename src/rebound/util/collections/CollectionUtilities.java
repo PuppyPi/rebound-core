@@ -8792,6 +8792,18 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ReadonlyValue
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, Iterator<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (Iterator)input));
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	{
+		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (SimpleIterator)input));
+	}
+	
+	@ReadonlyValue
 	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, I[] input)
 	{
 		return mapToSet(mapper, asList(input));
