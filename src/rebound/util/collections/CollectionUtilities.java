@@ -3820,6 +3820,18 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetUniqueifying(SimpleIterator<E> iterator)
+	{
+		return toNewMutableSetUniqueifying(iterator);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetUniqueifying(Iterator<E> iterator)
+	{
+		return toNewMutableSetUniqueifying(iterator);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
 	public static <E> Set<E> asSetUniqueifying(E[] array)
 	{
 		return asSetUniqueifying(asList(array));
@@ -3837,6 +3849,18 @@ _$$primxpconf:byte,char,short,int$$_
 	public static <E> Set<E> asSetThrowing(Iterable<E> iterable) throws AlreadyExistsException
 	{
 		return iterable instanceof Set ? (Set<E>)iterable : toNewMutableSetThrowing(iterable);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetThrowing(SimpleIterator<E> iterator) throws AlreadyExistsException
+	{
+		return toNewMutableSetThrowing(iterator);
+	}
+	
+	@PossiblySnapshotPossiblyLiveValue
+	public static <E> Set<E> asSetThrowing(Iterator<E> iterator) throws AlreadyExistsException
+	{
+		return toNewMutableSetThrowing(iterator);
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
@@ -4037,6 +4061,35 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetUniqueifying(Iterator<E> iterator)
+	{
+		return toNewMutableSetUniqueifying(singleUseIterable(iterator));
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetUniqueifying(SimpleIterator<E> iterator)
+	{
+		Set<E> set = new HashSet<>();
+		
+		while (true)
+		{
+			E e;
+			try
+			{
+				e = iterator.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			set.add(e);
+		}
+		
+		return set;
+	}
+	
+	@ThrowAwayValue
 	public static <E> Set<E> toNewMutableSetUniqueifying(E[] array)
 	{
 		return toNewMutableSetUniqueifying(asList(array));
@@ -4061,10 +4114,38 @@ _$$primxpconf:byte,char,short,int$$_
 		{
 			Set<E> set = new HashSet<>();
 			for (E e : iterable)
-				if (!set.add(e))
-					throw new AlreadyExistsException("Duplicate element: "+e);
+				addNewMandatory(set, e);
 			return set;
 		}
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetThrowing(Iterator<E> iterator) throws AlreadyExistsException
+	{
+		return toNewMutableSetThrowing(singleUseIterable(iterator));
+	}
+	
+	@ThrowAwayValue
+	public static <E> Set<E> toNewMutableSetThrowing(SimpleIterator<E> iterator) throws AlreadyExistsException
+	{
+		Set<E> set = new HashSet<>();
+		
+		while (true)
+		{
+			E e;
+			try
+			{
+				e = iterator.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			addNewMandatory(set, e);
+		}
+		
+		return set;
 	}
 	
 	@ThrowAwayValue
