@@ -8843,19 +8843,19 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ReadonlyValue
-	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Enumeration<? extends I> input)
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Enumeration<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return mapToList(mapper, enumerationToIterator(input));
 	}
 	
 	@ReadonlyValue
-	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Iterator<? extends I> input)
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Iterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return mapToList(mapper, simpleIterator(input));
 	}
 	
 	@ReadonlyValue
-	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, SimpleIterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return asList(map(mapper, input));
 	}
@@ -8875,13 +8875,13 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ReadonlyValue
-	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, Iterator<? extends I> input)
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, Iterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (Iterator)input));
 	}
 	
 	@ReadonlyValue
-	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	public static <I, O> Set<O> mapToSet(Mapper<I, O> mapper, SimpleIterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (SimpleIterator)input));
 	}
@@ -8901,13 +8901,13 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ReadonlyValue
-	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterator<? extends I> input)
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, Iterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (Iterator)input), true);
 	}
 	
 	@ReadonlyValue
-	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, SimpleIterator<? extends I> input)
+	public static <I, O> Set<O> mapToSetThrowingOnDuplicates(Mapper<I, O> mapper, SimpleIterator<? extends I> input)  //NOTE this is relied on to construct an in-memory snapshot!!  (eg, if the input is connected to a stream or database or etc. and becomes invalid, this method can be relied on to create a snapshot in memory)
 	{
 		return PolymorphicCollectionUtilities.anyToNewMutableSet(map(mapper, (SimpleIterator)input), true);
 	}
