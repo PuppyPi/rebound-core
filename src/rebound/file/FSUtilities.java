@@ -427,11 +427,33 @@ implements JavaNamespace
 	
 	
 	
+	public static File createTempFolder(String prefix, String suffix) throws IOException
+	{
+		File f = File.createTempFile(prefix, suffix);
+		ensureEmptyFileThrowing(f);
+		deleteMandatory(f);
+		ensureDirLeafThrowing(f);
+		return f;
+	}
+	
+	
 	public static File createTempFileUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
 	{
 		try
 		{
 			return File.createTempFile(prefix, suffix);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static File createTempFolderUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
+	{
+		try
+		{
+			return createTempFolderUnchecked(prefix, suffix);
 		}
 		catch (IOException exc)
 		{
