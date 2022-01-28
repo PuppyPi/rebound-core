@@ -93,14 +93,16 @@ implements JavaNamespace
 	
 	public static boolean getBit(@ReadonlyValue byte[] array, int bitIndex)
 	{
-		byte b = array[bitIndex / 8];
+		int byteIndex = bitIndex / 8;
+		byte b = array[byteIndex];
 		return getBit(b, bitIndex % 8);
 	}
 	
 	public static void setBit(@WritableValue byte[] array, int bitIndex, boolean newBitValue)
 	{
-		byte b = array[bitIndex / 8];
-		array[bitIndex] = setBit(b, bitIndex % 8, newBitValue);
+		int byteIndex = bitIndex / 8;
+		byte b = array[byteIndex];
+		array[byteIndex] = setBit(b, bitIndex % 8, newBitValue);
 	}
 	
 	
