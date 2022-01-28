@@ -9,14 +9,21 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import javax.annotation.Nonnull;
+import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.bits.Unsigned;
 import rebound.exceptions.BinarySyntaxIOException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NotYetImplementedException;
+import rebound.io.CloseableList;
 import rebound.text.StringUtilities;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.ProgressObserver;
+import rebound.util.collections.DefaultList;
+import rebound.util.collections.DefaultReadonlyList;
+import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.objectutil.JavaNamespace;
 
 public class ExtraIOUtilities
@@ -608,4 +615,111 @@ implements JavaNamespace
 	
 	//Todo readAllToNIOBuffer(File f)
 	//Todo writeAll(Buffer src, File dest)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@WritableValue
+	public static @Nonnull <I, O> CloseableList<O> mappedCloseableListView(@Nonnull UnaryFunction<I, O> mapperForward, @Nonnull UnaryFunction<O, I> mapperReverse, @WritableValue @Nonnull CloseableList<I> underlying)
+	{
+		class MCL
+		implements DefaultList<O>, CloseableList<O>
+		{
+			@Override
+			public int size()
+			{
+				return underlying.size();
+			}
+			
+			@Override
+			public boolean isEmpty()
+			{
+				return underlying.isEmpty();
+			}
+			
+			@Override
+			public void clear()
+			{
+				underlying.clear();
+			}
+			
+			@Override
+			public O get(int index)
+			{
+				return mapperForward.f(underlying.get(index));
+			}
+			
+			@Override
+			public O set(int index, O element)
+			{
+				I prev = underlying.set(index, mapperReverse.f(element));
+				return mapperForward.f(prev);
+			}
+			
+			@Override
+			public void add(int index, O element)
+			{
+				underlying.add(index, mapperReverse.f(element));
+			}
+			
+			@Override
+			public O remove(int index)
+			{
+				return mapperForward.f(underlying.remove(index));
+			}
+			
+			@Override
+			public void close() throws IOException
+			{
+				underlying.close();
+			}
+		}
+		
+		return new MCL();
+	}
+	
+	
+	
+	
+	@ReadonlyValue
+	public static @Nonnull <I, O> CloseableList<O> mappedCloseableListViewReadonly(@Nonnull UnaryFunction<I, O> mapperForward, @ReadonlyValue @Nonnull CloseableList<I> underlying)
+	{
+		class MCL
+		implements DefaultReadonlyList<O>, CloseableList<O>
+		{
+			@Override
+			public int size()
+			{
+				return underlying.size();
+			}
+			
+			@Override
+			public boolean isEmpty()
+			{
+				return underlying.isEmpty();
+			}
+			
+			@Override
+			public O get(int index)
+			{
+				return mapperForward.f(underlying.get(index));
+			}
+			
+			@Override
+			public void close() throws IOException
+			{
+				underlying.close();
+			}
+		}
+		
+		return new MCL();
+	}
 }
