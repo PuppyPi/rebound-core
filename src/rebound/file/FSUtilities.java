@@ -451,14 +451,7 @@ implements JavaNamespace
 	
 	public static File createTempFolderUnchecked(String prefix, String suffix) throws WrappedThrowableRuntimeException
 	{
-		try
-		{
-			return createTempFolderUnchecked(prefix, suffix);
-		}
-		catch (IOException exc)
-		{
-			throw new WrappedThrowableRuntimeException(exc);
-		}
+		return createTempFolderUnchecked(prefix, suffix);
 	}
 	
 	
@@ -2211,6 +2204,7 @@ implements JavaNamespace
 	
 	/**
 	 * This method recursively deletes <code>f</code> if it is a directory otherwise this is identical to <code>{@link java.io.File#delete}</code>.
+	 * + It does NOT recurse into symlinks to directories!!
 	 * @param f The <code>File</code> to delete
 	 * @param tryAll If this is set, then even if a <code>File</code> is encountered that cannot be deleted it will skip to the next one. As opposed to failing upon the first failed deletion.
 	 * @return <code>true</code> if all sub<code>File</code>s are deleted, otherwise <code>false</code>
@@ -2291,6 +2285,7 @@ implements JavaNamespace
 	
 	/**
 	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * + It does NOT recurse into symlinks to directories!!
 	 * 		TODO should this be in the IfExists variant??!
 	 */
 	public static void deleteRecursivelyThrowing(File f, boolean tryAll) throws IOException
@@ -2333,6 +2328,7 @@ implements JavaNamespace
 	
 	/**
 	 * + Note that deleting absent things counts as success (it's when the delete fails and they're still there that we consider it an error)
+	 * + It does NOT recurse into symlinks to directories!!
 	 * 		TODO should this be in the IfExists variant??!
 	 */
 	public static void deleteRecursivelyMandatory(File f, boolean tryAll) throws UncheckedIOException
@@ -2940,6 +2936,8 @@ implements JavaNamespace
 	 * (I've tested this on FIFO's, block devices, and character devices and they each work the same! :3 )
 	 * 
 	 * (And for the record, broken symlinks do NOT count as "Special File"'s here!)
+	 * 
+	 * + Dereferences unbroken symlinks!
 	 */
 	public static boolean isSpecialFile(File f)
 	{
@@ -2953,6 +2951,9 @@ implements JavaNamespace
 	/**
 	 * This is simply a delegate for {@link File#isFile()} but serves the self-documenting-code
 	 * purpose of helping to show the author really did mean to exclude special files!
+	 * 
+	 * + Dereferences unbroken symlinks!
+	 * + Broken symlinks return false.
 	 */
 	public static boolean isRegularFile(File f)
 	{
@@ -2965,6 +2966,9 @@ implements JavaNamespace
 	/**
 	 * Just like isFile() and isDirectory(), this dereferences symbolic links, so it will return true for symlinks to special files as well :3
 	 * + {@link File#isFile()} is really "{@link #isRegularFile(File)}" by our naming convention here :3
+	 * 
+	 * + Dereferences unbroken symlinks!
+	 * + Broken symlinks return false.
 	 */
 	public static boolean isSpecialOrRegularFile(File f)
 	{
@@ -3962,6 +3966,12 @@ implements JavaNamespace
 	 */
 	public static boolean realpathEq(File a, File b)
 	{
+		a = normpath(a);
+		b = normpath(b);
+		
+		if (eq(a, b))
+			return true;
+		
 		File arp;
 		File brp;
 		

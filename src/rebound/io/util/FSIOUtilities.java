@@ -36,6 +36,7 @@ import rebound.exceptions.OverflowException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
 import rebound.io.ChannelProvider;
+import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.encodings.detection.TextEncodingDetector;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
@@ -624,6 +625,8 @@ public class FSIOUtilities
 	
 	/**
 	 * This shall not do any symlinky/hardlinky funny business!
+	 * It simply purely compares the contents of the two files, byte-for-byte, as would be read by {@link FileInputStream}.
+	 * (Though it compares the {@link File#length() lengths} first and quick-fails (returns false) if they're different.)
 	 */
 	public static boolean fileeq(File a, File b) throws IOException
 	{
@@ -632,6 +635,8 @@ public class FSIOUtilities
 	
 	/**
 	 * This shall not do any symlinky/hardlinky funny business!
+	 * It simply purely compares the contents of the two files, byte-for-byte, as would be read by {@link FileInputStream}.
+	 * (Though it compares the {@link File#length() lengths} first and quick-returns {@link SmallIntegerMathUtilities#cmp(long, long) cmp}(a.{@link File#length() length}(), b.{@link File#length() length}()) if they're different.)
 	 */
 	public static int filecmp(File a, File b) throws IOException
 	{
