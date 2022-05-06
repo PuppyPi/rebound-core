@@ -17,6 +17,10 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface DeprecatedInFavorOfMember
 {
-	Class cls();
+	/**
+	 * @return default is the class of what is being annotated!
+	 */
+	Class cls() default void.class;
+	
 	String member();
 }
