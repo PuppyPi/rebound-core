@@ -1,5 +1,6 @@
 package rebound.io.util;
 
+import static rebound.util.collections.CollectionUtilities.*;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,12 +18,16 @@ import rebound.exceptions.BinarySyntaxIOException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.io.CloseableList;
+import rebound.io.CloseableSimpleIterator;
+import rebound.io.DelegatingCloseableSimpleIterator;
 import rebound.text.StringUtilities;
 import rebound.util.BufferAllocationType;
 import rebound.util.PlatformNIOBufferUtilities;
 import rebound.util.ProgressObserver;
 import rebound.util.collections.DefaultList;
 import rebound.util.collections.DefaultReadonlyList;
+import rebound.util.collections.Mapper;
+import rebound.util.collections.SimpleIterator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -624,6 +629,11 @@ implements JavaNamespace
 	
 	
 	
+	public static <I, O> CloseableSimpleIterator<O> mapCloseable(Mapper<I, O> mapper, CloseableSimpleIterator<? extends I> underlying)
+	{
+		SimpleIterator<O> mappedNormally = map(mapper, underlying);
+		return new DelegatingCloseableSimpleIterator<>(underlying, mappedNormally);
+	}
 	
 	
 	

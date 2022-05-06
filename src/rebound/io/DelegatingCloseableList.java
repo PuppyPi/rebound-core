@@ -17,12 +17,12 @@ public class DelegatingCloseableList<E>
 implements CloseableList<E>
 {
 	protected final Closeable closeable;
-	protected final List<E> list;
+	protected final List<E> underlying;
 	
-	public DelegatingCloseableList(Closeable closeable, List<E> list)
+	public DelegatingCloseableList(Closeable closeable, List<E> underlying)
 	{
 		this.closeable = closeable;
-		this.list = list;
+		this.underlying = underlying;
 	}
 	
 	public void close() throws IOException
@@ -34,168 +34,168 @@ implements CloseableList<E>
 	
 	public boolean equals(Object o)
 	{
-		return list.equals(o);
+		return underlying.equals(o);
 	}
 	
 	public int hashCode()
 	{
-		return list.hashCode();
+		return underlying.hashCode();
 	}
 	
 	@Override
 	public String toString()
 	{
-		return list.toString();
+		return underlying.toString();
 	}
 	
 	
 	public void forEach(Consumer<? super E> action)
 	{
-		list.forEach(action);
+		underlying.forEach(action);
 	}
 	
 	public int size()
 	{
-		return list.size();
+		return underlying.size();
 	}
 	
 	public boolean isEmpty()
 	{
-		return list.isEmpty();
+		return underlying.isEmpty();
 	}
 	
 	public boolean contains(Object o)
 	{
-		return list.contains(o);
+		return underlying.contains(o);
 	}
 	
 	public Iterator<E> iterator()
 	{
-		return list.iterator();
+		return underlying.iterator();
 	}
 	
 	public Object[] toArray()
 	{
-		return list.toArray();
+		return underlying.toArray();
 	}
 	
 	public <T> T[] toArray(T[] a)
 	{
-		return list.toArray(a);
+		return underlying.toArray(a);
 	}
 	
 	public boolean add(E e)
 	{
-		return list.add(e);
+		return underlying.add(e);
 	}
 	
 	public boolean remove(Object o)
 	{
-		return list.remove(o);
+		return underlying.remove(o);
 	}
 	
 	public boolean containsAll(Collection<?> c)
 	{
-		return list.containsAll(c);
+		return underlying.containsAll(c);
 	}
 	
 	public boolean addAll(Collection<? extends E> c)
 	{
-		return list.addAll(c);
+		return underlying.addAll(c);
 	}
 	
 	public boolean addAll(int index, Collection<? extends E> c)
 	{
-		return list.addAll(index, c);
+		return underlying.addAll(index, c);
 	}
 	
 	public boolean removeAll(Collection<?> c)
 	{
-		return list.removeAll(c);
+		return underlying.removeAll(c);
 	}
 	
 	public boolean retainAll(Collection<?> c)
 	{
-		return list.retainAll(c);
+		return underlying.retainAll(c);
 	}
 	
 	public void replaceAll(UnaryOperator<E> operator)
 	{
-		list.replaceAll(operator);
+		underlying.replaceAll(operator);
 	}
 	
 	public boolean removeIf(Predicate<? super E> filter)
 	{
-		return list.removeIf(filter);
+		return underlying.removeIf(filter);
 	}
 	
 	public void sort(Comparator<? super E> c)
 	{
-		list.sort(c);
+		underlying.sort(c);
 	}
 	
 	public void clear()
 	{
-		list.clear();
+		underlying.clear();
 	}
 	
 	public E get(int index)
 	{
-		return list.get(index);
+		return underlying.get(index);
 	}
 	
 	public E set(int index, E element)
 	{
-		return list.set(index, element);
+		return underlying.set(index, element);
 	}
 	
 	public void add(int index, E element)
 	{
-		list.add(index, element);
+		underlying.add(index, element);
 	}
 	
 	public Stream<E> stream()
 	{
-		return list.stream();
+		return underlying.stream();
 	}
 	
 	public E remove(int index)
 	{
-		return list.remove(index);
+		return underlying.remove(index);
 	}
 	
 	public Stream<E> parallelStream()
 	{
-		return list.parallelStream();
+		return underlying.parallelStream();
 	}
 	
 	public int indexOf(Object o)
 	{
-		return list.indexOf(o);
+		return underlying.indexOf(o);
 	}
 	
 	public int lastIndexOf(Object o)
 	{
-		return list.lastIndexOf(o);
+		return underlying.lastIndexOf(o);
 	}
 	
 	public ListIterator<E> listIterator()
 	{
-		return list.listIterator();
+		return underlying.listIterator();
 	}
 	
 	public ListIterator<E> listIterator(int index)
 	{
-		return list.listIterator(index);
+		return underlying.listIterator(index);
 	}
 	
 	public List<E> subList(int fromIndex, int toIndex)
 	{
-		return list.subList(fromIndex, toIndex);
+		return underlying.subList(fromIndex, toIndex);
 	}
 	
 	public Spliterator<E> spliterator()
 	{
-		return list.spliterator();
+		return underlying.spliterator();
 	}
 }
