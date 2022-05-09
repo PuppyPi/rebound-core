@@ -19,5 +19,5 @@ public @interface UpperBoundedBigInt
 	/**
 	 * Inclusive :3
 	 */
-	String max();
+	String value();
 }

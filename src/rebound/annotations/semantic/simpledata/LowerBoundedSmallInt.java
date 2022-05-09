@@ -19,5 +19,5 @@ public @interface LowerBoundedSmallInt
 	/**
 	 * Inclusive :3
 	 */
-	long min();
+	long value();
 }

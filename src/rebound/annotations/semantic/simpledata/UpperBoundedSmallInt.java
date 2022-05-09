@@ -19,5 +19,5 @@ public @interface UpperBoundedSmallInt
 	/**
 	 * Inclusive :3
 	 */
-	long max();
+	long value();
 }

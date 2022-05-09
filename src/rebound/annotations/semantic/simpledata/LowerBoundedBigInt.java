@@ -19,5 +19,5 @@ public @interface LowerBoundedBigInt
 	/**
 	 * Inclusive :3
 	 */
-	String min();
+	String value();
 }
