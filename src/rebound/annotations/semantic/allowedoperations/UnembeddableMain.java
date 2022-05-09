@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Explicit opposite of {@link EmbeddableMain}
- * It does (at least sometimes) call {@link System#exit(int)}!!
+ * It does (at least sometimes) call {@link System#exit(int)} in normal or error-handling operation!!
  * 
  * @see EmbeddableMain
  */
