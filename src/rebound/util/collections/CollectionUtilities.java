@@ -7693,7 +7693,54 @@ _$$primxpconf:byte,char,short,int$$_
 	@ThrowAwayValue
 	public static Map newMap(Object... keysAndValues)
 	{
-		return newMapArray(keysAndValues);
+		Class keysEnumClass;
+		{
+			keysEnumClass = null;
+			
+			for (int i = 0; i < keysAndValues.length; i += 2)
+			{
+				Object key = keysAndValues[i];
+				
+				Class c = key == null ? null : key.getClass();
+				
+				if (c == null)
+				{
+					//Abort!
+					keysEnumClass = null;
+					break;
+				}
+				else
+				{
+					if (keysEnumClass == null)
+					{
+						if (c.isEnum())
+						{
+							keysEnumClass = c;
+						}
+						else
+						{
+							//Abort!
+							keysEnumClass = null;
+							break;
+						}
+					}
+					else
+					{
+						if (keysEnumClass != c)
+						{
+							//Abort!
+							keysEnumClass = null;
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		if (keysEnumClass == null)
+			return newMapArray(keysAndValues);
+		else
+			return newEnumMapArray(keysEnumClass, keysAndValues);
 	}
 	
 	@ThrowAwayValue
@@ -7797,6 +7844,28 @@ _$$primxpconf:byte,char,short,int$$_
 				throw new AlreadyExistsException();
 			
 			m.put(key, keysAndValues[i+1]);
+		}
+		
+		return m;
+	}
+	
+	@ThrowAwayValue
+	public static EnumMap newEnumMapArray(Class keyClass, Object[] keysAndValues)
+	{
+		if ((keysAndValues.length % 2) != 0)
+			throw new IllegalArgumentException();
+		
+		
+		EnumMap m = new EnumMap(keyClass);
+		
+		for (int i = 0; i < keysAndValues.length; i += 2)
+		{
+			Object key = keysAndValues[i];
+			
+			if (m.containsKey(key))
+				throw new AlreadyExistsException();
+			
+			m.put((Enum)key, keysAndValues[i+1]);
 		}
 		
 		return m;
