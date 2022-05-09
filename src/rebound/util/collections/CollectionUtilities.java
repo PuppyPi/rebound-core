@@ -7693,54 +7693,7 @@ _$$primxpconf:byte,char,short,int$$_
 	@ThrowAwayValue
 	public static Map newMap(Object... keysAndValues)
 	{
-		Class keysEnumClass;
-		{
-			keysEnumClass = null;
-			
-			for (int i = 0; i < keysAndValues.length; i += 2)
-			{
-				Object key = keysAndValues[i];
-				
-				Class c = key == null ? null : key.getClass();
-				
-				if (c == null)
-				{
-					//Abort!
-					keysEnumClass = null;
-					break;
-				}
-				else
-				{
-					if (keysEnumClass == null)
-					{
-						if (c.isEnum())
-						{
-							keysEnumClass = c;
-						}
-						else
-						{
-							//Abort!
-							keysEnumClass = null;
-							break;
-						}
-					}
-					else
-					{
-						if (keysEnumClass != c)
-						{
-							//Abort!
-							keysEnumClass = null;
-							break;
-						}
-					}
-				}
-			}
-		}
-		
-		if (keysEnumClass == null)
-			return newMapArray(keysAndValues);
-		else
-			return newEnumMapArray(keysEnumClass, keysAndValues);
+		return newMapArray(keysAndValues);
 	}
 	
 	@ThrowAwayValue
@@ -7783,7 +7736,56 @@ _$$primxpconf:byte,char,short,int$$_
 		else if (keysAndValues.length == 2)
 			return singletonMap(keysAndValues[0], keysAndValues[1]);
 		else
-			return newMap(keysAndValues);
+		{
+			Class keysEnumClass;
+			{
+				keysEnumClass = null;
+				
+				for (int i = 0; i < keysAndValues.length; i += 2)
+				{
+					Object key = keysAndValues[i];
+					
+					Class c = key == null ? null : key.getClass();
+					
+					if (c == null)
+					{
+						//Abort!
+						keysEnumClass = null;
+						break;
+					}
+					else
+					{
+						if (keysEnumClass == null)
+						{
+							if (c.isEnum())
+							{
+								keysEnumClass = c;
+							}
+							else
+							{
+								//Abort!
+								keysEnumClass = null;
+								break;
+							}
+						}
+						else
+						{
+							if (keysEnumClass != c)
+							{
+								//Abort!
+								keysEnumClass = null;
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			if (keysEnumClass == null)
+				return newMapArray(keysAndValues);
+			else
+				return newEnumMapArray(keysEnumClass, keysAndValues);
+		}
 	}
 	
 	@ReadonlyValue
