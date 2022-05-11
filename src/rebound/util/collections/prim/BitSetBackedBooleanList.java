@@ -44,7 +44,7 @@ implements DefaultShiftingBasedBooleanList, ShiftableList, BooleanListWithByteLi
 	 * To make one that's full of false's, see {@link #newBooleanListZerofilled(int)} :3
 	 * @param  capacity  see {@link ArrayList#ArrayList(int)}; it's the same thing :3
 	 */
-	public BitSetBackedBooleanList(int capacity, Void v)
+	public BitSetBackedBooleanList(int capacity)
 	{
 		this.bitSet = new BitSet(capacity);
 		this.size = 0;

@@ -4,6 +4,8 @@ import static java.lang.Math.*;
 import static rebound.bits.BitUtilities.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallFloatMathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
+import static rebound.util.CodeHinting.*;
 import java.util.Comparator;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
@@ -656,6 +658,82 @@ public class SmallIntegerMathUtilities
 	
 	
 	
+	public static long lcm(long a, long b)
+	{
+		//return (a * b) / gcd(a,b);
+		
+		if (arbitraryBoolean())
+			return a * (b / gcd(a,b));
+		else
+			return b * (a / gcd(a,b));
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param a  {numerator, denominator}
+	 * @param b  {numerator, denominator}
+	 */
+	public static void commonizeFractionsDenominators(@WritableValue long[] a, @WritableValue long[] b) throws OverflowException
+	{
+		if (a.length != 2)  throw new IllegalArgumentException();
+		if (b.length != 2)  throw new IllegalArgumentException();
+		
+		long an = a[0];
+		long ad = a[1];
+		long bn = b[0];
+		long bd = b[1];
+		
+		long[] r = commonizeFractionsDenominators(ad, bd);
+		
+		long multiplierA = r[0];
+		long multiplierB = r[1];
+		
+		a[0] = safe_mul_s64(an, multiplierA);
+		a[1] = safe_mul_s64(ad, multiplierA);
+		
+		b[0] = safe_mul_s64(bn, multiplierB);
+		b[1] = safe_mul_s64(bd, multiplierB);
+		
+		asrt(a[1] == b[1]);
+		asrt(arbitrary(a[1], b[1]) != 0);
+	}
+	
+	
+	/**
+	 * @return the thing to multiply both the numerator and denominator by, first for a then for b;  ie: {multiplierA, multiplierB}
+	 */
+	@ThrowAwayValue
+	public static long[] commonizeFractionsDenominators(long ad, long bd)
+	{
+		if (ad < 1)  throw new IllegalArgumentException();
+		if (bd < 1)  throw new IllegalArgumentException();
+		
+		/*
+		 * 3/10 + 4/6
+		 * 
+		 * lcm(10, 6) = 30
+		 * 
+		 * 30/10 for the first = 3
+		 * 30/6 for the second = 5
+		 * 
+		 * (3*3)/(10*3) + (4*5)/(6*5)
+		 * 9/30 + 20/30
+		 */
+		
+		long gcd = gcd(ad, bd);
+		
+		//long multiplierA = lcm / ad;
+		//long multiplierB = lcm / bd;
+		
+		long multiplierA = bd / gcd;
+		long multiplierB = ad / gcd;
+		
+		return new long[]{multiplierA, multiplierB};
+	}
 	
 	
 	
@@ -2070,6 +2148,9 @@ _$$primxpconf:intsonly$$_
 		return r == 0 ? blockSizeAkaDenominator : r;
 	}
 	
+	/**
+	 * + There's no safe_pow_s32() because this is already safe—it'll throw {@link OverflowException} instead of give corrupted results :3
+	 */
 	public static int pow(int base, int exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		//TODO implement properly!!
@@ -2079,11 +2160,15 @@ _$$primxpconf:intsonly$$_
 		return (int)rv;
 	}
 	
+	/**
+	 * + There's no safe_pow_s64() because this is already safe—it'll throw {@link OverflowException} instead of give corrupted results :3
+	 */
 	public static long pow(long base, long exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		return pow_new(base, exponent);
 	}
 	
+	@ImplementationTransparency
 	public static long pow_old(long base, long exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		if (base == 1)
@@ -2279,7 +2364,8 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static int pow_new(int base, int exponent) throws ArithmeticException
+	@ImplementationTransparency
+	public static int pow_new(int base, int exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		if (base == 2)
 			return powb2_s32(exponent); //faster impl ^,^
@@ -2313,7 +2399,8 @@ _$$primxpconf:intsonly$$_
 		return (int)v;
 	}
 	
-	public static long pow_new(long base, long exponent) throws ArithmeticException
+	@ImplementationTransparency
+	public static long pow_new(long base, long exponent) throws ArithmeticException, OverflowException, TruncationException
 	{
 		if (base == 2)
 			return powb2_s64(exponent); //faster impl ^,^
@@ -2354,7 +2441,11 @@ _$$primxpconf:intsonly$$_
 		return v;
 	}
 	
-	public static int powb2_s32(int exponent)
+	
+	/**
+	 * @return pow(2, exponent)
+	 */
+	public static int powb2_s32(int exponent) throws ArithmeticException
 	{
 		if (exponent < 0)
 			throw new TruncationException("2^(-P) is not an integer");
@@ -2365,12 +2456,15 @@ _$$primxpconf:intsonly$$_
 		return 1 << exponent;
 	}
 	
-	public static long powb2_s64(long exponent)
+	/**
+	 * @return pow(2, exponent)
+	 */
+	public static long powb2_s64(long exponent) throws ArithmeticException
 	{
 		if (exponent < 0)
 			throw new TruncationException("2^(-P) is not an integer");
 		
-		if (exponent >= 31)
+		if (exponent >= 64)
 			throw new OverflowException();
 		
 		return 1 << exponent;

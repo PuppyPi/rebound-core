@@ -5,6 +5,7 @@
 package rebound.math;
 
 import static java.lang.Math.*;
+import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
@@ -30,6 +31,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.bits.Bytes;
 import rebound.exceptions.DivisionByZeroException;
@@ -2777,7 +2779,7 @@ implements JavaNamespace
 					throw new OverflowException();
 				
 				n = (Long)rationalOrInteger;
-				d = (Long)One;
+				d = 1;
 			}
 		}
 		
@@ -4880,6 +4882,11 @@ implements JavaNamespace
 	
 	
 	
+	public static String gintervalToString(@RealNumeric ArithmeticGenericInterval<?> i)
+	{
+		return (i.isStartInclusive() ? '[' : '(') + i.getStart().toString() + ", " + i.getEnd() + (i.isEndInclusive() ? ']' : ')');
+	}
+	
 	
 	
 	
@@ -5191,4 +5198,196 @@ implements JavaNamespace
 	//		return r != null ? r : gintervalIntersectionOfSubset(b, a);
 	//	}
 	/////////////////////////////// Generic interval arithmetic!> ///////////////////////////////
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static ArithmeticGenericInterval<Object> gintervalFromSharedDenominatorFormS64(long numeratorLow, long numeratorHigh, long denominator, boolean lowInclusive, boolean highInclusive)
+	{
+		return new ArithmeticGenericInterval<>(divide(numeratorLow, denominator), lowInclusive, divide(numeratorHigh, denominator), highInclusive);
+	}
+	
+	public static long[] gintervalToSharedDenominatorFormS64(ArithmeticGenericInterval<Object> o)
+	{
+		long[] low = getRationalNumeratorAndDenominatorSmall(o.getStart());
+		long[] high = getRationalNumeratorAndDenominatorSmall(o.getEnd());
+		
+		commonizeFractionsDenominators(low, high);
+		
+		long numeratorLow = low[0];
+		long numeratorHigh = high[0];
+		long denominator = arbitraryCheckingEq(low[1], high[1]);
+		
+		return new long[]{numeratorLow, numeratorHigh, denominator};
+	}
+	
+	
+	
+	
+	
+	
+	public static ArithmeticGenericInterval<Object> parseDecimalPreservingSigfigs(String s) throws NumberFormatException, OverflowException
+	{
+		return parseDecimalPreservingSigfigs(s.toLowerCase(), 10, '.', 'e', false);
+	}
+	
+	/**
+	 * Supports integer (1360), decimal (1.360), pseudodecimal (1360.), scientific notation (1.360e-4), but not overline/underline/etc. integer sigfigs, fractions (3/64), repeating-decimals, infinities, or nans.
+	 */
+	public static ArithmeticGenericInterval<Object> parseDecimalPreservingSigfigs(String s, int base, char decimalPointChar, char exponentialChar, boolean oddBasesRoundMidpointDigitDown) throws NumberFormatException, OverflowException
+	{
+		int expc = s.indexOf(exponentialChar);
+		int dotc = s.indexOf(decimalPointChar);
+		
+		@Emptyable String significandIntegerPartStr = s.substring(0, dotc == -1 ? (expc == -1 ? s.length() : expc) : dotc);
+		@Emptyable String significandFractionalPartStr = dotc == -1 ? null : s.substring(dotc + 1, expc == -1 ? s.length() : expc);
+		@Emptyable String characteristicStr = expc == -1 ? null : s.substring(expc + 1);
+		
+		if (significandFractionalPartStr != null)
+		{
+			if (significandFractionalPartStr.startsWith("+"))
+				throw new NumberFormatException(s);
+			
+			if (significandFractionalPartStr.startsWith("-"))
+				throw new NumberFormatException(s);
+		}
+		
+		long significandIntegerPart = dotc == 0 ? 0 : Long.parseLong(significandIntegerPartStr, base);  //may throw NumberFormatException
+		long significandFractionalPart = (significandFractionalPartStr == null || significandFractionalPartStr.isEmpty()) ? 0 : Long.parseLong(significandFractionalPartStr, base);  //may throw NumberFormatException
+		int characteristic = expc == -1 ? 0 : Integer.parseInt(characteristicStr, base);  //may throw NumberFormatException
+		
+		long multiplierOrDivider = SmallIntegerMathUtilities.pow((long)base, abs(characteristic));
+		
+		int multiplierExponentForTolerance;
+		int numberOfSignificantFigures;
+		{
+			if (significandFractionalPartStr != null)
+			{
+				numberOfSignificantFigures = significandFractionalPartStr.length();
+				multiplierExponentForTolerance = -1;
+			}
+			else
+			{
+				int numberOfTrailingZeros = countTrailing(significandIntegerPartStr, '0');
+				numberOfSignificantFigures = significandIntegerPartStr.length() - numberOfTrailingZeros;
+				
+				boolean allZeros = numberOfSignificantFigures == 0;
+				
+				multiplierExponentForTolerance = (allZeros ? 0 : numberOfTrailingZeros);
+			}
+		}
+		
+		
+		
+		@RationalOrInteger Object significand = significandFractionalPartStr == null ? significandIntegerPart : add(significandIntegerPart, rational(significandFractionalPart, SmallIntegerMathUtilities.pow((long)base, significandFractionalPartStr.length())));
+		
+		
+		
+		
+		/*
+		 * Base 10
+		 * 	1.340 9 = ↑ = 1.341
+		 * 	1.340 8 = ↑ = 1.341
+		 * 	1.340 7 = ↑ = 1.341
+		 * 	1.340 6 = ↑ = 1.341
+		 * 	1.340 5 = ↑ = 1.341
+		 * 	1.340 4 = ↓ = 1.340 !
+		 * 	1.340 3 = ↓ = 1.340 !
+		 * 	1.340 2 = ↓ = 1.340 !
+		 * 	1.340 1 = ↓ = 1.340 !
+		 * 	1.340 0 = ↓ = 1.340 !
+		 * 	1.339 9 = ↑ = 1.340 !
+		 * 	1.339 8 = ↑ = 1.340 !
+		 * 	1.339 7 = ↑ = 1.340 !
+		 * 	1.339 6 = ↑ = 1.340 !
+		 * 	1.339 5 = ↑ = 1.340 !
+		 * 	1.339 4 = ↓ = 1.339
+		 * 	1.339 3 = ↓ = 1.339
+		 * 	1.339 2 = ↓ = 1.339
+		 * 	1.339 1 = ↓ = 1.339
+		 * 	1.339 0 = ↓ = 1.339
+		 * 	
+		 * 	1.340 = [1.340  - 0.0005, 1.340 + 0.0005)
+		 * 	1.340 = [1.3395,          1.3405)
+		 * 
+		 * 
+		 * Base 6
+		 * 	1.340 5 = ↑ = 1.341
+		 * 	1.340 4 = ↑ = 1.341
+		 * 	1.340 3 = ↑ = 1.341
+		 * 	1.340 2 = ↓ = 1.340 !
+		 * 	1.340 1 = ↓ = 1.340 !
+		 * 	1.340 0 = ↓ = 1.340 !
+		 * 	1.335 5 = ↑ = 1.340 !
+		 * 	1.335 4 = ↑ = 1.340 !
+		 * 	1.335 3 = ↑ = 1.340 !
+		 * 	1.335 2 = ↓ = 1.335
+		 * 	1.335 1 = ↓ = 1.335
+		 * 	1.335 0 = ↓ = 1.335
+		 * 
+		 * 
+		 * Base 5
+		 * 	1.340 4 = ↑ = 1.341
+		 * 	1.340 3 = ↑ = 1.341
+		 * 	1.340 2 = ?
+		 * 	1.340 1 = ↓ = 1.340
+		 * 	1.340 0 = ↓ = 1.340
+		 * 	1.334 4 = ↑ = 1.340
+		 * 	1.334 3 = ↑ = 1.340
+		 * 	1.334 2 = ?
+		 * 	1.334 1 = ↓ = 1.334
+		 * 	1.334 0 = ↓ = 1.334
+		 * 
+		 * Base 5, floor (oddBasesRoundMidpointDigitDown = true)
+		 * 	1.340 4 = ↑ = 1.341
+		 * 	1.340 3 = ↑ = 1.341
+		 * 	1.340 2 = ↓ = 1.340 !
+		 * 	1.340 1 = ↓ = 1.340 !
+		 * 	1.340 0 = ↓ = 1.340 !
+		 * 	1.334 4 = ↑ = 1.340 !
+		 * 	1.334 3 = ↑ = 1.340 !
+		 * 	1.334 2 = ↓ = 1.334
+		 * 	1.334 1 = ↓ = 1.334
+		 * 	1.334 0 = ↓ = 1.334
+		 * 	[1.3343, 1.3403) = 1.340  +.0003 / -.0002
+		 * 
+		 * Base 5, ceil (oddBasesRoundMidpointDigitDown = false)
+		 * 	1.340 4 = ↑ = 1.341
+		 * 	1.340 3 = ↑ = 1.341
+		 * 	1.340 2 = ↑ = 1.341
+		 * 	1.340 1 = ↓ = 1.340 !
+		 * 	1.340 0 = ↓ = 1.340 !
+		 * 	1.334 4 = ↑ = 1.340 !
+		 * 	1.334 3 = ↑ = 1.340 !
+		 * 	1.334 2 = ↑ = 1.340 !
+		 * 	1.334 1 = ↓ = 1.334
+		 * 	1.334 0 = ↓ = 1.334
+		 * 	[1.3342, 1.3402) = 1.340  +.0002 / -.0003
+		 * 	
+		 */
+		@RationalOrInteger Object midpoint = characteristic >= 0 ? multiply(significand, multiplierOrDivider) : divide(significand, multiplierOrDivider);
+		
+		if ((base % 2) == 0)
+		{
+			@RationalOrInteger Object plusOrMinus = mul(base/2, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic));
+			return gintervalFromValueAndAbsoluteTolerance(midpoint, plusOrMinus, true, false);
+		}
+		else
+		{
+			int l = oddBasesRoundMidpointDigitDown ? floorDivision(base, 2) : ceilingDivision(base, 2);
+			int h = oddBasesRoundMidpointDigitDown ? ceilingDivision(base, 2) : floorDivision(base, 2);
+			
+			Object low = subtract(midpoint, mul(l, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic)));
+			Object high = add(midpoint, mul(h, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic)));
+			
+			return ginterval(low, true, high, false);
+		}
+	}
 }

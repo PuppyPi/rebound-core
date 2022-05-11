@@ -8512,6 +8512,34 @@ primxp
 	}
 	
 	
+	public static int countTrailing(String s, char c)
+	{
+		return countTrailingMatching(s, cc -> cc == c);
+	}
+	
+	public static int countTrailingMatching(String s, UnaryFunctionCharToBoolean predicate)
+	{
+		final int n = s.length();
+		
+		int i = 0;
+		while (true)
+		{
+			if (i >= s.length())
+			{
+				break;
+			}
+			else if (!predicate.f(s.charAt(n-i-1)))
+			{
+				break;
+			}
+			
+			i++;
+		}
+		
+		return i;
+	}
+	
+	
 	
 	
 	
