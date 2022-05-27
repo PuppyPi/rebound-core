@@ -830,7 +830,7 @@ implements JavaNamespace
 			
 			//Has a public clone method, but just doesn't implement PubliclyCloneable
 			{
-				Method cloneMethod = AngryReflectionUtility.getMethod(c, "clone", new Class[]{}, JavaVisibility.Public, null, false, true); //don't require that the return type be the class; it could be Object!
+				Method cloneMethod = AngryReflectionUtility.getMethod(c, "clone", new Class[]{}, JavaVisibility.PUBLIC, null, false, true); //don't require that the return type be the class; it could be Object!
 				
 				if (cloneMethod != null)
 				{
@@ -878,7 +878,7 @@ implements JavaNamespace
 			
 			//Has a public constructor that accepts one of the same type (which we will assume is basically a clone!)
 			{
-				Constructor constructor = AngryReflectionUtility.getConstructor(c, new Class[]{c}, JavaVisibility.Public);
+				Constructor constructor = AngryReflectionUtility.getConstructor(c, new Class[]{c}, JavaVisibility.PUBLIC);
 				
 				if (constructor != null)
 				{
@@ -1063,7 +1063,7 @@ implements JavaNamespace
 		{
 			//Try the method first
 			{
-				Method m = AngryReflectionUtility.getMethod(c, "getInstantiator", new Class[]{}, JavaVisibility.Public, Instantiator.class, true, false);
+				Method m = AngryReflectionUtility.getMethod(c, "getInstantiator", new Class[]{}, JavaVisibility.PUBLIC, Instantiator.class, true, false);
 				
 				if (m != null)
 				{
@@ -1089,7 +1089,7 @@ implements JavaNamespace
 			
 			//Then the field
 			{
-				Field m = AngryReflectionUtility.getField(c, "Instantiator", JavaVisibility.Public, Instantiator.class, true, false);
+				Field m = AngryReflectionUtility.getField(c, "Instantiator", JavaVisibility.PUBLIC, Instantiator.class, true, false);
 				
 				if (m != null)
 				{
@@ -1108,7 +1108,7 @@ implements JavaNamespace
 				}
 				
 				
-				m = AngryReflectionUtility.getField(c, "INSTANTIATOR", JavaVisibility.Public, Instantiator.class, true, false);
+				m = AngryReflectionUtility.getField(c, "INSTANTIATOR", JavaVisibility.PUBLIC, Instantiator.class, true, false);
 				
 				if (m != null)
 				{
@@ -1135,7 +1135,7 @@ implements JavaNamespace
 		{
 			for (String recognizedInstantiationMethodName : Recognized_Instantiation_Static_Method_Names)
 			{
-				Method m = AngryReflectionUtility.getMethod(c, recognizedInstantiationMethodName, new Class[]{}, JavaVisibility.Public, null, true, false);  //don't require that the return type be the class; it could be Object!
+				Method m = AngryReflectionUtility.getMethod(c, recognizedInstantiationMethodName, new Class[]{}, JavaVisibility.PUBLIC, null, true, false);  //don't require that the return type be the class; it could be Object!
 				
 				if (m == null)
 					continue;
@@ -1185,7 +1185,7 @@ implements JavaNamespace
 			{
 				for (String recognizedSingletonStaticFieldName : Recognized_Singleton_Static_Field_Names)
 				{
-					Field f = AngryReflectionUtility.getField(c, recognizedSingletonStaticFieldName, JavaVisibility.Public, null, true, false);  //don't require that the field type be the class; it could be Object! :)
+					Field f = AngryReflectionUtility.getField(c, recognizedSingletonStaticFieldName, JavaVisibility.PUBLIC, null, true, false);  //don't require that the field type be the class; it could be Object! :)
 					
 					if (f == null)
 						continue;
