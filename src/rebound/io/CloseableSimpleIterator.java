@@ -1,7 +1,6 @@
 package rebound.io;
 
 import java.io.Closeable;
-import java.io.IOException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.util.collections.SimpleIterator;
 
@@ -29,11 +28,15 @@ extends SimpleIterator<E>, Closeable
 			}
 			
 			@Override
-			public void close() throws IOException
+			public void close()
 			{
 				if (!eof)
 					underlying.drain();
 			}
 		};
 	}
+	
+	
+	@Override
+	public void close();  //the other methods don't throw IOException X3
 }
