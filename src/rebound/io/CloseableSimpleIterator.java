@@ -1,11 +1,10 @@
 package rebound.io;
 
-import java.io.Closeable;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.util.collections.SimpleIterator;
 
 public interface CloseableSimpleIterator<E>
-extends SimpleIterator<E>, Closeable
+extends SimpleIterator<E>, UncheckedCloseable  //the other methods don't throw IOException X3
 {
 	public static <E> CloseableSimpleIterator<E> closeByDraining(SimpleIterator<E> underlying)
 	{
@@ -35,8 +34,4 @@ extends SimpleIterator<E>, Closeable
 			}
 		};
 	}
-	
-	
-	@Override
-	public void close();  //the other methods don't throw IOException X3
 }

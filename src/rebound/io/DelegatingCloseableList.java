@@ -1,7 +1,5 @@
 package rebound.io;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -16,16 +14,16 @@ import java.util.stream.Stream;
 public class DelegatingCloseableList<E>
 implements CloseableList<E>
 {
-	protected final Closeable closeable;
+	protected final UncheckedCloseable closeable;
 	protected final List<E> underlying;
 	
-	public DelegatingCloseableList(Closeable closeable, List<E> underlying)
+	public DelegatingCloseableList(UncheckedCloseable closeable, List<E> underlying)
 	{
 		this.closeable = closeable;
 		this.underlying = underlying;
 	}
 	
-	public void close() throws IOException
+	public void close()
 	{
 		closeable.close();
 	}

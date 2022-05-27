@@ -1,7 +1,5 @@
 package rebound.io;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import rebound.exceptions.StopIterationReturnPath;
@@ -10,16 +8,16 @@ import rebound.util.collections.SimpleIterator;
 public class DelegatingCloseableSimpleIterator<E>
 implements CloseableSimpleIterator<E>
 {
-	protected final Closeable closeable;
+	protected final UncheckedCloseable closeable;
 	protected final SimpleIterator<E> underlying;
 	
-	public DelegatingCloseableSimpleIterator(Closeable closeable, SimpleIterator<E> underlying)
+	public DelegatingCloseableSimpleIterator(UncheckedCloseable closeable, SimpleIterator<E> underlying)
 	{
 		this.closeable = closeable;
 		this.underlying = underlying;
 	}
 	
-	public void close() throws IOException
+	public void close()
 	{
 		closeable.close();
 	}
