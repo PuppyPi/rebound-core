@@ -1,5 +1,6 @@
 package rebound.io.util;
 
+import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.io.EOFException;
 import java.io.IOException;
@@ -10,6 +11,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -19,6 +24,7 @@ import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.io.CloseableList;
 import rebound.io.CloseableSimpleIterator;
+import rebound.io.DelegatingCloseableList;
 import rebound.io.DelegatingCloseableSimpleIterator;
 import rebound.text.StringUtilities;
 import rebound.util.BufferAllocationType;
@@ -28,6 +34,7 @@ import rebound.util.collections.DefaultList;
 import rebound.util.collections.DefaultReadonlyList;
 import rebound.util.collections.Mapper;
 import rebound.util.collections.SimpleIterator;
+import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.objectutil.JavaNamespace;
 
@@ -635,6 +642,12 @@ implements JavaNamespace
 		return new DelegatingCloseableSimpleIterator<>(underlying, mappedNormally);
 	}
 	
+	public static <E> CloseableSimpleIterator<E> filterCloseable(Predicate<E> predicate, CloseableSimpleIterator<E> underlying)
+	{
+		SimpleIterator<E> mappedNormally = filter(predicate, underlying);
+		return new DelegatingCloseableSimpleIterator<>(underlying, mappedNormally);
+	}
+	
 	
 	
 	@WritableValue
@@ -687,7 +700,7 @@ implements JavaNamespace
 			}
 			
 			@Override
-			public void close() throws IOException
+			public void close()
 			{
 				underlying.close();
 			}
@@ -724,12 +737,53 @@ implements JavaNamespace
 			}
 			
 			@Override
-			public void close() throws IOException
+			public void close()
 			{
 				underlying.close();
 			}
 		}
 		
 		return new MCL();
+	}
+	
+	
+	
+	
+	
+	
+	public static <E> Set<E> toSetClosing(NullaryFunction<CloseableSimpleIterator<E>> opener)
+	{
+		Set<E> s = new HashSet<>();
+		try (CloseableSimpleIterator<E> i = opener.f())
+		{
+			for (E e : singleUseIterable(i))
+				s.add(e);
+		}
+		return s;
+	}
+	
+	public static int countClosing(NullaryFunction<CloseableSimpleIterator<?>> opener)
+	{
+		int n = 0;
+		try (CloseableSimpleIterator<?> i = opener.f())
+		{
+			for (@SuppressWarnings("unused") Object e : singleUseIterable(i))
+				n = safe_inc_s32(n);
+		}
+		return n;
+	}
+	
+	
+	
+	
+	
+	public static <E> CloseableSimpleIterator<E> noopCloseable(SimpleIterator<E> underlying)
+	{
+		return new DelegatingCloseableSimpleIterator<>(() -> {}, underlying);
+	}
+	
+	public static <E> CloseableList<E> noopCloseable(List<E> underlying)
+	{
+		return new DelegatingCloseableList<>(() -> {}, underlying);
 	}
 }
