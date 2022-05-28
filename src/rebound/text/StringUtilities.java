@@ -7170,66 +7170,66 @@ implements JavaNamespace
 	
 	
 	
-	public static String hexint(byte b)
+	public static String hexint(byte i)
 	{
-		String s = Integer.toHexString(upcast(b)).toUpperCase();
+		String s = Integer.toHexString(upcast(i)).toUpperCase();
 		return "0x"+mulnn('0', 2 - s.length()) + s;
 	}
 	
-	public static String hexint(short b)
+	public static String hexint(short i)
 	{
-		String s = Integer.toHexString(upcast(b)).toUpperCase();
+		String s = Integer.toHexString(upcast(i)).toUpperCase();
 		return "0x"+mulnn('0', 4 - s.length()) + s;
 	}
 	
-	public static String hexint(int b)
+	public static String hexint(int i)
 	{
-		String s = Integer.toHexString(b).toUpperCase();
+		String s = Integer.toHexString(i).toUpperCase();
 		return "0x"+mulnn('0', 8 - s.length()) + s;
 	}
 	
-	public static String hexint(long b)
+	public static String hexint(long i)
 	{
-		String s = Long.toHexString(b).toUpperCase();
+		String s = Long.toHexString(i).toUpperCase();
 		return "0x"+mulnn('0', 16 - s.length()) + s;
 	}
 	
 	
-	public static String hexint(int b, int l)
+	public static String hexint(int i, int l)
 	{
-		String s = Integer.toHexString(b).toUpperCase();
+		String s = Integer.toHexString(i).toUpperCase();
 		return "0x"+mulnn('0', l - s.length()) + s;
 	}
 	
-	public static String hexint(long b, int l)
+	public static String hexint(long i, int l)
 	{
-		String s = Long.toHexString(b).toUpperCase();
+		String s = Long.toHexString(i).toUpperCase();
 		return "0x"+mulnn('0', l - s.length()) + s;
 	}
 	
 	
 	
-	public static String hexint24(int b)
+	public static String hexint24(int i)
 	{
-		String s = Integer.toHexString(b & 0x00FFFFFF).toUpperCase();
+		String s = Integer.toHexString(i & 0x00FFFFFF).toUpperCase();
 		return "0x"+mulnn('0', 6 - s.length()) + s;
 	}
 	
-	public static String hexint40(long b)
+	public static String hexint40(long i)
 	{
-		String s = Long.toHexString(b & 0x000000FF_FFFFFFFFl).toUpperCase();
+		String s = Long.toHexString(i & 0x000000FF_FFFFFFFFl).toUpperCase();
 		return "0x"+mulnn('0', 10 - s.length()) + s;
 	}
 	
-	public static String hexint48(long b)
+	public static String hexint48(long i)
 	{
-		String s = Long.toHexString(b & 0x0000FFFF_FFFFFFFFl).toUpperCase();
+		String s = Long.toHexString(i & 0x0000FFFF_FFFFFFFFl).toUpperCase();
 		return "0x"+mulnn('0', 12 - s.length()) + s;
 	}
 	
-	public static String hexint56(long b)
+	public static String hexint56(long i)
 	{
-		String s = Long.toHexString(b & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
+		String s = Long.toHexString(i & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
 		return "0x"+mulnn('0', 14 - s.length()) + s;
 	}
 	
@@ -7241,66 +7241,66 @@ implements JavaNamespace
 	
 	
 	
-	public static String binint(byte b)
+	public static String binint(byte i)
 	{
-		String s = Integer.toBinaryString(upcast(b)).toUpperCase();
+		String s = Integer.toBinaryString(upcast(i)).toUpperCase();
 		return "0b"+mulnn('0', 8 - s.length()) + s;
 	}
 	
-	public static String binint(short b)
+	public static String binint(short i)
 	{
-		String s = Integer.toBinaryString(upcast(b)).toUpperCase();
+		String s = Integer.toBinaryString(upcast(i)).toUpperCase();
 		return "0b"+mulnn('0', 16 - s.length()) + s;
 	}
 	
-	public static String binint(int b)
+	public static String binint(int i)
 	{
-		String s = Integer.toBinaryString(b).toUpperCase();
+		String s = Integer.toBinaryString(i).toUpperCase();
 		return "0b"+mulnn('0', 32 - s.length()) + s;
 	}
 	
-	public static String binint(long b)
+	public static String binint(long i)
 	{
-		String s = Long.toBinaryString(b).toUpperCase();
+		String s = Long.toBinaryString(i).toUpperCase();
 		return "0b"+mulnn('0', 64 - s.length()) + s;
 	}
 	
 	
-	public static String binint(int b, int l)
+	public static String binint(int i, int l)
 	{
-		String s = Integer.toBinaryString(b).toUpperCase();
+		String s = Integer.toBinaryString(i).toUpperCase();
 		return "0b"+mulnn('0', l - s.length()) + s;
 	}
 	
-	public static String binint(long b, int l)
+	public static String binint(long i, int l)
 	{
-		String s = Long.toBinaryString(b).toUpperCase();
+		String s = Long.toBinaryString(i).toUpperCase();
 		return "0b"+mulnn('0', l - s.length()) + s;
 	}
 	
 	
 	
-	public static String binint24(int b)
+	public static String binint24(int i)
 	{
-		String s = Integer.toBinaryString(b & 0x00FFFFFF).toUpperCase();
+		String s = Integer.toBinaryString(i & 0x00FFFFFF).toUpperCase();
 		return "0b"+mulnn('0', 24 - s.length()) + s;
 	}
 	
-	public static String binint40(long b)
+	public static String binint40(long i)
 	{
-		String s = Long.toBinaryString(b & 0x000000FF_FFFFFFFFl).toUpperCase();
+		String s = Long.toBinaryString(i & 0x000000FF_FFFFFFFFl).toUpperCase();
 		return "0b"+mulnn('0', 40 - s.length()) + s;
 	}
 	
-	public static String binint48(long b)
+	public static String binint48(long i)
 	{
-		String s = Long.toBinaryString(b & 0x0000FFFF_FFFFFFFFl).toUpperCase();
+		String s = Long.toBinaryString(i & 0x0000FFFF_FFFFFFFFl).toUpperCase();
 		return "0b"+mulnn('0', 48 - s.length()) + s;
 	}
 	
-	public static String binint56(long b)
+	public static String binint56(long i)
 	{
-		String s = Long.toBinaryString(b & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
+		String s = Long.toBinaryString(i & 0x00FFFFFF_FFFFFFFFl).toUpperCase();
 		return "0b"+mulnn('0', 56 - s.length()) + s;
 	}
 	
