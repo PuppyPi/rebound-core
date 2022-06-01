@@ -53,6 +53,7 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 		clusivities.clear();
 	}
 	
+	
 	@Override
 	public ArithmeticGenericInterval<Object> get(int index)
 	{
@@ -115,6 +116,8 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 		
 		data.setSize(data.size() + 3);
 		clusivities.setSize(clusivities.size() + 2);
+		
+		set(index, element);
 	}
 	
 	@Override
