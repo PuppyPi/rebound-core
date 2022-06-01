@@ -1,5 +1,6 @@
 package rebound.math;
 
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import rebound.util.collections.DefaultList;
 import rebound.util.collections.prim.BitSetBackedBooleanList;
@@ -11,26 +12,29 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 {
 	/*
 	 * The format in memory is: numeratorLow0, numeratorHigh0, denominator0,   numeratorLow1, numeratorHigh1, denominator1,   numeratorLow2, numeratorHigh2, denominator2,   ...
+	 * Denominator = 0 means null! :D
 	 */
-	protected LongArrayList data;
+	protected final LongArrayList data;
 	
 	/*
 	 * The format in memory is: lowInclusive0, highInclusive0,   lowInclusive1, highInclusive1,   lowInclusive2, highInclusive2,   ...
 	 */
-	protected BitSetBackedBooleanList clusivities;
+	protected final BitSetBackedBooleanList clusivities;
+	
+	protected final boolean nullableElements;
 	
 	
 	
-	
-	public SmallIntegerBasedRationalIntervalList()
+	public SmallIntegerBasedRationalIntervalList(boolean nullableElements)
 	{
-		this(PrimitiveCollections.DefaultPrimitiveArrayListInitialCapacity);
+		this(PrimitiveCollections.DefaultPrimitiveArrayListInitialCapacity, nullableElements);
 	}
 	
-	public SmallIntegerBasedRationalIntervalList(int capacity)
+	public SmallIntegerBasedRationalIntervalList(int capacity, boolean nullableElements)
 	{
-		data = new LongArrayList(capacity*3);
-		clusivities = new BitSetBackedBooleanList(capacity*2);
+		this.data = new LongArrayList(capacity*3);
+		this.clusivities = new BitSetBackedBooleanList(capacity*2);
+		this.nullableElements = nullableElements;
 	}
 	
 	
@@ -54,13 +58,22 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 	{
 		rangeCheckMember(this.size(), index);
 		
-		long numeratorLow = data.get(index*3+0);
-		long numeratorHigh = data.get(index*3+1);
 		long denominator = data.get(index*3+2);
-		boolean lowInclusive = clusivities.get(index*2+0);
-		boolean highInclusive = clusivities.get(index*2+1);
 		
-		return MathUtilities.gintervalFromSharedDenominatorFormS64(numeratorLow, numeratorHigh, denominator, lowInclusive, highInclusive);
+		if (denominator == 0)
+		{
+			asrt(nullableElements);
+			return null;
+		}
+		else
+		{
+			long numeratorLow = data.get(index*3+0);
+			long numeratorHigh = data.get(index*3+1);
+			boolean lowInclusive = clusivities.get(index*2+0);
+			boolean highInclusive = clusivities.get(index*2+1);
+			
+			return MathUtilities.gintervalFromSharedDenominatorFormS64(numeratorLow, numeratorHigh, denominator, lowInclusive, highInclusive);
+		}
 	}
 	
 	@Override
@@ -68,17 +81,29 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 	{
 		rangeCheckMember(this.size(), index);
 		
-		ArithmeticGenericInterval<Object> prev = get(index);
-		
-		long[] r = MathUtilities.gintervalToSharedDenominatorFormS64(element);
-		
-		data.set(index*3+0, r[0]);  //numeratorLow
-		data.set(index*3+1, r[1]);  //numeratorHigh
-		data.set(index*3+2, r[2]);  //denominator
-		clusivities.set(index*2+0, element.isStartInclusive());
-		clusivities.set(index*2+1, element.isEndInclusive());
-		
-		return prev;
+		if (element == null)
+		{
+			if (!nullableElements)
+				throw new NullPointerException();
+			
+			data.set(index*3+2, 0);  //denominator
+		}
+		else
+		{
+			ArithmeticGenericInterval<Object> prev = get(index);
+			
+			long[] r = MathUtilities.gintervalToSharedDenominatorFormS64(element);
+			
+			asrt(r[2] != 0);
+			
+			data.set(index*3+0, r[0]);  //numeratorLow
+			data.set(index*3+1, r[1]);  //numeratorHigh
+			data.set(index*3+2, r[2]);  //denominator
+			clusivities.set(index*2+0, element.isStartInclusive());
+			clusivities.set(index*2+1, element.isEndInclusive());
+			
+			return prev;
+		}
 	}
 	
 	@Override
