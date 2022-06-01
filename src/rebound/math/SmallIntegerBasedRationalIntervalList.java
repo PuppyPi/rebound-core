@@ -81,17 +81,17 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 	{
 		rangeCheckMember(this.size(), index);
 		
+		ArithmeticGenericInterval<Object> prev = get(index);
+		
 		if (element == null)
 		{
 			if (!nullableElements)
 				throw new NullPointerException();
 			
-			data.set(index*3+2, 0);  //denominator
+			data.set(index*3+2, 0l);  //denominator
 		}
 		else
 		{
-			ArithmeticGenericInterval<Object> prev = get(index);
-			
 			long[] r = MathUtilities.gintervalToSharedDenominatorFormS64(element);
 			
 			asrt(r[2] != 0);
@@ -101,10 +101,12 @@ implements DefaultList<ArithmeticGenericInterval<Object>>
 			data.set(index*3+2, r[2]);  //denominator
 			clusivities.set(index*2+0, element.isStartInclusive());
 			clusivities.set(index*2+1, element.isEndInclusive());
-			
-			return prev;
 		}
+		
+		return prev;
 	}
+	
+	
 	
 	@Override
 	public void add(int index, ArithmeticGenericInterval<Object> element)
