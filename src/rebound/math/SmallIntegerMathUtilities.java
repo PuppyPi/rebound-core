@@ -2755,6 +2755,80 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
+	public static int losslessLog(long value, long base) throws TruncationException
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		int exponent = floorLog(value, base);
+		
+		if (pow(base, exponent) != value)
+			throw new TruncationException("log["+base+"]("+value+") ≠ "+exponent);
+		
+		return exponent;
+	}
+	
+	public static int floorLog(long value, long base) throws ArithmeticException
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0)
+			throw new ComplexNumberArithmeticException();
+		
+		
+		double v = Math.log(value) / Math.log(base);
+		
+		if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE)
+			throw new OverflowException();
+		
+		int exponent;
+		
+		if (abs(round(v) - v) < 1e-12)
+			exponent = (int)roundClosestArbtiesS32(v);
+		else
+			exponent = (int)roundFloorS32(v);
+		
+		return exponent;
+	}
+	
+	
+	public static int ceilLog(long value, long base)
+	{
+		//TODO A proper way of doing this!! X'D
+		
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		if (value < 0)
+			throw new ComplexNumberArithmeticException();
+		
+		
+		double v = Math.log(value) / Math.log(base);
+		
+		if (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE)
+			throw new OverflowException();
+		
+		int exponent;
+		
+		if (abs(round(v) - v) < 1e-12)
+			exponent = (int)roundClosestArbtiesS32(v);
+		else
+			exponent = (int)roundCeilS32(v);
+		
+		return exponent;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
