@@ -57,6 +57,7 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.Positive;
@@ -1148,7 +1149,7 @@ implements JavaNamespace
 	}
 	
 	
-	public static String[] splitlines(String s, WhatToDoWithEmpties whatToDoWithEmpties)
+	public static @Nonnull @Nonempty String[] splitlines(String s, WhatToDoWithEmpties whatToDoWithEmpties)
 	{
 		//Todo support all three newlines, "\n", "\r", and "\r\n" more efficiently ^^''
 		if (s.indexOf('\r') != -1)
@@ -1157,12 +1158,12 @@ implements JavaNamespace
 		return split(s, '\n', -1, whatToDoWithEmpties);
 	}
 	
-	public static String[] splitlines(String s)
+	public static @Nonnull @Nonempty String[] splitlines(String s)
 	{
 		return splitlines(s, WhatToDoWithEmpties.LeaveInEmpties); //leaving them in keeps more information and allows us to reconstitute the original input; which is many important for (eg source code) rewriters! 0,0     the lossless option is usually a good default option methinks ^^
 	}
 	
-	public static String[] splitlinesLeavingOffEmptyTrailingLine(String s)
+	public static @Nonnull @Emptyable String[] splitlinesLeavingOffEmptyTrailingLine(String s)
 	{
 		if (s.isEmpty())
 			return EmptyStringArray;
