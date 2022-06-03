@@ -7,6 +7,7 @@ package rebound.util.functional;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
+import static rebound.util.objectutil.BasicObjectUtilities.*;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
@@ -88,6 +89,25 @@ implements JavaNamespace
 		}
 	}
 	
+	
+	
+	public static <E> E repeatOperationUntilNoChange(UnaryFunction<E, E> operation, E initialInput)
+	{
+		E previous = initialInput;
+		while (true)
+		{
+			E next = operation.f(previous);
+			
+			if (!eq(next, previous))
+			{
+				previous = next;
+			}
+			else
+			{
+				return previous;
+			}
+		}
+	}
 	
 	
 	
