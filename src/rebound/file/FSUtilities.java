@@ -2503,6 +2503,7 @@ implements JavaNamespace
 			
 			//throw new NotYetImplementedException("NYI: Moving special files (eg, devices and fifos) across filesystems ^^''    (Source="+repr(source.getAbsolutePath())+", Dest="+repr(dest.getAbsolutePath())+")");
 			
+			// (Remember, (if move not copy mode) we already tried intra-filesystem move with source.renameTo(dest) and it didn't work)
 			List<String> cmdAndArgs = move ? listof("mv", source.getAbsolutePath(), dest.getAbsolutePath()) : listof("cp", "-Pi", "--preserve=all", source.getAbsolutePath(), dest.getAbsolutePath());
 			
 			try
