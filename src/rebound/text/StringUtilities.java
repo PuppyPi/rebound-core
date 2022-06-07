@@ -9122,6 +9122,32 @@ primxp
 	
 	
 	
+	public static <O> List<O> mapStringToList(Mapper<Character, O> mapper, CharSequence input)
+	{
+		int n = input.length();
+		
+		List<O> out = new ArrayList<>(n);
+		
+		for (int i = 0; i < n; i++)
+		{
+			char c = input.charAt(i);
+			
+			O o;
+			try
+			{
+				o = mapper.f(c);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			out.add(o);
+		}
+		
+		return out;
+	}
+	
 	
 	public static <I> String mapToString(Mapper<I, Character> mapper, SimpleIterator<I> input)
 	{
