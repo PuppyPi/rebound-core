@@ -5137,6 +5137,10 @@ implements JavaNamespace
 		return true;
 	}
 	
+	/**
+	 * Note that this is a proper subset of the strings {@link #isLegalBasenameOnPosixNotCountingLength(String)} returns true for.
+	 * That is, if this returns true, {@link #isLegalBasenameOnPosixNotCountingLength(String)} will return true too!
+	 */
 	public static boolean isLegalBasenameOnWindowsNotCountingLength(String s)
 	{
 		if (s.isEmpty())
@@ -5153,6 +5157,8 @@ implements JavaNamespace
 		
 		if (forAny(n -> startsWithCaseInsensitively(s, n), ReservedFileBasenameStemsOnWindowsWithDots))
 			return false;
+		
+		assert isLegalBasenameOnPosixNotCountingLength(s);
 		
 		return true;
 	}
