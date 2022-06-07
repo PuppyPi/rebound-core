@@ -9414,4 +9414,22 @@ primxp
 	{
 		return s.length() == 1 || (s.length() == 2 && isSurrogatePair(s.charAt(0), s.charAt(1)));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param maxChars  (note this is in UTF-16 'chars' not actual UCS-4 characters (or codepoints, rather))
+	 */
+	public static String truncate(String s, @Nonnegative int maxChars)
+	{
+		requireNonNegative(maxChars);
+		
+		int n = s.length();
+		return n > maxChars ? (maxChars == 0 ? "…" : s.substring(0, maxChars-1)+'…') : s;
+	}
 }
