@@ -4580,13 +4580,14 @@ implements JavaNamespace
 	 * @param unmatchedEscapedValidlyMatchEscapeCode if <code>true</code>, then it is not an error for an escape to be unmatched; it simply translates directly to the code (a la bash :> ); eg, so you don't have to include things like \" -> ", \\ -> \  ^_^
 	 * @param source The original string containing things which are escaped
 	 */
-	public static String descape(Object source, char escapeChar, Character unicodeEscapeCode, boolean unmatchedEscapedValidlyMatchEscapeCode, boolean ignoreErrors, Object[] escapeDictionary) throws TextSyntaxException
+	public static @Nullable String descape(@Nullable Object source, char escapeChar, @Nullable Character unicodeEscapeCode, boolean unmatchedEscapedValidlyMatchEscapeCode, boolean ignoreErrors, Object[] escapeDictionary) throws TextSyntaxException
 	{
-		int srclen = getLength(source);
-		
 		//Shortcuts :>
 		if (source == null)
 			return null;
+		
+		int srclen = getLength(source);
+		
 		if (srclen == 0)
 			return "";
 		
