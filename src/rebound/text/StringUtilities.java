@@ -6155,14 +6155,18 @@ implements JavaNamespace
 	 * @param escapeChar In C-Style escapes, it is '\'
 	 * @param escapes The characters which required escaping and their escape code in this format (which should include the escape character itself), example (basic C escapes): {'\n', 'n',   '\r', 'r',   '"', '"',   '	', 't',   '\\', '\\'}
 	 */
-	public static String escape(CharSequence original, char escapeChar, char... escapes)
+	public static @Nonnull String escape(@Nonnull CharSequence original, char escapeChar, char... escapes)
 	{
+		int nEscapeElements = escapes.length;
+		int inputLength = original.length();
+		
 		StringBuilder buffer = new StringBuilder();
-		char c = 0;
-		MainLoop: for (int i = 0; i < original.length(); i++)
+		
+		MainLoop: for (int i = 0; i < inputLength; i++)
 		{
-			c = original.charAt(i);
-			EscapeLoop: for (int e = 0; e + 1 < escapes.length; e += 2)
+			char c = original.charAt(i);
+			
+			EscapeLoop: for (int e = 0; e + 1 < nEscapeElements; e += 2)
 			{
 				if (c == escapes[e])
 				{
@@ -6175,6 +6179,37 @@ implements JavaNamespace
 			//this is never reached unless the escape loop doesn't find an escape (due to the continue in it)
 			buffer.append(c);
 		}
+		return buffer.toString();
+	}
+	
+	
+	public static @Nonnull String escape(@Nonnull CharSequence original, CharSequence charsToEscape, List<String> escapeSequences)
+	{
+		int nEscapes = charsToEscape.length();
+		if (escapeSequences.size() != nEscapes)
+			throw new IllegalArgumentException();
+		
+		int inputLength = original.length();
+		
+		StringBuilder buffer = new StringBuilder();
+		
+		MainLoop: for (int i = 0; i < inputLength; i++)
+		{
+			char c = original.charAt(i);
+			
+			EscapeLoop: for (int e = 0; e < nEscapes; e++)
+			{
+				if (c == charsToEscape.charAt(e))
+				{
+					buffer.append(escapeSequences.get(e));
+					continue MainLoop;
+				}
+			}
+			
+			//this is never reached unless the escape loop doesn't find an escape (due to the continue in it)
+			buffer.append(c);
+		}
+		
 		return buffer.toString();
 	}
 	
