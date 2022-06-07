@@ -4783,25 +4783,379 @@ implements JavaNamespace
 	
 	
 	/**
-	 * Escapes forward slashes completely, using an escape syntax based on the backslash which normally needn't be used :3
+	 * Escapes forward slashes into a unicode character that looks like a forward slash, but also escapes that char and etc. perfectly, using an escape syntax based on the backslash which normally needn't be used :3
+	 * (This very much does not work on Windows XD )
 	 * 
 	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
 	 */
 	public static String fsescape(String s)
 	{
-		return s.replace("\\", "\\e").replace("\u2044", "\\s").replace("/", "\u2044");
+		return s.replace("\\", "\\e").replace("\u2044", "\\s").replace("/", "\u2044").replace("\u0000", "\\0");
 	}
 	
 	/**
-	 * (De!)Escapes forward slashes completely, using an escape syntax based on the backslash which normally needn't be used :3
+	 * (De!)Escapes forward slashes into a unicode character that looks like a forward slash, but also escapes that char and etc. perfectly, using an escape syntax based on the backslash which normally needn't be used :3
+	 * (This very much does not work on Windows XD )
 	 * 
 	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
 	 */
 	public static String fsdescape(String s)
 	{
-		return s.replace("\u2044", "/").replace("\\s", "\u2044").replace("\\e", "\\");
+		return s.replace("\\0", "\u0000").replace("\u2044", "/").replace("\\s", "\u2044").replace("\\e", "\\");
 	}
 	
+	
+	
+	
+	
+	public static final List<String> ReservedFileBasenameStemsOnWindows = unmodifiableList(listof(
+	//Note that none of these start with any other :3
+	//Source: https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+	//Source: https://stackoverflow.com/a/31976060
+	"CON", "PRN", "AUX", "NUL",
+	"COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+	"LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+	));
+	
+	public static final List<String> ReservedFileBasenameStemsOnWindowsWithDots = unmodifiableList(mapToList(n -> n+".", ReservedFileBasenameStemsOnWindows));
+	
+	/*
+	 * The per-char syntax (written as escaping; descaping is simply the reverse):
+	 * 		⑊ → ⑊e
+	 * 		∖ → ⑊b
+	 * 		\ → ∖
+	 * 		∕ → ⑊s
+	 * 		/ → ∕
+	 * 		
+	 * 		: → ⑊c
+	 * 		* → ⑊a
+	 * 		? → ⑊q
+	 * 		" → ⑊d
+	 * 		< → ⑊l
+	 * 		> → ⑊g
+	 * 		| → ⑊p
+	 * 		
+	 * 		0x00 → ⑊00
+	 * 		0x01 → ⑊01
+	 * 		0x02 → ⑊02
+	 * 		0x03 → ⑊03
+	 * 		0x04 → ⑊04
+	 * 		0x05 → ⑊05
+	 * 		0x06 → ⑊06
+	 * 		0x07 → ⑊07
+	 * 		0x08 → ⑊08
+	 * 		0x09 → ⑊t
+	 * 		0x0A → ⑊n
+	 * 		0x0B → ⑊0B
+	 * 		0x0C → ⑊0C
+	 * 		0x0D → ⑊r
+	 * 		0x0E → ⑊0E
+	 * 		0x0F → ⑊0F
+	 * 		0x10 → ⑊10
+	 * 		0x11 → ⑊11
+	 * 		0x12 → ⑊12
+	 * 		0x13 → ⑊13
+	 * 		0x14 → ⑊14
+	 * 		0x15 → ⑊15
+	 * 		0x16 → ⑊16
+	 * 		0x17 → ⑊17
+	 * 		0x18 → ⑊18
+	 * 		0x19 → ⑊19
+	 * 		0x1A → ⑊1A
+	 * 		0x1B → ⑊1B
+	 * 		0x1C → ⑊1C
+	 * 		0x1D → ⑊1D
+	 * 		0x1E → ⑊1E
+	 * 		0x1F → ⑊1F
+	 */
+	
+	
+	
+	public static final String IllegalCharsOnWindowsPathnames = "<>:\"/\\|?*\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\n\u000B\u000C\r\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B\u001C\u001D\u001E\u001F";
+	
+	//The order of the first five of these is essential (though there's two valid ones) but the others it's not X3''
+	protected static final String FIWCharsToEscape = "⑊∖\\∕/:*?\"<>|\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\n\u000B\u000C\r\u000E\u000F\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001A\u001B\u001C\u001D\u001E\u001F";
+	protected static final List<String> FIWDescapedCharsAsStrings = reversed(mapStringToList(c -> String.valueOf(c), FIWCharsToEscape));
+	
+	protected static final List<String> FIWEscapeSequences = listof(
+	"⑊e",
+	"⑊b",
+	"∖",
+	"⑊s",
+	"∕",
+	
+	"⑊c",
+	"⑊a",
+	"⑊q",
+	"⑊d",
+	"⑊l",
+	"⑊g",
+	"⑊p",
+	
+	"⑊00",
+	"⑊01",
+	"⑊02",
+	"⑊03",
+	"⑊04",
+	"⑊05",
+	"⑊06",
+	"⑊07",
+	"⑊08",
+	"⑊t",
+	"⑊n",
+	"⑊0B",
+	"⑊0C",
+	"⑊r",
+	"⑊0E",
+	"⑊0F",
+	"⑊10",
+	"⑊11",
+	"⑊12",
+	"⑊13",
+	"⑊14",
+	"⑊15",
+	"⑊16",
+	"⑊17",
+	"⑊18",
+	"⑊19",
+	"⑊1A",
+	"⑊1B",
+	"⑊1C",
+	"⑊1D",
+	"⑊1E",
+	"⑊1F"
+	);
+	
+	
+	protected static final List<String> FIWDescapeSequencesPreferredCase = reversed(FIWEscapeSequences);
+	
+	
+	
+	protected static final List<String> FIWDescapeSequencesUnpreferredCaseOrNull = reversed(listof(
+	"⑊E",
+	"⑊B",
+	null,
+	"⑊S",
+	null,
+	
+	"⑊C",
+	"⑊A",
+	"⑊Q",
+	"⑊D",
+	"⑊L",
+	"⑊G",
+	"⑊P",
+	
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	"⑊T",
+	"⑊N",
+	null,
+	null,
+	"⑊R",
+	"⑊0e",
+	"⑊0f",
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	null,
+	"⑊1a",
+	"⑊1b",
+	"⑊1c",
+	"⑊1d",
+	"⑊1e",
+	"⑊1f"
+	));
+	
+	
+	
+	protected static @Nullable String isIllegalWindowsSpecialNameWithUnderscores(final String s, final String illegalStemname)
+	{
+		if (startsWithCaseInsensitively(s, illegalStemname))
+		{
+			int n = s.length();
+			
+			int firstNonunderscoreAfter;
+			{
+				firstNonunderscoreAfter = n;
+				
+				for (int i = illegalStemname.length(); i < n; i++)
+				{
+					char c = s.charAt(i);
+					
+					if (c == '_')
+					{
+						//keep going
+					}
+					else
+					{
+						firstNonunderscoreAfter = i;
+						break;
+					}
+				}
+			}
+			
+			if (firstNonunderscoreAfter == n || s.charAt(firstNonunderscoreAfter) == '.')
+				return s.substring(illegalStemname.length());
+			else
+				return null;
+		}
+		else
+		{
+			return null;
+		}
+	}
+	
+	/**
+	 * Escapes forward slashes into a unicode character that looks like a forward slash (a different one than {@link #fsescape(String)} to avoid confusion between the *incompatible* syntaxes!), but also escapes that char and etc. and other chars illegal on windows perfectly, using an escape syntax based on something that looks like a backslash which normally needn't be used :3
+	 * (This should work on Windows (and thus probably every other operating system XD ) )
+	 * 
+	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
+	 */
+	public static String fsescapeIncludingWindows(String s)
+	{
+		for (String illegalPrefix : ReservedFileBasenameStemsOnWindows)
+		{
+			String t = isIllegalWindowsSpecialNameWithUnderscores(s, illegalPrefix);
+			
+			if (t != null)
+			{
+				//Just add an underscore!  This way, AUX becomes AUX_ and AUX_ becomes AUX__ and so on for perfect injectivity! :D
+				s = s.substring(0, illegalPrefix.length())+'_'+t;  //use  s.substring(0, illegalStemname.length())  instead of  illegalStemname  because this way preserves casing!  which is necessary for this to be a perfect escape syntax!!
+				break;  //none of them start with each other so we're done here X3
+			}
+		}
+		
+		//Take care of trailing dots
+		{
+			int n = s.length();
+			
+			int d = s.lastIndexOf('.');
+			int tu = countTrailing(s, '_');
+			
+			if (d == n-1 - tu)
+			{
+				s += '_';
+			}
+		}
+		
+		//Perform the main escaping!
+		return escape(s, FIWCharsToEscape, FIWEscapeSequences);
+	}
+	
+	
+	/**
+	 * (De!)Escapes forward slashes into a unicode character that looks like a forward slash (a different one than {@link #fsescape(String)} to avoid confusion between the *incompatible* syntaxes!), but also escapes that char and etc. and other chars illegal on windows perfectly, using an escape syntax based on something that looks like a backslash which normally needn't be used :3
+	 * (This should work on Windows (and thus probably every other operating system XD ) )
+	 * 
+	 * NOTE: DO NOT CHANGE THIS SYNTAX, MAKE A NEW METHOD INSTEAD!!!
+	 */
+	public static String fsdescapeIncludingWindows(String s)
+	{
+		//Perform the main descaping!
+		{
+			int n = FIWDescapedCharsAsStrings.size();
+			
+			//Todo would an implementation that scanned the string first then the escape chars instead of vice versa be more efficient?
+			
+			for (int i = 0; i < n; i++)
+			{
+				@Nonnull String pref = FIWDescapeSequencesPreferredCase.get(i);
+				@Nullable String unpref = FIWDescapeSequencesUnpreferredCaseOrNull.get(i);
+				
+				s = s.replace(pref, FIWDescapedCharsAsStrings.get(i));
+				
+				if (unpref != null)
+					s = s.replace(unpref, FIWDescapedCharsAsStrings.get(i));
+			}
+		}
+		
+		
+		
+		//Take care of trailing dots
+		{
+			int n = s.length();
+			
+			int d = s.lastIndexOf('.');
+			int tu = countTrailing(s, '_');
+			
+			if (d == n-1 - tu && tu > 0)  //if the first is true but tu == 0 then really it's a syntax error but we're not going to complain ^^'
+			{
+				//Remove an underscore! :>
+				s = s.substring(0, n-1);
+			}
+		}
+		
+		
+		
+		for (String illegalStemname : ReservedFileBasenameStemsOnWindows)
+		{
+			String t = isIllegalWindowsSpecialNameWithUnderscores(s, illegalStemname);
+			
+			if (t != null)
+			{
+				if (t.startsWith("_"))  //if this is false then really it's a syntax error but we're not going to complain ^^'
+				{
+					//Remove an underscore! :>
+					s = s.substring(0, illegalStemname.length())+t.substring(1);  //use  s.substring(0, illegalStemname.length())  instead of  illegalStemname  because this way preserves casing!  which is necessary for this to be a perfect escape syntax!!
+				}
+				
+				break;  //none of them start with each other so we're done here X3
+			}
+		}
+		
+		
+		return s;
+	}
+	
+	
+	
+	public static boolean isLegalBasenameOnPosixNotCountingLength(String s)
+	{
+		if (s.isEmpty())
+			return false;
+		
+		if (contains(s, '/'))
+			return false;
+		
+		if (contains(s, '\u0000'))
+			return false;
+		
+		return true;
+	}
+	
+	public static boolean isLegalBasenameOnWindowsNotCountingLength(String s)
+	{
+		if (s.isEmpty())
+			return false;
+		
+		if (s.endsWith("."))
+			return false;
+		
+		if (forAny(c -> contains(IllegalCharsOnWindowsPathnames, c), s))
+			return false;
+		
+		if (forAny(n -> s.equalsIgnoreCase(n), ReservedFileBasenameStemsOnWindows))
+			return false;
+		
+		if (forAny(n -> startsWithCaseInsensitively(s, n), ReservedFileBasenameStemsOnWindowsWithDots))
+			return false;
+		
+		return true;
+	}
 	
 	
 	
