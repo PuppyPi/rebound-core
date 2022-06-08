@@ -72,7 +72,7 @@ import rebound.exceptions.ReturnPath.SingletonReturnPath;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.exceptions.TextSyntaxCheckedException;
 import rebound.exceptions.TextSyntaxException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.io.ucs4.UCS4Reader;
 import rebound.io.ucs4.UCS4ReaderFromNormalUTF16Reader;
@@ -4826,7 +4826,7 @@ implements JavaNamespace
 			throw new ImpossibleException("src.length: "+src.length+", srclen: "+srclen+", safeSubstringStart: "+safeSubstringStart+", escapeDictionary="+repr(escapeDictionary)+", escapeChar="+repr(escapeChar)+", unicodeEscapeCode="+repr(unicodeEscapeCode)+", ignoreErrors="+ignoreErrors+", src="+repr(new String(src)));
 		}
 		else
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		
 		
 		

@@ -32,7 +32,7 @@ import rebound.annotations.semantic.temporal.ConstantReturnValue;
 import rebound.exceptions.NoSuchMemberRuntimeException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OverflowException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.util.AngryReflectionUtility;
@@ -2599,7 +2599,7 @@ implements JavaNamespace
 		catch (Throwable exc)
 		{
 			ExceptionUtilities.throwGeneralThrowableAttemptingUnverifiedThrow(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 	
@@ -2651,7 +2651,7 @@ implements JavaNamespace
 		catch (Throwable exc)
 		{
 			ExceptionUtilities.throwGeneralThrowableAttemptingUnverifiedThrow(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 	

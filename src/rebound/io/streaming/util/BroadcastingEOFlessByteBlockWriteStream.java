@@ -3,7 +3,7 @@ package rebound.io.streaming.util;
 import java.io.EOFException;
 import java.io.IOException;
 import rebound.annotations.semantic.reachability.LiveValue;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.io.streaming.api.ClosedStreamException;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockWriteStream;
 import rebound.io.streaming.util.implhelp.AbstractStream;
@@ -107,7 +107,7 @@ implements ByteBlockWriteStream
 		if (tt != null)
 		{
 			BasicExceptionUtilities.rethrowSafe(tt);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 	

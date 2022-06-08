@@ -16,7 +16,7 @@ package rebound.exceptions;
  * 		if (error)
  * 		{
  * 			System.exit(21);
- * 			throw new UnreachableCodeException();
+ * 			throw new UnreachableCodeError();
  * 		}
  * 		else
  * 		{
@@ -31,28 +31,28 @@ package rebound.exceptions;
  * 
  * @author RProgrammer
  */
-public class UnreachableCodeException
-extends ImpossibleException
+public class UnreachableCodeError
+extends AssertionError
 {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1l;
 	
-	public UnreachableCodeException()
+	public UnreachableCodeError()
 	{
 		super();
 	}
 	
-	public UnreachableCodeException(String message)
+	public UnreachableCodeError(String message)
 	{
 		super(message);
 	}
 	
-	public UnreachableCodeException(String message, Throwable cause)
-	{
-		super(message, cause);
-	}
-	
-	public UnreachableCodeException(Throwable cause)
+	public UnreachableCodeError(Throwable cause)
 	{
 		super(cause);
+	}
+	
+	public UnreachableCodeError(String message, Throwable cause)
+	{
+		super(message, cause);
 	}
 }

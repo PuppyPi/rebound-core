@@ -7,7 +7,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.util.AngryReflectionUtility;
 
 public class ClasshackingCleaner
@@ -51,7 +51,7 @@ public class ClasshackingCleaner
 			catch (InvocationTargetException exc)
 			{
 				rethrowSafe(exc);
-				throw new UnreachableCodeException();
+				throw new UnreachableCodeError();
 			}
 		}
 		else
@@ -101,7 +101,7 @@ public class ClasshackingCleaner
 		catch (InvocationTargetException exc)
 		{
 			rethrowSafe(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 		
 		
@@ -123,7 +123,7 @@ public class ClasshackingCleaner
 			catch (InvocationTargetException exc)
 			{
 				rethrowSafe(exc);
-				throw new UnreachableCodeException();
+				throw new UnreachableCodeError();
 			}
 		};
 	}

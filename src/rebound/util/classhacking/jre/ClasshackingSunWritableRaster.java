@@ -9,7 +9,7 @@ import java.awt.image.WritableRaster;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 
 
 public class ClasshackingSunWritableRaster
@@ -53,7 +53,7 @@ public class ClasshackingSunWritableRaster
 		catch (InvocationTargetException exc)
 		{
 			rethrowSafe(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 }

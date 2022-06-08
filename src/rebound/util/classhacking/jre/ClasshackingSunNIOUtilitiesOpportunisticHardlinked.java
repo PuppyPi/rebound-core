@@ -15,7 +15,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import rebound.exceptions.ImPrettySureThisNeverActuallyHappensRuntimeException;
 import rebound.exceptions.ImpossibleException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.util.AngryReflectionUtility;
 import rebound.util.AngryReflectionUtility.JavaVisibility;
 import rebound.util.ExceptionUtilities;
@@ -211,7 +211,7 @@ implements JavaNamespace
 			catch (InvocationTargetException exc)
 			{
 				rethrowSafe(exc);
-				throw new UnreachableCodeException();
+				throw new UnreachableCodeError();
 			}
 			
 			
@@ -294,7 +294,7 @@ implements JavaNamespace
 				catch (InvocationTargetException exc)
 				{
 					rethrowSafe(exc);
-					throw new UnreachableCodeException();
+					throw new UnreachableCodeError();
 				}
 				
 				return cleaner != null;
@@ -344,7 +344,7 @@ implements JavaNamespace
 		catch (InvocationTargetException exc)
 		{
 			ExceptionUtilities.throwGeneralThrowableAttemptingUnverifiedThrow(exc.getCause());
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 		catch (InstantiationException exc)
 		{
@@ -399,7 +399,7 @@ implements JavaNamespace
 			catch (InvocationTargetException exc)
 			{
 				rethrowSafe(exc);
-				throw new UnreachableCodeException();
+				throw new UnreachableCodeError();
 			}
 			
 			return (Long)baseAddress;

@@ -4,7 +4,7 @@ import java.io.IOException;
 import rebound.annotations.semantic.temporal.NeverReturns;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.UnexpectedHardcodedEnumValueException;
-import rebound.exceptions.UnreachableCodeException;
+import rebound.exceptions.UnreachableCodeError;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.RunnableThrowingAnything;
@@ -164,7 +164,7 @@ public class BasicExceptionUtilities
 		catch (Throwable exc)
 		{
 			rethrowSafe(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 	
@@ -181,7 +181,7 @@ public class BasicExceptionUtilities
 		catch (Throwable exc)
 		{
 			rethrowSafe(exc);
-			throw new UnreachableCodeException();
+			throw new UnreachableCodeError();
 		}
 	}
 }
