@@ -35,19 +35,19 @@ public class WidespreadTestingUtilities
 	
 	
 	
-	public static void softasrt(boolean condition) throws AssertionError
+	public static void expect(boolean condition) throws AssertionError
 	{
 		if (!condition)
 			logBug();
 	}
 	
-	public static void softasrt(boolean condition, String message) throws AssertionError
+	public static void expect(boolean condition, String message) throws AssertionError
 	{
 		if (!condition)
 			logBug(message);
 	}
 	
-	public static void softasrt(boolean condition, NullaryFunction<?> detailMessageClosure) throws AssertionError
+	public static void expect(boolean condition, NullaryFunction<?> detailMessageClosure) throws AssertionError
 	{
 		if (!condition)
 		{
@@ -58,7 +58,7 @@ public class WidespreadTestingUtilities
 	
 	public static <E> E expectNonNull(E x)
 	{
-		//expect(x != null);
+		expect(x != null);
 		return x;
 	}
 	
@@ -82,7 +82,7 @@ public class WidespreadTestingUtilities
 		if (hard)
 			asrt(condition);
 		else
-			softasrt(condition);
+			expect(condition);
 	}
 	
 	public static void casrt(boolean hard, boolean condition, String message) throws AssertionError
@@ -90,7 +90,7 @@ public class WidespreadTestingUtilities
 		if (hard)
 			asrt(condition, message);
 		else
-			softasrt(condition, message);
+			expect(condition, message);
 	}
 	
 	public static void casrt(boolean hard, boolean condition, NullaryFunction<?> detailMessageClosure) throws AssertionError
@@ -98,7 +98,7 @@ public class WidespreadTestingUtilities
 		if (hard)
 			asrt(condition, detailMessageClosure);
 		else
-			softasrt(condition, detailMessageClosure);
+			expect(condition, detailMessageClosure);
 	}
 	
 	
