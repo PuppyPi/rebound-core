@@ -1,6 +1,7 @@
 package rebound;
 
 import static rebound.text.StringUtilities.*;
+import static rebound.util.ExceptionPrettyPrintingUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
 import java.io.File;
 import java.io.IOException;
@@ -155,7 +156,7 @@ implements JavaNamespace
 			public void logBug()
 			{
 				System.err.println("BUG!!");
-				new Throwable("dummy throwable for formatting :P").printStackTrace();
+				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
 				System.err.println("\n\n\n");
 			}
 			
@@ -164,7 +165,7 @@ implements JavaNamespace
 			public void logBug(String message)
 			{
 				System.err.println("BUG!!:\n"+message);
-				new Throwable("dummy throwable for formatting :P").printStackTrace();
+				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
 				System.err.println("\n\n\n");
 			}
 			
@@ -176,7 +177,7 @@ implements JavaNamespace
 				System.err.println("== Actual given throwable! ==");
 				exc.printStackTrace();
 				System.err.println("== Logging stacktrace ^^ ==");
-				new Throwable("dummy throwable for formatting :P").printStackTrace();
+				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
 				System.err.println("\n\n\n");
 			}
 			
@@ -188,7 +189,7 @@ implements JavaNamespace
 				System.err.println("== Actual given throwable! ==");
 				exc.printStackTrace();
 				System.err.println("== Logging stacktrace ^^ ==");
-				new Throwable("dummy throwable for formatting :P").printStackTrace();
+				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
 				System.err.println("\n\n\n");
 			}
 		};
