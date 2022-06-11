@@ -74,7 +74,7 @@ implements JavaNamespace
 			catch (ClassNotFoundException exc)
 			{
 				System.err.println("Error loading implementation of "+GlobalCodeMetastuffContextImpl.class.getName()+": "+p);
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				return null;
 			}
 		}
@@ -95,19 +95,19 @@ implements JavaNamespace
 			catch (InstantiationException exc)
 			{
 				System.err.println("Error loading implementation of "+GlobalCodeMetastuffContextImpl.class.getName()+": "+c.getName());
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				return null;
 			}
 			catch (IllegalAccessException exc)
 			{
 				System.err.println("Error loading implementation of "+GlobalCodeMetastuffContextImpl.class.getName()+": "+c.getName());
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				return null;
 			}
 			catch (SecurityException exc)
 			{
 				System.err.println("Error loading implementation of "+GlobalCodeMetastuffContextImpl.class.getName()+": "+c.getName());
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				return null;
 			}
 		}
@@ -156,7 +156,7 @@ implements JavaNamespace
 			public void logBug()
 			{
 				System.err.println("BUG!!");
-				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
+				printStackTraceFully();
 				System.err.println("\n\n\n");
 			}
 			
@@ -165,7 +165,7 @@ implements JavaNamespace
 			public void logBug(String message)
 			{
 				System.err.println("BUG!!:\n"+message);
-				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
+				printStackTraceFully();
 				System.err.println("\n\n\n");
 			}
 			
@@ -175,9 +175,9 @@ implements JavaNamespace
 			{
 				System.err.println("BUG!!");
 				System.err.println("== Actual given throwable! ==");
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				System.err.println("== Logging stacktrace ^^ ==");
-				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
+				printStackTraceFully();
 				System.err.println("\n\n\n");
 			}
 			
@@ -187,9 +187,9 @@ implements JavaNamespace
 			{
 				System.err.println("BUG!!:\n"+message);
 				System.err.println("== Actual given throwable! ==");
-				exc.printStackTrace();
+				printStackTraceFully(exc);
 				System.err.println("== Logging stacktrace ^^ ==");
-				printStackTraceFully(new Throwable("dummy throwable for formatting :P"));
+				printStackTraceFully();
 				System.err.println("\n\n\n");
 			}
 		};

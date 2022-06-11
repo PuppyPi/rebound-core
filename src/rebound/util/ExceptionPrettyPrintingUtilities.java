@@ -10,6 +10,11 @@ public class ExceptionPrettyPrintingUtilities
 		System.err.print(getNicelyFormattedStandardStacktrace(t));
 	}
 	
+	public static void printStackTraceFully()
+	{
+		System.err.print(getNicelyFormattedStandardStacktrace(Thread.currentThread().getStackTrace()));
+	}
+	
 	
 	
 	
