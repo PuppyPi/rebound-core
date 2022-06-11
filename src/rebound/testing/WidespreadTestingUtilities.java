@@ -32,6 +32,9 @@ public class WidespreadTestingUtilities
 		}
 	}
 	
+	
+	
+	
 	public static void softasrt(boolean condition) throws AssertionError
 	{
 		if (!condition)
@@ -52,6 +55,27 @@ public class WidespreadTestingUtilities
 			logBug(toStringNT(msg));
 		}
 	}
+	
+	public static <E> E expectNonNull(E x)
+	{
+		//expect(x != null);
+		return x;
+	}
+	
+	public static <E> E expectNonNull(E x, E valueIfNull)
+	{
+		if (x == null)
+		{
+			logBug();
+			return valueIfNull;
+		}
+		else
+		{
+			return x;
+		}
+	}
+	
+	
 	
 	public static void casrt(boolean hard, boolean condition) throws AssertionError
 	{

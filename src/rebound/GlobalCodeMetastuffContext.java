@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 import rebound.GlobalCodeMetastuffContextImpl.NoopingGlobalCodeMetastuffContextImpl;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.exceptions.NotYetImplementedException;
-import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 import rebound.util.objectutil.JavaNamespace;
 
 public class GlobalCodeMetastuffContext
@@ -280,40 +279,6 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	
-	//Utilities! :D
-	public static void expect(boolean x)
-	{
-		if (!x)
-			logBug();
-	}
-	
-	public static void expect(boolean x, String message)
-	{
-		if (!x)
-			logBug(message);
-	}
-	
-	public static void expect(boolean x, NullaryFunction<String> messageMaker)
-	{
-		if (!x)
-			logBug(messageMaker.f());
-	}
-	
-	public static <E> E expectNonNull(E x, E dummyValue)
-	{
-		if (x == null)
-		{
-			logBug();
-			return dummyValue;
-		}
-		else
-		{
-			return x;
-		}
-	}
 	
 	
 	private GlobalCodeMetastuffContext() {}
