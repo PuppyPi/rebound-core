@@ -2045,6 +2045,9 @@ implements JavaNamespace
 	
 	/**
 	 * Copies data from <code>src</code> into <code>dest</code>.
+	 * + Dereferences symlinks if 'source' is a symlink!
+	 * + Overwrites 'dest' if it exists! (by truncating and filling it, not by deleting it! so if 'dest' is already a symlink to a file, it will truncate *that* file and fill it with the contents of 'source'!)
+	 * + Updates lastModified :3
 	 */
 	public static void copyFile(File source, File dest) throws FileNotFoundException, IOException
 	{
