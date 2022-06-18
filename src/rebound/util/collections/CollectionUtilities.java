@@ -8644,8 +8644,7 @@ _$$primxpconf:byte,char,short,int$$_
 			if (filter.test(e))
 				newlist.add(e);
 		
-		if (newlist instanceof ArrayList)
-			((ArrayList)newlist).trimToSize();
+		trimToSize(newlist);
 		
 		return newlist;
 	}
@@ -8755,8 +8754,7 @@ _$$primxpconf:byte,char,short,int$$_
 		for (I i : input)
 			newcollection.add(mapper.f(i));
 		
-		if (newcollection instanceof ArrayList)
-			((ArrayList)newcollection).trimToSize();
+		trimToSize(newcollection);
 		
 		return newcollection;
 	}
@@ -8819,8 +8817,7 @@ _$$primxpconf:byte,char,short,int$$_
 			if (filter.test(e))
 				newlist.add(e);
 		
-		if (newlist instanceof ArrayList)
-			((ArrayList)newlist).trimToSize();
+		trimToSize(newlist);
 		
 		return newlist;
 	}
@@ -14676,5 +14673,24 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		
 		return false;
+	}
+	
+	
+	
+	/**
+	 * Like {@link ArrayList#trimToSize()} but works for {@link ArrayList}, {@link Vector}, and anything implementing {@link CollectionWithTrimToSize} :>
+	 */
+	public static void trimToSize(Collection<?> l)
+	{
+		//Ordered by how common they are for (probably nanoseconds of) performance XD
+		
+		if (l instanceof ArrayList)
+			((ArrayList)l).trimToSize();
+		else if (l instanceof CollectionWithTrimToSize)
+			((CollectionWithTrimToSize)l).trimToSize();
+		else if (l instanceof Vector)
+			((Vector)l).trimToSize();
+		
+		//else, do nothing; this is a performance hint, so just ignore it if not supported
 	}
 }

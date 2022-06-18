@@ -69,6 +69,7 @@ import rebound.util.collections.AbstractReadonlyList;
 import rebound.util.collections.AbstractReadonlySet;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.CollectionUtilities;
+import rebound.util.collections.CollectionWithTrimToSize;
 import rebound.util.collections.DelegatingListIterator;
 import rebound.util.collections.KnowsLengthFixedness;
 import rebound.util.collections.ListWithFill;
@@ -614,7 +615,7 @@ public class PrimitiveCollections
 		Arrays.sort(array, start, length);
 	}
 	//>>>
-		
+	
 	
 	
 	
@@ -3346,7 +3347,7 @@ primxp
 	
 	
 	public static class _$$Primitive$$_ArrayList
-	implements DefaultShiftingBased_$$Primitive$$_List, ListWithSetSize<_$$Primitive$$_>, Trimmable, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBased_$$Primitive$$_List, ListWithSetSize<_$$Primitive$$_>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<_$$prim$$_[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected _$$prim$$_[] data;
@@ -3540,18 +3541,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			_$$prim$$_[] newdata = new _$$prim$$_[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -6856,7 +6851,7 @@ primxp
 	
 	
 	public static class BooleanArrayList
-	implements DefaultShiftingBasedBooleanList, ListWithSetSize<Boolean>, Trimmable, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedBooleanList, ListWithSetSize<Boolean>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<boolean[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected boolean[] data;
@@ -7050,18 +7045,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			boolean[] newdata = new boolean[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -10365,7 +10354,7 @@ primxp
 	
 	
 	public static class ByteArrayList
-	implements DefaultShiftingBasedByteList, ListWithSetSize<Byte>, Trimmable, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedByteList, ListWithSetSize<Byte>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<byte[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected byte[] data;
@@ -10559,18 +10548,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			byte[] newdata = new byte[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -13874,7 +13857,7 @@ primxp
 	
 	
 	public static class CharacterArrayList
-	implements DefaultShiftingBasedCharacterList, ListWithSetSize<Character>, Trimmable, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedCharacterList, ListWithSetSize<Character>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<char[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected char[] data;
@@ -14068,18 +14051,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			char[] newdata = new char[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -17383,7 +17360,7 @@ primxp
 	
 	
 	public static class ShortArrayList
-	implements DefaultShiftingBasedShortList, ListWithSetSize<Short>, Trimmable, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedShortList, ListWithSetSize<Short>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<short[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected short[] data;
@@ -17577,18 +17554,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			short[] newdata = new short[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -20892,7 +20863,7 @@ primxp
 	
 	
 	public static class FloatArrayList
-	implements DefaultShiftingBasedFloatList, ListWithSetSize<Float>, Trimmable, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedFloatList, ListWithSetSize<Float>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<float[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected float[] data;
@@ -21086,18 +21057,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			float[] newdata = new float[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -24401,7 +24366,7 @@ primxp
 	
 	
 	public static class IntegerArrayList
-	implements DefaultShiftingBasedIntegerList, ListWithSetSize<Integer>, Trimmable, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedIntegerList, ListWithSetSize<Integer>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<int[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected int[] data;
@@ -24595,18 +24560,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			int[] newdata = new int[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -27910,7 +27869,7 @@ primxp
 	
 	
 	public static class DoubleArrayList
-	implements DefaultShiftingBasedDoubleList, ListWithSetSize<Double>, Trimmable, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedDoubleList, ListWithSetSize<Double>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<double[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected double[] data;
@@ -28104,18 +28063,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			double[] newdata = new double[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
@@ -31419,7 +31372,7 @@ primxp
 	
 	
 	public static class LongArrayList
-	implements DefaultShiftingBasedLongList, ListWithSetSize<Long>, Trimmable, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness, RandomAccess
+	implements DefaultShiftingBasedLongList, ListWithSetSize<Long>, Trimmable, CollectionWithTrimToSize, TransparentContiguousArrayBackedCollection<long[]>, KnowsLengthFixedness, RandomAccess
 	{
 		protected int size = 0;
 		protected long[] data;
@@ -31613,18 +31566,12 @@ primxp
 		}
 		
 		@ImplementationTransparency
+		@Override
 		public void trimToSize()
 		{
 			long[] newdata = new long[size];
 			System.arraycopy(data, 0, newdata, 0, size);
 			this.data = newdata;
-		}
-		
-		@Override
-		public TrimmableTrimRV couldYouMaybeUseALittleLessMemoryIfYouDontMind()
-		{
-			this.trimToSize();
-			return TrimmableTrimRV.DontKeepInvoking;
 		}
 		
 		
