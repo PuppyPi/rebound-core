@@ -1,7 +1,9 @@
 package rebound.util.collections;
 
 import java.util.Collection;
+import rebound.annotations.semantic.SignalType;
 
+@SignalType
 public interface CollectionWithCopyIntoArray
 {
 	/**

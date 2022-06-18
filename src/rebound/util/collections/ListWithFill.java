@@ -1,7 +1,9 @@
 package rebound.util.collections;
 
 import java.util.List;
+import rebound.annotations.semantic.SignalType;
 
+@SignalType
 public interface ListWithFill<E>
 extends List<E>
 {

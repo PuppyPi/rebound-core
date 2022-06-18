@@ -4,8 +4,10 @@
  */
 package rebound.util.collections;
 
+import rebound.annotations.semantic.SignalType;
 import rebound.util.functional.EqualityComparator;
 
+@SignalType
 public interface CollectionWithBoundEqualityComparator<E>
 {
 	public EqualityComparator<E> getEqualityComparator();

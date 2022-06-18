@@ -7,10 +7,12 @@ package rebound.util.collections;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import rebound.annotations.semantic.SignalType;
 import rebound.util.functional.EqualityComparator;
 
 //Todo now actually support these in my code XD
 
+@SignalType
 public interface CollectionWithInvocationProvideableEqualityComparators<E>
 extends Collection<E>
 {
