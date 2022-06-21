@@ -2882,6 +2882,31 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * Equivalent to ltrimstr(rtrimstr(str, trimmand), trimmand)
+	 * Which is also rtrimstr(ltrimstr(str, trimmand), trimmand)
+	 */
+	public static String trimstr(String str, String trimmand)
+	{
+		if (str.equals(trimmand))
+		{
+			return "";
+		}
+		else if (str.startsWith(trimmand))
+		{
+			if (str.endsWith(trimmand))
+				return str.substring(trimmand.length(), str.length() - trimmand.length());
+			else
+				return str.substring(trimmand.length(), str.length());
+		}
+		else
+		{
+			if (str.endsWith(trimmand))
+				return str.substring(0, str.length() - trimmand.length());
+			else
+				return str;
+		}
+	}
 	
 	public static String ltrimstr(String str, String trimmand)
 	{
