@@ -117,6 +117,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToChar;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
@@ -9535,36 +9536,39 @@ primxp
 	 */
 	public static boolean matchesWildcardPattern(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGeneric(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> s.indexOf(e, start));
+		return matchesWildcardPatternGenericStrings(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> s.indexOf(e, start));
 	}
 	
 	public static boolean matchesWildcardPatternCaseInsensitive(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGeneric(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> indexOfCaseInsensitive(s, e, start));
+		return matchesWildcardPatternGenericStrings(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> indexOfCaseInsensitive(s, e, start));
 	}
 	
 	
-	public static boolean matchesWildcardPatternGeneric(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	
+	public static boolean matchesWildcardPatternGenericStrings(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, true);
+		return matchesWildcardPatternGeneric(candidateLength, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).length(), wildcardOnStart, wildcardOnEnd, (eIndex, start) -> indexOf.f(wildcardPattern.get(eIndex), start));
 	}
 	
-	private static boolean _matchesWildcardPatternGeneric(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
+	
+	public static boolean matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		int n = wildcardPattern.size();
-		
-		if (n == 0)
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
+	}
+	
+	private static boolean _matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
+	{
+		if (patternLengthInElements == 0)
 		{
 			if (wildcardOnStart && wildcardOnEnd)
 				return true;
 			else
 				throw new IllegalArgumentException("wildcardOnStart="+wildcardOnStart+", wildcardOnEnd="+wildcardOnEnd);
 		}
-		else if (n == 1)
+		else if (patternLengthInElements == 1)
 		{
-			String e = wildcardPattern.get(0);
-			
-			int p = indexOf.f(e, 0);
+			int p = indexOf.f(0, 0);
 			
 			if (p == -1)
 				return false;
@@ -9573,7 +9577,7 @@ primxp
 				if (!wildcardOnStart && p != 0)
 					return false;
 				
-				if (!wildcardOnEnd && p + e.length() != candidateLength)
+				if (!wildcardOnEnd && p + getPatternElementLength.f(0) != candidateLength)
 					return false;
 			}
 			
@@ -9583,14 +9587,12 @@ primxp
 		{
 			int cursor = 0;
 			
-			for (int i = 0; i < n; i++)
+			for (int i = 0; i < patternLengthInElements; i++)
 			{
-				String e = wildcardPattern.get(i);
-				
 				boolean first = i == 0;
-				boolean last = i == n - 1;
+				boolean last = i == patternLengthInElements - 1;
 				
-				int p = indexOf.f(e, cursor);
+				int p = indexOf.f(i, cursor);
 				
 				if (p == -1)
 					return false;
@@ -9598,7 +9600,7 @@ primxp
 				if (first && !wildcardOnStart && p != 0)
 					return false;
 				
-				int end = p + e.length();
+				int end = p + getPatternElementLength.f(i);
 				
 				if (last && !wildcardOnEnd && end != candidateLength)
 					return false;
@@ -9610,16 +9612,15 @@ primxp
 		}
 	}
 	
-	
 	@ImplementationTransparency  //For testing!
-	public static boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, true);
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
 	}
 	
 	@ImplementationTransparency  //For testing!
-	public static boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, false);
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, false);
 	}
 }
