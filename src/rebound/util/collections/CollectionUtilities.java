@@ -16,6 +16,7 @@ import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
@@ -62,6 +63,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
+import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
@@ -171,6 +173,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionDoubleToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionFloatToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToBoolean;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionShortToBoolean;
@@ -14692,5 +14695,91 @@ _$$primxpconf:byte,char,short,int$$_
 			((Vector)l).trimToSize();
 		
 		//else, do nothing; this is a performance hint, so just ignore it if not supported
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> boolean matchesWildcardPatternGenericLists(int candidateLength, List<List<E>> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<List<E>, Integer, Integer> indexOfSublist) throws IllegalArgumentException
+	{
+		return matchesWildcardPatternGeneric(candidateLength, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).size(), wildcardOnStart, wildcardOnEnd, (eIndex, start) -> indexOfSublist.f(wildcardPattern.get(eIndex), start));
+	}
+	
+	
+	public static boolean matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
+	}
+	
+	private static boolean _matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
+	{
+		if (patternLengthInElements == 0)
+		{
+			if (wildcardOnStart && wildcardOnEnd)
+				return true;
+			else
+				throw new IllegalArgumentException("wildcardOnStart="+wildcardOnStart+", wildcardOnEnd="+wildcardOnEnd);
+		}
+		else if (patternLengthInElements == 1)
+		{
+			int p = indexOf.f(0, 0);
+			
+			if (p == -1)
+				return false;
+			else
+			{
+				if (!wildcardOnStart && p != 0)
+					return false;
+				
+				if (!wildcardOnEnd && p + getPatternElementLength.f(0) != candidateLength)
+					return false;
+			}
+			
+			return true;
+		}
+		else
+		{
+			int cursor = 0;
+			
+			for (int i = 0; i < patternLengthInElements; i++)
+			{
+				boolean first = i == 0;
+				boolean last = i == patternLengthInElements - 1;
+				
+				int p = indexOf.f(i, cursor);
+				
+				if (p == -1)
+					return false;
+				
+				if (first && !wildcardOnStart && p != 0)
+					return false;
+				
+				int end = p + getPatternElementLength.f(i);
+				
+				if (last && !wildcardOnEnd && end != candidateLength)
+					return false;
+				
+				cursor = end;
+			}
+			
+			return true;
+		}
+	}
+	
+	@ImplementationTransparency  //For testing!
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
+	}
+	
+	@ImplementationTransparency  //For testing!
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, false);
 	}
 }

@@ -9545,82 +9545,8 @@ primxp
 	}
 	
 	
-	
 	public static boolean matchesWildcardPatternGenericStrings(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
 		return matchesWildcardPatternGeneric(candidateLength, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).length(), wildcardOnStart, wildcardOnEnd, (eIndex, start) -> indexOf.f(wildcardPattern.get(eIndex), start));
-	}
-	
-	
-	public static boolean matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
-	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
-	}
-	
-	private static boolean _matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
-	{
-		if (patternLengthInElements == 0)
-		{
-			if (wildcardOnStart && wildcardOnEnd)
-				return true;
-			else
-				throw new IllegalArgumentException("wildcardOnStart="+wildcardOnStart+", wildcardOnEnd="+wildcardOnEnd);
-		}
-		else if (patternLengthInElements == 1)
-		{
-			int p = indexOf.f(0, 0);
-			
-			if (p == -1)
-				return false;
-			else
-			{
-				if (!wildcardOnStart && p != 0)
-					return false;
-				
-				if (!wildcardOnEnd && p + getPatternElementLength.f(0) != candidateLength)
-					return false;
-			}
-			
-			return true;
-		}
-		else
-		{
-			int cursor = 0;
-			
-			for (int i = 0; i < patternLengthInElements; i++)
-			{
-				boolean first = i == 0;
-				boolean last = i == patternLengthInElements - 1;
-				
-				int p = indexOf.f(i, cursor);
-				
-				if (p == -1)
-					return false;
-				
-				if (first && !wildcardOnStart && p != 0)
-					return false;
-				
-				int end = p + getPatternElementLength.f(i);
-				
-				if (last && !wildcardOnEnd && end != candidateLength)
-					return false;
-				
-				cursor = end;
-			}
-			
-			return true;
-		}
-	}
-	
-	@ImplementationTransparency  //For testing!
-	public static <S> boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
-	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
-	}
-	
-	@ImplementationTransparency  //For testing!
-	public static <S> boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
-	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, false);
 	}
 }
