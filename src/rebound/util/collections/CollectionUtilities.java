@@ -14762,4 +14762,77 @@ _$$primxpconf:byte,char,short,int$$_
 	{
 		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, false);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> int findRotatingPatternBreakAnyPhase(Iterable<E> list, List<Predicate<E>> patterns)
+	{
+		return findRotatingPatternBreakAnyPhase(simpleIterator(list), patterns);
+	}
+	
+	public static <E> int findRotatingPatternBreak(Iterable<E> list, List<Predicate<E>> patterns)
+	{
+		return findRotatingPatternBreak(simpleIterator(list), patterns);
+	}
+	
+	
+	
+	/**
+	 * @return never returns the first element since that defines the phase!  (this only returns 0 if the input is empty, in which case it always returns 0!)
+	 */
+	public static <E> int findRotatingPatternBreakAnyPhase(SimpleIterator<E> list, List<Predicate<E>> patterns)
+	{
+		E first;
+		try
+		{
+			first = list.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			//Empty input!
+			return 0;
+		}
+		
+		int indexOfFirstMatchingPattern = findFirstIndex(p -> p.test(first), patterns);
+		
+		return findRotatingPatternBreak(list, rotated(patterns, -indexOfFirstMatchingPattern));
+	}
+	
+	
+	/**
+	 * @return the index of the first element to break the pattern or the size of the input "list" if none break it! :D
+	 */
+	public static <E> int findRotatingPatternBreak(SimpleIterator<E> list, List<Predicate<E>> patterns)
+	{
+		int n = patterns.size();
+		
+		int i = 0;
+		
+		while (true)
+		{
+			E e;
+			try
+			{
+				e = list.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			Predicate<E> p = patterns.get(i % n);
+			
+			if (!p.test(e))
+				return i;
+			else
+				i++;
+		}
+		
+		return i;
+	}
 }
