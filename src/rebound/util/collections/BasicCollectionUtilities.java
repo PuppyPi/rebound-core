@@ -5,11 +5,13 @@ import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -705,18 +707,18 @@ implements JavaNamespace
 	
 	public static <A, B> PairOrdered<A, B> pair(A a, B b)
 	{
-		return new PairOrderedImmutable<A, B>(a, b);
+		return new PairOrderedImmutable<>(a, b);
 	}
 	
 	public static <A, B, C> TripleOrdered<A, B, C> triple(A a, B b, C c)
 	{
-		return new TripleOrderedImmutable<A, B, C>(a, b, c);
+		return new TripleOrderedImmutable<>(a, b, c);
 	}
 	
 	
 	public static <T> PairCommutative<T> doubleton(T a, T b)
 	{
-		return new PairCommutativeImmutable<T>(a, b);
+		return new PairCommutativeImmutable<>(a, b);
 	}
 	
 	
@@ -729,12 +731,20 @@ implements JavaNamespace
 	
 	
 	
+	public static <A, B> Entry<A, B> entry(A a, B b)
+	{
+		return new SimpleEntry<>(a, b);
+	}
+	
+	
+	
+	
 	
 	
 	
 	public static <E> Maybe<E> just(@Nullable E e)
 	{
-		return new Maybe<E>(e);
+		return new Maybe<>(e);
 	}
 	
 	public static <E> Maybe<E> nothing()
