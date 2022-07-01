@@ -52,7 +52,6 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
-import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
@@ -117,7 +116,6 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToChar;
-import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
@@ -9534,19 +9532,19 @@ primxp
 	/**
 	 * @throws IllegalArgumentException if any elements are empty strings or the whole pattern is empty (unless both wildcardOnStart and wildcardOnEnd are true, corresponding to the whole thing being just "*")
 	 */
-	public static boolean matchesWildcardPattern(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
+	public static boolean matchesWildcardPattern(String s, boolean wildcardOnStart, List<String> wildcardPattern, boolean wildcardOnEnd) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGenericStrings(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> s.indexOf(e, start));
+		return matchesWildcardPatternGenericStrings(s.length(), wildcardOnStart, wildcardPattern, wildcardOnEnd, (e, start) -> s.indexOf(e, start));
 	}
 	
-	public static boolean matchesWildcardPatternCaseInsensitive(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
+	public static boolean matchesWildcardPatternCaseInsensitive(String s, boolean wildcardOnStart, List<String> wildcardPattern, boolean wildcardOnEnd) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGenericStrings(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> indexOfCaseInsensitive(s, e, start));
+		return matchesWildcardPatternGenericStrings(s.length(), wildcardOnStart, wildcardPattern, wildcardOnEnd, (e, start) -> indexOfCaseInsensitive(s, e, start));
 	}
 	
 	
-	public static boolean matchesWildcardPatternGenericStrings(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static boolean matchesWildcardPatternGenericStrings(int candidateLength, boolean wildcardOnStart, List<String> wildcardPattern, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGeneric(candidateLength, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).length(), wildcardOnStart, wildcardOnEnd, (eIndex, start) -> indexOf.f(wildcardPattern.get(eIndex), start));
+		return matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).length(), wildcardOnEnd, (eIndex, start) -> indexOf.f(wildcardPattern.get(eIndex), start));
 	}
 }

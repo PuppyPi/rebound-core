@@ -14685,18 +14685,18 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static <E> boolean matchesWildcardPatternGenericLists(int candidateLength, List<List<E>> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<List<E>, Integer, Integer> indexOfSublist) throws IllegalArgumentException
+	public static <E> boolean matchesWildcardPatternGenericLists(int candidateLength, boolean wildcardOnStart, List<List<E>> wildcardPattern, boolean wildcardOnEnd, BinaryFunction<List<E>, Integer, Integer> indexOfSublist) throws IllegalArgumentException
 	{
-		return matchesWildcardPatternGeneric(candidateLength, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).size(), wildcardOnStart, wildcardOnEnd, (eIndex, start) -> indexOfSublist.f(wildcardPattern.get(eIndex), start));
+		return matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).size(), wildcardOnEnd, (eIndex, start) -> indexOfSublist.f(wildcardPattern.get(eIndex), start));
 	}
 	
 	
-	public static boolean matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static boolean matchesWildcardPatternGeneric(int candidateLength, boolean wildcardOnStart, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, patternLengthInElements, getPatternElementLength, wildcardOnEnd, indexOf, true);
 	}
 	
-	private static boolean _matchesWildcardPatternGeneric(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
+	private static boolean _matchesWildcardPatternGeneric(int candidateLength, boolean wildcardOnStart, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
 	{
 		if (patternLengthInElements == 0)
 		{
@@ -14752,15 +14752,15 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ImplementationTransparency  //For testing!
-	public static <S> boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, boolean wildcardOnStart, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, true);
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, patternLengthInElements, getPatternElementLength, wildcardOnEnd, indexOf, true);
 	}
 	
 	@ImplementationTransparency  //For testing!
-	public static <S> boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
+	public static <S> boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, boolean wildcardOnStart, int patternLengthInElements, UnaryFunctionIntToInt getPatternElementLength, boolean wildcardOnEnd, BinaryFunction<Integer, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
-		return _matchesWildcardPatternGeneric(candidateLength, patternLengthInElements, getPatternElementLength, wildcardOnStart, wildcardOnEnd, indexOf, false);
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, patternLengthInElements, getPatternElementLength, wildcardOnEnd, indexOf, false);
 	}
 	
 	
