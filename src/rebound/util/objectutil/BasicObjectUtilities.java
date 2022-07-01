@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.Maybe;
 import rebound.util.functional.EqualityComparator;
+import rebound.util.functional.FunctionInterfaces.NullaryFunctionToInt;
 import rebound.util.functional.functions.DefaultEqualityComparator;
 
 public class BasicObjectUtilities
@@ -270,6 +271,12 @@ implements JavaNamespace
 	public static int cmp2chainable(int previous, Object a, Object b) throws CompareNotSupportedException
 	{
 		return previous != 0 ? previous : cmp2(a, b);
+	}
+	
+	public static int cmpChain(Object a, Object b, NullaryFunctionToInt next) throws CompareNotSupportedException
+	{
+		int v = cmp2(a, b);
+		return v != 0 ? v : next.f();
 	}
 	
 	public static <T> Comparator<T> chainComparators(Comparator<T> first, Comparator<T> second)
