@@ -110,6 +110,7 @@ import rebound.util.collections.prim.PrimitiveCollections.IntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 import rebound.util.container.ContainerInterfaces.IntegerContainer;
 import rebound.util.container.SimpleContainers.SimpleIntegerContainer;
+import rebound.util.functional.FunctionInterfaces.BinaryFunction;
 import rebound.util.functional.FunctionInterfaces.CharEqualityComparator;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
@@ -9518,5 +9519,88 @@ primxp
 		
 		int n = s.length();
 		return n > maxChars ? (maxChars == 0 ? "…" : s.substring(0, maxChars-1)+'…') : s;
+	}
+	
+	
+	
+	
+	
+	
+	
+	//TODO Lotsssss of test dataaaaaaaas! :D
+	
+	/**
+	 * @throws IllegalArgumentException if any elements are empty strings or the whole pattern is empty (unless both wildcardOnStart and wildcardOnEnd are true, corresponding to the whole thing being just "*")
+	 */
+	public static boolean matchesWildcardPattern(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
+	{
+		return matchesWildcardPatternGeneric(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> s.indexOf(e, start));
+	}
+	
+	public static boolean matchesWildcardPatternCaseInsensitive(String s, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd) throws IllegalArgumentException
+	{
+		return matchesWildcardPatternGeneric(s.length(), wildcardPattern, wildcardOnStart, wildcardOnEnd, (e, start) -> indexOfCaseInsensitive(s, e, start));
+	}
+	
+	
+	public static boolean matchesWildcardPatternGeneric(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		int n = wildcardPattern.size();
+		
+		if (n == 0)
+		{
+			if (wildcardOnStart && wildcardOnEnd)
+				return true;
+			else
+				throw new IllegalArgumentException("wildcardOnStart="+wildcardOnStart+", wildcardOnEnd="+wildcardOnEnd);
+		}
+		else if (n == 1)
+		{
+			String e = wildcardPattern.get(0);
+			
+			int p = indexOf.f(e, 0);
+			
+			if (p == -1)
+				return false;
+			else
+			{
+				if (!wildcardOnStart && p != 0)
+					return false;
+				
+				if (!wildcardOnEnd && p + e.length() != candidateLength)
+					return false;
+			}
+			
+			return true;
+		}
+		else
+		{
+			int cursor = 0;
+			
+			for (int i = 0; i < n; i++)
+			{
+				String e = wildcardPattern.get(i);
+				
+				boolean first = i == 0;
+				boolean last = i == n - 1;
+				
+				int p = indexOf.f(e, cursor);
+				
+				if (p == -1)
+					return false;
+				
+				if (first && !wildcardOnStart && p != 0)
+					return false;
+				
+				int end = p + e.length();
+				
+				if (last && !wildcardOnEnd && end != candidateLength)
+					return false;
+				
+				cursor = end;
+			}
+			
+			return true;
+		}
 	}
 }
