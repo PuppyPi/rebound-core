@@ -14770,6 +14770,9 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	
+	//TODO testtttttt theseeeeee! X3'
+	
 	public static <E> int findRotatingPatternBreakAnyPhase(Iterable<E> list, List<Predicate<E>> patterns)
 	{
 		return findRotatingPatternBreakAnyPhase(simpleIterator(list), patterns);
