@@ -5233,7 +5233,7 @@ _$$primxpconf:byte,char,short,int$$_
 		
 		//Same fallback for lists as sets (but with lists there really isn't any other way xP )
 		for (E e : collection)
-			if (BasicObjectUtilities.eq(possiblyEquivalentButDifferentInstance, e))
+			if (eq(possiblyEquivalentButDifferentInstance, e))
 				return e;
 		return null;
 	}
@@ -12224,25 +12224,6 @@ _$$primxpconf:byte,char,short,int$$_
 		table.apply(v -> requireInstanceOf(v, c));
 		return table;
 	}
-	
-	
-	
-	public static <T> T requireInstanceOf(@Nonnull T obj, Class c)
-	{
-		if (!c.isInstance(obj))
-			throw newClassCastExceptionOrNullPointerException(obj, c);
-		return obj;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	

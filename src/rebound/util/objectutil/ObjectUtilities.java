@@ -5,6 +5,7 @@
 package rebound.util.objectutil;
 
 import static rebound.concurrency.immutability.JavaImmutability.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.Primitives.*;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -1613,5 +1614,12 @@ implements JavaNamespace
 	{
 		if (x != null)
 			throw new IllegalArgumentException("Object is not null when it should be null!");
+	}
+
+	public static <T> T requireInstanceOf(@Nonnull T obj, Class c)
+	{
+		if (!c.isInstance(obj))
+			throw newClassCastExceptionOrNullPointerException(obj, c);
+		return obj;
 	}
 }
