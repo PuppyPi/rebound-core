@@ -52,6 +52,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
+import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
@@ -9545,6 +9546,11 @@ primxp
 	
 	public static boolean matchesWildcardPatternGeneric(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, true);
+	}
+	
+	private static boolean _matchesWildcardPatternGeneric(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf, boolean _referenceImpl) throws IllegalArgumentException
+	{
 		int n = wildcardPattern.size();
 		
 		if (n == 0)
@@ -9602,5 +9608,18 @@ primxp
 			
 			return true;
 		}
+	}
+	
+	
+	@ImplementationTransparency  //For testing!
+	public static boolean _matchesWildcardPatternGeneric_ImplA(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, true);
+	}
+	
+	@ImplementationTransparency  //For testing!
+	public static boolean _matchesWildcardPatternGeneric_ImplB(int candidateLength, List<String> wildcardPattern, boolean wildcardOnStart, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
+	{
+		return _matchesWildcardPatternGeneric(candidateLength, wildcardPattern, wildcardOnStart, wildcardOnEnd, indexOf, false);
 	}
 }
