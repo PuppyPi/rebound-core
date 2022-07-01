@@ -16,7 +16,6 @@ import static rebound.util.BasicExceptionUtilities.*;
 import static rebound.util.CodeHinting.*;
 import static rebound.util.Primitives.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
-import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
 import static rebound.util.objectutil.ObjectUtilities.*;
