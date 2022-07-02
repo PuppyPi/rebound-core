@@ -57,7 +57,7 @@ public class ContainerAndRelativePathWithinIt<C>
 	}
 	
 	/**
-	 * This way lets equals() be subclassed without having to rewrite this :3
+	 * This way lets equals() be subclassed efficiently without having to rewrite this :3
 	 */
 	public boolean equalsFields(ContainerAndRelativePathWithinIt other)
 	{
