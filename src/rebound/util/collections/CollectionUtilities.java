@@ -9890,7 +9890,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * Note that this is shallow (eg, two lists's contents will be compared whether their equals() methods do that or not; but if their contents are lists themselves, those will be equals() compared ^^' )
 	 * (This is necessary for {@link Set}s to be compared quickly :3 )
 	 */
-	public static boolean eqv(Object a, Object b)
+	public static boolean eqv(@Nullable Object a, @Nullable Object b)
 	{
 		if (a == null)
 			return b == null;
@@ -10014,7 +10014,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static int hashCodeOfContents(Object a)
+	public static int hashCodeOfContents(@Nullable Object a)
 	{
 		if (a == null)
 		{
@@ -10043,7 +10043,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static int hashCodeOfContentsGrandfathering(Object a) throws NotSupportedReturnPath
+	public static int hashCodeOfContentsGrandfathering(@Nonnull Object a) throws NotSupportedReturnPath
 	{
 		if (a instanceof List)
 			return defaultListHashCode((List)a);
