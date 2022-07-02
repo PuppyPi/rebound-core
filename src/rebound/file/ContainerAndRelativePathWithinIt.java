@@ -53,6 +53,14 @@ public class ContainerAndRelativePathWithinIt<C>
 		if (getClass() != obj.getClass())
 			return false;
 		ContainerAndRelativePathWithinIt other = (ContainerAndRelativePathWithinIt) obj;
+		return equalsFields(other);
+	}
+	
+	/**
+	 * This way lets equals() be subclassed without having to rewrite this :3
+	 */
+	public boolean equalsFields(ContainerAndRelativePathWithinIt other)
+	{
 		if (containingNamespace == null)
 		{
 			if (other.containingNamespace != null)
