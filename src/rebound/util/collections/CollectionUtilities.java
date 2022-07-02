@@ -10137,7 +10137,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static <K, V> Map<V, K> inverseMapOP(Set<K> keys, Mapper<K, V> mapper) throws NonForwardInjectiveMapException
+	public static <K, V> Map<V, K> inverseMapOP(Iterable<K> keys, Mapper<K, V> mapper) throws NonForwardInjectiveMapException
 	{
 		Map<V, K> inverse = new HashMap<>();
 		
@@ -10224,13 +10224,18 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	
+	/**
+	 * The inverse function of this is {@link #inverseGeneralMapOP(Map)} :3
+	 */
 	@ThrowAwayValue
 	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Map<K, V> inputMap)
 	{
 		return inverseMapGeneralOP(inputMap.keySet(), inputMap::get);
 	}
 	
+	/**
+	 * The inverse function of this is {@link #inverseGeneralMapOP(Iterable, Mapper)} :3
+	 */
 	@ThrowAwayValue
 	public static <V, K> Map<V, Set<K>> inverseMapGeneralOP(Iterable<K> keys, Mapper<K, V> mapper)
 	{
@@ -10255,13 +10260,80 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	/**
+	 * The inverse function of this is {@link #inverseMapGeneralOP(Map)} :3
+	 */
+	@ThrowAwayValue
+	public static <K, V> Map<V, K> inverseGeneralMapOP(@ReadonlyValue Map<K, Set<V>> generalMap) throws NonForwardInjectiveMapException
+	{
+		//		Map<V, K> inverse = new HashMap<>();
+		//		
+		//		for (Entry<K, V> e : map.entrySet())
+		//		{
+		//			if (inverse.containsKey(e.getValue()))
+		//				throw new NonForwardInjectiveMapException();
+		//			else
+		//				inverse.put(e.getValue(), e.getKey());
+		//		}
+		//		
+		//		return inverse;
+		
+		return inverseGeneralMapOP(generalMap.keySet(), generalMap::get);
+	}
 	
+	
+	
+	/**
+	 * The inverse function of this is {@link #inverseMapGeneralOP(Iterable, Mapper)} :3
+	 */
+	public static <K, V> Map<V, K> inverseGeneralMapOP(Iterable<K> keys, Mapper<K, Set<V>> mapper) throws NonForwardInjectiveMapException
+	{
+		Map<V, K> inverse = new HashMap<>();
+		
+		for (K key : keys)
+		{
+			Set<V> values;
+			try
+			{
+				values = mapper.f(key);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			for (V value : values)
+			{
+				if (inverse.containsKey(value))
+					throw new NonForwardInjectiveMapException("Duplicates of value-in-input / key-in-output "+repr(value));
+				else
+					inverse.put(value, key);
+			}
+		}
+		
+		return inverse;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This is its own inverse!  It's a mathematical involution!  :>
+	 */
 	@ThrowAwayValue
 	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Map<K, Set<V>> inputMap)
 	{
 		return inverseGeneralMapGeneralOP(inputMap.keySet(), inputMap::get);
 	}
 	
+	/**
+	 * This is its own inverse!  It's a mathematical involution!  :>
+	 */
 	@ThrowAwayValue
 	public static <V, K> Map<V, Set<K>> inverseGeneralMapGeneralOP(Iterable<K> keys, Mapper<K, Set<V>> mapper)
 	{
