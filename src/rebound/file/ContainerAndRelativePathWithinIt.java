@@ -1,11 +1,14 @@
 package rebound.file;
 
 import static java.util.Objects.*;
+import static rebound.text.StringUtilities.*;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.operationspecification.HashableType;
+import rebound.text.StringUtilities.Reprable;
 
 @HashableType  //If C is!
 public class ContainerAndRelativePathWithinIt<C>
+implements Reprable
 {
 	protected final C containingNamespace;
 	protected final String relativePathWithinNamespace;
@@ -82,6 +85,12 @@ public class ContainerAndRelativePathWithinIt<C>
 	@Override
 	public String toString()
 	{
-		return "ContainerAndRelativePathWithinIt [containingNamespace=" + containingNamespace + ", relativePathWithinNamespace=" + relativePathWithinNamespace + "]";
+		return containingNamespace + "/" + relativePathWithinNamespace;
+	}
+	
+	@Override
+	public String reprThis()
+	{
+		return "("+repr(containingNamespace) + ") / " + repr(relativePathWithinNamespace);
 	}
 }
