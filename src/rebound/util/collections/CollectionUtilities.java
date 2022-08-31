@@ -9971,6 +9971,11 @@ _$$primxpconf:byte,char,short,int$$_
 		return eqv(a, b);
 	}
 	
+	public static <E> boolean eqvAsSets(Iterable<? extends E> a, Iterable<? extends E> b)
+	{
+		return eqvSets(asSetThrowing(a), asSetThrowing(b));
+	}
+	
 	/**
 	 * Using {@link Collection#equals} even of two members of the same <code>runtime type</code> might require other things like say ordering if they are {@link List}s.
 	 * This does proper multi-set equivalence.  Ie, order doesn't matter just like {@link Set}s, the only difference from {@link Set}s being that duplicate elements can be contained :3
