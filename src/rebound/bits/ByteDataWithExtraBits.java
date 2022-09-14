@@ -14,44 +14,51 @@ import rebound.util.collections.Slice;
 public class ByteDataWithExtraBits
 {
 	protected final int extraBits;
+	protected final int extraBitsLengthInBits;
 	protected final byte[] mainDataUnderlying;
 	protected final int mainDataOffset;
 	protected final int mainDataLength;
 	
-	public ByteDataWithExtraBits(int extraBits, byte[] mainDataUnderlying, int mainDataOffset, int mainDataLength)
+	public ByteDataWithExtraBits(int extraBits, int extraBitsLengthInBits, byte[] mainDataUnderlying, int mainDataOffset, int mainDataLength)
 	{
 		this.extraBits = extraBits;
+		this.extraBitsLengthInBits = extraBitsLengthInBits;
 		this.mainDataUnderlying = mainDataUnderlying;
 		this.mainDataOffset = mainDataOffset;
 		this.mainDataLength = mainDataLength;
 	}
 	
-	public ByteDataWithExtraBits(int extraBits, byte[] mainDataUnderlying)
+	public ByteDataWithExtraBits(int extraBits, int extraBitsLengthInBits, byte[] mainDataUnderlying)
 	{
-		this(extraBits, mainDataUnderlying, 0, mainDataUnderlying.length);
+		this(extraBits, extraBitsLengthInBits, mainDataUnderlying, 0, mainDataUnderlying.length);
 	}
 	
-	public ByteDataWithExtraBits(int extraBits, Slice<byte[]> mainData)
+	public ByteDataWithExtraBits(int extraBits, int extraBitsLengthInBits, Slice<byte[]> mainData)
 	{
-		this(extraBits, mainData.getUnderlying(), mainData.getOffset(), mainData.getLength());
+		this(extraBits, extraBitsLengthInBits, mainData.getUnderlying(), mainData.getOffset(), mainData.getLength());
 	}
 	
-
+	
 	public int getExtraBits()
 	{
 		return extraBits;
 	}
-
+	
+	public int getExtraBitsLengthInBits()
+	{
+		return extraBitsLengthInBits;
+	}
+	
 	public byte[] getMainDataUnderlying()
 	{
 		return mainDataUnderlying;
 	}
-
+	
 	public int getMainDataOffset()
 	{
 		return mainDataOffset;
 	}
-
+	
 	public int getMainDataLength()
 	{
 		return mainDataLength;
