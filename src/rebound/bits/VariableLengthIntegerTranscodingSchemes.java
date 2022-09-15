@@ -352,7 +352,7 @@ public class VariableLengthIntegerTranscodingSchemes
 			// 		d = (v - 16512) >>> 21 - 1
 			
 			int a = v & 0x7F;
-			int b = (v >>> 7 - 1) & 0x7F;
+			int b = ((v >>> 7) - 1) & 0x7F;
 			int c = ((v - 128) >>> 14 - 1) & 0x7F;
 			int d = (v - 16512) >>> 21 - 1;
 			
