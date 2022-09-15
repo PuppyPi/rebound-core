@@ -143,7 +143,7 @@ public class VariableLengthIntegerTranscodingSchemes
 		
 		int a = byte0 & 0x7F;
 		int b = byte1 & 0x7F;
-		int c = (int)byte1;  //it can't have its high bit (0x80) set because this was already determined to be the last byte in order to figure out this was the method to call, which means the high bit is zero so we don't have to worry about masking it out or it causing sign-extension in Java casting! :3
+		int c = (int)byte2;  //it can't have its high bit (0x80) set because this was already determined to be the last byte in order to figure out this was the method to call, which means the high bit is zero so we don't have to worry about masking it out or it causing sign-extension in Java casting! :3
 		
 		//return a | ((b + 1) << 7) + ((c + 1) << 14);  //6 operations
 		return   a | ((b << 7) + (c << 14) + 16512);    //5 operations
