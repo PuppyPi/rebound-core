@@ -1,10 +1,40 @@
 package rebound.bits;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
  * The documents and notes are quite extensive and stored (not in this code repo) under /uuid/d8e6449c-dd6e-4348-985c-cbf5c6b0e2ce  :3
  */
 public class VariableLengthIntegerTranscodingSchemes
 {
+	public static int readAndDecodeBytereluctantVariableLengthIntegerMax4(InputStream in) throws IOException, EOFException
+	{
+		byte byte0 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte0, 0, 4))
+			return decodeBytereluctantVariableLengthInteger1(byte0);
+		
+		byte byte1 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte1, 1, 4))
+			return decodeBytereluctantVariableLengthInteger2(byte0, byte1);
+		
+		byte byte2 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte2, 2, 4))
+			return decodeBytereluctantVariableLengthInteger3(byte0, byte1, byte2);
+		
+		byte byte3 = Bytes.getByte(in);
+		
+		return decodeBytereluctantVariableLengthInteger4Terminal(byte0, byte1, byte2, byte3);
+	}
+	
+	
+	
+	
+	
 	/**
 	 * This to tell whether to read one more byte and, if so, which of these kind of methods to call :3
 	 * (Example here is for maxBytes = 4)
