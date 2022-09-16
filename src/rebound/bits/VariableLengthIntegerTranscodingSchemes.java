@@ -366,8 +366,8 @@ public class VariableLengthIntegerTranscodingSchemes
 	}
 	
 	
-	public static final int BytereluctantVariableLengthIntegerMax1_MaxValue = 256;   //That's just a single u8 (since the high bit *is* used on the terminal group), nothing special XD
-	public static final int BytereluctantVariableLengthIntegerMax2_MaxValue = 32896;
-	public static final int BytereluctantVariableLengthIntegerMax3_MaxValue = 4210816;
-	public static final int BytereluctantVariableLengthIntegerMax4_MaxValue = 538984575;
+	public static final int BytereluctantVariableLengthIntegerMax1_MaxValue = 256;   //That's just exactly a single u8 (since the high bit *is* used on the terminal group), nothing special XD
+	public static final int BytereluctantVariableLengthIntegerMax2_MaxValue = 32896;  //A little over 15 bits :3
+	public static final int BytereluctantVariableLengthIntegerMax3_MaxValue = 4210816;  //A little over 22 bits :3
+	public static final int BytereluctantVariableLengthIntegerMax4_MaxValue = 538984575;  //A little over 29 bits :3
 }
