@@ -4,6 +4,9 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 
+//Todo manifest Bytereluctant Max3 and Max2 ones here :3
+//Todo implement the actual general-case formulas in case people want to use 6-bits instead of 8-bits or something (like how base64 does? ;D) or even non-binary things!! like base96 in printable ascii! or base127 (not base128 but soclose!) in ascii-without-nul-chars!
+
 /**
  * The documents and notes are quite extensive and stored (not in this code repo) under /uuid/d8e6449c-dd6e-4348-985c-cbf5c6b0e2ce  :3
  */
