@@ -12176,19 +12176,26 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <E> void ensureListCapacityGrowingWithNullsIfNecessary(List<E> list, int minimumSize)
+	{
+		ensureListCapacityGrowingIfNecessary(list, minimumSize, null);
+	}
+	
 	public static <E> void setInListGrowingWithNullsIfNecessary(List<E> list, int index, E element)
 	{
-		if (index >= list.size())
-			setListSizeGrowing(list, index+1, null);
-		
-		list.set(index, element);
+		setInListGrowingIfNecessary(list, index, element, null);
+	}
+	
+	
+	public static <E> void ensureListCapacityGrowingIfNecessary(List<E> list, int minimumSize, E elementToAddIfGrowing)
+	{
+		if (list.size() < minimumSize)
+			setListSizeGrowing(list, minimumSize, elementToAddIfGrowing);
 	}
 	
 	public static <E> void setInListGrowingIfNecessary(List<E> list, int index, E element, E elementToAddIfGrowing)
 	{
-		if (index >= list.size())
-			setListSizeGrowing(list, index+1, elementToAddIfGrowing);
-		
+		ensureListCapacityGrowingWithNullsIfNecessary(list, index+1);
 		list.set(index, element);
 	}
 	
