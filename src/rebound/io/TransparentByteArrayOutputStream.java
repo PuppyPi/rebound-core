@@ -8,6 +8,9 @@ import rebound.io.iio.GuaranteedBasicOutputByteStream;
 import rebound.io.iio.OutputByteStream;
 import rebound.util.collections.Slice;
 
+//Todo support RandomAccessOutputByteStream
+//Todo a version that uses rebound.util.growth.Grower instead of our hardcoded algorithm XD''
+
 public class TransparentByteArrayOutputStream
 extends GuaranteedOutputStream
 implements GuaranteedBasicOutputByteStream, OutputByteStream
