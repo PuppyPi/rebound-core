@@ -1,8 +1,13 @@
 package rebound.bits;
 
+import static rebound.util.collections.BasicCollectionUtilities.*;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import rebound.io.iio.BasicInputByteStream;
+import rebound.util.collections.ArrayUtilities;
+import rebound.util.collections.PairOrdered;
+import rebound.util.collections.Slice;
 
 //Todo manifest Bytereluctant Max3 and Max2 ones here :3
 //Todo implement the actual general-case formulas in case people want to use 6-bits instead of 8-bits or something (like how base64 does? ;D) or even non-binary things!! like base96 in printable ascii! or base127 (not base128 but soclose!) in ascii-without-nul-chars!
@@ -32,6 +37,66 @@ public class VariableLengthIntegerTranscodingSchemes
 		byte byte3 = Bytes.getByte(in);
 		
 		return decodeBytereluctantVariableLengthInteger4Terminal(byte0, byte1, byte2, byte3);
+	}
+	
+	
+	
+	
+	public static int readAndDecodeBytereluctantVariableLengthIntegerMax4(BasicInputByteStream in) throws IOException, EOFException
+	{
+		byte byte0 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte0, 0, 4))
+			return decodeBytereluctantVariableLengthInteger1(byte0);
+		
+		byte byte1 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte1, 1, 4))
+			return decodeBytereluctantVariableLengthInteger2(byte0, byte1);
+		
+		byte byte2 = Bytes.getByte(in);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte2, 2, 4))
+			return decodeBytereluctantVariableLengthInteger3(byte0, byte1, byte2);
+		
+		byte byte3 = Bytes.getByte(in);
+		
+		return decodeBytereluctantVariableLengthInteger4Terminal(byte0, byte1, byte2, byte3);
+	}
+	
+	
+	
+	
+	/**
+	 * @return (the decoded value, the remainder of the data)
+	 * @throws EOFException if it was too short!
+	 */
+	public static PairOrdered<Integer, Slice<byte[]>> decodeBytereluctantVariableLengthIntegerMax4(Slice<byte[]> encodedForm) throws EOFException
+	{
+		int length = encodedForm.getLength();
+		
+		if (length < 1)  throw new EOFException("Expected at least one byte no matter what!!");
+		byte byte0 = ArrayUtilities.getByte(encodedForm, 0);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte0, 0, 4))
+			return pair(decodeBytereluctantVariableLengthInteger1(byte0), encodedForm.subsliceToEnd(1));
+		
+		if (length < 2)  throw new EOFException("Expected at least 2 bytes but only got 1");
+		byte byte1 = ArrayUtilities.getByte(encodedForm, 1);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte1, 1, 4))
+			return pair(decodeBytereluctantVariableLengthInteger2(byte0, byte1), encodedForm.subsliceToEnd(2));
+		
+		if (length < 2)  throw new EOFException("Expected at least 3 bytes but only got 2");
+		byte byte2 = ArrayUtilities.getByte(encodedForm, 2);
+		
+		if (!decodeBytereluctantVariableLengthIntegerFinite_HasAnotherByte(byte2, 2, 4))
+		return pair(decodeBytereluctantVariableLengthInteger3(byte0, byte1, byte2), encodedForm.subsliceToEnd(3));
+		
+		if (length < 2)  throw new EOFException("Expected at least 4 bytes but only got 3");
+		byte byte3 = ArrayUtilities.getByte(encodedForm, 3);
+		
+		return pair(decodeBytereluctantVariableLengthInteger4Terminal(byte0, byte1, byte2, byte3), encodedForm.subsliceToEnd(4));
 	}
 	
 	
