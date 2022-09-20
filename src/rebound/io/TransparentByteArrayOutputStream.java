@@ -3,8 +3,10 @@ package rebound.io;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
+import rebound.annotations.semantic.reachability.LiveValue;
+import rebound.annotations.semantic.reachability.SnapshotValue;
+import rebound.util.collections.Slice;
 
-//After writing this class I realized the original contained the size() method which is what I wanted, but hey it neededa rewrite anyway!
 public class TransparentByteArrayOutputStream
 extends OutputStream
 {
@@ -105,9 +107,19 @@ extends OutputStream
 	/**
 	 * Create a copy of the buffer that is also trimmed to size.
 	 */
+	@SnapshotValue
 	public byte[] toByteArray()
 	{
 		return Arrays.copyOf(buff, count);
+	}
+	
+	/**
+	 * This is just like {@link #toByteArray()} except it doesn't make an extra copy!!
+	 */
+	@LiveValue
+	public Slice<byte[]> toLiveByteArraySlice()
+	{
+		return new Slice<>(buff, 0, count);
 	}
 	
 	
