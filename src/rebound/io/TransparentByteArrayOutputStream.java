@@ -1,14 +1,16 @@
 package rebound.io;
 
-import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
+import rebound.io.iio.GuaranteedBasicOutputByteStream;
+import rebound.io.iio.OutputByteStream;
 import rebound.util.collections.Slice;
 
 public class TransparentByteArrayOutputStream
-extends OutputStream
+extends GuaranteedOutputStream
+implements GuaranteedBasicOutputByteStream, OutputByteStream
 {
 	protected byte[] buff;
 	protected int count;
