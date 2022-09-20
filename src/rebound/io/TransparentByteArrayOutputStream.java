@@ -6,6 +6,7 @@ import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.io.iio.GuaranteedBasicOutputByteStream;
 import rebound.io.iio.OutputByteStream;
+import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.Slice;
 
 //Todo a version that uses rebound.util.growth.Grower instead of our hardcoded algorithm XD''
@@ -26,7 +27,7 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	{
 		if (initialCapacity < 0)
 			throw new IllegalArgumentException("Negative initial size: " + initialCapacity);
-		buff = new byte[initialCapacity];
+		buff = initialCapacity == 0 ? ArrayUtilities.EmptyByteArray : new byte[initialCapacity];
 	}
 	
 	public void ensureCapacity(int minsize)
@@ -149,8 +150,12 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	}
 	
 	
+	/**
+	 * The stream can still be used after this is called!  It just frees up memory by releasing the underlying byte[] :3
+	 */
 	public void freeThings()
 	{
-		this.buff = null;
+		this.buff = ArrayUtilities.EmptyByteArray;
+		this.count = 0;
 	}
 }
