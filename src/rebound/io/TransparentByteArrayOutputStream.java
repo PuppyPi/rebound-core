@@ -27,17 +27,17 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	{
 		if (initialCapacity < 0)
 			throw new IllegalArgumentException("Negative initial size: " + initialCapacity);
-		buff = initialCapacity == 0 ? ArrayUtilities.EmptyByteArray : new byte[initialCapacity];
+		this.buff = initialCapacity == 0 ? ArrayUtilities.EmptyByteArray : new byte[initialCapacity];
 	}
 	
 	public void ensureCapacity(int minsize)
 	{
-		int oldsize = buff != null ? buff.length : 0;
+		int oldsize = this.buff != null ? this.buff.length : 0;
 		
 		if (oldsize >= minsize)
 		{
-			if (buff == null)
-				buff = new byte[0];
+			if (this.buff == null)
+				this.buff = new byte[0];
 			return;
 		}
 		
@@ -50,26 +50,28 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 		if (newsize < minsize)
 			newsize = minsize;
 		
-		if (buff != null)
+		if (this.buff != null)
 		{
 			byte[] newbuff = new byte[newsize];
-			System.arraycopy(buff, 0, newbuff, 0, oldsize);
-			buff = newbuff;
+			System.arraycopy(this.buff, 0, newbuff, 0, oldsize);
+			this.buff = newbuff;
 		}
 		else
 		{
-			buff = new byte[newsize];
+			this.buff = new byte[newsize];
 		}
 	}
 	
+	@Override
 	public void write(int b)
 	{
-		int oldcount = count;
+		int oldcount = this.count;
 		ensureCapacity(oldcount+1);
-		buff[oldcount] = (byte)b;
-		count = oldcount + 1;
+		this.buff[oldcount] = (byte)b;
+		this.count = oldcount + 1;
 	}
 	
+	@Override
 	public void write(byte b[], int off, int len)
 	{
 		if (off < 0 || len < 0 || off + len > b.length)
@@ -77,10 +79,10 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 		else if (len == 0)
 			return;
 		
-		int oldcount = count;
+		int oldcount = this.count;
 		ensureCapacity(oldcount+len);
-		System.arraycopy(b, off, buff, oldcount, len);
-		count = oldcount + len;
+		System.arraycopy(b, off, this.buff, oldcount, len);
+		this.count = oldcount + len;
 	}
 	
 	/**
@@ -90,15 +92,15 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	@LiveValue
 	public byte[] getRawByteArray()
 	{
-		return buff;
+		return this.buff;
 	}
 	
 	public void copyInto(byte[] buffer, int offset)
 	{
-		if (buffer.length - offset < count)
+		if (buffer.length - offset < this.count)
 			throw new IllegalArgumentException("provided buffer is too small!");
 		
-		System.arraycopy(this.buff, 0, buffer, offset, count);
+		System.arraycopy(this.buff, 0, buffer, offset, this.count);
 	}
 	
 	
@@ -107,7 +109,7 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	 */
 	public int getSize()
 	{
-		return count;
+		return this.count;
 	}
 	
 	/**
@@ -116,7 +118,7 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	@SnapshotValue
 	public byte[] toByteArray()
 	{
-		return Arrays.copyOf(buff, count);
+		return Arrays.copyOf(this.buff, this.count);
 	}
 	
 	/**
@@ -125,7 +127,7 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	@LiveValue
 	public Slice<byte[]> toLiveByteArraySlice()
 	{
-		return new Slice<>(buff, 0, count);
+		return new Slice<>(this.buff, 0, this.count);
 	}
 	
 	
@@ -135,15 +137,17 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	 */
 	public void reset()
 	{
-		count = 0;
+		this.count = 0;
 	}
 	
 	
 	
+	@Override
 	public void flush()
 	{
 	}
 	
+	@Override
 	public void close()
 	{
 		freeThings();
