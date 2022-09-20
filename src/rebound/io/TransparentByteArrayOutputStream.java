@@ -95,12 +95,18 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 		return this.buff;
 	}
 	
-	public void copyInto(byte[] buffer, int offset)
+	/**
+	 * @return how much was copied (the same as {@link #getSize()})
+	 * @throws IllegalArgumentException  if the provided byte[] was too small.
+	 */
+	public int copyInto(byte[] buffer, int offset)
 	{
 		if (buffer.length - offset < this.count)
 			throw new IllegalArgumentException("provided buffer is too small!");
 		
 		System.arraycopy(this.buff, 0, buffer, offset, this.count);
+		
+		return this.count;
 	}
 	
 	
