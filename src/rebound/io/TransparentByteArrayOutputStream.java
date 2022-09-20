@@ -8,7 +8,6 @@ import rebound.io.iio.GuaranteedBasicOutputByteStream;
 import rebound.io.iio.OutputByteStream;
 import rebound.util.collections.Slice;
 
-//Todo support RandomAccessOutputByteStream
 //Todo a version that uses rebound.util.growth.Grower instead of our hardcoded algorithm XD''
 
 public class TransparentByteArrayOutputStream
@@ -87,6 +86,7 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	 * Use this with <i>caution</i> as it can be easily invalidated by the {@link #ensureCapacity(int)} method.
 	 * Note also that it probably has a longer length than the number of logical bytes as given by {@link #getSize()} (ie, the difference between a {@link List}'s capacity and size)
 	 */
+	@LiveValue
 	public byte[] getRawByteArray()
 	{
 		return buff;
@@ -129,6 +129,9 @@ implements GuaranteedBasicOutputByteStream, OutputByteStream
 	
 	
 	
+	/**
+	 * Deletes all the data written!!  Not resets the cursor to overwrite data!!
+	 */
 	public void reset()
 	{
 		count = 0;
