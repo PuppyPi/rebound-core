@@ -13,8 +13,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import rebound.io.iio.InputByteStream;
-import rebound.io.iio.OutputByteStream;
+import rebound.io.iio.BasicInputByteStream;
+import rebound.io.iio.BasicOutputByteStream;
 import rebound.io.iio.RandomAccessBytes;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockReadStream;
 import rebound.io.streaming.api.StreamAPIs.ByteBlockWriteStream;
@@ -39,7 +39,7 @@ import rebound.util.objectutil.JavaNamespace;
  * 	• {@link ByteList}s
  * 	• {@link ByteBuffer}s
  * 	• {@link InputStream}s / {@link OutputStream}s
- * 	• {@link InputByteStream}s / {@link OutputByteStream}s  (including, eg, {@link RandomAccessBytes}! :DD )
+ * 	• {@link BasicInputByteStream}s / {@link BasicOutputByteStream}s  (including, eg, {@link RandomAccessBytes}! :DD )
  * 
  * \:DDD/
  */
@@ -57,7 +57,7 @@ implements JavaNamespace
 		return (byte)v;
 	}
 	
-	public static byte getByte(InputByteStream source) throws IOException, EOFException
+	public static byte getByte(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int v = source.read();
 		
@@ -146,7 +146,7 @@ apis = [
 [  None,                                                                    [ "add", "", [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
 [  None,                                                                    [ "add", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.insertByte(offset+byteIndex, %)"]         ],
 [  [ "get", "", [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ "put", "", [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
-[  [ "get", "", [["InputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ "put", "", [["OutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
+[  [ "get", "", [["BasicInputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ "put", "", [["BasicOutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ "get", "", [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ "put", "", [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 ];
 
@@ -555,7 +555,7 @@ p(s);
 		return rv;
 	}
 	
-	public static char getLittleChar(InputByteStream source) throws IOException, EOFException
+	public static char getLittleChar(BasicInputByteStream source) throws IOException, EOFException
 	{
 		char rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -627,7 +627,7 @@ p(s);
 		return rv;
 	}
 	
-	public static short getLittleShort(InputByteStream source) throws IOException, EOFException
+	public static short getLittleShort(BasicInputByteStream source) throws IOException, EOFException
 	{
 		short rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -706,7 +706,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleUInt24(InputByteStream source) throws IOException, EOFException
+	public static int getLittleUInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -794,7 +794,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getLittleInt(InputByteStream source) throws IOException, EOFException
+	public static int getLittleInt(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -891,7 +891,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleULong40(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong40(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -997,7 +997,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleULong48(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1112,7 +1112,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleULong56(InputByteStream source) throws IOException, EOFException
+	public static long getLittleULong56(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1236,7 +1236,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getLittleLong(InputByteStream source) throws IOException, EOFException
+	public static long getLittleLong(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1318,7 +1318,7 @@ p(s);
 		dest.write((byte)((value >>> 8) & 0xFF));
 	}
 	
-	public static void putLittleChar(OutputByteStream dest, char value) throws IOException, EOFException
+	public static void putLittleChar(BasicOutputByteStream dest, char value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1384,7 +1384,7 @@ p(s);
 		dest.write((byte)((value >>> 8) & 0xFF));
 	}
 	
-	public static void putLittleShort(OutputByteStream dest, short value) throws IOException, EOFException
+	public static void putLittleShort(BasicOutputByteStream dest, short value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1459,7 +1459,7 @@ p(s);
 		dest.write((byte)((value >>> 16) & 0xFF));
 	}
 	
-	public static void putLittleInt24(OutputByteStream dest, int value) throws IOException, EOFException
+	public static void putLittleInt24(BasicOutputByteStream dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1545,7 +1545,7 @@ p(s);
 		dest.write((byte)((value >>> 24) & 0xFF));
 	}
 	
-	public static void putLittleInt(OutputByteStream dest, int value) throws IOException, EOFException
+	public static void putLittleInt(BasicOutputByteStream dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1642,7 +1642,7 @@ p(s);
 		dest.write((byte)((value >>> 32) & 0xFF));
 	}
 	
-	public static void putLittleLong40(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putLittleLong40(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1750,7 +1750,7 @@ p(s);
 		dest.write((byte)((value >>> 40) & 0xFF));
 	}
 	
-	public static void putLittleLong48(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putLittleLong48(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1869,7 +1869,7 @@ p(s);
 		dest.write((byte)((value >>> 48) & 0xFF));
 	}
 	
-	public static void putLittleLong56(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putLittleLong56(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1999,7 +1999,7 @@ p(s);
 		dest.write((byte)((value >>> 56) & 0xFF));
 	}
 	
-	public static void putLittleLong(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putLittleLong(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -2079,7 +2079,7 @@ p(s);
 		return rv;
 	}
 	
-	public static char getBigChar(InputByteStream source) throws IOException, EOFException
+	public static char getBigChar(BasicInputByteStream source) throws IOException, EOFException
 	{
 		char rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 8;
@@ -2151,7 +2151,7 @@ p(s);
 		return rv;
 	}
 	
-	public static short getBigShort(InputByteStream source) throws IOException, EOFException
+	public static short getBigShort(BasicInputByteStream source) throws IOException, EOFException
 	{
 		short rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 8;
@@ -2230,7 +2230,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigUInt24(InputByteStream source) throws IOException, EOFException
+	public static int getBigUInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 16;
@@ -2318,7 +2318,7 @@ p(s);
 		return rv;
 	}
 	
-	public static int getBigInt(InputByteStream source) throws IOException, EOFException
+	public static int getBigInt(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 24;
@@ -2415,7 +2415,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigULong40(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong40(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 32;
@@ -2521,7 +2521,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigULong48(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 40;
@@ -2636,7 +2636,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigULong56(InputByteStream source) throws IOException, EOFException
+	public static long getBigULong56(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
@@ -2760,7 +2760,7 @@ p(s);
 		return rv;
 	}
 	
-	public static long getBigLong(InputByteStream source) throws IOException, EOFException
+	public static long getBigLong(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 56;
@@ -2842,7 +2842,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigChar(OutputByteStream dest, char value) throws IOException, EOFException
+	public static void putBigChar(BasicOutputByteStream dest, char value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 8) & 0xFF));
 		dest.write((byte)((value >>> 0) & 0xFF));
@@ -2908,7 +2908,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigShort(OutputByteStream dest, short value) throws IOException, EOFException
+	public static void putBigShort(BasicOutputByteStream dest, short value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 8) & 0xFF));
 		dest.write((byte)((value >>> 0) & 0xFF));
@@ -2983,7 +2983,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigInt24(OutputByteStream dest, int value) throws IOException, EOFException
+	public static void putBigInt24(BasicOutputByteStream dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 16) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -3069,7 +3069,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigInt(OutputByteStream dest, int value) throws IOException, EOFException
+	public static void putBigInt(BasicOutputByteStream dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 24) & 0xFF));
 		dest.write((byte)((value >>> 16) & 0xFF));
@@ -3166,7 +3166,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong40(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putBigLong40(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 32) & 0xFF));
 		dest.write((byte)((value >>> 24) & 0xFF));
@@ -3274,7 +3274,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong48(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putBigLong48(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 40) & 0xFF));
 		dest.write((byte)((value >>> 32) & 0xFF));
@@ -3393,7 +3393,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong56(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putBigLong56(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 48) & 0xFF));
 		dest.write((byte)((value >>> 40) & 0xFF));
@@ -3523,7 +3523,7 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
-	public static void putBigLong(OutputByteStream dest, long value) throws IOException, EOFException
+	public static void putBigLong(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 56) & 0xFF));
 		dest.write((byte)((value >>> 48) & 0xFF));
@@ -3598,7 +3598,7 @@ p(s);
 		return signedUpcast24(getLittleUInt24(source));
 	}
 	
-	public static int getLittleSInt24(InputByteStream source) throws IOException, EOFException
+	public static int getLittleSInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast24(getLittleUInt24(source));
 	}
@@ -3643,7 +3643,7 @@ p(s);
 		return signedUpcast40(getLittleULong40(source));
 	}
 	
-	public static long getLittleSLong40(InputByteStream source) throws IOException, EOFException
+	public static long getLittleSLong40(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast40(getLittleULong40(source));
 	}
@@ -3688,7 +3688,7 @@ p(s);
 		return signedUpcast48(getLittleULong48(source));
 	}
 	
-	public static long getLittleSLong48(InputByteStream source) throws IOException, EOFException
+	public static long getLittleSLong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast48(getLittleULong48(source));
 	}
@@ -3733,7 +3733,7 @@ p(s);
 		return signedUpcast56(getLittleULong56(source));
 	}
 	
-	public static long getLittleSLong56(InputByteStream source) throws IOException, EOFException
+	public static long getLittleSLong56(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast56(getLittleULong56(source));
 	}
@@ -3778,7 +3778,7 @@ p(s);
 		return signedUpcast24(getBigUInt24(source));
 	}
 	
-	public static int getBigSInt24(InputByteStream source) throws IOException, EOFException
+	public static int getBigSInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast24(getBigUInt24(source));
 	}
@@ -3823,7 +3823,7 @@ p(s);
 		return signedUpcast40(getBigULong40(source));
 	}
 	
-	public static long getBigSLong40(InputByteStream source) throws IOException, EOFException
+	public static long getBigSLong40(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast40(getBigULong40(source));
 	}
@@ -3868,7 +3868,7 @@ p(s);
 		return signedUpcast48(getBigULong48(source));
 	}
 	
-	public static long getBigSLong48(InputByteStream source) throws IOException, EOFException
+	public static long getBigSLong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast48(getBigULong48(source));
 	}
@@ -3913,7 +3913,7 @@ p(s);
 		return signedUpcast56(getBigULong56(source));
 	}
 	
-	public static long getBigSLong56(InputByteStream source) throws IOException, EOFException
+	public static long getBigSLong56(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast56(getBigULong56(source));
 	}
@@ -3974,7 +3974,7 @@ p(s);
 		return Float.intBitsToFloat(getLittleInt(source));
 	}
 	
-	public static float getLittleFloat(InputByteStream source) throws IOException, EOFException
+	public static float getLittleFloat(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return Float.intBitsToFloat(getLittleInt(source));
 	}
@@ -4029,7 +4029,7 @@ p(s);
 		putLittleInt(dest, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putLittleFloat(OutputByteStream dest, float value) throws IOException, EOFException
+	public static void putLittleFloat(BasicOutputByteStream dest, float value) throws IOException, EOFException
 	{
 		putLittleInt(dest, Float.floatToRawIntBits(value));
 	}
@@ -4074,7 +4074,7 @@ p(s);
 		return Double.longBitsToDouble(getLittleLong(source));
 	}
 	
-	public static double getLittleDouble(InputByteStream source) throws IOException, EOFException
+	public static double getLittleDouble(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return Double.longBitsToDouble(getLittleLong(source));
 	}
@@ -4129,7 +4129,7 @@ p(s);
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
-	public static void putLittleDouble(OutputByteStream dest, double value) throws IOException, EOFException
+	public static void putLittleDouble(BasicOutputByteStream dest, double value) throws IOException, EOFException
 	{
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
 	}
@@ -4174,7 +4174,7 @@ p(s);
 		return Float.intBitsToFloat(getBigInt(source));
 	}
 	
-	public static float getBigFloat(InputByteStream source) throws IOException, EOFException
+	public static float getBigFloat(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return Float.intBitsToFloat(getBigInt(source));
 	}
@@ -4229,7 +4229,7 @@ p(s);
 		putBigInt(dest, Float.floatToRawIntBits(value));
 	}
 	
-	public static void putBigFloat(OutputByteStream dest, float value) throws IOException, EOFException
+	public static void putBigFloat(BasicOutputByteStream dest, float value) throws IOException, EOFException
 	{
 		putBigInt(dest, Float.floatToRawIntBits(value));
 	}
@@ -4274,7 +4274,7 @@ p(s);
 		return Double.longBitsToDouble(getBigLong(source));
 	}
 	
-	public static double getBigDouble(InputByteStream source) throws IOException, EOFException
+	public static double getBigDouble(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return Double.longBitsToDouble(getBigLong(source));
 	}
@@ -4329,7 +4329,7 @@ p(s);
 		putBigLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
-	public static void putBigDouble(OutputByteStream dest, double value) throws IOException, EOFException
+	public static void putBigDouble(BasicOutputByteStream dest, double value) throws IOException, EOFException
 	{
 		putBigLong(dest, Double.doubleToRawLongBits(value));
 	}
@@ -4425,7 +4425,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static char getChar(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static char getChar(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleChar(source);
@@ -4535,7 +4535,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static short getShort(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static short getShort(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleShort(source);
@@ -4645,7 +4645,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static int getUInt24(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static int getUInt24(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleUInt24(source);
@@ -4755,7 +4755,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static int getInt(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static int getInt(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleInt(source);
@@ -4865,7 +4865,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getULong40(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getULong40(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong40(source);
@@ -4975,7 +4975,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getULong48(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getULong48(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong48(source);
@@ -5085,7 +5085,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getULong56(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getULong56(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong56(source);
@@ -5195,7 +5195,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLong(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getLong(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleLong(source);
@@ -5305,7 +5305,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static float getFloat(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static float getFloat(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleFloat(source);
@@ -5415,7 +5415,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static double getDouble(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static double getDouble(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleDouble(source);
@@ -5525,7 +5525,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static int getSInt24(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static int getSInt24(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSInt24(source);
@@ -5635,7 +5635,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getSLong40(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getSLong40(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong40(source);
@@ -5745,7 +5745,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getSLong48(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getSLong48(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong48(source);
@@ -5855,7 +5855,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getSLong56(InputByteStream source, Endianness endianness) throws IOException, EOFException
+	public static long getSLong56(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong56(source);
@@ -5985,7 +5985,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putChar(OutputByteStream dest, char value, Endianness endianness) throws IOException, EOFException
+	public static void putChar(BasicOutputByteStream dest, char value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleChar(dest, value);
@@ -6125,7 +6125,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putShort(OutputByteStream dest, short value, Endianness endianness) throws IOException, EOFException
+	public static void putShort(BasicOutputByteStream dest, short value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleShort(dest, value);
@@ -6265,7 +6265,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt24(OutputByteStream dest, int value, Endianness endianness) throws IOException, EOFException
+	public static void putInt24(BasicOutputByteStream dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleInt24(dest, value);
@@ -6405,7 +6405,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putInt(OutputByteStream dest, int value, Endianness endianness) throws IOException, EOFException
+	public static void putInt(BasicOutputByteStream dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleInt(dest, value);
@@ -6545,7 +6545,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong40(OutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
+	public static void putLong40(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong40(dest, value);
@@ -6685,7 +6685,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong48(OutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
+	public static void putLong48(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong48(dest, value);
@@ -6825,7 +6825,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong56(OutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
+	public static void putLong56(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong56(dest, value);
@@ -6965,7 +6965,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLong(OutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
+	public static void putLong(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong(dest, value);
@@ -7105,7 +7105,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putFloat(OutputByteStream dest, float value, Endianness endianness) throws IOException, EOFException
+	public static void putFloat(BasicOutputByteStream dest, float value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleFloat(dest, value);
@@ -7245,7 +7245,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putDouble(OutputByteStream dest, double value, Endianness endianness) throws IOException, EOFException
+	public static void putDouble(BasicOutputByteStream dest, double value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleDouble(dest, value);
@@ -7871,7 +7871,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static long getLittleUnsigned(InputByteStream source, int numberOfBytes) throws IOException, EOFException
+	public static long getLittleUnsigned(BasicInputByteStream source, int numberOfBytes) throws IOException, EOFException
 	{
 		switch (numberOfBytes)
 		{
@@ -7896,7 +7896,7 @@ p(s);
 		}
 	}
 	
-	public static long getBigUnsigned(InputByteStream source, int numberOfBytes) throws IOException, EOFException
+	public static long getBigUnsigned(BasicInputByteStream source, int numberOfBytes) throws IOException, EOFException
 	{
 		switch (numberOfBytes)
 		{
@@ -7921,7 +7921,7 @@ p(s);
 		}
 	}
 	
-	public static long getUnsigned(InputByteStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	public static long getUnsigned(BasicInputByteStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleUnsigned(source, numberOfBytes);
@@ -8651,7 +8651,7 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
-	public static void putLittle(OutputByteStream dest, long value, int numberOfBytes) throws IOException, EOFException
+	public static void putLittle(BasicOutputByteStream dest, long value, int numberOfBytes) throws IOException, EOFException
 	{
 		switch (numberOfBytes)
 		{
@@ -8676,7 +8676,7 @@ p(s);
 		}
 	}
 	
-	public static void putBig(OutputByteStream dest, long value, int numberOfBytes) throws IOException, EOFException
+	public static void putBig(BasicOutputByteStream dest, long value, int numberOfBytes) throws IOException, EOFException
 	{
 		switch (numberOfBytes)
 		{
@@ -8701,7 +8701,7 @@ p(s);
 		}
 	}
 	
-	public static void put(OutputByteStream dest, long value, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	public static void put(BasicOutputByteStream dest, long value, int numberOfBytes, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittle(dest, value, numberOfBytes);
