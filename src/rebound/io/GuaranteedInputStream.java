@@ -13,6 +13,10 @@ public abstract class GuaranteedInputStream
 extends InputStream
 {
 	@Override
+	public abstract int available();
+	
+	
+	@Override
 	public abstract int read();
 	
 	@Override
