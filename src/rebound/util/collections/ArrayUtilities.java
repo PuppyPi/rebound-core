@@ -641,6 +641,11 @@ primxp
 	{
 		return arrayHashCode(array, 0, array.length);
 	}
+
+	public static int arrayHashCode_$$Prim$$_(Slice<_$$prim$$_[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
 	
 	
 	 */
@@ -661,6 +666,11 @@ primxp
 		return arrayHashCode(array, 0, array.length);
 	}
 	
+	public static int arrayHashCodeBoolean(Slice<boolean[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
 	
 	
 	public static int arrayHashCode(byte[] array, int offset, int length)
@@ -677,6 +687,11 @@ primxp
 	public static int arrayHashCode(byte[] array)
 	{
 		return arrayHashCode(array, 0, array.length);
+	}
+	
+	public static int arrayHashCodeByte(Slice<byte[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
 	
@@ -697,6 +712,11 @@ primxp
 		return arrayHashCode(array, 0, array.length);
 	}
 	
+	public static int arrayHashCodeChar(Slice<char[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
 	
 	
 	public static int arrayHashCode(short[] array, int offset, int length)
@@ -713,6 +733,11 @@ primxp
 	public static int arrayHashCode(short[] array)
 	{
 		return arrayHashCode(array, 0, array.length);
+	}
+	
+	public static int arrayHashCodeShort(Slice<short[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
 	
@@ -733,6 +758,11 @@ primxp
 		return arrayHashCode(array, 0, array.length);
 	}
 	
+	public static int arrayHashCodeFloat(Slice<float[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
 	
 	
 	public static int arrayHashCode(int[] array, int offset, int length)
@@ -749,6 +779,11 @@ primxp
 	public static int arrayHashCode(int[] array)
 	{
 		return arrayHashCode(array, 0, array.length);
+	}
+	
+	public static int arrayHashCodeInt(Slice<int[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
 	
@@ -769,6 +804,11 @@ primxp
 		return arrayHashCode(array, 0, array.length);
 	}
 	
+	public static int arrayHashCodeDouble(Slice<double[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
 	
 	
 	public static int arrayHashCode(long[] array, int offset, int length)
@@ -785,6 +825,11 @@ primxp
 	public static int arrayHashCode(long[] array)
 	{
 		return arrayHashCode(array, 0, array.length);
+	}
+	
+	public static int arrayHashCodeLong(Slice<long[]> arraySlice)
+	{
+		return arrayHashCode(arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
 	
