@@ -16,6 +16,8 @@ import rebound.exceptions.StructuredClassCastException;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 
+//Todo convert as much as possible to proper infilegen primxp :>
+
 /**
  * This provides many utilities for primitive-related things.
  * (including primitive-typed arrays :> )
@@ -196,89 +198,6 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean eqSane(Float a, Float b)
-	{
-		//This is like Float.equals in that NaN == NaN, but unlike it in that +0.0 == -0.0   (if it's not one quirk, it's another! XD )
-		if (a == null)
-			return b == null;
-		else if (b == null)
-			return false;
-		else
-			return eqSane(a.floatValue(), b.floatValue());
-	}
-	
-	public static boolean eqSane(Double a, Double b)
-	{
-		if (a == null)
-			return b == null;
-		else if (b == null)
-			return false;
-		else
-			return eqSane(a.doubleValue(), b.doubleValue());
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	//Nevermind, doubles a == b works differently than Double.equals()  heavens, what does that do to hashtables and autoboxing?!?!  X"DD
-	//eqSane == eqMath already!! \:DDD/
-	//	/**
-	//	 * Just like {@link #eqSane(float, float)}, except -0 == +0  X""DD
-	//	 */
-	//	public static boolean eqMath(float a, float b)
-	//	{
-	//		return a == b || (a != a && b != b) || ((a == 0f || a == -0f) && (b == 0f || b == -0f));
-	//		//return a == b || (a != a && b != b) || ((a == 0f && b == -0f) || (a == -0f && b == 0f));
-	//	}
-	//
-	//	/**
-	//	 * Just like {@link #eqSane(double, double)}, except -0 == +0  X""DD
-	//	 */
-	//	public static boolean eqMath(double a, double b)
-	//	{
-	//		return a == b || (a != a && b != b) || ((a == 0d || a == -0d) && (b == 0d || b == -0d));
-	//		//return a == b || (a != a && b != b) || ((a == 0d && b == -0d) || (a == -0d && b == 0d));
-	//	}
-	//
-	//
-	//
-	//	public static boolean eqMath(Float a, Float b)
-	//	{
-	//		//This is like Float.equals in that NaN == NaN, but unlike it in that +0.0 == -0.0   (if it's not one quirk, it's another! XD )
-	//		if (a == null)
-	//			return b == null;
-	//		else if (b == null)
-	//			return false;
-	//		else
-	//			return eqMath(a.floatValue(), b.floatValue());
-	//	}
-	//
-	//	public static boolean eqMath(Double a, Double b)
-	//	{
-	//		if (a == null)
-	//			return b == null;
-	//		else if (b == null)
-	//			return false;
-	//		else
-	//			return eqMath(a.doubleValue(), b.doubleValue());
-	//	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	//Others, for use with primitive expanders ^_~
@@ -288,6 +207,7 @@ implements JavaNamespace
 	{
 		return a == b;
 	}
+	
 	 */
 	
 	public static boolean eqSane(boolean a, boolean b)
@@ -319,6 +239,148 @@ implements JavaNamespace
 	{
 		return a == b;
 	}
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+	primxp
+	
+	public static boolean eqSane(_$$Primitive$$_ a, _$$Primitive$$_ b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a._$$prim$$_Value(), b._$$prim$$_Value());
+	}
+	 */
+	
+	public static boolean eqSane(Boolean a, Boolean b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.booleanValue(), b.booleanValue());
+	}
+	
+	public static boolean eqSane(Byte a, Byte b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.byteValue(), b.byteValue());
+	}
+	
+	public static boolean eqSane(Character a, Character b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.charValue(), b.charValue());
+	}
+	
+	public static boolean eqSane(Short a, Short b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.shortValue(), b.shortValue());
+	}
+	
+	public static boolean eqSane(Float a, Float b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.floatValue(), b.floatValue());
+	}
+	
+	public static boolean eqSane(Integer a, Integer b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.intValue(), b.intValue());
+	}
+	
+	public static boolean eqSane(Double a, Double b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.doubleValue(), b.doubleValue());
+	}
+	
+	public static boolean eqSane(Long a, Long b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		else
+			return eqSane(a.longValue(), b.longValue());
+	}
+	// >>>
+	
+	
+	
+	/**
+	 * Handles *only cases where they're both the same type* otherwise this throws a {@link ClassCastException}!
+	 * Though if one or both are null, this won't throw that.
+	 */
+	public static boolean eqSaneBoxed(Object a, Object b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return false;
+		
+		/* <<<
+		primxp
+		else if (a instanceof _$$Primitive$$_)
+			return eqSane((_$$Primitive$$_)a, (_$$Primitive$$_)b);
+		 */
+		else if (a instanceof Boolean)
+			return eqSane((Boolean)a, (Boolean)b);
+		else if (a instanceof Byte)
+			return eqSane((Byte)a, (Byte)b);
+		else if (a instanceof Character)
+			return eqSane((Character)a, (Character)b);
+		else if (a instanceof Short)
+			return eqSane((Short)a, (Short)b);
+		else if (a instanceof Float)
+			return eqSane((Float)a, (Float)b);
+		else if (a instanceof Integer)
+			return eqSane((Integer)a, (Integer)b);
+		else if (a instanceof Double)
+			return eqSane((Double)a, (Double)b);
+		else if (a instanceof Long)
+			return eqSane((Long)a, (Long)b);
+		// >>>
+		
+		else
+			throw new ClassCastException(a.getClass()+" is not a boxed primitive type!");
+	}
+	
 	
 	
 	
@@ -1584,7 +1646,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (byte)src[i];
 			i++;
 		}
 		return rvs;
@@ -1688,7 +1750,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (char)src[i];
 			i++;
 		}
 		return rvs;
@@ -1766,7 +1828,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (short)src[i];
 			i++;
 		}
 		return rvs;
@@ -1792,7 +1854,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (short)src[i];
 			i++;
 		}
 		return rvs;
@@ -1857,7 +1919,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1870,7 +1932,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1883,7 +1945,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1896,7 +1958,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1909,7 +1971,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1935,7 +1997,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (float)src[i];
 			i++;
 		}
 		return rvs;
@@ -1948,7 +2010,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (int)src[i];
 			i++;
 		}
 		return rvs;
@@ -1961,7 +2023,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (int)src[i];
 			i++;
 		}
 		return rvs;
@@ -1974,7 +2036,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (int)src[i];
 			i++;
 		}
 		return rvs;
@@ -2000,7 +2062,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (int)src[i];
 			i++;
 		}
 		return rvs;
@@ -2039,7 +2101,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2052,7 +2114,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2065,7 +2127,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2078,7 +2140,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2091,7 +2153,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2104,7 +2166,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2117,7 +2179,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (double)src[i];
 			i++;
 		}
 		return rvs;
@@ -2130,7 +2192,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (long)src[i];
 			i++;
 		}
 		return rvs;
@@ -2143,7 +2205,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (long)src[i];
 			i++;
 		}
 		return rvs;
@@ -2156,7 +2218,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (long)src[i];
 			i++;
 		}
 		return rvs;
@@ -2182,7 +2244,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (long)src[i];
 			i++;
 		}
 		return rvs;
@@ -2208,7 +2270,7 @@ implements JavaNamespace
 		int i = 0;
 		while (i < src.length)
 		{
-			rvs[i] = src[i];
+			rvs[i] = (long)src[i];
 			i++;
 		}
 		return rvs;
