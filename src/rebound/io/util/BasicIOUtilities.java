@@ -456,7 +456,7 @@ public class BasicIOUtilities
 	
 	
 	
-	public static enum NullOutputStream
+	public static enum NullOutputByteStream
 	implements CloseableFlushableOutputByteStreamInterface
 	{
 		I;
