@@ -21,7 +21,14 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedByInterruptException;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.ClosedSelectorException;
+import java.nio.file.ClosedDirectoryStreamException;
+import java.nio.file.ClosedFileSystemException;
+import java.nio.file.ClosedWatchServiceException;
 import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +37,7 @@ import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.exceptions.ClosedExceptionType;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.SlowVersionUnsupportedException;
 import rebound.io.iio.InputByteStream;
@@ -1078,5 +1086,29 @@ implements JavaNamespace
 		{
 			throw new ImpossibleException(exc);
 		}
+	}
+	
+	
+	
+	
+	
+	
+	public static boolean isClosedStreamTypeException(Exception t)
+	{
+		if (ClosedExceptionType.is(t))  return true;
+		//if (t instanceof ClosedIOException)  return true;
+		//if (t instanceof ClosedException)  return true;
+		//if (t instanceof ClosedStreamException)  return true;
+		if (t instanceof ClosedChannelException)  return true;
+		if (t instanceof ClosedByInterruptException)  return true;
+		if (t instanceof ClosedDirectoryStreamException)  return true;
+		if (t instanceof ClosedFileSystemException)  return true;
+		if (t instanceof ClosedSelectorException)  return true;
+		if (t instanceof ClosedWatchServiceException)  return true;
+		
+		if (t instanceof SocketException && "Socket is closed".equalsIgnoreCase(t.getMessage()))  return true;  //from java.net.Socket
+		if (t instanceof IOException && "Pipe closed".equalsIgnoreCase(t.getMessage()))  return true;  //from java.io.PipedInputStream / java.io.PipedOutputStream
+		
+		return false;
 	}
 }

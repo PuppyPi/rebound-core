@@ -4,6 +4,8 @@
  */
 package rebound.io.streaming.api;
 
+import rebound.exceptions.ClosedExceptionType;
+
 /**
  * This is thrown if an operation is attempted on a {@link Stream} that {@link Stream#isClosed() is closed}.
  * It is a RuntimeException becuase this should not happen unless there is an internal flaw in the logic of a program.  (As opposed to an IOException which may even be anticipated)
@@ -11,6 +13,7 @@ package rebound.io.streaming.api;
  */
 public class ClosedStreamException
 extends RuntimeException
+implements ClosedExceptionType
 {
 	private static final long serialVersionUID = 1L;
 	
