@@ -287,7 +287,7 @@ public class CollectionUtilities
 		}
 		catch (NoSuchMappingReturnPath exc)
 		{
-			throw new NoSuchMappingException("Element "+repr(key)+" not found in "+repr(map));
+			throw new NoSuchMappingException("Key "+repr(key)+" not found in "+repr(map));
 		}
 	}
 	
@@ -312,8 +312,16 @@ public class CollectionUtilities
 		}
 		catch (NoSuchMappingReturnPath exc)
 		{
-			throw new NoSuchMappingException("Element "+repr(key)+" not found in "+repr(map));
+			throw new NoSuchMappingException("Key "+repr(key)+" not found in "+repr(map));
 		}
+	}
+	
+	public static <E> boolean removeMandatory(Collection<E> collection, E element) throws NoSuchElementException
+	{
+		if (collection.contains(element))
+			return collection.remove(element);
+		else
+			throw new NoSuchMappingException("Element "+repr(element)+" not found in "+repr(collection));
 	}
 	
 	public static <K, V> void removeExactMandatory(Map<K, V> map, K key, V value) throws NoSuchMappingException
@@ -325,11 +333,11 @@ public class CollectionUtilities
 		}
 		catch (NoSuchMappingReturnPath exc)
 		{
-			throw new NoSuchMappingException("Element "+repr(key)+" not found in "+repr(map));
+			throw new NoSuchMappingException("Key "+repr(key)+" not found in "+repr(map));
 		}
 		
 		if (!eq(v, value))
-			throw new NoSuchMappingException("Element "+repr(key)+" was not mapped to "+repr(value)+" in "+repr(map));
+			throw new NoSuchMappingException("Key "+repr(key)+" was not mapped to "+repr(value)+" in "+repr(map));
 		
 		try
 		{
