@@ -1,5 +1,6 @@
 package rebound.util.collections;
 
+import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
 public final class Slice<A>
@@ -8,7 +9,7 @@ extends Interval<Slice<A>>
 	protected final @Nonnull A underlying;
 	
 	
-	public Slice(@Nonnull A underlying, int offset, int length)
+	public Slice(@Nonnull A underlying, @Nonnegative int offset, @Nonnegative int length)
 	{
 		super(offset, length);
 		
@@ -18,7 +19,7 @@ extends Interval<Slice<A>>
 		this.underlying = underlying;
 	}
 	
-	public static <E> Slice<E> fromRange(E underlying, int startInclusive, int endExclusive)
+	public static <E> Slice<E> fromRange(@Nonnull E underlying, @Nonnegative int startInclusive, @Nonnegative int endExclusive)
 	{
 		return new Slice<E>(underlying, startInclusive, endExclusive - startInclusive);
 	}
@@ -37,7 +38,7 @@ extends Interval<Slice<A>>
 	
 	
 	@Override
-	protected Slice<A> subslice0(int offset, int length)
+	protected Slice<A> subslice0(@Nonnegative int offset, @Nonnegative int length)
 	{
 		return new Slice<A>(this.underlying, this.offset + offset, length);
 	}

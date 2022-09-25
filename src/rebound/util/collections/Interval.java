@@ -2,6 +2,7 @@ package rebound.util.collections;
 
 import static rebound.math.SmallIntegerMathUtilities.*;
 import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 
@@ -12,22 +13,25 @@ public class Interval<RuntimeType extends Interval<RuntimeType>>
 	protected final @Nonnegative int length;
 	
 	
-	public Interval(int offset, int length)
+	public Interval(@Nonnegative int offset, @Nonnegative int length)
 	{
 		this.offset = requireNonNegative(offset);
 		this.length = requireNonNegative(length);
 	}
 	
+	@Nonnegative
 	public int getOffset()
 	{
 		return this.offset;
 	}
 	
+	@Nonnegative
 	public int getLength()
 	{
 		return this.length;
 	}
 	
+	@Nonnegative
 	public int getPastEnd()
 	{
 		return this.offset + this.length;
@@ -51,8 +55,8 @@ public class Interval<RuntimeType extends Interval<RuntimeType>>
 	
 	
 	
-	
-	public RuntimeType subslice(int offset, int length)
+	@Nonnull
+	public RuntimeType subslice(@Nonnegative int offset, @Nonnegative int length)
 	{
 		if (length < 0)
 			throw new IllegalArgumentException();
@@ -67,8 +71,9 @@ public class Interval<RuntimeType extends Interval<RuntimeType>>
 			return subslice0(offset, length);
 	}
 	
+	@Nonnull
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	protected RuntimeType subslice0(int offset, int length)
+	protected RuntimeType subslice0(@Nonnegative int offset, @Nonnegative int length)
 	{
 		return (RuntimeType)new Interval(this.offset + offset, length);
 	}
@@ -80,17 +85,20 @@ public class Interval<RuntimeType extends Interval<RuntimeType>>
 	
 	
 	
-	public RuntimeType subsliceByExclusiveBound(int start, int end)
+	@Nonnull
+	public RuntimeType subsliceByExclusiveBound(@Nonnegative int start, @Nonnegative int end)
 	{
 		return subslice(start, end - start);
 	}
 	
-	public RuntimeType subsliceToEnd(int offset)
+	@Nonnull
+	public RuntimeType subsliceToEnd(@Nonnegative int offset)
 	{
 		return subslice(offset, this.length - offset);
 	}
 	
-	public RuntimeType subsliceFromBeginning(int lengthOrExclusiveEndingBound)
+	@Nonnull
+	public RuntimeType subsliceFromBeginning(@Nonnegative int lengthOrExclusiveEndingBound)
 	{
 		return subslice(0, lengthOrExclusiveEndingBound);
 	}
