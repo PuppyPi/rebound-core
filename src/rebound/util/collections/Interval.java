@@ -1,19 +1,21 @@
 package rebound.util.collections;
 
+import static rebound.math.SmallIntegerMathUtilities.*;
+import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 
 @Immutable
 public class Interval<RuntimeType extends Interval<RuntimeType>>
 {
-	protected final int offset;
-	protected final int length;
+	protected final @Nonnegative int offset;
+	protected final @Nonnegative int length;
 	
 	
 	public Interval(int offset, int length)
 	{
-		this.offset = offset;
-		this.length = length;
+		this.offset = requireNonNegative(offset);
+		this.length = requireNonNegative(length);
 	}
 	
 	public int getOffset()
