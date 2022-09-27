@@ -44,14 +44,17 @@ public final class SliceList<A>
 		return base(underlyingForThisSlice, 0, 0);
 	}
 	
+	
 	public static <A> SliceList<A> base(@Nonnull A underlyingForThisSlice, @Nonnegative int offsetForThisSlice, @Nonnegative int lengthForThisSlice)
 	{
 		return new SliceList<>(underlyingForThisSlice, offsetForThisSlice, lengthForThisSlice, null, lengthForThisSlice);
 	}
+	
 	public static <A> SliceList<A> base(@Nonnull Slice<A> thisSlice)
 	{
 		return base(thisSlice.getUnderlying(), thisSlice.getOffset(), thisSlice.getLength());
 	}
+	
 	
 	public static <A> SliceList<A> prepend(@Nonnull A underlyingForThisSlice, @Nonnegative int offsetForThisSlice, @Nonnegative int lengthForThisSlice, @Nullable SliceList<A> next)
 	{
@@ -60,10 +63,26 @@ public final class SliceList<A>
 		else
 			return lengthForThisSlice == 0 ? next : new SliceList<>(underlyingForThisSlice, offsetForThisSlice, lengthForThisSlice, next, lengthForThisSlice + next.getLengthTotal());
 	}
+	
 	public static <A> SliceList<A> prepend(@Nonnull Slice<A> thisSlice, @Nullable SliceList<A> next)
 	{
 		return prepend(thisSlice.getUnderlying(), thisSlice.getOffset(), thisSlice.getLength(), next);
 	}
+	
+	
+	public SliceList<A> prepend(@Nonnull A underlyingForThisSlice, @Nonnegative int offsetForThisSlice, @Nonnegative int lengthForThisSlice)
+	{
+		return prepend(underlyingForThisSlice, offsetForThisSlice, lengthForThisSlice, this);
+	}
+	
+	public SliceList<A> prepend(@Nonnull Slice<A> thisSlice)
+	{
+		return prepend(thisSlice, this);
+	}
+	
+	
+	
+	
 	
 	
 	
