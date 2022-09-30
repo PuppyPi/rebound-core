@@ -100,6 +100,7 @@ import rebound.math.Direction1D;
 import rebound.math.MathUtilities;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities.WhatToDoWithEmpties;
+import rebound.util.Either;
 import rebound.util.IdentityCardinality;
 import rebound.util.Maybe;
 import rebound.util.Primitives;
@@ -348,6 +349,15 @@ public class CollectionUtilities
 			throw new ImpossibleException("We already checked it was present in the map with getrp()!");
 		}
 	}
+	
+	public static <E> boolean removeIfWithStopSignal(Collection<E> c, UnaryFunction<? super E, Either<Boolean, Boolean>> filter)
+	{
+		if (c instanceof CollectionWithRemoveIfWithStopSignal)
+			return ((CollectionWithRemoveIfWithStopSignal<E>)c).removeIfWithStopSignal(filter);
+		else
+			return defaultRemoveIfWithStopSignal(c, filter);
+	}
+	
 	
 	
 	
@@ -6075,6 +6085,30 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		
 		return removedAtLeastOne;
+	}
+	
+	
+	public static <E> boolean defaultRemoveIfWithStopSignal(Collection<E> c, UnaryFunction<? super E, Either<Boolean, Boolean>> filter)
+	{
+		boolean didAnything = false;
+		
+		Iterator<E> i = c.iterator();
+		while (i.hasNext())
+		{
+			Either<Boolean, Boolean> r = filter.f(i.next());
+			
+			boolean b = (Boolean)r.getValue();
+			if (b)
+			{
+				i.remove();
+				didAnything = true;
+			}
+			
+			if (r.isB())
+				break;
+		}
+		
+		return didAnything;
 	}
 	
 	
