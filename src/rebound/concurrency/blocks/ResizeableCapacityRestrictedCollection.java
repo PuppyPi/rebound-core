@@ -1,7 +1,6 @@
 package rebound.concurrency.blocks;
 
 import javax.annotation.Nonnegative;
-import javax.annotation.concurrent.ThreadSafe;
 import rebound.annotations.semantic.temporal.ConstantReturnValue;
 import rebound.util.collections.CapacityRestrictedCollection;
 
