@@ -2,8 +2,9 @@
  * Created on Jan 29, 2014
  * 	with the GREAT AND POWERFUL Eclipse(c)
  */
-package rebound.exceptions;
+package rebound.concurrency;
 
+import rebound.exceptions.ReturnPath;
 import rebound.exceptions.ReturnPath.SingletonReturnPath;
 
 public class WouldBlockReturnPath
