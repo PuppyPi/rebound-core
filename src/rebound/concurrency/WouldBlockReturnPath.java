@@ -4,7 +4,6 @@
  */
 package rebound.concurrency;
 
-import rebound.exceptions.ReturnPath;
 import rebound.exceptions.ReturnPath.SingletonReturnPath;
 
 public class WouldBlockReturnPath
