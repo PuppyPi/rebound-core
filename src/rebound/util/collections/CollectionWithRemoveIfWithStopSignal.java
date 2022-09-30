@@ -1,6 +1,5 @@
 package rebound.util.collections;
 
-import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.SignalType;
 import rebound.util.Either;
 import rebound.util.functional.FunctionInterfaces.UnaryFunction;
