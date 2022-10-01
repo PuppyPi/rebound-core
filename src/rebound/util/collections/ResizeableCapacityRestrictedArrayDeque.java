@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 import rebound.concurrency.blocks.ResizeableCapacityRestrictedCollection;
 import rebound.exceptions.CapacityReachedException;
 
-public class ResizeableCapacityRestrictedArrayQueue<E>
+public class ResizeableCapacityRestrictedArrayDeque<E>
 implements ResizeableCapacityRestrictedCollection<E>, Deque<E>
 {
 	protected Deque<E> underlying = new ArrayDeque<>();
