@@ -3,25 +3,25 @@ package rebound.exceptions;
 /**
  * Eg, thrown by a function that detects the exact combination of parameters you gave it would've caused an infinite loop/recursion/memory-usage!
  */
-public class WouldCauseInfiniteComputationException
+public class InfiniteComputationException
 extends RuntimeException
 {
-	public WouldCauseInfiniteComputationException()
+	public InfiniteComputationException()
 	{
 		super();
 	}
 	
-	public WouldCauseInfiniteComputationException(String message)
+	public InfiniteComputationException(String message)
 	{
 		super(message);
 	}
 	
-	public WouldCauseInfiniteComputationException(Throwable cause)
+	public InfiniteComputationException(Throwable cause)
 	{
 		super(cause);
 	}
 	
-	public WouldCauseInfiniteComputationException(String message, Throwable cause)
+	public InfiniteComputationException(String message, Throwable cause)
 	{
 		super(message, cause);
 	}
