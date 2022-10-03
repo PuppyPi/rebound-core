@@ -12,6 +12,7 @@ extends SimpleIterator<E>
 	public E prevrp() throws StopIterationReturnPath;
 	
 	
+	
 	@IdempotentOperation
 	public default void reset()
 	{
