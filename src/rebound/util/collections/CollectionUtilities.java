@@ -198,6 +198,32 @@ import rebound.util.objectutil.PubliclyCloneable;
 
 public class CollectionUtilities
 {
+	public static <E> E nextMandatory(SimpleIterator<E> i) throws NoSuchElementException
+	{
+		try
+		{
+			return i.nextrp();
+		}
+		catch (StopIterationReturnPath r)
+		{
+			throw new NoSuchElementException();
+		}
+	}
+	
+	public static <E> E nextMandatory(SimpleIterator<E> i, String message) throws NoSuchElementException
+	{
+		try
+		{
+			return i.nextrp();
+		}
+		catch (StopIterationReturnPath r)
+		{
+			throw new NoSuchElementException(message);
+		}
+	}
+	
+	
+	
 	public static <E> void validateRowsAllSameSize(List<List<E>> rows) throws IllegalArgumentException
 	{
 		if (!areRowsAllTheSameSize(rows))
