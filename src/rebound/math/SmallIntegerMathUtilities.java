@@ -10,6 +10,7 @@ import java.util.Comparator;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.Signed;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
@@ -3446,5 +3447,241 @@ _$$primxpconf:noboolean$$_
 			throw new OverflowException();
 		
 		return v < 0 ? -v : -(v+1);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * + Note that the unsigned version of this would just always be true XD
+	 * + Also note that if you could efficiently use unsigned arithmetic, you could just make the *new* interval's max bound and values be stored as unsigned integers of the same bitlength and everything would be fine! X'D
+	 * @param inclusiveMaximum  inclusive is used so you can use {@link Long#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
+	 * @return if you can safely translate the given range by subtracting inclusiveMinimum from a value from [inclusiveMinimum, inclusiveMaximum] to [0, inclusiveMaximum - inclusiveMinimum], which has (inclusiveMaximum - inclusiveMinimum + 1) elements in it :3
+	 */
+	public static boolean isTranslatableToZero(@Signed long inclusiveMinimum, @Signed long inclusiveMaximum)
+	{
+		if (inclusiveMinimum > inclusiveMaximum)  //they can be equal however, so it's > not >=
+			throw new IllegalArgumentException();
+		
+		
+		/*
+		 * + We'll use pure theoretical (unbounded by bitlength) mathematics here, and say things like finiteAbs() to mean the actual finite-bitlength operation X3
+		 * 
+		 * inclusiveMaximum - inclusiveMinimum <= MAX
+		 * inclusiveMaximum <= MAX + inclusiveMinimum
+		 * 
+		 * 
+		 * • inclusiveMinimum < 0
+		 * 		inclusiveMaximum <= MAX + inclusiveMinimum
+		 * 		inclusiveMaximum <= MAX - |inclusiveMinimum|
+		 * 		• inclusiveMinimum ≠ MIN
+		 * 			inclusiveMaximum <= MAX - |inclusiveMinimum|
+		 * 			inclusiveMaximum <= MAX - finiteAbs(inclusiveMinimum)
+		 * 			inclusiveMaximum <= MAX + inclusiveMinimum
+		 * 				The right-hand side can't overflow! \:D/
+		 * 		• inclusiveMinimum = MIN
+		 * 			inclusiveMaximum <= MAX - |MIN|
+		 * 			inclusiveMaximum <= MAX - SIZE
+		 * 				SIZE = MAX + 1
+		 * 			inclusiveMaximum <= MAX - (MAX + 1)
+		 * 			inclusiveMaximum <= MAX - MAX - 1
+		 * 			inclusiveMaximum <= -1
+		 * 			\:D/
+		 * 			
+		 * 			finiteSignedAdd(MAX, MIN) =
+		 * 			toSigned(finiteUnsignedAdd(SMAX, SMIN)) =
+		 * 			toSigned((SMAX + SMIN) % USIZE)
+		 * 			toSigned(((2^Ns - 1) + -2^Ns) % 2^Nu)
+		 * 			toSigned((2^Ns - 1 + -2^Ns) % 2^Nu)
+		 * 			toSigned((-1) % 2^Nu)
+		 * 			toSigned(2^Nu - 1)  (% = progmod!)
+		 * 			toSigned(UMAX)
+		 * 			-1
+		 * 			
+		 * 			So it's the same either way!! \:DD/
+		 * 			
+		 * 			inclusiveMaximum <= MAX + inclusiveMinimum
+		 * 
+		 * 
+		 * • inclusiveMinimum >= 0
+		 * 		( ⇒ inclusiveMaximum >= 0)
+		 * 		inclusiveMaximum <= MAX + inclusiveMinimum
+		 * 		
+		 * 		If MAX >= inclusiveMaximum
+		 * 		Then MAX + (anything >= 0) is still >= inclusiveMaximum XD
+		 * 		and inclusiveMinimum >= 0!
+		 * 		So MAX + inclusiveMinimum >= inclusiveMaximum always!
+		 * 		
+		 * 		So there you go!  \:DD/
+		 * 		
+		 * 		True!
+		 * 
+		 * 
+		 * THAT'S IT!!  \:'DD/
+		 */
+		
+		
+		long MAX = Long.MAX_VALUE;
+		//return inclusiveMinimum < 0 ? (inclusiveMaximum <= MAX + inclusiveMinimum) : true;
+		return inclusiveMinimum >= 0 || (inclusiveMaximum <= MAX + inclusiveMinimum);
+	}
+	
+	
+	
+	/**
+	 * @param inclusiveMaximum  inclusive is used so you can use {@link Long#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
+	 * @return if you can safely store the size of the given interval (inclusiveMaximum - inclusiveMinimum + 1) in a long without causing overflow!
+	 */
+	public static boolean isIntervalSizeInRange(@Signed long inclusiveMinimum, @Signed long inclusiveMaximum)
+	{
+		if (inclusiveMinimum > inclusiveMaximum)  //they can be equal however, so it's > not >=
+			throw new IllegalArgumentException();
+		
+		
+		/*
+		 * + We'll use pure theoretical (unbounded by bitlength) mathematics here, and say things like finiteAbs() to mean the actual finite-bitlength operation X3
+		 * 
+		 * inclusiveMaximum - inclusiveMinimum + 1 <= MAX
+		 * inclusiveMaximum + 1 <= MAX + inclusiveMinimum
+		 * 
+		 * 
+		 * • inclusiveMinimum < 0
+		 * 		inclusiveMaximum + 1 <= MAX + inclusiveMinimum
+		 * 		inclusiveMaximum <= MAX - 1 + inclusiveMinimum
+		 * 		inclusiveMaximum <= MAX-1 - |inclusiveMinimum|
+		 * 		
+		 * 		• inclusiveMinimum = MIN
+		 * 			inclusiveMaximum <= MAX-1 - |MIN|
+		 * 			inclusiveMaximum <= MAX-1 - |-SIZE|
+		 * 			inclusiveMaximum <= MAX-1 - SIZE
+		 * 			inclusiveMaximum <= MAX-1 - (MAX+1)
+		 * 			inclusiveMaximum <= MAX - 1 - MAX - 1
+		 * 			inclusiveMaximum <= -1 - 1
+		 * 			inclusiveMaximum <= -2
+		 * 			
+		 * 			Let's see if finite arithmetic produces this result already for us like in isTranslatableToZero()!  :D
+		 * 			MAX - 1 + inclusiveMinimum =
+		 * 			MAX - 1 + MIN
+		 * 			asSigned(unsignedAdd(SMAX - 1, SSIZE))
+		 * 			asSigned(unsignedAdd((2^Ns-1) - 1, 2^Ns))
+		 * 			asSigned(((2^Ns-1) - 1 + 2^Ns) % 2^Nu)
+		 * 			asSigned((2^Ns - 1 - 1 + 2^Ns) % 2^Nu)
+		 * 			asSigned((2^Ns - 2 + 2^Ns) % 2^Nu)
+		 * 			asSigned((2^Ns + 2^Ns - 2) % 2^Nu)
+		 * 			asSigned((2*2^Ns - 2) % 2^Nu)
+		 * 			asSigned((2^Nu - 2) % 2^Nu)
+		 * 			asSigned(2^Nu - 2)
+		 * 				(The high bit is oneeee sooooo)
+		 * 				(Yeah! It's 0 - 1 - 1 in signed arithmetic \:D/ )
+		 * 			-2
+		 * 			
+		 * 			\:D/
+		 * 		
+		 * 		
+		 * 		• inclusiveMinimum = MIN + 1
+		 * 			inclusiveMaximum <= MAX-1 - |MIN+1|
+		 * 			inclusiveMaximum <= MAX-1 - |-SIZE+1|
+		 * 			inclusiveMaximum <= MAX-1 - |1 - SIZE|
+		 * 				SIZE = 2^Ns and Ns (number of signed bits; 31 or 63) we'll assume is more than 1—ie, the total bitlength (Nu) of the integer is more than 2 bits XD
+		 * 			inclusiveMaximum <= MAX-1 - (SIZE - 1)
+		 * 			inclusiveMaximum <= MAX-1 - (MAX+1 - 1)
+		 * 			inclusiveMaximum <= MAX-1 - (MAX)
+		 * 			inclusiveMaximum <= MAX-1 - MAX
+		 * 			inclusiveMaximum <= -1
+		 * 			
+		 * 			And for this one :3
+		 * 			Well let's see,
+		 * 			In this:
+		 * 			MAX - 1 + inclusiveMinimum
+		 * 			If finiteAbs(inclusiveMinimum) doesn't experience its problem unless *its input* is SMIN
+		 * 			Then adding a negative number is just the same as subtracting the absolute value and there's no worries!  finite arithmetic = infinite arithmetic! :D
+		 * 			Because we might wrap below zero if it's (SMIN+1)
+		 * 			But that's not considered overflow in signed arithmetic! :D  (of course, by definition! XD )
+		 * 			So we didn't really need to consider this as a special case! XD
+		 * 			\:D/
+		 * 		
+		 * 		So yes! :D
+		 * 		This works in all cases :333
+		 * 		inclusiveMaximum <= MAX - 1 + inclusiveMinimum
+		 * 
+		 * 
+		 * • inclusiveMinimum >= 0
+		 * 		inclusiveMaximum + 1 <= MAX + inclusiveMinimum
+		 * 		
+		 * 		• inclusiveMinimum == 0
+		 * 			inclusiveMaximum + 1 <= MAX + inclusiveMinimum
+		 * 			inclusiveMaximum + 1 <= MAX + 0
+		 * 			inclusiveMaximum + 1 <= MAX
+		 * 			inclusiveMaximum <= MAX - 1
+		 * 			!(inclusiveMaximum > MAX - 1)
+		 * 				inclusiveMaximum <= MAX
+		 * 			!(inclusiveMaximum = MAX)
+		 * 			inclusiveMaximum ≠ MAX
+		 * 		
+		 * 		• inclusiveMinimum > 0
+		 * 			inclusiveMaximum + 1 <= MAX + inclusiveMinimum
+		 * 			inclusiveMaximum <= MAX + inclusiveMinimum - 1
+		 * 			inclusiveMaximum <= MAX + (inclusiveMinimumB + 1) - 1
+		 * 				inclusiveMinimumB >= 0
+		 * 			inclusiveMaximum <= MAX + inclusiveMinimumB + 1 - 1
+		 * 			inclusiveMaximum <= MAX + inclusiveMinimumB
+		 * 			So the same logic as last time applies :3
+		 * 			Given inclusiveMaximum <= MAX already, adding 0 or more to MAX definitely doesn't change that! ^w^
+		 * 			
+		 * 			True!
+		 */
+		
+		
+		long MAX = Long.MAX_VALUE;
+		
+		if (inclusiveMinimum > 0)
+			return true;
+		else if (inclusiveMinimum == 0)
+			return inclusiveMaximum != MAX;
+		else
+			//return inclusiveMaximum <= MAX - 1 + inclusiveMinimum;  //this right-hand side is either -2, -1, or >= 0 in signed arithmetic :>
+			return inclusiveMaximum < MAX + inclusiveMinimum;  //so this is perfectly equivalent in all cases, because inclusiveMinimum <= 0! \:D/
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param inclusiveMaximum  inclusive is used so you can use {@link Integer#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
+	 * @return if you can safely translate the given range by subtracting inclusiveMinimum from a value from [inclusiveMinimum, inclusiveMaximum] to [0, inclusiveMaximum - inclusiveMinimum], which has (inclusiveMaximum - inclusiveMinimum + 1) elements in it :3
+	 */
+	public static boolean isTranslatableToZero(@Signed int inclusiveMinimum, @Signed int inclusiveMaximum)
+	{
+		if (inclusiveMinimum > inclusiveMaximum)  //they can be equal however, so it's > not >=
+			throw new IllegalArgumentException();
+		
+		int MAX = Integer.MAX_VALUE;
+		//return inclusiveMinimum < 0 ? (inclusiveMaximum <= MAX + inclusiveMinimum) : true;
+		return inclusiveMinimum >= 0 || (inclusiveMaximum <= MAX + inclusiveMinimum);
+	}
+	
+	/**
+	 * @param inclusiveMaximum  inclusive is used so you can use {@link Integer#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
+	 * @return if you can safely store the size of the given interval (inclusiveMaximum - inclusiveMinimum + 1) in an int without causing overflow!
+	 */
+	public static boolean isIntervalSizeInRange(@Signed int inclusiveMinimum, @Signed int inclusiveMaximum)
+	{
+		int MAX = Integer.MAX_VALUE;
+		
+		if (inclusiveMinimum > 0)
+			return true;
+		else if (inclusiveMinimum == 0)
+			return inclusiveMaximum != MAX;
+		else
+			//return inclusiveMaximum <= MAX - 1 + inclusiveMinimum;  //this right-hand side is either -2, -1, or >= 0 in signed arithmetic :>
+			return inclusiveMaximum < MAX + inclusiveMinimum;  //so this is perfectly equivalent in all cases, because inclusiveMinimum <= 0! \:D/
 	}
 }
