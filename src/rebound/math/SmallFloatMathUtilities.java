@@ -1836,13 +1836,12 @@ public class SmallFloatMathUtilities
 	
 	
 	
-	//In bits :33
-	public static final int SizeOfSignificandInIEEE754Single = 23;
-	public static final int SizeOfSignificandInIEEE754Double = 52;
 	
-	//In bits :33
-	public static final int SizeOfCharacteristicInIEEE754Single = 8;
-	public static final int SizeOfCharacteristicInIEEE754Double = 11;
+	public static final int SizeOfSignificandInIEEE754Single = 23;  //In bits :33
+	public static final int SizeOfSignificandInIEEE754Double = 52;  //In bits :33
+	
+	public static final int SizeOfCharacteristicInIEEE754Single = 8;  //In bits :33
+	public static final int SizeOfCharacteristicInIEEE754Double = 11;  //In bits :33
 	
 	
 	public static final int CharacteristicBiasInIEEE754Single = 127;  //(1 << (SizeOfCharacteristicInIEEE754Single - 1)) - 1;
@@ -1859,6 +1858,84 @@ public class SmallFloatMathUtilities
 	
 	public static final int HighestPreSignificandBitInIEEE754Single = 4194304;  //1 << (SizeOfSignificandInIEEE754Single - 1)
 	public static final long HighestPreSignificandBitInIEEE754Double = 2251799813685248l;  //1l << (SizeOfSignificandInIEEE754Double - 1)
+	
+	
+	
+	public static final int LeastNormalSingleBits                = constructIEEE754SinglePrecisionBits(true,  (1 << SizeOfSignificandInIEEE754Single) - 1, (1 << SizeOfCharacteristicInIEEE754Single) - 2);
+	public static final int GreatestNegativeNormalSingleBits     = constructIEEE754SinglePrecisionBits(true,   0, 1);
+	public static final int LeastSubnormalSingleBits             = constructIEEE754SinglePrecisionBits(true,  (1 << SizeOfSignificandInIEEE754Single) - 1, 0);
+	public static final int GreatestNegativeSubnormalSingleBits  = constructIEEE754SinglePrecisionBits(true,   1, 0);
+	public static final int NegativeZeroSingleBits               = constructIEEE754SinglePrecisionBits(true,   0, 0);
+	public static final int PositiveZeroSingleBits               = constructIEEE754SinglePrecisionBits(false,  0, 0);  //All 0's! :D
+	public static final int LeastPositiveSubnormalSingleBits     = constructIEEE754SinglePrecisionBits(false,  1, 0);
+	public static final int GreatestSubnormalSingleBits          = constructIEEE754SinglePrecisionBits(false, (1 << SizeOfSignificandInIEEE754Single) - 1, 0);
+	public static final int LeastPositiveNormalSingleBits        = constructIEEE754SinglePrecisionBits(false,  0, 1);
+	public static final int GreatestNormalSingleBits             = constructIEEE754SinglePrecisionBits(false, (1 << SizeOfSignificandInIEEE754Single) - 1, (1 << SizeOfCharacteristicInIEEE754Single) - 2);
+	
+	public static final int NegativeInfinitySingleBits           = constructIEEE754SinglePrecisionBits(true,  0, (1 << SizeOfCharacteristicInIEEE754Single) - 1);
+	public static final int PositiveInfinitySingleBits           = constructIEEE754SinglePrecisionBits(false, 0, (1 << SizeOfCharacteristicInIEEE754Single) - 1);
+	public static final int JRENaNSingleBits                     = constructIEEE754SinglePrecisionBits(false, 1 << (SizeOfSignificandInIEEE754Single - 1), (1 << SizeOfCharacteristicInIEEE754Single) - 1);
+	public static final int MaxNaNSingleBits                     = constructIEEE754SinglePrecisionBits(true,  (1 << SizeOfSignificandInIEEE754Single) - 1, (1 << SizeOfCharacteristicInIEEE754Single) - 1);  //All 1's! :D
+	
+	
+	
+	public static final long LeastNormalDoubleBits               = constructIEEE754DoublePrecisionBits(true,  (1l << SizeOfSignificandInIEEE754Double) - 1, (1 << SizeOfCharacteristicInIEEE754Double) - 2);
+	public static final long GreatestNegativeNormalDoubleBits    = constructIEEE754DoublePrecisionBits(true,   0, 1);
+	public static final long LeastSubnormalDoubleBits            = constructIEEE754DoublePrecisionBits(true,  (1l << SizeOfSignificandInIEEE754Double) - 1, 0);
+	public static final long GreatestNegativeSubnormalDoubleBits = constructIEEE754DoublePrecisionBits(true,   1, 0);
+	public static final long NegativeZeroDoubleBits              = constructIEEE754DoublePrecisionBits(true,   0, 0);
+	public static final long PositiveZeroDoubleBits              = constructIEEE754DoublePrecisionBits(false,  0, 0);  //All 0's! :D
+	public static final long LeastPositiveSubnormalDoubleBits    = constructIEEE754DoublePrecisionBits(false,  1, 0);
+	public static final long GreatestSubnormalDoubleBits         = constructIEEE754DoublePrecisionBits(false, (1l << SizeOfSignificandInIEEE754Double) - 1, 0);
+	public static final long LeastPositiveNormalDoubleBits       = constructIEEE754DoublePrecisionBits(false,  0, 1);
+	public static final long GreatestNormalDoubleBits            = constructIEEE754DoublePrecisionBits(false, (1l << SizeOfSignificandInIEEE754Double) - 1, (1 << SizeOfCharacteristicInIEEE754Double) - 2);
+	
+	public static final long NegativeInfinityDoubleBits          = constructIEEE754DoublePrecisionBits(true,  0, (1 << SizeOfCharacteristicInIEEE754Double) - 1);
+	public static final long PositiveInfinityDoubleBits          = constructIEEE754DoublePrecisionBits(false, 0, (1 << SizeOfCharacteristicInIEEE754Double) - 1);
+	public static final long JRENaNDoubleBits                    = constructIEEE754DoublePrecisionBits(false, 1l << (SizeOfSignificandInIEEE754Double - 1), (1 << SizeOfCharacteristicInIEEE754Double) - 1);
+	public static final long MaxNaNDoubleBits                    = constructIEEE754DoublePrecisionBits(true,  (1l << SizeOfSignificandInIEEE754Double) - 1, (1 << SizeOfCharacteristicInIEEE754Double) - 1);  //All 1's! :D
+	
+	
+	
+	
+	
+	public static final float LeastNormalSingle = Float.intBitsToFloat(LeastNormalSingleBits);
+	public static final float GreatestNegativeNormalSingle = Float.intBitsToFloat(GreatestNegativeNormalSingleBits);
+	public static final float LeastSubnormalSingle = Float.intBitsToFloat(LeastSubnormalSingleBits);
+	public static final float GreatestNegativeSubnormalSingle = Float.intBitsToFloat(GreatestNegativeSubnormalSingleBits);
+	public static final float NegativeZeroSingle = Float.intBitsToFloat(NegativeZeroSingleBits);
+	public static final float PositiveZeroSingle = Float.intBitsToFloat(PositiveZeroSingleBits);
+	public static final float LeastPositiveSubnormalSingle = Float.intBitsToFloat(LeastPositiveSubnormalSingleBits);
+	public static final float GreatestSubnormalSingle = Float.intBitsToFloat(GreatestSubnormalSingleBits);
+	public static final float LeastPositiveNormalSingle = Float.intBitsToFloat(LeastPositiveNormalSingleBits);
+	public static final float GreatestNormalSingle = Float.intBitsToFloat(GreatestNormalSingleBits);
+	
+	public static final float NegativeInfinitySingle = Float.intBitsToFloat(NegativeInfinitySingleBits);
+	public static final float PositiveInfinitySingle = Float.intBitsToFloat(PositiveInfinitySingleBits);
+	public static final float JRENaNSingle = Float.intBitsToFloat(JRENaNSingleBits);
+	public static final float MaxNaNSingle = Float.intBitsToFloat(MaxNaNSingleBits);
+	
+	
+	public static final double LeastNormalDouble = Double.longBitsToDouble(LeastNormalDoubleBits);
+	public static final double GreatestNegativeNormalDouble = Double.longBitsToDouble(GreatestNegativeNormalDoubleBits);
+	public static final double LeastSubnormalDouble = Double.longBitsToDouble(LeastSubnormalDoubleBits);
+	public static final double GreatestNegativeSubnormalDouble = Double.longBitsToDouble(GreatestNegativeSubnormalDoubleBits);
+	public static final double NegativeZeroDouble = Double.longBitsToDouble(NegativeZeroDoubleBits);
+	public static final double PositiveZeroDouble = Double.longBitsToDouble(PositiveZeroDoubleBits);
+	public static final double LeastPositiveSubnormalDouble = Double.longBitsToDouble(LeastPositiveSubnormalDoubleBits);
+	public static final double GreatestSubnormalDouble = Double.longBitsToDouble(GreatestSubnormalDoubleBits);
+	public static final double LeastPositiveNormalDouble = Double.longBitsToDouble(LeastPositiveNormalDoubleBits);
+	public static final double GreatestNormalDouble = Double.longBitsToDouble(GreatestNormalDoubleBits);
+	
+	public static final double NegativeInfinityDouble = Double.longBitsToDouble(NegativeInfinityDoubleBits);
+	public static final double PositiveInfinityDouble = Double.longBitsToDouble(PositiveInfinityDoubleBits);
+	public static final double JRENaNDouble = Double.longBitsToDouble(JRENaNDoubleBits);
+	public static final double MaxNaNDouble = Double.longBitsToDouble(MaxNaNDoubleBits);
+	
+	
+	
+	
+	
 	
 	
 	
@@ -1880,6 +1957,9 @@ public class SmallFloatMathUtilities
 	 */
 	
 	
+	
+	
+	//TODO rename rawparse to mathparse and rawrawparse to rawparse after finishing the interrupted edit to MathUtilities XD'''
 	
 	/**
 	 * Except for non-finite special values, the resulting mathematical value is:
@@ -1909,16 +1989,45 @@ public class SmallFloatMathUtilities
 	public static int[] rawparseIEEE754SinglePrecision(float f)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
 	{
 		int bits = Float.floatToRawIntBits(f);
+		return rawparseIEEE754SinglePrecisionBits(bits);
+	}
+	
+	/**
+	 * + This is like {@link #rawrawparseIEEE754SinglePrecisionBits(int)} but produces more mathematically-meaningful values
+	 */
+	public static int[] rawparseIEEE754SinglePrecisionBits(int bits)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		int[] r = rawrawparseIEEE754SinglePrecisionBits(bits);
+		int signBit = r[0];
+		int presignificand = r[1];
+		int precharacteristic = r[2];
 		
-		
-		int presignificand = bits & 0b00000000_01111111_11111111_11111111;
-		int precharacteristic = (bits & 0b01111111_10000000_00000000_00000000) >>> SizeOfSignificandInIEEE754Single;
+		boolean negative = signBit == 1;
 		int postcharacteristic = precharacteristic - CharacteristicBiasInIEEE754Single;
-		
-		boolean negative = (bits & 0b10000000_00000000_00000000_00000000) != 0;
-		
 		return new int[]{negative ? -1 : +1, presignificand, postcharacteristic};
 	}
+	
+	
+	/**
+	 * + The inverse function of this is: {@link #constructIEEE754SinglePrecision(boolean, int, int)}
+	 */
+	public static int[] rawrawparseIEEE754SinglePrecision(float f)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		int bits = Float.floatToRawIntBits(f);
+		return rawrawparseIEEE754SinglePrecisionBits(bits);
+	}
+	
+	public static int[] rawrawparseIEEE754SinglePrecisionBits(int bits)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		int presignificand = bits & 0b00000000_01111111_11111111_11111111;
+		int precharacteristic = (bits & 0b01111111_10000000_00000000_00000000) >>> SizeOfSignificandInIEEE754Single;
+	
+	int signBit = (bits & 0b10000000_00000000_00000000_00000000) >>> 31;
+	
+	return new int[]{signBit, presignificand, precharacteristic};
+	}
+	
+	
 	
 	
 	
@@ -1944,24 +2053,134 @@ public class SmallFloatMathUtilities
 	 * 			+ Sign determines if positive or negative! ;D
 	 * 		NaN  =  Nonfinite && s != 0
 	 * 
+	 * + The inverse function of this is: {@link #constructIEEE754DoublePrecision(boolean, long, int)}
+	 * 
 	 * @return {Sign (+1,-1), PreSignificand(s), PostCharacteristic(c)}  :DD
 	 */
 	public static long[] rawparseIEEE754DoublePrecision(double f)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
 	{
 		long bits = Double.doubleToRawLongBits(f);
+		return rawparseIEEE754DoublePrecisionBits(bits);
+	}
+	
+	public static long[] rawparseIEEE754DoublePrecisionBits(long bits)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		long[] r = rawrawparseIEEE754DoublePrecisionBits(bits);
 		
+		long signBit = r[0];
+		long presignificand = r[1];
+		long precharacteristic = r[2];
 		
-		long presignificand = bits & 0b00000000_00001111_11111111_11111111_11111111_11111111_11111111_11111111l;
-		long precharacteristic = (bits & 0b01111111_11110000_00000000_00000000_00000000_00000000_00000000_00000000l) >>> SizeOfSignificandInIEEE754Double;
-			long postcharacteristic = precharacteristic - CharacteristicBiasInIEEE754Double;
-			
-			boolean negative = (bits & 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000l) != 0;
-			
-			return new long[]{negative ? -1 : +1, presignificand, postcharacteristic};
+		long postcharacteristic = precharacteristic - CharacteristicBiasInIEEE754Double;
+		boolean negative = signBit == 1;
+		
+		return new long[]{negative ? -1 : +1, presignificand, postcharacteristic};
 	}
 	
 	
 	
+	public static long[] rawrawparseIEEE754DoublePrecision(double f)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		long bits = Double.doubleToRawLongBits(f);
+		return rawrawparseIEEE754DoublePrecisionBits(bits);
+	}
+	
+	public static long[] rawrawparseIEEE754DoublePrecisionBits(long bits)  //We can only hope this gets JITted and its returned array gets stack-allocated!!  :D
+	{
+		long presignificand = bits & 0b00000000_00001111_11111111_11111111_11111111_11111111_11111111_11111111l;
+		long precharacteristic = (bits & 0b01111111_11110000_00000000_00000000_00000000_00000000_00000000_00000000l) >>> SizeOfSignificandInIEEE754Double;
+	
+	long signBit = (bits & 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000l) >>> 63;
+	
+	return new long[]{signBit, presignificand, precharacteristic};
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * Create any floating point value from the three parts! \:D/
+	 *  (single-precision version :3 )
+	 * 
+	 * + The IEEE754 documentation calls the second part the exponent, but that already means something else, like mantissa.  The unique name is "characteristic".
+	 * + The IEEE754 documentation does calls the first part the significand though, not the mantissa (which already means something else).
+	 * 
+	 * In pure mathematics (but in Java syntax), this returns exactly:    (c != C-1)  ?  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c - (C/2-1) ) )  :  (s != 0 ? NaN : (n ? -Infinity : +Infinity))
+	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c # C-1)  then  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(c - (C/2-1)) )  :  (if s # 0 then nan else (if n then inf else minf))
+	 * Where
+	 * 		n = <code>negative</code> (still boolean)
+	 * 		s = <code>significandFraction</code> (still integer)
+	 * 		c = <code>characteristicOffsetEncoded</code> (still integer)
+	 * 		S = 2^{@link #SizeOfSignificandInIEEE754Single} (2^23)
+	 * 		C = 2^{@link #SizeOfCharacteristicInIEEE754Single} (2^8)
+	 * 
+	 * + The inverse function of this is: {@link #rawparseIEEE754DoublePrecision(double)}
+	 * 
+	 * @param significandFraction  must be an integer in the interval [0, 2^{@link #SizeOfSignificandInIEEE754Single})
+	 * @param characteristicOffsetEncoded  must be an integer in the interval [0, 2^{@link #SizeOfCharacteristicInIEEE754Single})
+	 */
+	public static float constructIEEE754SinglePrecision(boolean negative, int significandFraction, int characteristicOffsetEncoded)
+	{
+		return Float.intBitsToFloat(constructIEEE754SinglePrecisionBits(negative, significandFraction, characteristicOffsetEncoded));
+	}
+	
+	public static int constructIEEE754SinglePrecisionBits(boolean negative, int significandFraction, int characteristicOffsetEncoded)
+	{
+		if (significandFraction < 0)  throw new IllegalArgumentException();
+		if (significandFraction > ((1 << SizeOfSignificandInIEEE754Single) - 1))  throw new IllegalArgumentException();
+		if (characteristicOffsetEncoded < 0)  throw new IllegalArgumentException();
+		if (characteristicOffsetEncoded > ((1 << SizeOfCharacteristicInIEEE754Single) - 1))  throw new IllegalArgumentException();
+		
+		int bits = significandFraction;
+		bits |= characteristicOffsetEncoded << SizeOfSignificandInIEEE754Single;
+		bits |= negative ? (1 << (SizeOfSignificandInIEEE754Single + SizeOfCharacteristicInIEEE754Single)) : 0;
+		return bits;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * Create any floating point value from the three parts! \:D/
+	 *  (double-precision version :3 )
+	 * 
+	 * + The IEEE754 documentation calls the second part the exponent, but that already means something else, like mantissa.  The unique name is "characteristic".
+	 * + The IEEE754 documentation does calls the first part the significand though, not the mantissa (which already means something else).
+	 * 
+	 * In pure mathematics (but in Java syntax), this returns exactly:    (c != C-1)  ?  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c - (C/2-1) ) )  :  (s != 0 ? NaN : (n ? -Infinity : +Infinity))
+	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c # C-1)  then  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(c - (C/2-1)) )  :  (if s # 0 then nan else (if n then inf else minf))
+	 * Where
+	 * 		n = <code>negative</code> (still boolean)
+	 * 		s = <code>significandFraction</code> (still integer)
+	 * 		c = <code>characteristicOffsetEncoded</code> (still integer)
+	 * 		S = 2^{@link #SizeOfSignificandInIEEE754Double} (2^52)
+	 * 		C = 2^{@link #SizeOfCharacteristicInIEEE754Double} (2^11)
+	 * 
+	 * + The inverse function of this is: {@link #rawparseIEEE754SinglePrecision(float)}
+	 * 
+	 * @param significandFraction  must be an integer in the interval [0, 2^{@link #SizeOfSignificandInIEEE754Double})
+	 * @param characteristicOffsetEncoded  must be an integer in the interval [0, 2^{@link #SizeOfCharacteristicInIEEE754Double})
+	 */
+	public static double constructIEEE754DoublePrecision(boolean negative, long significandFraction, int characteristicOffsetEncoded)
+	{
+		return Double.longBitsToDouble(constructIEEE754DoublePrecisionBits(negative, significandFraction, characteristicOffsetEncoded));
+	}
+	
+	public static long constructIEEE754DoublePrecisionBits(boolean negative, long significandFraction, int characteristicOffsetEncoded)
+	{
+		if (significandFraction < 0)  throw new IllegalArgumentException();
+		if (significandFraction > ((1l << SizeOfSignificandInIEEE754Double) - 1))  throw new IllegalArgumentException();
+		if (characteristicOffsetEncoded < 0)  throw new IllegalArgumentException();
+		if (characteristicOffsetEncoded > ((1 << SizeOfCharacteristicInIEEE754Double) - 1))  throw new IllegalArgumentException();
+		
+		long bits = significandFraction;
+		bits |= (long)(characteristicOffsetEncoded) << SizeOfSignificandInIEEE754Double;
+		bits |= negative ? (1l << (SizeOfSignificandInIEEE754Double + SizeOfCharacteristicInIEEE754Double)) : 0;
+		return bits;
+	}
 	
 	
 	
