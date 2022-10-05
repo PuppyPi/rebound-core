@@ -1574,12 +1574,23 @@ p(primxp.primxp("""
 	
 	
 	
+	/**
+	 * @param value  note that if this is zero, this function will return true! because it's a zero-length string of 1's!
+	 */
 	public static boolean isContiguousOnes(long value)
 	{
 		value >>>= dcd64(getLowestOneBit(value)); //move all the potential 1 bits to the start
-		value += 1;
-		return value == 0 || getNumberOfOneBits(value) == 1; //(if we added something, and it's now zero, the only logical possibiliy is that it was OVER NINE THOUSAND (or, you know, right over 18,446,744,073,709,551.614 thousand XD ) )
+		return isContiguousOnesStartingWithFirst(value);
 	}
+	
+	@ImplementationTransparency
+	public static boolean _isContiguousOnes_b(long value)
+	{
+		value >>>= dcd64(getLowestOneBit(value)); //move all the potential 1 bits to the start
+		value += 1;
+		return value == 0 || hasSingleOneBit(value); //(if we added something, and it's now zero, the only logical possibiliy is that it was OVER NINE THOUSAND (or, you know, right over 18,446,744,073,709,551.614 thousand XD ) )
+	}
+	
 	
 	public static boolean isContiguousZeros(long value)
 	{
@@ -1614,6 +1625,71 @@ p(primxp.primxp("""
 	
 	
 	
+	/**
+	 * This tells if the given value is in the form 2^n - 1 (using unsigned arithmetic).
+	 * Or in bitwise arithmetic, (1 << n) - 1
+	 * 
+	 * • Note that this means that zero works because you can set n = 0 and have: 0 = (1l << 0) - 1
+	 * • And all 1's of course works because 2^64 - 1 = 64 bits of all ones X3, but take care that because Java's shifts are rotating not truncating, this is not true!: (1l << 64) - 1 = 64 bits of all ones
+	 * 
+	 * @param x  note that if this is zero, this function will return true! because it's a zero-length string of 1's!
+	 */
+	public static boolean isContiguousOnesStartingWithFirst(long x)
+	{
+		/*
+		 * Okay, let's say, binary incrementation (which is the same in unsigned and two's-complement, remember!) can be described as follows:
+		 * 
+		 * • Find the lowest 0-bit
+		 * • Set it to one
+		 * • Set all the bits below it to 0 (which may be none if it was the lowest bit)
+		 * 
+		 * • If there was no lowest 0-bit (x == all ones), set *all* bits to zero!
+		 * 
+		 * So if we say that all the bits above that lowest zero-bit are thus unchanged,
+		 * then that means that the bits of the low string of 1's changed (if any), and the lowest 0 changed.
+		 * 
+		 * And given x & f(x) wipes out any bits that f() flipped,
+		 * Then if that's all 0's, then any bits that didn't change must have already been 0's!
+		 * So the low string of 1's get flipped, the lowest 0 gets flipped, but any higher 1's past that initial string don't get flipped!
+		 * So if the result is all 0's, then this means it started with a contiguous string of 1 bits!! :D
+		 * 
+		 * However!
+		 * If the original value was all 0's, this is also true!
+		 * And if the original value was all 1's, then this is true (phew) :3
+		 */
+		
+		return (x & (x + 1)) == 0;
+	}
+	
+	/**
+	 * @param x  note that if this is zero, this function will return true! because it's a zero-length string of 1's!
+	 */
+	public static boolean isContiguousOnesStartingWithFirst(int x)
+	{
+		return (x & (x + 1)) == 0;
+	}
+	
+	
+	
+	
+	//TODO Test this! :D
+	public static boolean hasSingleOneBit(long x)
+	{
+		//return getNumberOfOneBits(x) == 1;
+		
+		/*
+		 * If it has a single one bit, then subtracting 1 will turn it into a contiguous mask value (a string of 1's) starting with the first bit.
+		 * However, if you provide zero here, it will still register because subtracting 1 from 0 will produce *alllllll* the 1's!
+		 * So we have to special-case that X3
+		 */
+		return x != 0 && isContiguousOnesStartingWithFirst(x - 1);
+	}
+	
+	public static boolean hasSingleOneBit(int x)
+	{
+		//return getNumberOfOneBits(x) == 1;
+		return x != 0 && isContiguousOnesStartingWithFirst(x - 1);
+	}
 	
 	
 	
@@ -5839,21 +5915,6 @@ for primA in intprims:
 	
 	
 	
-	
-	
-	
-	//TODO Test this! :D
-	public static boolean isPowerOf2(int x)
-	{
-		int m = x - 1;
-		return (x & m) == 0;
-	}
-	
-	public static boolean isPowerOf2(long x)
-	{
-		long m = x - 1;
-		return (x & m) == 0;
-	}
 	
 	
 	
