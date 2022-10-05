@@ -3461,6 +3461,8 @@ _$$primxpconf:noboolean$$_
 	/**
 	 * + Note that the unsigned version of this would just always be true XD
 	 * + Also note that if you could efficiently use unsigned arithmetic, you could just make the *new* interval's max bound and values be stored as unsigned integers of the same bitlength and everything would be fine! X'D
+	 * 		+ Note that both the new inclusive max bound (inclusiveMaximum - inclusiveMinimum) and the size / exclusive max bound (inclusiveMaximum - inclusiveMinimum + 1, unless inclusiveMaximum - inclusiveMinimum = 2^64-1, the *unsigned* max bound!) both will work in unsigned arithmetic because our signed numbers are two's-complement not one's-complement add/subtract are the same binary operations on bits regardless of twos-signed or unsigned interpretation of the bits!! :D
+	 * 			(I checked this a bit too, don't worry X3 )
 	 * @param inclusiveMaximum  inclusive is used so you can use {@link Long#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
 	 * @return if you can safely translate the given range by subtracting inclusiveMinimum from a value from [inclusiveMinimum, inclusiveMaximum] to [0, inclusiveMaximum - inclusiveMinimum], which has (inclusiveMaximum - inclusiveMinimum + 1) elements in it :3
 	 */
@@ -3535,6 +3537,12 @@ _$$primxpconf:noboolean$$_
 	
 	
 	/**
+	 * + Also note that if you could efficiently use unsigned arithmetic, you could just make the *new* interval's max bound and values be stored as unsigned integers of the same bitlength and everything would be fine! X'D
+	 * 		+ Note that both the new inclusive max bound (inclusiveMaximum - inclusiveMinimum) and the size / exclusive max bound (inclusiveMaximum - inclusiveMinimum + 1, unless inclusiveMaximum - inclusiveMinimum = 2^64-1, the *unsigned* max bound!) both will work in unsigned arithmetic because our signed numbers are two's-complement not one's-complement add/subtract are the same binary operations on bits regardless of twos-signed or unsigned interpretation of the bits!! :D
+	 * 			(I checked this a bit too, don't worry X3 )
+	 * 
+	 * + If this is true, {@link #isTranslatableToZero(long, long)} is also true, but not necessarily vice versa (logical implication).
+	 * 
 	 * @param inclusiveMaximum  inclusive is used so you can use {@link Long#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
 	 * @return if you can safely store the size of the given interval (inclusiveMaximum - inclusiveMinimum + 1) in a long without causing overflow!
 	 */
@@ -3655,8 +3663,7 @@ _$$primxpconf:noboolean$$_
 	
 	
 	/**
-	 * @param inclusiveMaximum  inclusive is used so you can use {@link Integer#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
-	 * @return if you can safely translate the given range by subtracting inclusiveMinimum from a value from [inclusiveMinimum, inclusiveMaximum] to [0, inclusiveMaximum - inclusiveMinimum], which has (inclusiveMaximum - inclusiveMinimum + 1) elements in it :3
+	 * @see #isTranslatableToZero(long, long)
 	 */
 	public static boolean isTranslatableToZero(@Signed int inclusiveMinimum, @Signed int inclusiveMaximum)
 	{
@@ -3669,8 +3676,7 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	/**
-	 * @param inclusiveMaximum  inclusive is used so you can use {@link Integer#MAX_VALUE} safely, which wouldn't be encodeable as an exclusive bound since that + 1 overflows to 0! ;3
-	 * @return if you can safely store the size of the given interval (inclusiveMaximum - inclusiveMinimum + 1) in an int without causing overflow!
+	 * @see #isIntervalSizeInRange(long, long)
 	 */
 	public static boolean isIntervalSizeInRange(@Signed int inclusiveMinimum, @Signed int inclusiveMaximum)
 	{
