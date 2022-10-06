@@ -1737,7 +1737,8 @@ public class CollectionUtilities
 	
 	
 	
-	
+	//TODO rename these from Generator to Iterator since that means something else now XD''
+	//	(..unless of course we decide to rename Generator to Explorer or something..since it is bidirectional and all XD'''   ..idk ^^'')
 	
 	public static <E> SimpleIterator<E> repeatingGenerator(E value, int number)
 	{
