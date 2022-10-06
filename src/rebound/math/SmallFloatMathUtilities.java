@@ -1960,6 +1960,7 @@ public class SmallFloatMathUtilities
 	
 	
 	//TODO rename rawparse to mathparse and rawrawparse to rawparse after finishing the interrupted edit to MathUtilities XD'''
+	//TODO instead of returning a whole int and long for the sign and characteristic, make a struct datatype for them, since we're already relying on JIT anyway! XD''
 	
 	/**
 	 * Except for non-finite special values, the resulting mathematical value is:
