@@ -252,10 +252,6 @@ implements JavaNamespace
 	
 	
 	
-	public static <E, S1 extends E, S2 extends E> E altIfNull(S1 value, S2 alternate)
-	{
-		return value != null ? value : alternate;
-	}
 	
 	
 	
