@@ -44,6 +44,7 @@ import rebound.exceptions.ResourceNotFoundException;
 import rebound.exceptions.UnsupportedOptionException;
 import rebound.exceptions.WrappedThrowableRuntimeException;
 import rebound.file.FSUtilities;
+import rebound.io.OpenableResource;
 import rebound.io.util.FSIOUtilities;
 import rebound.io.util.JRECompatIOUtilities;
 import rebound.io.util.TextIOUtilities;
@@ -944,6 +945,51 @@ implements JavaNamespace
 	
 	
 	
+	
+	
+	@Nonnull
+	public static byte[] loadBinaryResource(OpenableResource r) throws ResourceNotFoundException, ResourceLoadException
+	{
+		InputStream in = r.open();
+		
+		if (in == null)
+			throw new ResourceNotFoundException(r.toString());
+		
+		try
+		{
+			return JRECompatIOUtilities.readAll(in);
+		}
+		catch (IOException exc)
+		{
+			throw new ResourceLoadException(r.toString(), exc);
+		}
+		finally
+		{
+			closeWithoutError(in);
+		}
+	}
+	
+	@Nonnull
+	public static String loadTextResource(OpenableResource r, Charset encoding) throws ResourceNotFoundException, ResourceLoadException
+	{
+		InputStream in = r.open();
+		
+		if (in == null)
+			throw new ResourceNotFoundException(r.toString());
+		
+		try
+		{
+			return TextIOUtilities.readAllText(in, encoding);
+		}
+		catch (IOException exc)
+		{
+			throw new ResourceLoadException(r.toString(), exc);
+		}
+		finally
+		{
+			closeWithoutError(in);
+		}
+	}
 	
 	
 	
