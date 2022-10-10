@@ -2117,7 +2117,7 @@ public class SmallFloatMathUtilities
 	 * 		S = 2^{@link #SizeOfSignificandInIEEE754Single} (2^23)
 	 * 		C = 2^{@link #SizeOfCharacteristicInIEEE754Single} (2^8)
 	 * 
-	 * + The inverse function of this is: {@link #rawparseIEEE754DoublePrecision(double)}
+	 * + The inverse function of this is: {@link #rawrawparseIEEE754SinglePrecision(float)}
 	 * 
 	 * @param significandFraction  must be an integer in the interval [0, 2^{@link #SizeOfSignificandInIEEE754Single})
 	 * @param characteristicOffsetEncoded  must be an integer in the interval [0, 2^{@link #SizeOfCharacteristicInIEEE754Single})
@@ -2160,7 +2160,7 @@ public class SmallFloatMathUtilities
 	 * 		S = 2^{@link #SizeOfSignificandInIEEE754Double} (2^52)
 	 * 		C = 2^{@link #SizeOfCharacteristicInIEEE754Double} (2^11)
 	 * 
-	 * + The inverse function of this is: {@link #rawparseIEEE754SinglePrecision(float)}
+	 * + The inverse function of this is: {@link #rawrawparseIEEE754DoublePrecision(double)}
 	 * 
 	 * @param significandFraction  must be an integer in the interval [0, 2^{@link #SizeOfSignificandInIEEE754Double})
 	 * @param characteristicOffsetEncoded  must be an integer in the interval [0, 2^{@link #SizeOfCharacteristicInIEEE754Double})
