@@ -2108,8 +2108,8 @@ public class SmallFloatMathUtilities
 	 * + The IEEE754 documentation calls the second part the exponent, but that already means something else, like mantissa.  The unique name is "characteristic".
 	 * + The IEEE754 documentation does calls the first part the significand though, not the mantissa (which already means something else).
 	 * 
-	 * In pure mathematics (but in Java syntax), this returns exactly:    (c != C-1)  ?  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c == 0 ? (2 - C/2) : (c - (C/2-1))))  :  (s != 0 ? NaN : (n ? -Infinity : +Infinity))
-	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c # C-1)  then  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(if c = 0 then (2 - C/2) else (c - (C/2-1))))  else  (if s # 0 then nan else (if n then minf else inf))
+	 * In pure mathematics (but in Java syntax), this returns exactly:    (c == C-1)  ?  (s == 0 ? (n ? -Infinity : +Infinity) : NaN)  :  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c == 0 ? (2 - C/2) : (c - (C/2-1))))
+	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c = C-1)  then  (if s = 0 then (if n then minf else inf) else nan)  else  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(if c = 0 then (2 - C/2) else (c - (C/2-1))))
 	 * Where
 	 * 		n = <code>negative</code> (still boolean)
 	 * 		s = <code>significandFraction</code> (still integer)
@@ -2151,8 +2151,8 @@ public class SmallFloatMathUtilities
 	 * + The IEEE754 documentation calls the second part the exponent, but that already means something else, like mantissa.  The unique name is "characteristic".
 	 * + The IEEE754 documentation does calls the first part the significand though, not the mantissa (which already means something else).
 	 * 
-	 * In pure mathematics (but in Java syntax), this returns exactly:    (c != C-1)  ?  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c == 0 ? (2 - C/2) : (c - (C/2-1))))  :  (s != 0 ? NaN : (n ? -Infinity : +Infinity))
-	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c # C-1)  then  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(if c = 0 then (2 - C/2) else (c - (C/2-1))))  else  (if s # 0 then nan else (if n then minf else inf))
+	 * In pure mathematics (but in Java syntax), this returns exactly:    (c == C-1)  ?  (s == 0 ? (n ? -Infinity : +Infinity) : NaN)  :  ((n ? -1 : 1) * ((c == 0 ? 0 : 1) + s / S) * 2^(c == 0 ? (2 - C/2) : (c - (C/2-1))))
+	 * In pure mathematics (but in Maxima syntax), this returns exactly:  if (c = C-1)  then  (if s = 0 then (if n then minf else inf) else nan)  else  ((if n then -1 else 1) * ((if c = 0 then 0 else 1) + s / S) * 2^(if c = 0 then (2 - C/2) else (c - (C/2-1))))
 	 * Where
 	 * 		n = <code>negative</code> (still boolean)
 	 * 		s = <code>significandFraction</code> (still integer)
