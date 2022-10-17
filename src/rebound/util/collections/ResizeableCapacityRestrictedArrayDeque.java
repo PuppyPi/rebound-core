@@ -23,7 +23,7 @@ implements ResizeableCapacityRestrictedCollection<E>, Deque<E>
 	@Override
 	public int getMaxCapacity()
 	{
-		return Integer.MAX_VALUE;  //just don't cause an out of memory error 8)''
+		return Integer.MAX_VALUE;  //just don't cause an out of memory error, user 8)''
 	}
 	
 	@Override
