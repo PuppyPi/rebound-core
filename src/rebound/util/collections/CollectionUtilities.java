@@ -6646,6 +6646,24 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <E> E defaultGetRandomAccess(Iterable<E> list, @Nonnegative int index)
+	{
+		requireNonNull(list);
+		requireNonNegative(index);
+		
+		int i = 0;
+		for (E e : list)
+		{
+			if (i == index)
+				return e;
+			i++;
+		}
+		
+		throw new IndexOutOfBoundsException("The iterable yielded only "+i+" elements, but we wanted the "+index+"th one (starting at 0).");
+	}
+	
+	
+	
 	public static <E> int defaultListIndexOf(Iterable<E> list, Object item, EqualityComparator<E> equalityComparator)
 	{
 		int i = 0;
