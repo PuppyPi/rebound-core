@@ -116,6 +116,23 @@ public class CodeHinting
 		return x[0];
 	}
 	
+	/**
+	 * This indicates that truly any java.lang.Object could be used (eg, for synchronized/wait/notify, or as an opaque map key, etc.)
+	 * and the one given is just for performance.
+	 */
+	public static Object arbitraryObject(Object x)
+	{
+		return x;
+	}
+	
+	/**
+	 * This indicates that truly any java.lang.Object could be used (eg, for synchronized/wait/notify, or as an opaque map key, etc.)
+	 */
+	public static Object arbitraryObject()
+	{
+		return new Object();
+	}
+	
 	
 	
 	
