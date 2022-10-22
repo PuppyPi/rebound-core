@@ -5419,6 +5419,26 @@ _$$primxpconf:byte,char,short,int$$_
 		return has ? just(i) : nothing();
 	}
 	
+	public static <E> boolean containsAny(Collection<E> a, Collection<E> b) throws NotSingletonException
+	{
+		//Todo make a trait predicate for it!
+		
+		if (b.size() < a.size())
+		{
+			Collection<E> c = b;
+			b = a;
+			a = c;
+		}
+		
+		//now a is the smaller :3
+		
+		for (E e : a)
+			if (b.contains(e))
+				return true;
+		
+		return false;
+	}
+	
 	
 	public static <E> Set<E> anysection(Set<E>... sets) //AND (2:8), 3:200, 4:65256, ...
 	{
