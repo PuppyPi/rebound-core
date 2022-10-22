@@ -5423,14 +5423,23 @@ _$$primxpconf:byte,char,short,int$$_
 	{
 		//Todo make a trait predicate for it!
 		
-		if (b.size() < a.size())
+		if (a instanceof Set == b instanceof Set)  //Todo a trait predicate for containsIsFast beyond just Set's!  (and for Set's which have a slow .contains() to override and give false! like ListBackedSet!)
+		{
+			if (b.size() < a.size())
+			{
+				Collection<E> c = b;
+				b = a;
+				a = c;
+			}
+		}
+		else if (a instanceof Set)
 		{
 			Collection<E> c = b;
 			b = a;
 			a = c;
 		}
 		
-		//now a is the smaller :3
+		//now b has a faster .contains() and/or a is the smaller :3
 		
 		for (E e : a)
 			if (b.contains(e))
