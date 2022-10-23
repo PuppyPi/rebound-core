@@ -7565,6 +7565,23 @@ _$$primxpconf:byte,char,short,int$$_
 		return map;
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Note: if the function returns null, then the entry will be skipped!  So this combines map and filter in one! :D
+	 */
+	public static <K, V> Map<K, V> rimap(Iterable<Entry<K, V>> input) throws NonReverseInjectiveMapException
+	{
+		return maptodict(e -> e, input);
+	}
+	
+	
 	/**
 	 * Note: if the function returns null, then the entry will be skipped!  So this combines map and filter in one! :D
 	 */
