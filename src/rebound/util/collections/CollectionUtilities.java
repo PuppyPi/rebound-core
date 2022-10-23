@@ -13329,6 +13329,9 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	/**
+	 * @param function  the first argument will always be either <code>identity</code> or the output from a previous invocation, and the second argument will always be an element from the input list ({@link Iterable}) :3
+	 */
 	public static <E> E reduceWithIdentity(BinaryFunction<E, E, E> function, E identity, Iterable<E> inputs)
 	{
 		E current = identity;
