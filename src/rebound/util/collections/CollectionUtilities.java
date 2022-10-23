@@ -12752,7 +12752,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	@ReadonlyValue
-	@SnapshotValue
+	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<List<E>> simpleMergeOPC(BinaryFunctionToBoolean<List<E>, List<E>> shouldMerge, List<List<E>> input)
 	{
 		return mergeOPC(shouldMerge, (List<List<E>> l) -> singletonList(concatenateManyListsOPC(l)), input);
