@@ -1,6 +1,7 @@
 package rebound.util.uid;
 
 import static java.util.Objects.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import java.io.EOFException;
 import java.util.HashMap;
@@ -198,7 +199,45 @@ public class UIDUtilities
 	
 	
 	
-	
+	public static boolean isRecommendedShortUID(@Nonnull ByteList fourByteID)
+	{
+		requireNonNull(fourByteID);
+		
+		if (fourByteID.size() != 4)
+			throw new IllegalArgumentException();
+		
+		byte b0 = fourByteID.getByte(0);
+		byte b1 = fourByteID.getByte(1);
+		byte b2 = fourByteID.getByte(2);
+		byte b3 = fourByteID.getByte(3);
+		
+		if (b0 < 0x10 || b0 >= 0x80)
+			return false;
+		else
+		{
+			int n0 = (b0 & 0xF0) >>> 4;
+			int n1 = (b0 & 0x0F);
+			int n2 = (b1 & 0xF0) >>> 4;
+			int n3 = (b1 & 0x0F);
+			int n4 = (b2 & 0xF0) >>> 4;
+			int n5 = (b2 & 0x0F);
+			int n6 = (b3 & 0xF0) >>> 4;
+			int n7 = (b3 & 0x0F);
+			
+			boolean d0 = n0 < 10;
+			boolean d1 = n1 < 10;
+			boolean d2 = n2 < 10;
+			boolean d3 = n3 < 10;
+			boolean d4 = n4 < 10;
+			boolean d5 = n5 < 10;
+			boolean d6 = n6 < 10;
+			boolean d7 = n7 < 10;
+			
+			asrt(d0);
+			
+			return !(d1 && d2 && d3 && d4 && d5 && d6 && d7);
+		}
+	}
 	
 	
 	
