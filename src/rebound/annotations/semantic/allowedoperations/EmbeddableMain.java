@@ -7,6 +7,7 @@ package rebound.annotations.semantic.allowedoperations;
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import rebound.annotations.semantic.temporal.NeverReturns;
 
 /**
  * The method tagged with this is (subjectively) like a <code>public static void main(String[] args)</code> method (whether it has that signature/name or not)
@@ -20,6 +21,8 @@ import java.lang.annotation.RetentionPolicy;
  * Contrast with {@link UnembeddableMain}.
  * 
  * @see UnembeddableMain
+ * @see UnembeddableMainOnlyOnError
+ * @see NeverReturns
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
