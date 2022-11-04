@@ -12,7 +12,7 @@ extends Executor
 	 * And so if it blocked, the whole thread would be deadlocked forever XD''
 	 * (Whether this throws an exception or just accommodates it depends on the implementation, but it *must not block!!*)
 	 */
-	public void executeNonblockingly(Runnable command);
+	public void executeNonblockingly(Runnable task);
 	
 	
 	
@@ -24,15 +24,15 @@ extends Executor
 		return new ExecutorWithBlockingOverride()
 		{
 			@Override
-			public void execute(Runnable command)
+			public void execute(Runnable task)
 			{
-				e.execute(command);
+				e.execute(task);
 			}
 			
 			@Override
-			public void executeNonblockingly(Runnable command)
+			public void executeNonblockingly(Runnable task)
 			{
-				e.execute(command);
+				e.execute(task);
 			}
 		};
 	}
