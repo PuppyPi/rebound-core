@@ -16,6 +16,7 @@ import rebound.annotations.semantic.simpledata.Positive;
 import rebound.concurrency.blocks.ResizeableCapacityRestrictedCollection;
 import rebound.exceptions.CapacityReachedException;
 
+@NotThreadSafe
 public class ResizeableCapacityRestrictedifyingDequeWrapper<E>
 implements ResizeableCapacityRestrictedCollection<E>, Deque<E>
 {
