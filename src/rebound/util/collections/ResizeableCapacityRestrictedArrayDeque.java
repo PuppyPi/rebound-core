@@ -9,6 +9,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.concurrency.blocks.ResizeableCapacityRestrictedCollection;
 import rebound.exceptions.CapacityReachedException;
 
@@ -16,26 +17,36 @@ public class ResizeableCapacityRestrictedArrayDeque<E>
 implements ResizeableCapacityRestrictedCollection<E>, Deque<E>
 {
 	protected Deque<E> underlying = new ArrayDeque<>();
-	protected int capacity = Integer.MAX_VALUE;
+	protected int capacity;
 	
+	
+	public ResizeableCapacityRestrictedArrayDeque()
+	{
+		this(Integer.MAX_VALUE);
+	}
+	
+	public ResizeableCapacityRestrictedArrayDeque(@Positive int initialCapacity)
+	{
+		this.capacity = requirePositive(initialCapacity);
+	}
 	
 	
 	@Override
-	public int getMaxCapacity()
+	public @Positive int getMaxCapacity()
 	{
 		return Integer.MAX_VALUE;  //just don't cause an out of memory error, user 8)''
 	}
 	
 	@Override
-	public int getCapacity()
+	public @Positive int getCapacity()
 	{
 		return this.capacity;
 	}
 	
 	@Override
-	public void setCapacity(int capacity) throws IllegalArgumentException
+	public void setCapacity(@Positive int capacity) throws IllegalArgumentException
 	{
-		requireNonNegative(capacity);
+		requirePositive(capacity);
 		
 		if (capacity < size())
 			throw new IllegalArgumentException();
