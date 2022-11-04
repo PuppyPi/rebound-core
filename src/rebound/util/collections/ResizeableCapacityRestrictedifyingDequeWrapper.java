@@ -1,5 +1,6 @@
 package rebound.util.collections;
 
+import static java.util.Objects.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.util.ArrayDeque;
 import java.util.Collection;
@@ -9,26 +10,40 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.NotThreadSafe;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.concurrency.blocks.ResizeableCapacityRestrictedCollection;
 import rebound.exceptions.CapacityReachedException;
 
-public class ResizeableCapacityRestrictedArrayDeque<E>
+public class ResizeableCapacityRestrictedifyingDequeWrapper<E>
 implements ResizeableCapacityRestrictedCollection<E>, Deque<E>
 {
-	protected Deque<E> underlying = new ArrayDeque<>();
+	protected final Deque<E> underlying;
 	protected int capacity;
 	
 	
-	public ResizeableCapacityRestrictedArrayDeque()
+	public ResizeableCapacityRestrictedifyingDequeWrapper()
 	{
 		this(Integer.MAX_VALUE);
 	}
 	
-	public ResizeableCapacityRestrictedArrayDeque(@Positive int initialCapacity)
+	public ResizeableCapacityRestrictedifyingDequeWrapper(@Positive int initialCapacity)
 	{
+		this(new ArrayDeque<>(), initialCapacity);
+	}
+	
+	public ResizeableCapacityRestrictedifyingDequeWrapper(@Nonnull Deque<E> underlying)
+	{
+		this(underlying, Integer.MAX_VALUE);
+	}
+	
+	public ResizeableCapacityRestrictedifyingDequeWrapper(@Nonnull Deque<E> underlying, @Positive int initialCapacity)
+	{
+		this.underlying = requireNonNull(underlying);
 		this.capacity = requirePositive(initialCapacity);
 	}
+	
 	
 	
 	@Override
