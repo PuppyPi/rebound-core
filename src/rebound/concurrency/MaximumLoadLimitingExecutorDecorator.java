@@ -6,7 +6,7 @@ import java.util.concurrent.Semaphore;
 import javax.annotation.Nonnull;
 
 public class MaximumLoadLimitingExecutorDecorator
-implements Executor
+implements ExecutorWithBlockingOverride
 {
 	protected final @Nonnull Executor underlying;
 	protected final Semaphore actives;
@@ -33,5 +33,11 @@ implements Executor
 				actives.release();
 			}
 		});
+	}
+	
+	@Override
+	public void executeNonblockingly(Runnable command)
+	{
+		this.underlying.execute(command);
 	}
 }
