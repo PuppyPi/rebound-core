@@ -56,4 +56,23 @@ public class SimpleMonitor
 			this.notifyAll();  //this requires having the synchronized() lock, as per the Java spec!
 		}
 	}
+	
+	
+	/**
+	 * Just like {@link #notifyDone()} but throws {@link IllegalStateException} if it's not the first to done-ify it!
+	 */
+	@AnyThreads
+	@Nonblocking
+	@IdempotentOperation
+	public void notifyDoneFirstTime() throws IllegalStateException
+	{
+		synchronized (this)
+		{
+			if (done)
+				throw new IllegalStateException();
+			
+			done = true;
+			this.notifyAll();  //this requires having the synchronized() lock, as per the Java spec!
+		}
+	}
 }
