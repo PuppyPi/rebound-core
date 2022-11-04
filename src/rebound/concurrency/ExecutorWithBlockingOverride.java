@@ -12,5 +12,28 @@ extends Executor
 	 * And so if it blocked, the whole thread would be deadlocked forever XD''
 	 * (Whether this throws an exception or just accommodates it depends on the implementation, but it *must not block!!*)
 	 */
-    public void executeNonblockingly(Runnable command);
+	public void executeNonblockingly(Runnable command);
+	
+	
+	
+	
+	
+	
+	public static ExecutorWithBlockingOverride fromExecutorThatDoesntBlockAnyway(Executor e)
+	{
+		return new ExecutorWithBlockingOverride()
+		{
+			@Override
+			public void execute(Runnable command)
+			{
+				e.execute(command);
+			}
+
+			@Override
+			public void executeNonblockingly(Runnable command)
+			{
+				e.execute(command);
+			}
+		};
+	}
 }
