@@ -18,7 +18,7 @@ implements ExecutorWithBlockingOverride
 	}
 	
 	@Override
-	public void execute(Runnable command)
+	public void execute(Runnable task)
 	{
 		actives.acquireUninterruptibly();
 		
@@ -26,7 +26,7 @@ implements ExecutorWithBlockingOverride
 		{
 			try
 			{
-				command.run();
+				task.run();
 			}
 			finally
 			{
@@ -36,8 +36,8 @@ implements ExecutorWithBlockingOverride
 	}
 	
 	@Override
-	public void executeNonblockingly(Runnable command)
+	public void executeNonblockingly(Runnable task)
 	{
-		this.underlying.execute(command);
+		this.underlying.execute(task);
 	}
 }
