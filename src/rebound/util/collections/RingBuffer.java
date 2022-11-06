@@ -1,6 +1,7 @@
 package rebound.util.collections;
 
 import static rebound.math.SmallIntegerMathUtilities.*;
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.temporal.concurrencyprimitives.threadspecification.AnyThreads;
@@ -76,7 +77,7 @@ public class RingBuffer
 	 * 
 	 * @param update  if false, this just peeks at the available region, otherwise it actually moves the buffer!
 	 */
-	public Interval allocate(int amount, boolean update)
+	public @Nonnull Interval allocate(int amount, boolean update)
 	{
 		requireNonNegative(amount);
 		
@@ -126,7 +127,7 @@ public class RingBuffer
 	 * 
 	 * @param update  if false, this just peeks at the available region, otherwise it actually moves the buffer!
 	 */
-	public Interval deallocate(int amount, boolean update)
+	public @Nonnull Interval deallocate(int amount, boolean update)
 	{
 		requireNonNegative(amount);
 		
