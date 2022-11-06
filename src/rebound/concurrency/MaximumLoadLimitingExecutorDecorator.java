@@ -14,7 +14,7 @@ implements ExecutorWithBlockingOverride
 	public MaximumLoadLimitingExecutorDecorator(@Nonnull Executor underlying, int maximumAllowedTasksBeforeBlockingEnqueueingMore)
 	{
 		this.underlying = requireNonNull(underlying);
-		this.actives = new Semaphore(maximumAllowedTasksBeforeBlockingEnqueueingMore);
+		this.actives = new Semaphore(maximumAllowedTasksBeforeBlockingEnqueueingMore, true);
 	}
 	
 	@Override
