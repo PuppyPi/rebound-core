@@ -15058,4 +15058,19 @@ _$$primxpconf:byte,char,short,int$$_
 		
 		return i;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> E getRandomElement(Collection<E> elements, UnaryFunctionIntToInt pullIntegerZeroToExclusiveHighBound)
+	{
+		if (CollectionWithGetRandomElement.is(elements))
+			return ((CollectionWithGetRandomElement<E>)elements).getRandomElement(pullIntegerZeroToExclusiveHighBound);
+		else
+			return defaultGetRandomAccess(elements, pullIntegerZeroToExclusiveHighBound.f(elements.size()));
+	}
 }

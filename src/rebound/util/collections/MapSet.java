@@ -11,13 +11,18 @@ import java.util.Map;
 import java.util.Set;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToOptionallyBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.util.collections.maps.IndexableCollection;
+import rebound.util.collections.maps.IndexableMap;
+import rebound.util.collections.maps.MapWithGetRandomEntry;
+import rebound.util.functional.FunctionInterfaces.NullaryFunction;
+import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToInt;
 
 /**
  * Note: Supports weak-keyed underlying maps! :D
  */
 public class MapSet<E, V>
 extends AbstractSet<E>
-implements CollectionWithGetArbitraryElement<E>, CollectionWithPopArbitraryElement<E>, CollectionWithGetExtantInstanceNatural<E>
+implements CollectionWithGetArbitraryElement<E>, CollectionWithPopArbitraryElement<E>, CollectionWithGetExtantInstanceNatural<E>, CollectionWithGetRandomElement<E>, IndexableCollection<E>
 {
 	protected Map<E, V> underlyingMap;
 	
@@ -31,6 +36,12 @@ implements CollectionWithGetArbitraryElement<E>, CollectionWithPopArbitraryEleme
 	public MapSet(Map<E, V> underlyingMap)
 	{
 		this.underlyingMap = underlyingMap;
+	}
+	
+	
+	public static <E> Set<E> fromTypicalMapMaker(NullaryFunction<Map<E, E>> mapMaker)
+	{
+		return new MapSet<E, E>(mapMaker.f());
 	}
 	
 	
@@ -185,6 +196,33 @@ implements CollectionWithGetArbitraryElement<E>, CollectionWithPopArbitraryEleme
 		return (E)this.underlyingMap.get(possiblyEquivalentButDifferentInstance);
 	}
 	
+	
+	
+	@Override
+	public E getRandomElement(UnaryFunctionIntToInt pullIntegerZeroToExclusiveHighBound)
+	{
+		return ((MapWithGetRandomEntry<E, V>)underlyingMap).getRandomKey(pullIntegerZeroToExclusiveHighBound);
+	}
+	
+	@Override
+	public boolean isCollectionWithGetRandomElement()
+	{
+		return MapWithGetRandomEntry.is(underlyingMap);
+	}
+	
+	
+	
+	@Override
+	public E getByIndex(int index)
+	{
+		return ((IndexableMap<E, V>)underlyingMap).getKeyByIndex(index);
+	}
+	
+	@Override
+	public boolean isIndexableCollection()
+	{
+		return IndexableMap.is(underlyingMap);
+	}
 	
 	
 	
