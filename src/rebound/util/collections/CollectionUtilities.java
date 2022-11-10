@@ -110,6 +110,7 @@ import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
 import rebound.util.collections.maps.MapWithBoundKeyEqualityComparator;
 import rebound.util.collections.maps.MapWithBoundValueEqualityComparator;
+import rebound.util.collections.maps.MapWithGetRandomEntry;
 import rebound.util.collections.maps.WeakKeyedMap;
 import rebound.util.collections.maps.WeakValuedMap;
 import rebound.util.collections.prim.PrimitiveCollection;
@@ -15072,5 +15073,30 @@ _$$primxpconf:byte,char,short,int$$_
 			return ((CollectionWithGetRandomElement<E>)elements).getRandomElement(pullIntegerZeroToExclusiveHighBound);
 		else
 			return defaultGetRandomAccess(elements, pullIntegerZeroToExclusiveHighBound.f(elements.size()));
+	}
+	
+	
+	public static <K, V> K getRandomKey(Map<K, V> map, UnaryFunctionIntToInt pullIntegerZeroToExclusiveHighBound)
+	{
+		if (MapWithGetRandomEntry.is(map))
+			return ((MapWithGetRandomEntry<K, V>)map).getRandomKey(pullIntegerZeroToExclusiveHighBound);
+		else
+			return getRandomElement(map.keySet(), pullIntegerZeroToExclusiveHighBound);
+	}
+	
+	public static <K, V> V getRandomValue(Map<K, V> map, UnaryFunctionIntToInt pullIntegerZeroToExclusiveHighBound)
+	{
+		if (MapWithGetRandomEntry.is(map))
+			return ((MapWithGetRandomEntry<K, V>)map).getRandomValue(pullIntegerZeroToExclusiveHighBound);
+		else
+			return getRandomElement(map.values(), pullIntegerZeroToExclusiveHighBound);
+	}
+	
+	public static <K, V> Entry<K, V> getRandomEntry(Map<K, V> map, UnaryFunctionIntToInt pullIntegerZeroToExclusiveHighBound)
+	{
+		if (MapWithGetRandomEntry.is(map))
+			return ((MapWithGetRandomEntry<K, V>)map).getRandomEntry(pullIntegerZeroToExclusiveHighBound);
+		else
+			return getRandomElement(map.entrySet(), pullIntegerZeroToExclusiveHighBound);
 	}
 }
