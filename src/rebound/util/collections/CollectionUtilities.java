@@ -6245,28 +6245,30 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static <E> boolean defaultListsEquivalentDeep(List<? extends E> a, List<? extends E> b)
+	public static <E> boolean defaultListsEquivalentDeep(@Nullable List<? extends E> a, @Nullable List<? extends E> b)
 	{
 		return defaultListsEquivalent(a, b, (x, y) -> x instanceof List && y instanceof List ? defaultListsEquivalentDeep((List)x, (List)y) : eq(x, y));
 	}
 	
-	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b)
+	public static <E> boolean defaultListsEquivalent(@Nullable List<? extends E> a, @Nullable List<? extends E> b)
 	{
 		return defaultListsEquivalent(a, b, getDefaultEqualityComparator());
 	}
 	
-	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b, EqualityComparator<E> equalityComparator)
+	public static <E> boolean defaultListsEquivalent(@Nullable List<? extends E> a, @Nullable List<? extends E> b, EqualityComparator<E> equalityComparator)
 	{
 		if (a == b) return true;
 		if (a == null || b == null) return false;
 		
-		int as = a.size();
-		int bs = b.size();
-		
-		if (as != bs)
+		return defaultListsEquivalent(a.size(), a, b.size(), b, equalityComparator);
+	}
+	
+	public static <E> boolean defaultListsEquivalent(int aSize, @Nonnull Iterable<? extends E> a, int bSize, @Nonnull Iterable<? extends E> b, EqualityComparator<E> equalityComparator)
+	{
+		if (aSize != bSize)
 			return false;
 		
-		if (arbitrary(as, bs) == 0)
+		if (arbitrary(aSize, bSize) == 0)
 			return true;
 		
 		
