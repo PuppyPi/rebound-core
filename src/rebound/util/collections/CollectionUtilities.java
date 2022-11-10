@@ -6252,7 +6252,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b)
 	{
-		return defaultListsEquivalent(a, b, (EqualityComparator)getDefaultEqualityComparator());
+		return defaultListsEquivalent(a, b, getDefaultEqualityComparator());
 	}
 	
 	public static <E> boolean defaultListsEquivalent(List<? extends E> a, List<? extends E> b, EqualityComparator<E> equalityComparator)
