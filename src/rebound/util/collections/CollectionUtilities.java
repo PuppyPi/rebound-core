@@ -6418,6 +6418,11 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static <E> boolean defaultMultiSetsEquivalent_SmallNaive(Collection<? extends E> a, Collection<? extends E> b)
+	{
+		return defaultMultiSetsEquivalent_SmallNaive(a, b, getDefaultEqualityComparator());
+	}
+	
 	public static <E> boolean defaultMultiSetsEquivalent_SmallNaive(Collection<? extends E> a, Collection<? extends E> b, EqualityComparator<E> eq)
 	{
 		if (a == b) return true;
