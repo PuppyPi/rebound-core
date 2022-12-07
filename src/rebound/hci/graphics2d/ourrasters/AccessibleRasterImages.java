@@ -15,6 +15,7 @@ import rebound.exceptions.NotYetImplementedException;
 import rebound.hci.graphics2d.ourrasters.AbstractAccessibleInterleavedRasterImageArray.SimpleAccessibleInterleavedRasterImageArrayByte;
 import rebound.hci.graphics2d.ourrasters.AbstractAccessibleInterleavedRasterImageArray.SimpleAccessibleInterleavedRasterImageArrayInt;
 import rebound.hci.graphics2d.ourrasters.AbstractAccessibleInterleavedRasterImageArray.SimpleAccessibleInterleavedRasterImageArrayShort;
+import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImage.AccessibleInterleavedRasterImageArray;
 import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImage.AccessibleInterleavedRasterImageArray.AccessibleInterleavedRasterImageArrayByte;
 import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImage.AccessibleInterleavedRasterImageArray.AccessibleInterleavedRasterImageArrayInt;
 import rebound.hci.graphics2d.ourrasters.AccessibleInterleavedRasterImage.AccessibleInterleavedRasterImageArray.AccessibleInterleavedRasterImageArrayShort;
@@ -335,8 +336,8 @@ public class AccessibleRasterImages
 		{
 			int[] src = (int[]) source.getUnderlyingBacking();
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -365,8 +366,8 @@ public class AccessibleRasterImages
 			byte[] src = (byte[]) source.getUnderlyingBacking();
 			final int srcBytesPerPixel = 4;
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -395,8 +396,8 @@ public class AccessibleRasterImages
 			byte[] src = (byte[]) source.getUnderlyingBacking();
 			final int srcBytesPerPixel = 3;
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -540,8 +541,8 @@ public class AccessibleRasterImages
 			{
 				int[] src = (int[]) source.getUnderlyingBacking();
 				int[] dst = (int[]) dest.getUnderlyingBacking();
-				int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-				int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+				int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+				int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 				
 				int sS = source.getWidth();
 				int dS = dest.getWidth();
@@ -665,8 +666,8 @@ public class AccessibleRasterImages
 		{
 			int[] src = (int[]) source.getUnderlyingBacking();
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -782,8 +783,8 @@ public class AccessibleRasterImages
 		{
 			int[] src = (int[]) source.getUnderlyingBacking();
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -1126,8 +1127,8 @@ public class AccessibleRasterImages
 		{
 			int[] src = (int[]) source.getUnderlyingBacking();
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int srcOffset = ((AccessibleInterleavedRasterImageArrayInt)source).getUnderlyingBackingOffsetInElements();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int srcOffset = ((AccessibleInterleavedRasterImageArray)source).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int sS = source.getWidth();
 			int dS = dest.getWidth();
@@ -1192,7 +1193,7 @@ public class AccessibleRasterImages
 		if (dest.getUnderlyingBacking() instanceof int[] && dest.getPixelFormat().getBits() == 32)
 		{
 			int[] dst = (int[]) dest.getUnderlyingBacking();
-			int dstOffset = ((AccessibleInterleavedRasterImageArrayInt)dest).getUnderlyingBackingOffsetInElements();
+			int dstOffset = ((AccessibleInterleavedRasterImageArray)dest).getUnderlyingBackingOffsetInElements();
 			
 			int dS = dest.getWidth();
 			
