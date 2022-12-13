@@ -527,11 +527,17 @@ implements JavaNamespace
 	
 	
 	
+	public static String replaceAll(String original, String simpleCaseSensitiveNonregexPattern, String replacement)
+	{
+		return replaceAll(original, simpleCaseSensitiveNonregexPattern, (a, b) -> replacement);
+	}
+	
+	
+	
 	public static interface ReplacementBoss
 	{
 		public String whatDoBoss(int replacementIndex, String matchingSubstring);
 	}
-	
 	
 	public static String replaceAll(String original, String simpleCaseSensitiveNonregexPattern, ReplacementBoss replacementBoss)
 	{
