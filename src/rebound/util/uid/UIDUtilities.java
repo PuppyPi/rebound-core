@@ -72,10 +72,10 @@ public class UIDUtilities
 	{
 		requireNonNull(bytes);
 		
-		//return DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_UPPERCASE);
+		//return DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_LOWERCASE);
 		
 		
-		String s = DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_UPPERCASE);
+		String s = DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_LOWERCASE);  //Lowercase by default because Eclipse scans across it as one token and life is easier XD'  (also it's less shouty X3 )
 		
 		//s = StringUtilities.reverse(s);  //DEU only does big-endian nibbles XP
 		
