@@ -2745,4 +2745,49 @@ public class SmallFloatMathUtilities
 	{
 		return Math.log(x) / Math.log(base);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Works for negative zero!
+	 */
+	public static boolean rawIsNegative(double x)
+	{
+		return (Double.doubleToRawLongBits(x) & (1l << 63l)) != 0;
+	}
+	
+	/**
+	 * Works for negative zero!
+	 */
+	public static boolean rawIsNegative(float x)
+	{
+		return (Float.floatToRawIntBits(x) & (1l << 31l)) != 0;
+	}
+	
+	public static boolean isNegativeZero(double x)
+	{
+		return Double.doubleToRawLongBits(x) == 0b10000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000l;
+	}
+	
+	public static boolean isNegativeZero(float x)
+	{
+		return Float.floatToRawIntBits(x) == 0b10000000_00000000_00000000_00000000;
+	}
+	
+	
+	public static double canonicalizeAwayNegativeZero(double x)
+	{
+		return isNegativeZero(x) ? +0 : x;
+	}
+	
+	public static float canonicalizeAwayNegativeZero(float x)
+	{
+		return isNegativeZero(x) ? +0 : x;
+	}
 }
