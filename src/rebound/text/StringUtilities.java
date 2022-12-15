@@ -9,6 +9,7 @@ import static java.lang.Math.*;
 import static java.util.Objects.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
+import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
@@ -36,6 +37,7 @@ import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.MalformedInputException;
 import java.nio.charset.StandardCharsets;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -9552,5 +9554,41 @@ primxp
 	public static boolean matchesWildcardPatternGenericStrings(int candidateLength, boolean wildcardOnStart, List<String> wildcardPattern, boolean wildcardOnEnd, BinaryFunction<String, Integer, Integer> indexOf) throws IllegalArgumentException
 	{
 		return matchesWildcardPatternGeneric(candidateLength, wildcardOnStart, wildcardPattern.size(), eIndex -> wildcardPattern.get(eIndex).length(), wildcardOnEnd, (eIndex, start) -> indexOf.f(wildcardPattern.get(eIndex), start));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//Todo a more efficient way of doing this ^^'   (and update the tests for LeastPositiveSubnormalDouble if that changes!)
+	////////////////////////////////////////////////////////////0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049
+	protected static final DecimalFormat f = new DecimalFormat("0.0########################################################################################################################################################################################################################################################################################################################################");
+	
+	public static String doubleToStringExponentless(double v)
+	{
+		if (isNaN(v))
+			return "NaN";
+		else if (v == Double.POSITIVE_INFINITY)
+			return "Infinity";
+		else if (v == Double.NEGATIVE_INFINITY)
+			return "-Infinity";
+		else
+			return f.format(v);
+	}
+	
+	public static String floatToStringExponentless(float v)
+	{
+		if (isNaN(v))
+			return "NaN";
+		else if (v == Float.POSITIVE_INFINITY)
+			return "Infinity";
+		else if (v == Float.NEGATIVE_INFINITY)
+			return "-Infinity";
+		else
+			return f.format(v);
 	}
 }
