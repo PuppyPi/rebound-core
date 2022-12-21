@@ -5631,6 +5631,8 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static <E> Set<E> setdiff(Iterable<E> minuend, Collection<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD      ¬(a ⇒ b)  XD
 	{
+		//Todo support for removeAll() being used when copying the entire minuend into 'output' is actually more performant!
+		
 		Set output = new HashSet();
 		
 		for (Object e : minuend)
