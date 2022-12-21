@@ -6304,8 +6304,11 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	
-	public static <E> boolean defaultSetsEquivalent(Set<? extends E> a, Set<? extends E> b)
+	/**
+	 * @param a The one that will be iterated over (and should have fast iteration (eg, {@link ArrayList}))
+	 * @param b The one that {@link Set#contains(Object)} will be called on and should have a fast implementation for (eg, {@link HashSet})  :3
+	 */
+	public static <E> boolean defaultSetsEquivalent(Collection<? extends E> a, Set<? extends E> b)
 	{
 		if (a == b) return true;
 		if (a == null || b == null) return false;
