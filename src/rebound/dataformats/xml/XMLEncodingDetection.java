@@ -17,6 +17,7 @@ import rebound.exceptions.ImpossibleException;
 import rebound.io.util.JRECompatIOUtilities;
 import rebound.text.encodings.CharsetAndEncodingUtilities;
 import rebound.text.encodings.UnicodeByteOrderMark;
+import rebound.util.collections.Slice;
 
 // https://www.w3.org/TR/REC-xml/
 
@@ -366,9 +367,21 @@ public class XMLEncodingDetection
 	@Nonnull
 	public static XMLDeclarationAndExtra readXMLDeclarationFromMemory(byte[] b)
 	{
+		return readXMLDeclarationFromMemory(b, 0, b.length);
+	}
+	
+	@Nonnull
+	public static XMLDeclarationAndExtra readXMLDeclarationFromMemory(Slice<byte[]> b)
+	{
+		return readXMLDeclarationFromMemory(b.getUnderlying(), b.getOffset(), b.getLength());
+	}
+	
+	@Nonnull
+	public static XMLDeclarationAndExtra readXMLDeclarationFromMemory(byte[] b, int offset, int length)
+	{
 		try
 		{
-			return readXMLDeclaration(new ByteArrayInputStream(b));
+			return readXMLDeclaration(new ByteArrayInputStream(b, offset, length));
 		}
 		catch (IOException exc)
 		{
@@ -447,6 +460,14 @@ public class XMLEncodingDetection
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
 	public static @Nonnull Charset readXMLDeclarationForEncoding(InputStream in) throws IOException, UnsupportedCharsetException
 	{
 		Charset c = readXMLDeclarationForEncodingOrNull(in);
@@ -455,8 +476,57 @@ public class XMLEncodingDetection
 	
 	public static @Nullable Charset readXMLDeclarationForEncodingOrNull(InputStream in) throws IOException, UnsupportedCharsetException
 	{
-		XMLDeclarationAndExtra r = readXMLDeclaration(in);
-		
+		return toXMLDeclarationForEncodingOrNull(readXMLDeclaration(in));
+	}
+	
+	
+	
+	public static @Nonnull Charset getXMLDeclarationForEncoding(byte[] data) throws UnsupportedCharsetException
+	{
+		Charset c = getXMLDeclarationForEncodingOrNull(data);
+		return c == null ? XMLDefaultCharset : c;
+	}
+	
+	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(byte[] data) throws UnsupportedCharsetException
+	{
+		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data));
+	}
+	
+	
+	
+	public static @Nonnull Charset getXMLDeclarationForEncoding(Slice<byte[]> data) throws UnsupportedCharsetException
+	{
+		Charset c = getXMLDeclarationForEncodingOrNull(data);
+		return c == null ? XMLDefaultCharset : c;
+	}
+	
+	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(Slice<byte[]> data) throws UnsupportedCharsetException
+	{
+		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data));
+	}
+	
+	
+	
+	public static @Nonnull Charset getXMLDeclarationForEncoding(byte[] data, int offset, int length) throws UnsupportedCharsetException
+	{
+		Charset c = getXMLDeclarationForEncodingOrNull(data, offset, length);
+		return c == null ? XMLDefaultCharset : c;
+	}
+	
+	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(byte[] data, int offset, int length) throws UnsupportedCharsetException
+	{
+		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data, offset, length));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static @Nullable Charset toXMLDeclarationForEncodingOrNull(XMLDeclarationAndExtra r) throws UnsupportedCharsetException
+	{
 		XMLWideCharDetection wcd = r.knownFromBOMOrXMLWideCharDetection instanceof XMLWideCharDetection ? (XMLWideCharDetection)r.knownFromBOMOrXMLWideCharDetection : null;
 		
 		Object encoding;
@@ -496,6 +566,14 @@ public class XMLEncodingDetection
 		else
 			return CharsetAndEncodingUtilities.forNameWithExplicitByteOrdering((String)encoding, XMLWideCharDetection.wcdToEndianness(wcd));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
