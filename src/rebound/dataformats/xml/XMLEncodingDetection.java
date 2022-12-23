@@ -468,52 +468,52 @@ public class XMLEncodingDetection
 	
 	
 	
-	public static @Nonnull Charset readXMLDeclarationForEncoding(InputStream in) throws IOException, UnsupportedCharsetException
+	public static @Nonnull Charset readXMLEncoding(InputStream in) throws IOException, UnsupportedCharsetException
 	{
-		Charset c = readXMLDeclarationForEncodingOrNull(in);
+		Charset c = readDeclaredXMLEncodingOrNull(in);
 		return c == null ? XMLDefaultCharset : c;
 	}
 	
-	public static @Nullable Charset readXMLDeclarationForEncodingOrNull(InputStream in) throws IOException, UnsupportedCharsetException
+	public static @Nullable Charset readDeclaredXMLEncodingOrNull(InputStream in) throws IOException, UnsupportedCharsetException
 	{
 		return toXMLDeclarationForEncodingOrNull(readXMLDeclaration(in));
 	}
 	
 	
 	
-	public static @Nonnull Charset getXMLDeclarationForEncoding(byte[] data) throws UnsupportedCharsetException
+	public static @Nonnull Charset getXMLEncoding(byte[] data) throws UnsupportedCharsetException
 	{
-		Charset c = getXMLDeclarationForEncodingOrNull(data);
+		Charset c = getDeclaredXMLEncodingOrNull(data);
 		return c == null ? XMLDefaultCharset : c;
 	}
 	
-	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(byte[] data) throws UnsupportedCharsetException
+	public static @Nullable Charset getDeclaredXMLEncodingOrNull(byte[] data) throws UnsupportedCharsetException
 	{
 		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data));
 	}
 	
 	
 	
-	public static @Nonnull Charset getXMLDeclarationForEncoding(Slice<byte[]> data) throws UnsupportedCharsetException
+	public static @Nonnull Charset getXMLEncoding(Slice<byte[]> data) throws UnsupportedCharsetException
 	{
-		Charset c = getXMLDeclarationForEncodingOrNull(data);
+		Charset c = getDeclaredXMLEncodingOrNull(data);
 		return c == null ? XMLDefaultCharset : c;
 	}
 	
-	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(Slice<byte[]> data) throws UnsupportedCharsetException
+	public static @Nullable Charset getDeclaredXMLEncodingOrNull(Slice<byte[]> data) throws UnsupportedCharsetException
 	{
 		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data));
 	}
 	
 	
 	
-	public static @Nonnull Charset getXMLDeclarationForEncoding(byte[] data, int offset, int length) throws UnsupportedCharsetException
+	public static @Nonnull Charset getXMLEncoding(byte[] data, int offset, int length) throws UnsupportedCharsetException
 	{
-		Charset c = getXMLDeclarationForEncodingOrNull(data, offset, length);
+		Charset c = getDeclaredXMLEncodingOrNull(data, offset, length);
 		return c == null ? XMLDefaultCharset : c;
 	}
 	
-	public static @Nullable Charset getXMLDeclarationForEncodingOrNull(byte[] data, int offset, int length) throws UnsupportedCharsetException
+	public static @Nullable Charset getDeclaredXMLEncodingOrNull(byte[] data, int offset, int length) throws UnsupportedCharsetException
 	{
 		return toXMLDeclarationForEncodingOrNull(readXMLDeclarationFromMemory(data, offset, length));
 	}

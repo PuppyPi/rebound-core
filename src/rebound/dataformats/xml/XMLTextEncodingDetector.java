@@ -18,7 +18,7 @@ implements TextEncodingDetector
 	{
 		try (InputStream in = opener.f())
 		{
-			return XMLEncodingDetection.readXMLDeclarationForEncodingOrNull(in);
+			return XMLEncodingDetection.readDeclaredXMLEncodingOrNull(in);
 		}
 	}
 }
