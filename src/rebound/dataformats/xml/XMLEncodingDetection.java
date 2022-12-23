@@ -415,7 +415,7 @@ public class XMLEncodingDetection
 		
 		public @Nullable Charset encodingToCharsetOrNull()
 		{
-			return encodingDeclarationTypeToSemanticEncoding(encoding, wcd);
+			return encodingDeclarationTypeToSemanticEncodingOrNull(encoding, wcd);
 		}
 	}
 	
