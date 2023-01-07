@@ -293,7 +293,17 @@ public class ReURL
 			
 			ReURL newUnnormed = ReURL.parseLenient(newUnnormedStr);
 			
-			return newUnnormed.withDifferentPath(normpathPosix(newUnnormed.getPath(), '/')).serialize();
+			/*
+			 * normpathPosixSymlinkless() is the right one to use here, not normpathPosixSymlinkful() because specifically this in the specification!:
+			 * 
+			 * https://www.rfc-editor.org/rfc/rfc3986#section-3.3
+			 * 		However, unlike in a file
+			 * 		system, these dot-segments are only interpreted within the URI path
+			 * 		hierarchy and are removed as part of the resolution process (Section
+			 * 		5.2).
+			 * 
+			 */
+			return newUnnormed.withDifferentPath(normpathPosixSymlinkless(newUnnormed.getPath(), '/')).serialize();
 		}
 	}
 	

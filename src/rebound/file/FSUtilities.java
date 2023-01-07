@@ -889,21 +889,21 @@ implements JavaNamespace
 	//Todo unit test these
 	
 	/**
-	 * Normalize a path by making it absolute and removing '..'s and '.'s, and duplicate and trailing '/'s
-	 * • Includes abspath()
+	 * Normalize a path by making it absolute and removing '.'s, and duplicate and trailing '/'s
+	 * • Includes what abspath() does
 	 */
 	public static File normpath(File f)
 	{
-		return new File(normpathPosix(f.getAbsolutePath(), File.separatorChar));
+		return new File(normpathPosixSymlinkful(f.getAbsolutePath(), File.separatorChar));
 	}
 	
 	/**
 	 * Like {@link #normpath(File)} but doesn't make it absolute :3
-	 * NOTE: this does NOT do anything with ".."'s that go above the implicit base directory!  (whatever it's relative to; eg, the one that would be referred to if the entire path was just "."   so if the entire path is eg "..", we'll just leave it as that X3 )
+	 * • Does NOT includes what abspath() does!
 	 */
 	public static File normrelpath(File f)
 	{
-		return new File(normpathPosix(f.getPath(), File.separatorChar));
+		return new File(normpathPosixSymlinkful(f.getPath(), File.separatorChar));
 	}
 	
 	
@@ -972,20 +972,93 @@ implements JavaNamespace
 	
 	
 	
-	public static String normpathPosix(String f)
+	public static String normpathPosixSymlinkful(String f)
 	{
-		return normpathPosix(f, '/');
+		return normpathPosixSymlinkful(f, '/');
 	}
 	
 	/**
-	 * Normalize an absolute path by removing '..'s and '.'s, and trailing slashes.
+	 * Normalize an absolute path by removing '.'s, and duplicate and trailing slashes.
 	 * (no system calls used, but implicitly assumes POSIX style root directory and absolute pathnames beginning with the separator char)
 	 */
-	public static String normpathPosix(String f, char separator)
+	public static String normpathPosixSymlinkful(String f, char separator)
 	{
-		//Note: this is used by the archive (edit: you mean ARC1??)
-		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTPD AND SUCH!!!!
+		if (f.isEmpty())
+			return "";
 		
+		
+		boolean absolute = f.charAt(0) == separator;
+		
+		if (absolute)
+			f = f.substring(1);
+		
+		
+		@WritableValue List<String> elements = new ArrayList<>(Arrays.asList(StringUtilities.split(f, separator, -1, WhatToDoWithEmpties.LeaveOutEmpties)));
+		
+		if (elements.size() == 1 && elements.get(0).isEmpty())
+			elements = emptyList();
+		else
+		{
+			int i = 0;
+			while (i < elements.size())
+			{
+				String current = elements.get(i);
+				
+				if (current.isEmpty())
+				{
+					throw new AssertionError();
+				}
+				else if (eq(current, "."))
+				{
+					elements.remove(i);
+				}
+				else
+				{
+					i++;
+				}
+			}
+		}
+		
+		String mainpath = joinStrings(elements, separator);
+		
+		return absolute ? separator + mainpath : mainpath;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @see #normpathPosixSymlinkless(String, char)
+	 */
+	public static String normpathPosixSymlinkless(String f)
+	{
+		return normpathPosixSymlinkless(f, '/');
+	}
+	
+	/**
+	 * Normalize an absolute path by removing '.'s, '..'s, and duplicate and trailing slashes.
+	 * (no system calls used, but implicitly assumes POSIX style root directory and absolute pathnames beginning with the separator char)
+	 * 
+	 * This is called "symlinkless" because ".."s are resolved simply by the pathname..which is the only possible way of doing it in a filesystem without symlinks!
+	 * But if there can be symlinks, then the ".." needs to be based on the actual real directory that comes before it, not on the pathname used to reach it.
+	 * 
+	 * For example, consider this layout:
+	 * 		/home/admin → ../root
+	 * 
+	 * In order to correctly dereference the symlink (and anything inside it like /home/admin/.config or something),
+	 * you need /home/admin/../root to be equivalent to /root not /home/root!
+	 * And thus /home/admin/.. must be equivalent to / not /home!
+	 */
+	public static String normpathPosixSymlinkless(String f, char separator)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
 		
 		
 		if (f.isEmpty())
@@ -1183,6 +1256,45 @@ implements JavaNamespace
 		 */
 	}
 	
+	
+	
+	
+	
+	
+	//TODO accommodate windows' accommodating unix pathnames by testing for all possible *combinations* of forward and reverse slashes!!  dlskjdlfkdjf X'D
+	
+	/**
+	 * Note that this only works with paths that exclusively use forward slashes.
+	 * If backslashes or anything else will also be interpreted as actual path element separators like on windows DO NOT USE THIS METHOD!!
+	 */
+	public static boolean isImmediatelyAscendingRelativePathForwardSlashed(String path)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
+		return path.equals("..") || path.startsWith("../");
+	}
+	
+	
+	/**
+	 * Note that this only works with paths that exclusively use forward slashes.
+	 * If backslashes or anything else will also be interpreted as actual path element separators like on windows DO NOT USE THIS METHOD!!
+	 */
+	public static boolean containsAnyAscendingRelativePathElementsForwardSlashed(String path)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
+		return path.equals("..") || path.startsWith("../") || path.endsWith("/..") || path.contains("/../");
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * Gets a file's path relative to a given ancestor such that {@link #joinPathsStrict(Object...) join}(<code>base</code>, <i>returnValue</i>) == <code>f</code>.
 	 * similar to relpath(), contrast with abspath() ({@link File#getAbsolutePath()}) ^_^
@@ -1268,8 +1380,8 @@ implements JavaNamespace
 		if (f.equals(base))
 			return ".";
 		
-		f = normpathPosix(f, separator);
-		base = normpathPosix(base, separator);
+		f = normpathPosixSymlinkful(f, separator);
+		base = normpathPosixSymlinkful(base, separator);
 		
 		if (f.equals(base))
 		{
@@ -3051,6 +3163,9 @@ implements JavaNamespace
 	
 	
 	//<Symlinks
+	/**
+	 * Note that it is undefined (platform dependent) if ".." in a directory counts as a symlink that updated whenever the directory is moved, or as a directory-hardlink (which normally isn't allowed on most operating systems with only files being allowed to have hardlinks).
+	 */
 	public static boolean isSymlink(File f)
 	{
 		requireNonNull(f);
@@ -3910,47 +4025,89 @@ implements JavaNamespace
 	
 	protected static File _realpathThrowing_ourImpl(File f, Stack<File> stack, LinkDereferencer linkDereferencingPredicate) throws IOException
 	{
+		final File fOriginal = f;
 		f = normpath(f);
 		
 		File p = f.getParentFile();
 		
-		if (p == null) //it's the root directory!
+		if (p == null)  //it's the root directory!
 		{
 			return f;
 		}
 		else
 		{
-			File d = _realpathThrowing_ourImpl(p, stack, linkDereferencingPredicate);
 			String n = f.getName();
-			f = eq(n, ".") ? d : new File(d, n);
+			if (n.isEmpty() || eq(n, "."))
+				throw new AssertionError("normpath() failed to remove empty/singledot current-directory path elements from the path!: normpath("+repr(fOriginal.getPath())+") → "+repr(f.getPath()));
 			
-			if (isSymlink(f))
+			File d = _realpathThrowing_ourImpl(p, stack, linkDereferencingPredicate);
+			
+			if (isAnyInterstitialOrLeadingPathElement(e -> eq(e.getName(), ".."), d))
+				throw new AssertionError("Our realpath() failed to real the path and left in at least one interstitial or leading \"..\"! (of the parent!): realpath("+repr(p.getPath())+") → "+repr(d.getPath()));
+			
+			if (eq(n, ".."))
 			{
-				File it = readlinkRaw(f);
+				if (!eq(d.getName(), "..") && isSymlink(d))
+					throw new AssertionError("Our realpath() failed to real the path! (of the parent!): realpath("+repr(p.getPath())+") → "+repr(d.getPath()));
 				
-				File t = linkDereferencingPredicate.dereference(f, it);
-				
-				if (t != null)
-				{
-					if (stack.contains(f))  //we don't support case-insensitivity and symbolic links on the same filesystem ^^'
-						throw new SymlinkCycleIOException("Symbolic link cycle detected!!: "+repr(f.getPath()));
-					stack.add(f);  //do after checking contains of course! XD
-					
-					File r = _realpathThrowing_ourImpl(t, stack, linkDereferencingPredicate);
-					
-					asrt(stack.pop() == f);
-					
-					return r;
-				}
-				else
-				{
-					return f;
-				}
+				File pp = d.getParentFile();
+				return pp == null ? d : pp;  // "/.." should become "/"
 			}
 			else
 			{
-				return f;
+				File fWithProperParent = new File(d, n);
+				
+				if (isSymlink(fWithProperParent))
+				{
+					File it = readlinkRaw(fWithProperParent);
+					
+					File t = linkDereferencingPredicate.dereference(fWithProperParent, it);
+					
+					if (t != null)
+					{
+						if (stack.contains(fWithProperParent))  //we don't support case-insensitivity and symbolic links on the same filesystem ^^'
+							throw new SymlinkCycleIOException("Symbolic link cycle detected!!: "+repr(fWithProperParent.getPath()));
+						stack.add(fWithProperParent);  //do after checking contains of course! XD
+						
+						File r = _realpathThrowing_ourImpl(t, stack, linkDereferencingPredicate);
+						
+						asrt(stack.pop() == fWithProperParent);
+						
+						return r;
+					}
+					else
+					{
+						return fWithProperParent;
+					}
+				}
+				else
+				{
+					return fWithProperParent;
+				}
 			}
+		}
+	}
+	
+	public static boolean isAnyInterstitialOrLeadingPathElement(Predicate<File> predicate, File f)
+	{
+		requireNonNull(f);
+		return isAnyInterstitialOrLeadingPathElement(predicate, f, true);
+	}
+	
+	protected static boolean isAnyInterstitialOrLeadingPathElement(Predicate<File> predicate, File f, boolean trueForAllBelow)
+	{
+		if (f == null)  //Termination! :D  this is the parent of a/the root path! :D
+			return false;
+		
+		boolean forThis = predicate.test(f);
+		
+		if (forThis)
+		{
+			return trueForAllBelow ? isAnyInterstitialOrLeadingPathElement(predicate, f.getParentFile(), true) : true;
+		}
+		else
+		{
+			return isAnyInterstitialOrLeadingPathElement(predicate, f.getParentFile(), false);
 		}
 	}
 	
@@ -4437,17 +4594,28 @@ implements JavaNamespace
 	
 	public static boolean anyOverlapsRawPosix(Collection<String> paths, @Nullable BinaryProcedure<String, String> overlapObserver)
 	{
+		/*
+		 * normpathPosixSymlinkless() is the right one to use here, not normpathPosixSymlinkful() because specifically this in the specification!:
+		 * 
+		 * https://www.rfc-editor.org/rfc/rfc3986#section-3.3
+		 * 		However, unlike in a file
+		 * 		system, these dot-segments are only interpreted within the URI path
+		 * 		hierarchy and are removed as part of the resolution process (Section
+		 * 		5.2).
+		 * 
+		 */
+		
 		boolean has = false;
 		
 		for (String a : paths)
 		{
-			List<String> aSplit = asList(splitPathPosix(normpathPosix(a)));
+			List<String> aSplit = asList(splitPathPosix(normpathPosixSymlinkless(a)));
 			
 			for (String b : paths)
 			{
 				if (!eq(a, b))
 				{
-					List<String> bSplit = asList(splitPathPosix(normpathPosix(b)));
+					List<String> bSplit = asList(splitPathPosix(normpathPosixSymlinkless(b)));
 					
 					//The path splitting is necessary otherwise "folder/doc.pdf" would be considered to overlap with "folder/doc (2).pdf"  X'D
 					//Only "/folder/" or "/folder" should overlap with "/folder/doc.pdf"! ;D
@@ -5172,11 +5340,6 @@ implements JavaNamespace
 	
 	
 	
-	public static boolean doesPathContainStandardUpwardTraversalMetaElement(String path)
-	{
-		return path.equals("..") || path.contains("/../") || path.startsWith("../") || path.endsWith("/..");
-	}
-	
 	
 	
 	
@@ -5223,7 +5386,7 @@ implements JavaNamespace
 		
 		for (Entry<String, File> e : symlinks.entrySet())
 		{
-			if (doesPathContainStandardUpwardTraversalMetaElement(e.getKey()))
+			if (containsAnyAscendingRelativePathElementsForwardSlashed(e.getKey()))
 				throw new IllegalArgumentException(e.getKey());
 			
 			File pathForSymlink = new File(dir, e.getKey());
@@ -5557,7 +5720,6 @@ implements JavaNamespace
 	{
 		//TODO Deal with both kinds of slashes for windows X'3
 		
-		
 		if (!parent.isDirectory())
 			throw new WrappedThrowableRuntimeException(new IOException("Not a directory: "+repr(parent.getAbsolutePath())));
 		
@@ -5568,7 +5730,7 @@ implements JavaNamespace
 		{
 			String r = e.getKey();
 			
-			if (r.contains(File.separator+".."+File.separator))
+			if (containsAnyAscendingRelativePathElementsForwardSlashed(r))
 				throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(r)));
 			
 			File f = joinPathsLenient(parent, r);
@@ -5600,12 +5762,12 @@ implements JavaNamespace
 		//Delete only the things we're adding since..that's literally in the function name XD
 		//Sometimes people want that!  Like to make sure only autogenerated stuff gets deleted in an autogenerated directory!
 		{
-			for (String k : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
+			for (String key : reversed(sorted(tree.keySet())))  //reverse the sort so that children come before parents! :D
 			{
-				if (k.startsWith("../"))
-					throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(k)));
+				if (containsAnyAscendingRelativePathElementsForwardSlashed(key))
+					throw new WrappedThrowableRuntimeException(new IOException("Bad relative path; contains directory ascensions: "+repr(key)));
 				
-				deleteIfExistsMandatory(new File(parent, k));
+				deleteIfExistsMandatory(new File(parent, key));
 			}
 			
 			
