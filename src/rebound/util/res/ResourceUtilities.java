@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceConfigurationError;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -50,10 +52,10 @@ import rebound.io.util.FSIOUtilities;
 import rebound.io.util.JRECompatIOUtilities;
 import rebound.io.util.TextIOUtilities;
 import rebound.util.FlushableCache;
-import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.Loader;
 
 public class ResourceUtilities
 implements JavaNamespace
@@ -1429,49 +1431,5 @@ implements JavaNamespace
 				throw new UnsupportedOptionException("Currently we can't tell if '"+url.getProtocol()+":' URLs are directories or not (or if that concept even makes sense for that protocol/scheme! xD'' )");
 			}
 		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public static void findAllClassFilesInDirectory(File habitat, BinaryProcedure<String, URI> observe)
-	{
-		File absHabitat = habitat.getAbsoluteFile();
-		
-		FSUtilities.recurse(f ->
-		{
-			if (f.isFile() && f.getName().endsWith(".class"))
-			{
-				String relpath = FSUtilities.getRelativePath(f, absHabitat);
-				
-				if (relpath == null)
-				{
-					logBug("File "+repr(f.getAbsolutePath())+" is not a descendant of "+repr(absHabitat.getAbsolutePath())+" ??   Then how'd we find it while recursing the latter? \\o/");
-				}
-				else
-				{
-					String fqn = rtrimstr(relpath, ".class").replace('/', '.');
-					URI uri = f.toURI(); //Ah! ^w^
-					
-					observe.f(fqn, uri);
-				}
-			}
-		}, habitat);
 	}
 }
