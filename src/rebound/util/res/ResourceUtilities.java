@@ -4,6 +4,7 @@
  */
 package rebound.util.res;
 
+import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.text.StringUtilities.*;
@@ -49,6 +50,7 @@ import rebound.io.util.FSIOUtilities;
 import rebound.io.util.JRECompatIOUtilities;
 import rebound.io.util.TextIOUtilities;
 import rebound.util.FlushableCache;
+import rebound.util.functional.FunctionInterfaces.BinaryProcedure;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
@@ -1427,5 +1429,49 @@ implements JavaNamespace
 				throw new UnsupportedOptionException("Currently we can't tell if '"+url.getProtocol()+":' URLs are directories or not (or if that concept even makes sense for that protocol/scheme! xD'' )");
 			}
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void findAllClassFilesInDirectory(File habitat, BinaryProcedure<String, URI> observe)
+	{
+		File absHabitat = habitat.getAbsoluteFile();
+		
+		FSUtilities.recurse(f ->
+		{
+			if (f.isFile() && f.getName().endsWith(".class"))
+			{
+				String relpath = FSUtilities.getRelativePath(f, absHabitat);
+				
+				if (relpath == null)
+				{
+					logBug("File "+repr(f.getAbsolutePath())+" is not a descendant of "+repr(absHabitat.getAbsolutePath())+" ??   Then how'd we find it while recursing the latter? \\o/");
+				}
+				else
+				{
+					String fqn = rtrimstr(relpath, ".class").replace('/', '.');
+					URI uri = f.toURI(); //Ah! ^w^
+					
+					observe.f(fqn, uri);
+				}
+			}
+		}, habitat);
 	}
 }
