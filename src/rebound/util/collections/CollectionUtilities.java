@@ -3699,19 +3699,53 @@ _$$primxpconf:byte,char,short,int$$_
 	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> asList(Iterable<E> iterable)
 	{
-		return iterable instanceof List ? (List<E>)iterable : toNewMutableVariablelengthList(iterable);
+		if (iterable instanceof List)
+			return (List<E>)iterable;
+		else if (iterable instanceof Collection)
+			return ((Collection)iterable).isEmpty() ? emptyList() : new ArrayList<>((Collection)iterable);
+			else if (iterable instanceof SimpleIterable)
+				return asList(((SimpleIterable)iterable).simpleIterator());
+			else
+				return asList(iterable.iterator());
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> asList(Iterator<E> iterator)
 	{
-		return toNewMutableVariablelengthList(iterator);
+		List<E> list = null;
+		for (E e : singleUseIterable(iterator))
+		{
+			if (list == null)
+				list = new ArrayList<>();
+			list.add(e);
+		}
+		return list == null ? emptyList() : list;
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> asList(SimpleIterator<E> iterator)
 	{
-		return toNewMutableVariablelengthList(iterator);
+		List<E> list = null;
+		
+		while (true)
+		{
+			E e;
+			try
+			{
+				e = iterator.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			if (list == null)
+				list = new ArrayList<>();
+			
+			list.add(e);
+		}
+		
+		return list == null ? emptyList() : list;
 	}
 	
 	//Importing java.util.Arrays.* conflicts with java.util.ArrayList so they can't both be imported! :[
