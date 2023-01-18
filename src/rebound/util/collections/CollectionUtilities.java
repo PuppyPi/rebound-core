@@ -3027,6 +3027,17 @@ public class CollectionUtilities
 		}
 	}
 	
+	public static <E> E findFirstRP(Predicate<E> predicate, @CollectionValue Iterator<E> it) throws NoSuchElementReturnPath
+	{
+		while (it.hasNext())
+		{
+			E element = it.next();
+			if (predicate.test(element))
+				return element;
+		}
+		throw NoSuchElementReturnPath.I;
+	}
+	
 	
 	
 	public static @Nullable Object findFirst(Predicate predicate, @CollectionValue Object list)
@@ -9055,7 +9066,7 @@ _$$primxpconf:byte,char,short,int$$_
 	@ReadonlyValue
 	public static <I, O> List<O> mapToList(Mapper<I, O> mapper, Iterable<? extends I> input)
 	{
-		return PolymorphicCollectionUtilities.anyToNewMutableVariablelengthList(mapped(mapper, (Iterable)input));
+		return asList(mapped(mapper, (Iterable)input));
 	}
 	
 	@ReadonlyValue

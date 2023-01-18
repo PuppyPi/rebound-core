@@ -1845,14 +1845,7 @@ public class PolymorphicCollectionUtilities
 		}
 		else
 		{
-			Iterator it = anyToIterator(list);
-			while (it.hasNext())
-			{
-				Object element = it.next();
-				if (predicate.test(element))
-					return element;
-			}
-			throw NoSuchElementReturnPath.I;
+			return CollectionUtilities.findFirstRP(predicate, anyToIterator(list));
 		}
 	}
 	
