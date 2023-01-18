@@ -105,6 +105,7 @@ import rebound.util.IdentityCardinality;
 import rebound.util.Maybe;
 import rebound.util.Primitives;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
+import rebound.util.classhacking.jre.JREGlassBox;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
 import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
@@ -14959,6 +14960,16 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	
+	/**
+	 * This always outputs the same runtime type as {@link #asList(Object[])}, which helps JIT compiling achieve the same performance between array-based code and list-based code :>
+	 */
+	public static <E> List<E> trimmed(List<E> l)
+	{
+		if (l.getClass() == JREGlassBox.ArraysGlassBox.ArrayList)
+			return l;
+		else
+			return (List<E>)Arrays.asList(l.toArray());
+	}
 	
 	
 	
