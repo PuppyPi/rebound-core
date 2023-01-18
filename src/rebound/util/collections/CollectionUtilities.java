@@ -3697,6 +3697,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
 	public static <E> List<E> asList(Iterable<E> iterable)
 	{
 		if (iterable instanceof List)
@@ -3710,6 +3711,7 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
 	public static <E> List<E> asList(Iterator<E> iterator)
 	{
 		List<E> list = null;
@@ -3723,6 +3725,7 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@PossiblySnapshotPossiblyLiveValue
+	@ReadonlyValue
 	public static <E> List<E> asList(SimpleIterator<E> iterator)
 	{
 		List<E> list = null;
