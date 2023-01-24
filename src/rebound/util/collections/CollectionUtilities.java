@@ -9257,10 +9257,15 @@ _$$primxpconf:byte,char,short,int$$_
 			{
 				if (newlist == null)
 				{
-					newlist = setOutput ? new HashSet<E>() : new ArrayList<E>(input instanceof Collection ? ((Collection)input).size() : 0);
+					newlist = setOutput ? singletonSet(e) : singletonList(e);
 				}
-				
-				newlist.add(e);
+				else
+				{
+					if (!(setOutput ? (newlist instanceof ArrayList) : (newlist instanceof HashSet)))  //isMutable()
+						newlist = setOutput ? new HashSet<E>() : new ArrayList<E>(input instanceof Collection ? ((Collection)input).size() : 0);
+					
+					newlist.add(e);
+				}
 			}
 		}
 		
