@@ -4,7 +4,6 @@
  */
 package rebound.util.res;
 
-import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.io.util.BasicIOUtilities.*;
 import static rebound.io.util.JRECompatIOUtilities.*;
 import static rebound.text.StringUtilities.*;
@@ -16,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -34,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceConfigurationError;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -55,7 +52,6 @@ import rebound.util.FlushableCache;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.Loader;
 
 public class ResourceUtilities
 implements JavaNamespace
