@@ -2319,7 +2319,7 @@ public class CollectionUtilities
 		}
 	}
 	
-	public static <E> E getArbitraryElementDefaulting(Iterable<E> c)
+	public static <E> E getArbitraryElementDefaulting(Iterable<E> c, E defaultValue)
 	{
 		try
 		{
@@ -2327,8 +2327,13 @@ public class CollectionUtilities
 		}
 		catch (NoSuchElementReturnPath exc)
 		{
-			return null;
+			return defaultValue;
 		}
+	}
+	
+	public static <E> E getArbitraryElementDefaulting(Iterable<E> c)
+	{
+		return getArbitraryElementDefaulting(c, null);
 	}
 	
 	
