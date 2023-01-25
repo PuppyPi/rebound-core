@@ -2366,8 +2366,12 @@ public class CollectionUtilities
 		}
 	}
 	
-	//Todo return-path version that throws NoSuchElementReturnPath???
+	
+	
+	
+	
 	//Todo 	public static <E> E getLastElement(List<E> c)
+	//Todo return-path version that throws NoSuchElementReturnPath???
 	
 	
 	
