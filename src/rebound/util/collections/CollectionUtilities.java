@@ -2319,7 +2319,7 @@ public class CollectionUtilities
 		}
 	}
 	
-	public static <E> E getArbitraryElementDefaulting(Collection<E> c)
+	public static <E> E getArbitraryElementDefaulting(Iterable<E> c)
 	{
 		try
 		{
