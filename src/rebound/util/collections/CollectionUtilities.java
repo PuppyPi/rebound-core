@@ -1397,12 +1397,17 @@ public class CollectionUtilities
 		if (i instanceof Collection)
 			return new ArrayList<>((Collection<E>)i);
 		else
-		{
-			List<E> l = new ArrayList<>();
-			for (E e : i)
-				l.add(e);
-			return l;
-		}
+			return drainToList(i.iterator());
+	}
+	
+	
+	@SnapshotValue
+	public static <E> List<E> drainToList(Iterator<E> i)
+	{
+		List<E> l = new ArrayList<>();
+		for (E e : (Iterable<E>)() -> i)
+			l.add(e);
+		return l;
 	}
 	
 	
@@ -9299,8 +9304,8 @@ _$$primxpconf:byte,char,short,int$$_
 				{
 					if (!(setOutput ? (newlist instanceof ArrayList) : (newlist instanceof HashSet)))  //isMutable()
 						newlist = setOutput ? new HashSet<E>() : new ArrayList<E>(input instanceof Collection ? ((Collection)input).size() : 0);
-					
-					newlist.add(e);
+						
+						newlist.add(e);
 				}
 			}
 		}
