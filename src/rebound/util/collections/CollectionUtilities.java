@@ -4306,6 +4306,33 @@ _$$primxpconf:byte,char,short,int$$_
 		return singleUseIterable(PolymorphicCollectionUtilities.anyToIterator(x));
 	}
 	
+	
+	@LiveValue
+	public static <E> Iterator<E> iterator(final Enumeration<E> x)
+	{
+		return new Iterator<E>()
+		{
+			@Override
+			public boolean hasNext()
+			{
+				return x.hasMoreElements();
+			}
+			
+			@Override
+			public E next()
+			{
+				return x.nextElement();
+			}
+			
+			@Override
+			public void remove()
+			{
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+	
+	
 	@LiveValue
 	@WritableValue
 	public static <E> Iterator<E> getRemoveCallbackIteratorDecorator(final Iterator<E> readonlyIterator, final Collection<E> backingCollection)

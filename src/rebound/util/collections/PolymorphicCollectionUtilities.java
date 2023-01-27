@@ -1390,26 +1390,7 @@ public class PolymorphicCollectionUtilities
 		}
 		else if (x instanceof Enumeration)
 		{
-			return new Iterator()
-			{
-				@Override
-				public boolean hasNext()
-				{
-					return ((Enumeration)x).hasMoreElements();
-				}
-				
-				@Override
-				public Object next()
-				{
-					return ((Enumeration)x).nextElement();
-				}
-				
-				@Override
-				public void remove()
-				{
-					throw new UnsupportedOperationException();
-				}
-			};
+			return iterator((Enumeration)x);
 		}
 		else if (x instanceof SimpleIterator)
 		{
