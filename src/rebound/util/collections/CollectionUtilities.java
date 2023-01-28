@@ -9303,9 +9303,13 @@ _$$primxpconf:byte,char,short,int$$_
 				else
 				{
 					if (!(setOutput ? (newlist instanceof ArrayList) : (newlist instanceof HashSet)))  //isMutable()
+					{
+						Collection<E> old = newlist;
 						newlist = setOutput ? new HashSet<E>() : new ArrayList<E>(input instanceof Collection ? ((Collection)input).size() : 0);
-						
-						newlist.add(e);
+						newlist.addAll(old);
+					}
+					
+					newlist.add(e);
 				}
 			}
 		}
