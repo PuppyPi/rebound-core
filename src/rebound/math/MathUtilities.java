@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
@@ -4814,7 +4815,23 @@ implements JavaNamespace
 	
 	public static boolean gintervalIsDoublyEmpty(@RealNumeric ArithmeticGenericInterval<?> i)
 	{
-		return !i.isStartInclusive() && !i.isEndInclusive();  //don't throw a NullPointerException for the standard empty ginterval!
+		if (i.isStartInclusive())
+			return false;
+		if (i.isEndInclusive())
+			return false;
+		
+		//don't throw a NullPointerException for the standard empty ginterval!
+		if (i.getStart() == i.getEnd())
+		{
+			return true;
+		}
+		else
+		{
+			if (i.getStart() == null || i.getEnd() == null)
+				return false;
+			else
+				return matheq(i.getStart(), i.getEnd());
+		}
 	}
 	
 	public static boolean gintervalIsSinglyEmpty(@RealNumeric ArithmeticGenericInterval<?> i)
@@ -4941,17 +4958,39 @@ implements JavaNamespace
 	 */
 	public static @RealNumeric Object gintervalMidpoint(@RealNumeric ArithmeticGenericInterval<?> interval) throws NoSuchElementException
 	{
-		if (gintervalIsDoublyEmpty(interval))
-			throw new NoSuchElementException();
+		Object l = interval.getStart();
+		Object h = interval.getEnd();
+		
+		if (matheq(l, h))
+		{
+			if (gintervalIsDoublyEmpty(interval))
+				throw new NoSuchElementException();
+			else
+				return arbitrary(l, h);
+		}
 		else
 		{
-			Object l = interval.getStart();
-			Object h = interval.getEnd();
-			
-			return matheq(l, h) ? arbitrary(l, h) : divide(add(l, h), 2);
+			return divide(add(l, h), 2);
 		}
 	}
 	
+	public static @RealNumeric Object gintervalAbsoluteTolerance(@RealNumeric ArithmeticGenericInterval<?> interval) throws NoSuchElementException
+	{
+		Object l = interval.getStart();
+		Object h = interval.getEnd();
+		
+		if (matheq(l, h))
+		{
+			if (gintervalIsDoublyEmpty(interval))  //Todo reevaluate how we handle singly-exclusive and doubly-exclusive emptiness with intervals and explain my thoughts to future me clearly XD'
+				throw new NoSuchElementException();
+			else
+				return Zero;
+		}
+		else
+		{
+			return divide(add(l, h), 2);
+		}
+	}
 	
 	
 	
@@ -5214,6 +5253,7 @@ implements JavaNamespace
 		return new ArithmeticGenericInterval<>(divide(numeratorLow, denominator), lowInclusive, divide(numeratorHigh, denominator), highInclusive);
 	}
 	
+	@ThrowAwayValue
 	public static long[] gintervalToSharedDenominatorFormS64(ArithmeticGenericInterval<Object> o)
 	{
 		long[] low = getRationalNumeratorAndDenominatorSmall(o.getStart());
