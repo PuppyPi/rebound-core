@@ -2756,6 +2756,7 @@ implements JavaNamespace
 	}
 	
 	
+	@ThrowAwayValue
 	public static long[] getRationalNumeratorAndDenominatorSmall(@RationalOrInteger Object rationalOrInteger)
 	{
 		long n, d;
