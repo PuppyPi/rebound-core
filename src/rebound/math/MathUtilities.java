@@ -5284,6 +5284,9 @@ implements JavaNamespace
 	 */
 	public static ArithmeticGenericInterval<Object> parseDecimalPreservingSigfigs(String s, int base, char decimalPointChar, char exponentialChar, boolean oddBasesRoundMidpointDigitDown) throws NumberFormatException, OverflowException
 	{
+		if (base < 2)
+			throw new IllegalArgumentException("Invalid base: "+base);
+		
 		int expc = s.indexOf(exponentialChar);
 		int dotc = s.indexOf(decimalPointChar);
 		
