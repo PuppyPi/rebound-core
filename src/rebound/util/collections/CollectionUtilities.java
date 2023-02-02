@@ -10570,7 +10570,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	
+	//TODO OH NO We used conflicting terminology!!  We said an "emap" (entry-set map) was equivalent to Map<K, Set<V>> and a "gmap" ((fully)-general map) was equivalent to Map<K, Collection<V>> !!  lkjfdlfkj
 	
 	/**
 	 * This is its own inverse!  It's a mathematical involution!  :>
