@@ -5510,6 +5510,9 @@ _$$primxpconf:byte,char,short,int$$_
 		return has ? just(i) : nothing();
 	}
 	
+	/**
+	 * This is exactly equivalent to <code>!{@link #intersection(Set...)}.{@link Set#isEmpty() isEmpty()}</code> and so is commutative! :D
+	 */
 	public static <E> boolean containsAny(Collection<E> a, Collection<E> b) throws NotSingletonException
 	{
 		//Todo make a trait predicate for it!
