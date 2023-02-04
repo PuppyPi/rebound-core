@@ -8121,25 +8121,15 @@ _$$primxpconf:byte,char,short,int$$_
 	public static Map mapofSomeNonnulls(Object... keysAndValues)
 	{
 		if (keysAndValues.length == 0)
-		{
 			return mapofSomeNonnulls();
-		}
 		else if (keysAndValues.length == 2)
-		{
 			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1]);
-		}
 		else if (keysAndValues.length == 4)
-		{
 			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1],  keysAndValues[2], keysAndValues[3]);
-		}
 		else if (keysAndValues.length == 6)
-		{
 			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1],  keysAndValues[2], keysAndValues[3],  keysAndValues[4], keysAndValues[5]);
-		}
 		else
-		{
 			return newMapNonnullMaybeArray(keysAndValues);
-		}
 	}
 	
 	
