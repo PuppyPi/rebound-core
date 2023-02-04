@@ -7944,6 +7944,78 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	
+	
+	
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSome()
+	{
+		return emptyMap();
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSome(Object key, Maybe<?> value)
+	{
+		if (value == null)
+			return emptyMap();
+		else
+			return singletonMap(key, value.getJust());
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSome(Object key0, Maybe<?> value0,  Object key1, Maybe<?> value1)
+	{
+		if (value0 == null)
+			if (value1 == null)
+				return emptyMap();
+			else
+				return singletonMap(key1, value1.getJust());
+		else
+			if (value1 == null)
+				return singletonMap(key0, value0.getJust());
+			else
+				return mapof(key0, value0.getJust(), key1, value1.getJust());
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSome(Object key0, Maybe<?> value0,  Object key1, Maybe<?> value1,  Object key2, Maybe<?> value2)
+	{
+		if (value0 == null)
+			if (value1 == null)
+				if (value2 == null)
+					return emptyMap();
+				else
+					return singletonMap(key2, value2.getJust());
+			else
+				if (value2 == null)
+					return singletonMap(key1, value1.getJust());
+				else
+					return mapof(key1, value1.getJust(), key2, value2.getJust());
+		else
+			if (value1 == null)
+				if (value2 == null)
+					return singletonMap(key0, value0.getJust());
+				else
+					return mapof(key0, value0.getJust(), key2, value2.getJust());
+			else
+				if (value2 == null)
+					return mapof(key0, value0.getJust(), key1, value1.getJust());
+				else
+					return mapof(key0, value0.getJust(), key1, value1.getJust(), key2, value2.getJust());
+	}
+	
 	/**
 	 * The keys are simply themselves, the values are {@link Maybe}s with the actual value (which may legitimately be null inside the Maybe!) or nulls to be elided.
 	 */
