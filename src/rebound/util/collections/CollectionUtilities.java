@@ -8024,17 +8024,15 @@ _$$primxpconf:byte,char,short,int$$_
 	public static Map mapofSome(Object... keysAndValues)
 	{
 		if (keysAndValues.length == 0)
-		{
-			return emptyMap();
-		}
+			return mapofSome();
 		else if (keysAndValues.length == 2)
-		{
-			return keysAndValues[1] == null ? emptyMap() : singletonMap(keysAndValues[0], ((Maybe)keysAndValues[1]).getJust());
-		}
+			return mapofSome(keysAndValues[0], (Maybe)keysAndValues[1]);
+		else if (keysAndValues.length == 4)
+			return mapofSome(keysAndValues[0], (Maybe)keysAndValues[1],  keysAndValues[2], (Maybe)keysAndValues[3]);
+		else if (keysAndValues.length == 6)
+			return mapofSome(keysAndValues[0], (Maybe)keysAndValues[1],  keysAndValues[2], (Maybe)keysAndValues[3],  keysAndValues[4], (Maybe)keysAndValues[5]);
 		else
-		{
 			return newMapMaybeArray(keysAndValues);
-		}
 	}
 	
 	
