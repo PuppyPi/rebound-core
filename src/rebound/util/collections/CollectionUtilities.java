@@ -8040,6 +8040,111 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	
+	
+	
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSomeNonnulls()
+	{
+		return emptyMap();
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are the actual value (which cannot legitimately be null and wind up in the resulting {@link Map}!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSomeNonnulls(Object key, Object value)
+	{
+		if (value == null)
+			return emptyMap();
+		else
+			return singletonMap(key, value);
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are the actual value (which cannot legitimately be null and wind up in the resulting {@link Map}!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSomeNonnulls(Object key0, Object value0,  Object key1, Object value1)
+	{
+		if (value0 == null)
+			if (value1 == null)
+				return emptyMap();
+			else
+				return singletonMap(key1, value1);
+		else
+			if (value1 == null)
+				return singletonMap(key0, value0);
+			else
+				return mapof(key0, value0, key1, value1);
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are the actual value (which cannot legitimately be null and wind up in the resulting {@link Map}!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSomeNonnulls(Object key0, Object value0,  Object key1, Object value1,  Object key2, Object value2)
+	{
+		if (value0 == null)
+			if (value1 == null)
+				if (value2 == null)
+					return emptyMap();
+				else
+					return singletonMap(key2, value2);
+			else
+				if (value2 == null)
+					return singletonMap(key1, value1);
+				else
+					return mapof(key1, value1, key2, value2);
+		else
+			if (value1 == null)
+				if (value2 == null)
+					return singletonMap(key0, value0);
+				else
+					return mapof(key0, value0, key2, value2);
+			else
+				if (value2 == null)
+					return mapof(key0, value0, key1, value1);
+				else
+					return mapof(key0, value0, key1, value1, key2, value2);
+	}
+	
+	/**
+	 * The keys are simply themselves, the values are the actual value (which cannot legitimately be null and wind up in the resulting {@link Map}!) or nulls to be elided.
+	 */
+	@ReadonlyValue
+	@HashableValue
+	public static Map mapofSomeNonnulls(Object... keysAndValues)
+	{
+		if (keysAndValues.length == 0)
+		{
+			return mapofSomeNonnulls();
+		}
+		else if (keysAndValues.length == 2)
+		{
+			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1]);
+		}
+		else if (keysAndValues.length == 4)
+		{
+			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1],  keysAndValues[2], keysAndValues[3]);
+		}
+		else if (keysAndValues.length == 6)
+		{
+			return mapofSomeNonnulls(keysAndValues[0], keysAndValues[1],  keysAndValues[2], keysAndValues[3],  keysAndValues[4], keysAndValues[5]);
+		}
+		else
+		{
+			return newMapNonnullMaybeArray(keysAndValues);
+		}
+	}
+	
+	
+	
+	
 	@ReadonlyValue
 	@HashableValue
 	public static Map mapofArray(Object[] keysAndValues)
@@ -8135,6 +8240,36 @@ _$$primxpconf:byte,char,short,int$$_
 			if (valuem != null)
 			{
 				Object value = valuem.getJust();
+				m.put(key, value);
+			}
+		}
+		
+		return m;
+	}
+	
+	/**
+	 * If the values are null, that {@link Entry} will be elided from the map!
+	 */
+	@ThrowAwayValue
+	public static Map newMapNonnullMaybeArray(Object[] keysAndValues)
+	{
+		if ((keysAndValues.length % 2) != 0)
+			throw new IllegalArgumentException();
+		
+		
+		Map m = new HashMap();
+		
+		for (int i = 0; i < keysAndValues.length; i += 2)
+		{
+			Object key = keysAndValues[i];
+			
+			if (m.containsKey(key))
+				throw new AlreadyExistsException();
+			
+			Object value = keysAndValues[i+1];
+			
+			if (value != null)
+			{
 				m.put(key, value);
 			}
 		}
