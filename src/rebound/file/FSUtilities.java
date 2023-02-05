@@ -168,6 +168,24 @@ implements JavaNamespace
 	
 	
 	
+	public static boolean isDirectoryEmpty(@Nonnull File d) throws IOException
+	{
+		return listDirectoryBasenamesOrThrow(d).length == 0;
+	}
+	
+	public static boolean isDirectoryEmptyOfFiles(@Nonnull File d) throws IOException
+	{
+		return !forAny(f -> f.isFile(), listDirectoryFilesOrThrow(d));
+	}
+	
+	public static boolean isDirectoryEmptyOfDirectories(@Nonnull File d) throws IOException
+	{
+		return !forAny(f -> f.isDirectory(), listDirectoryFilesOrThrow(d));
+	}
+	
+	
+	
+	
 	
 	public static void checkDir(File d) throws ImpossibleException
 	{
