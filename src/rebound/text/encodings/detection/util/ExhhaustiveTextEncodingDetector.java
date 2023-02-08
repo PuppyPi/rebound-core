@@ -68,7 +68,8 @@ implements TextEncodingDetector
 					{
 						for (int i = 0; i < amt && !bad; i++)
 						{
-							if (b[i] == 0)  //basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
+							int c = b[i];
+							if (c == 0 || !Character.isDefined(c))  //basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
 								bad = true;
 						}
 					}
