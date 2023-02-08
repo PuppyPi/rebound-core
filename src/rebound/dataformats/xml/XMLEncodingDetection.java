@@ -545,7 +545,7 @@ public class XMLEncodingDetection
 			}
 		}
 		
-		return encodingDeclarationTypeToSemanticEncoding(encoding, wcd);
+		return encodingDeclarationTypeToSemanticEncodingOrNull(encoding, wcd);
 	}
 	
 	
