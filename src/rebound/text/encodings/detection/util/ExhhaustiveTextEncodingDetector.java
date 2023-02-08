@@ -48,43 +48,38 @@ implements TextEncodingDetector
 	{
 		for (Charset encoding : underlyings)
 		{
-			try (InputStream in = opener.f())
+			CharsetDecoder decoder = encoding.newDecoder();
+			decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
+			decoder.onMalformedInput(CodingErrorAction.REPORT);
+			
+			try (UCS4Reader r = new UCS4ReaderFromNormalUTF16Reader(new InputStreamReader(opener.f(), decoder)))
 			{
-				CharsetDecoder decoder = encoding.newDecoder();
-				decoder.onUnmappableCharacter(CodingErrorAction.REPORT);
-				decoder.onMalformedInput(CodingErrorAction.REPORT);
+				int[] b = new int[4096];
 				
-				try
+				boolean bad = false;
+				
+				while (!bad)
 				{
-					UCS4Reader r = new UCS4ReaderFromNormalUTF16Reader(new InputStreamReader(in, decoder));
+					int amt = r.read(b);
 					
-					int[] b = new int[4096];
-					
-					boolean bad = false;
-					
-					while (!bad)
+					if (amt == -1)
+						return encoding;
+					else
 					{
-						int amt = r.read(b);
-						
-						if (amt == -1)
-							return encoding;
-						else
+						for (int i = 0; i < amt && !bad; i++)
 						{
-							for (int i = 0; i < amt && !bad; i++)
-							{
-								if (b[i] == 0)  //basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
-									bad = true;
-							}
+							if (b[i] == 0)  //basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
+								bad = true;
 						}
 					}
-					
-					asrt(bad);
-					//continue on since it's bad X3
 				}
-				catch (CharacterCodingException | UTF16EncodingException exc)
-				{
-					//continue on X3
-				}
+				
+				asrt(bad);
+				//continue on since it's bad X3
+			}
+			catch (CharacterCodingException | UTF16EncodingException exc)
+			{
+				//continue on X3
 			}
 		}
 		
