@@ -5,7 +5,6 @@ import static rebound.util.collections.CollectionUtilities.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
@@ -13,6 +12,9 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.UnsupportedCharsetException;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.io.ucs4.UCS4Reader;
+import rebound.io.ucs4.UCS4ReaderFromNormalUTF16Reader;
+import rebound.io.ucs4.UTF16EncodingException;
 import rebound.text.encodings.detection.TextEncodingDetector;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.NullaryFunctionThrowingIOException;
 
@@ -54,9 +56,9 @@ implements TextEncodingDetector
 				
 				try
 				{
-					Reader r = new InputStreamReader(in, decoder);
+					UCS4Reader r = new UCS4ReaderFromNormalUTF16Reader(new InputStreamReader(in, decoder));
 					
-					char[] b = new char[4096];
+					int[] b = new int[4096];
 					
 					boolean bad = false;
 					
@@ -79,7 +81,7 @@ implements TextEncodingDetector
 					asrt(bad);
 					//continue on since it's bad X3
 				}
-				catch (CharacterCodingException exc)
+				catch (CharacterCodingException | UTF16EncodingException exc)
 				{
 					//continue on X3
 				}
