@@ -69,7 +69,11 @@ implements TextEncodingDetector
 						for (int i = 0; i < amt && !bad; i++)
 						{
 							int c = b[i];
-							if (c == 0 || !Character.isDefined(c))  //basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
+							
+							//regarding c == 0: basically no text file will actually legitimately have the NUL character in it, so this is useful for checking if it's correct (particularly with 8-bit encodings like ISO-8859-1 which might otherwise accept *any* input as silent errors! XD'' )
+							
+							//if (c == 0 || c > Character.MAX_CODE_POINT)  //this unfortunately does *not* work, and ISO-8859-1 test text decodes "correctly" as UTF-16 that only a human recognizes as gobbledegook, we have to use the below code for the test to pass XP
+							if (c == 0 || !Character.isDefined(c))
 								bad = true;
 						}
 					}
