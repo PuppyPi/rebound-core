@@ -46,6 +46,8 @@ implements TextEncodingDetector
 	@Override
 	public Charset detectEncoding(NullaryFunctionThrowingIOException<InputStream> opener) throws IOException, UnsupportedCharsetException
 	{
+		int[] b = new int[4096];
+		
 		for (Charset encoding : underlyings)
 		{
 			CharsetDecoder decoder = encoding.newDecoder();
@@ -54,8 +56,6 @@ implements TextEncodingDetector
 			
 			try (UCS4Reader r = new UCS4ReaderFromNormalUTF16Reader(new InputStreamReader(opener.f(), decoder)))
 			{
-				int[] b = new int[4096];
-				
 				boolean bad = false;
 				
 				while (!bad)
