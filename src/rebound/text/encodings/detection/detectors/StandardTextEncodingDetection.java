@@ -16,6 +16,22 @@ public class StandardTextEncodingDetection
 	);
 	
 	
+	private static final TextEncodingDetector CertainPlusExhaustiveDetector = new CascadedTextEncodingDetector(
+	CertainDetector,
+	
+	new ExhhaustiveTextEncodingDetector(
+	StandardCharsets.UTF_8,
+	StandardCharsets.UTF_16LE,
+	StandardCharsets.UTF_16BE,
+	StandardCharsets.US_ASCII,
+	StandardCharsets.ISO_8859_1
+	)
+	
+	);
+	
+	
+	
+	
 	private static final TextEncodingDetector CertainPlusHeuristicsDetector = new CascadedTextEncodingDetector(
 	CertainDetector
 	//TODO Unicode BOM   (see XMLEncodingDetection for an implementation!!)
@@ -43,6 +59,12 @@ public class StandardTextEncodingDetection
 	{
 		return CertainDetector;
 	}
+	
+	public static TextEncodingDetector certainPlusExhaustive()
+	{
+		return CertainPlusExhaustiveDetector;
+	}
+	
 	
 	public static TextEncodingDetector certainPlusHeuristics()
 	{
