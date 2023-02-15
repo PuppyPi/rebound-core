@@ -3785,6 +3785,31 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	public static Object[] toArray(Iterable<?> i)
+	{
+		if (i instanceof Collection)
+			return ((Collection)i).toArray();
+		else
+			return asList(i).toArray();
+	}
+	
+	public static Object[] toArray(Iterator<?> i)
+	{
+		return asList(i).toArray();
+	}
+	
+	public static Object[] toArray(SimpleIterator<?> i)
+	{
+		return asList(i).toArray();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * • Lenient meaning if the underlying thing isn't long enough (either because start or pastEnd is too big), this just returns as much as it can.
@@ -7441,17 +7466,17 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	@ThrowAwayValue
-	public static <E> List<E> sorted(@ReadonlyValue Collection<E> input)
+	public static <E> List<E> sorted(@ReadonlyValue Iterable<E> input)
 	{
-		Object[] array = input.toArray();
+		Object[] array = toArray(input);
 		Arrays.sort(array);
 		return (List<E>)Arrays.asList(array);
 	}
 	
 	@ThrowAwayValue
-	public static <E> List<E> sorted(@ReadonlyValue Collection<E> input, Comparator<? super E> comparator)
+	public static <E> List<E> sorted(@ReadonlyValue Iterable<E> input, Comparator<? super E> comparator)
 	{
-		Object[] array = input.toArray();
+		Object[] array = toArray(input);
 		Arrays.sort((E[])array, comparator);
 		return (List<E>)Arrays.asList(array);
 	}
