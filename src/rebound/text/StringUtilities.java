@@ -87,6 +87,8 @@ import rebound.math.PlaceValueEncodingAlgorithm;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.CharacterPredicates.NaiveCharacterSequencePattern;
 import rebound.text.StringUtilities.RPBasicNaiveParsingSyntaxDescription.RPBasicNaiveParsingSyntaxStateDescription;
+import rebound.text.encodings.detection.TextEncodingDetector;
+import rebound.text.encodings.detection.detectors.StandardTextEncodingDetection;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.NIOBufferUtilities;
 import rebound.util.Primitives;
@@ -4150,7 +4152,137 @@ implements JavaNamespace
 	
 	
 	
+	//<With explicit TextEncodingDetector
+	public static String decodeTextToString(byte[] bytes, int offset, int length, TextEncodingDetector encodingDetector) throws CharacterCodingException
+	{
+		return encodingDetector.decodeToMemory(bytes, offset, length);
+	}
 	
+	public static String decodeTextToStringUnchecked(byte[] bytes, int offset, int length, TextEncodingDetector encodingDetector) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, offset, length, encodingDetector);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
+	
+	public static String decodeTextToString(byte[] bytes, TextEncodingDetector encodingDetector) throws CharacterCodingException
+	{
+		return encodingDetector.decodeToMemory(bytes);
+	}
+	
+	public static String decodeTextToStringUnchecked(byte[] bytes, TextEncodingDetector encodingDetector) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encodingDetector);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
+	
+	public static String decodeTextToString(Slice<byte[]> bytes, TextEncodingDetector encodingDetector) throws CharacterCodingException
+	{
+		return encodingDetector.decodeToMemory(bytes);
+	}
+	
+	public static String decodeTextToStringUnchecked(Slice<byte[]> bytes, TextEncodingDetector encodingDetector) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encodingDetector);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	
+	
+	public static String decodeTextToString(ByteList bytes, TextEncodingDetector encodingDetector) throws CharacterCodingException
+	{
+		return encodingDetector.decodeToMemory(bytes);
+	}
+	
+	public static String decodeTextToStringUnchecked(ByteList bytes, TextEncodingDetector encodingDetector) throws RuntimeException
+	{
+		try
+		{
+			return decodeTextToString(bytes, encodingDetector);
+		}
+		catch (CharacterCodingException exc)
+		{
+			throw new ImpossibleException(exc);
+		}
+	}
+	//With explicit TextEncodingDetector>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//<With default TextEncodingDetector
+	public static final TextEncodingDetector DefaultFromMemoryEncodingDetector = StandardTextEncodingDetection.certain();
+	
+	
+	public static String decodeTextToString(byte[] bytes, int offset, int length) throws CharacterCodingException
+	{
+		return decodeTextToString(bytes, offset, length, DefaultFromMemoryEncodingDetector);
+	}
+	
+	public static String decodeTextToStringUnchecked(byte[] bytes, int offset, int length) throws RuntimeException
+	{
+		return decodeTextToStringUnchecked(bytes, offset, length, DefaultFromMemoryEncodingDetector);
+	}
+	
+	
+	public static String decodeTextToString(byte[] bytes) throws CharacterCodingException
+	{
+		return decodeTextToString(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	
+	public static String decodeTextToStringUnchecked(byte[] bytes) throws RuntimeException
+	{
+		return decodeTextToStringUnchecked(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	
+	
+	public static String decodeTextToString(Slice<byte[]> bytes) throws CharacterCodingException
+	{
+		return decodeTextToString(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	
+	public static String decodeTextToStringUnchecked(Slice<byte[]> bytes) throws RuntimeException
+	{
+		return decodeTextToStringUnchecked(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	
+	
+	public static String decodeTextToString(ByteList bytes) throws CharacterCodingException
+	{
+		return decodeTextToString(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	
+	public static String decodeTextToStringUnchecked(ByteList bytes) throws RuntimeException
+	{
+		return decodeTextToStringUnchecked(bytes, DefaultFromMemoryEncodingDetector);
+	}
+	//With default TextEncodingDetector>
 	
 	
 	
