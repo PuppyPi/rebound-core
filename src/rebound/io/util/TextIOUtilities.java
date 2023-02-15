@@ -27,6 +27,9 @@ import rebound.text.encodings.detection.detectors.StandardTextEncodingDetection;
 
 public class TextIOUtilities
 {
+	public static final TextEncodingDetector DefaultFromStreamEncodingDetector = StandardTextEncodingDetection.certain();  //UTF-8 is an important and strong default, let's not use heuristics (idk if it matters though X3' )
+	
+	
 	public static String readAllText(InputStream in, String encoding) throws IOException
 	{
 		return readAllText(in, Charset.forName(encoding));
@@ -56,7 +59,7 @@ public class TextIOUtilities
 	
 	public static String readAllText(InputStream in) throws IOException
 	{
-		return readAllText(in, StandardTextEncodingDetection.certain());  //UTF-8 is an important and strong default, let's not use heuristics (idk if it matters though X3' )
+		return readAllText(in, DefaultFromStreamEncodingDetector);
 	}
 	
 	public static long pump(Reader in, Writer out) throws IOException
