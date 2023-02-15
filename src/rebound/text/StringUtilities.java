@@ -4237,7 +4237,7 @@ implements JavaNamespace
 	
 	
 	//<With default TextEncodingDetector
-	public static final TextEncodingDetector DefaultFromMemoryEncodingDetector = StandardTextEncodingDetection.certain();
+	public static final TextEncodingDetector DefaultFromMemoryEncodingDetector = StandardTextEncodingDetection.certainPlusExhaustive();
 	
 	
 	public static String decodeTextToString(byte[] bytes, int offset, int length) throws CharacterCodingException
