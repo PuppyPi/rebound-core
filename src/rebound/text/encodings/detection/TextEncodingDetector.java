@@ -13,6 +13,7 @@ import java.nio.charset.UnsupportedCharsetException;
 import javax.annotation.Nullable;
 import rebound.exceptions.ImpossibleException;
 import rebound.text.encodings.detection.util.ExhhaustiveTextEncodingDetector;
+import rebound.util.collections.Slice;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.NullaryFunctionThrowingIOException;
 
 public interface TextEncodingDetector
@@ -40,6 +41,15 @@ public interface TextEncodingDetector
 	public default @Nullable Charset detectEncoding(byte[] in) throws UnsupportedCharsetException
 	{
 		return detectEncoding(in, 0, in.length);
+	}
+	
+	/**
+	 * @return null if-and-only-if it couldn't be determined
+	 * @throws UnsupportedCharsetException if it was detected, but there is no {@link Charset} object registered for it!
+	 */
+	public default @Nullable Charset detectEncoding(Slice<byte[]> in) throws UnsupportedCharsetException
+	{
+		return detectEncoding(in.getUnderlying(), in.getOffset(), in.getLength());
 	}
 	
 	
@@ -84,6 +94,10 @@ public interface TextEncodingDetector
 	{
 		return decodeToMemory(in, 0, in.length, defaultIfUndetectable);
 	}
+	public default String decodeToMemory(Slice<byte[]> in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToMemory(in.getUnderlying(), in.getOffset(), in.getLength(), defaultIfUndetectable);
+	}
 	
 	public default String decodeToMemory(NullaryFunctionThrowingIOException<InputStream> opener, Charset defaultIfUndetectable) throws IOException, CharacterCodingException, UnsupportedCharsetException
 	{
@@ -106,6 +120,10 @@ public interface TextEncodingDetector
 	public default Reader decodeToStream(byte[] in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
 	{
 		return decodeToStream(in, 0, in.length, defaultIfUndetectable);
+	}
+	public default Reader decodeToStream(Slice<byte[]> in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToStream(in.getUnderlying(), in.getOffset(), in.getLength(), defaultIfUndetectable);
 	}
 	
 	public default Reader decodeToStream(NullaryFunctionThrowingIOException<InputStream> opener, Charset defaultIfUndetectable) throws IOException, CharacterCodingException, UnsupportedCharsetException
@@ -133,6 +151,10 @@ public interface TextEncodingDetector
 	{
 		return decodeToMemory(in, 0, in.length);
 	}
+	public default String decodeToMemory(Slice<byte[]> in) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToMemory(in.getUnderlying(), in.getOffset(), in.getLength());
+	}
 	
 	public default String decodeToMemory(NullaryFunctionThrowingIOException<InputStream> opener) throws IOException, CharacterCodingException, UnsupportedCharsetException
 	{
@@ -148,6 +170,10 @@ public interface TextEncodingDetector
 	public default Reader decodeToStream(byte[] in) throws CharacterCodingException, UnsupportedCharsetException
 	{
 		return decodeToStream(in, 0, in.length);
+	}
+	public default Reader decodeToStream(Slice<byte[]> in) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToStream(in.getUnderlying(), in.getOffset(), in.getLength());
 	}
 	
 	public default Reader decodeToStream(NullaryFunctionThrowingIOException<InputStream> opener) throws IOException, CharacterCodingException, UnsupportedCharsetException
