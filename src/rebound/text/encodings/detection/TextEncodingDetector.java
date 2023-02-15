@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import javax.annotation.Nullable;
@@ -17,6 +18,10 @@ import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.functional.throwing.FunctionalInterfacesThrowingCheckedExceptionsStandard.NullaryFunctionThrowingIOException;
 
+/**
+ * Note that all decoding here should perform the equivalent of {@link CodingErrorAction#REPORT} on decoding errors! (hence the <code>throws {@link CharacterCodingException}</code> X3)
+ * Because it shouldn't happen if the encoding was detected correctly!! XD
+ */
 public interface TextEncodingDetector
 {
 	/**
