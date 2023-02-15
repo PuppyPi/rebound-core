@@ -21,15 +21,6 @@ public interface TextEncodingDetector
 	 * @return null if-and-only-if it couldn't be determined
 	 * @throws UnsupportedCharsetException if it was detected, but there is no {@link Charset} object registered for it!
 	 */
-	public default @Nullable Charset detectEncoding(byte[] in) throws UnsupportedCharsetException
-	{
-		return detectEncoding(in, 0, in.length);
-	}
-	
-	/**
-	 * @return null if-and-only-if it couldn't be determined
-	 * @throws UnsupportedCharsetException if it was detected, but there is no {@link Charset} object registered for it!
-	 */
 	public default @Nullable Charset detectEncoding(byte[] in, int offset, int length) throws UnsupportedCharsetException
 	{
 		try
@@ -41,6 +32,16 @@ public interface TextEncodingDetector
 			throw new ImpossibleException(exc);
 		}
 	}
+	
+	/**
+	 * @return null if-and-only-if it couldn't be determined
+	 * @throws UnsupportedCharsetException if it was detected, but there is no {@link Charset} object registered for it!
+	 */
+	public default @Nullable Charset detectEncoding(byte[] in) throws UnsupportedCharsetException
+	{
+		return detectEncoding(in, 0, in.length);
+	}
+	
 	
 	
 	/**
@@ -68,16 +69,20 @@ public interface TextEncodingDetector
 	
 	
 	
-	public default String decodeToMemory(byte[] in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	public default String decodeToMemory(byte[] in, int offset, int length, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
 	{
 		try
 		{
-			return readAllToString(decodeToStream(in, defaultIfUndetectable));
+			return readAllToString(decodeToStream(in, offset, length, defaultIfUndetectable));
 		}
 		catch (IOException exc)
 		{
 			throw new ImpossibleException(exc);
 		}
+	}
+	public default String decodeToMemory(byte[] in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToMemory(in, 0, in.length, defaultIfUndetectable);
 	}
 	
 	public default String decodeToMemory(NullaryFunctionThrowingIOException<InputStream> opener, Charset defaultIfUndetectable) throws IOException, CharacterCodingException, UnsupportedCharsetException
@@ -85,16 +90,22 @@ public interface TextEncodingDetector
 		return readAllToString(decodeToStream(opener, defaultIfUndetectable));
 	}
 	
-	public default Reader decodeToStream(byte[] in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	
+	
+	public default Reader decodeToStream(byte[] in, int offset, int length, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
 	{
 		try
 		{
-			return decodeToStream(() -> new ByteArrayInputStream(in), defaultIfUndetectable);
+			return decodeToStream(() -> new ByteArrayInputStream(in, offset, length), defaultIfUndetectable);
 		}
 		catch (IOException exc)
 		{
 			throw new ImpossibleException(exc);
 		}
+	}
+	public default Reader decodeToStream(byte[] in, Charset defaultIfUndetectable) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToStream(in, 0, in.length, defaultIfUndetectable);
 	}
 	
 	public default Reader decodeToStream(NullaryFunctionThrowingIOException<InputStream> opener, Charset defaultIfUndetectable) throws IOException, CharacterCodingException, UnsupportedCharsetException
@@ -112,9 +123,15 @@ public interface TextEncodingDetector
 	
 	
 	
+	
+	
+	public default String decodeToMemory(byte[] in, int offset, int length) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToMemory(in, offset, length, StandardCharsets.UTF_8);
+	}
 	public default String decodeToMemory(byte[] in) throws CharacterCodingException, UnsupportedCharsetException
 	{
-		return decodeToMemory(in, StandardCharsets.UTF_8);
+		return decodeToMemory(in, 0, in.length);
 	}
 	
 	public default String decodeToMemory(NullaryFunctionThrowingIOException<InputStream> opener) throws IOException, CharacterCodingException, UnsupportedCharsetException
@@ -122,9 +139,15 @@ public interface TextEncodingDetector
 		return decodeToMemory(opener, StandardCharsets.UTF_8);
 	}
 	
+	
+	
+	public default Reader decodeToStream(byte[] in, int offset, int length) throws CharacterCodingException, UnsupportedCharsetException
+	{
+		return decodeToStream(in, offset, length, StandardCharsets.UTF_8);
+	}
 	public default Reader decodeToStream(byte[] in) throws CharacterCodingException, UnsupportedCharsetException
 	{
-		return decodeToStream(in, StandardCharsets.UTF_8);
+		return decodeToStream(in, 0, in.length);
 	}
 	
 	public default Reader decodeToStream(NullaryFunctionThrowingIOException<InputStream> opener) throws IOException, CharacterCodingException, UnsupportedCharsetException
