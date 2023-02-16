@@ -10354,11 +10354,11 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	/**
-	 * Note that this is shallow (eg, two lists's contents will be compared whether their equals() methods do that or not; but if their contents are lists themselves, those will be equals() compared ^^' )
-	 * (This is necessary for {@link Set}s to be compared quickly :3 )
-	 */
-	public static boolean eqv(@Nullable Object a, @Nullable Object b)
+	
+	
+	
+	
+	public static boolean eqvDeep(@Nullable Object a, @Nullable Object b)
 	{
 		if (a == null)
 			return b == null;
@@ -10411,6 +10411,76 @@ _$$primxpconf:byte,char,short,int$$_
 					
 					else if (a instanceof Map && b instanceof Map)
 						return defaultMapsEquivalent((Map)a, (Map)b, (aa, bb) -> eqv(aa, bb));
+					
+					else
+						throw new UnsupportedOperationException("eqv(a "+a.getClass().getName() + ", a " + b.getClass().getName()+")");
+				}
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * Note that this is shallow (eg, two lists's contents will be compared whether their equals() methods do that or not; but if their contents are lists themselves, those will be equals() compared ^^' )
+	 * (This is necessary for {@link Set}s to be compared quickly :3 )
+	 */
+	public static boolean eqv(@Nullable Object a, @Nullable Object b)
+	{
+		if (a == null)
+			return b == null;
+		else if (b == null)
+			return a == null;
+		else
+		{
+			if (a instanceof Equivalenceable)
+			{
+				try
+				{
+					return ((Equivalenceable)a).equivalent(b);
+				}
+				catch (NotSupportedReturnPath exc)
+				{
+				}
+			}
+			
+			if (b instanceof Equivalenceable)
+			{
+				try
+				{
+					return ((Equivalenceable)b).equivalent(a);
+				}
+				catch (NotSupportedReturnPath exc)
+				{
+				}
+			}
+			
+			//else
+			{
+				if (isTrueAndNotNull(isThreadUnsafelyImmutable(a)) && isTrueAndNotNull(isThreadUnsafelyImmutable(b)))  //handles String, Primitive Wrappers, etc. :D
+				{
+					return eq(a, b);
+				}
+				else if (a instanceof Enum || b instanceof Enum)
+				{
+					return a == b;
+				}
+				else
+				{
+					if (a instanceof List && b instanceof List)
+						return defaultListsEquivalent((List)a, (List)b);
+					
+					else if (a instanceof Set && b instanceof Set)
+						return defaultSetsEquivalent((Set)a, (Set)b);
+					
+					else if (a instanceof Collection && b instanceof Collection)
+						return defaultMultiSetsEquivalent_SmallNaive((Collection)a, (Collection)b);  //Todo do heuristics and benchmarking and use asymptotically faster algorithms when that would actually increase performance.  (right now all I use this for is tiny sets of like 5 elements at most, mostly X3 )
+					
+					else if (a instanceof Map && b instanceof Map)
+						return defaultMapsEquivalent((Map)a, (Map)b);
 					
 					else
 						throw new UnsupportedOperationException("eqv(a "+a.getClass().getName() + ", a " + b.getClass().getName()+")");
