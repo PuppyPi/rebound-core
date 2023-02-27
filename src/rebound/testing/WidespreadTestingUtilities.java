@@ -124,4 +124,80 @@ public class WidespreadTestingUtilities
 	{
 		throw new AssertionError(message);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Useful eg, in a conditional expression (like x != null ? x.getFoo() : error())
+	 */
+	@NeverReturns
+	public static <E> E error()
+	{
+		throw new RuntimeException();
+	}
+	
+	
+	/* <<<
+	primxp
+	
+	@NeverReturns
+	public static _$$prim$$_ error_$$Prim$$_()
+	{
+		throw new RuntimeException();
+	}
+	 */
+	
+	@NeverReturns
+	public static boolean errorBoolean()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static byte errorByte()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static char errorChar()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static short errorShort()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static float errorFloat()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static int errorInt()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static double errorDouble()
+	{
+		throw new RuntimeException();
+	}
+	
+	@NeverReturns
+	public static long errorLong()
+	{
+		throw new RuntimeException();
+	}
+	// >>>
 }
