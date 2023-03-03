@@ -5287,6 +5287,11 @@ implements JavaNamespace
 		if (base < 2)
 			throw new IllegalArgumentException("Invalid base: "+base);
 		
+		boolean negative = s.startsWith("-");
+		
+		if (negative)
+			s = s.substring(1);
+		
 		int expc = s.indexOf(exponentialChar);
 		int dotc = s.indexOf(decimalPointChar);
 		
@@ -5332,7 +5337,8 @@ implements JavaNamespace
 		
 		@RationalOrInteger Object significand = significandFractionalPartStr == null ? significandIntegerPart : add(significandIntegerPart, rational(significandFractionalPart, SmallIntegerMathUtilities.pow((long)base, significandFractionalPartStr.length())));
 		
-		
+		if (negative)
+			significand = negate(significand);
 		
 		
 		/*
