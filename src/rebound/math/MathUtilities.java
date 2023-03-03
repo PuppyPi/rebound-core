@@ -5287,7 +5287,7 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * Supports integer (1360), decimal (1.360), pseudodecimal (1360.), scientific notation (1.360e-4), but not overline/underline/etc. integer sigfigs, fractions (3/64), repeating-decimals, infinities, or nans.
+	 * Supports integer (1360), decimal (1.360), pseudodecimal (1360.), scientific notation (1.360e-4), but not overline/underline/etc. integer sigfigs (TODO support this someday!), fractions (3/64), repeating-decimals, infinities, or nans.
 	 */
 	public static ArithmeticGenericInterval<Object> parseDecimalPreservingSigfigs(String s, int base, char decimalPointChar, char exponentialChar, boolean oddBasesRoundMidpointDigitDown) throws NumberFormatException, OverflowException
 	{
