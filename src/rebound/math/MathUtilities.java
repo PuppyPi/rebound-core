@@ -5319,11 +5319,11 @@ implements JavaNamespace
 		long multiplierOrDivider = SmallIntegerMathUtilities.pow((long)base, abs(characteristic));
 		
 		int multiplierExponentForTolerance;
-		int numberOfSignificantFigures;
+		int numberOfFractionalSignificantFigures;
 		{
 			if (significandFractionalPartStr != null)
 			{
-				numberOfSignificantFigures = significandFractionalPartStr.length();
+				numberOfFractionalSignificantFigures = significandFractionalPartStr.length();
 				multiplierExponentForTolerance = -1;
 			}
 			else
@@ -5334,7 +5334,7 @@ implements JavaNamespace
 				boolean allZeros = n == 0;
 				
 				multiplierExponentForTolerance = allZeros ? 0 : numberOfTrailingZeros;
-				numberOfSignificantFigures = allZeros ? 1 : n;
+				numberOfFractionalSignificantFigures = allZeros ? 1 : n;
 			}
 		}
 		
@@ -5431,7 +5431,7 @@ implements JavaNamespace
 		
 		if ((base % 2) == 0)
 		{
-			@RationalOrInteger Object plusOrMinus = mul(base/2, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic));
+			@RationalOrInteger Object plusOrMinus = mul(base/2, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic));
 			return gintervalFromValueAndAbsoluteTolerance(midpoint, plusOrMinus, true, false);
 		}
 		else
@@ -5439,8 +5439,8 @@ implements JavaNamespace
 			int l = oddBasesRoundMidpointDigitDown ? floorDivision(base, 2) : ceilingDivision(base, 2);
 			int h = oddBasesRoundMidpointDigitDown ? ceilingDivision(base, 2) : floorDivision(base, 2);
 			
-			Object low = subtract(midpoint, mul(l, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic)));
-			Object high = add(midpoint, mul(h, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic)));
+			Object low = subtract(midpoint, mul(l, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)));
+			Object high = add(midpoint, mul(h, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)));
 			
 			return ginterval(low, true, high, false);
 		}
