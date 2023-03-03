@@ -3695,4 +3695,63 @@ _$$primxpconf:noboolean$$_
 			//return inclusiveMaximum <= MAX - 1 + inclusiveMinimum;  //this right-hand side is either -2, -1, or >= 0 in signed arithmetic :>
 			return inclusiveMaximum < MAX + inclusiveMinimum;  //so this is perfectly equivalent in all cases, because inclusiveMinimum <= 0! \:D/
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Equivalent to <code>x / {@link #factorPower(long, long) factorPower}(x, factor))</code> but possibly more efficient.
+	 * (eg, if x is 4981000 and factor is 10, then this returns 3, {@link #factorPower(long, long)} returns 1000, and {@link #removeUniqueFactor(long, long)} returns 4981 :D )
+	 */
+	public static long removeUniqueFactor(@Positive long x, @Positive long factor)
+	{
+		requirePositive(x);
+		requirePositive(factor);
+		
+		//Todo more efficient implementation??!
+		return x / factorPower(x, factor);
+	}
+	
+	
+	/**
+	 * Equivalent to <code>{@link #pow(long, long) pow}(factor, {@link #factorMultiplicity(long, long) factorMultiplicity}(x, factor))</code> but possibly more efficient.
+	 * (eg, if x is 4981000 and factor is 10, then {@link #factorMultiplicity(long, long)} returns 3, this returns 1000, and {@link #removeUniqueFactor(long, long)} returns 4981 :D )
+	 */
+	public static long factorPower(@Positive long x, @Positive long factor)
+	{
+		requirePositive(x);
+		requirePositive(factor);
+		
+		//Todo more efficient implementation??!  Like gcd(x, factor^∞) basically? XD
+		//  (then factorMultiplicity() could just take the logarithm of *this!* :D )
+		return pow(factor, factorMultiplicity(x, factor));
+	}
+	
+	
+	/**
+	 * The number of times you can wholly/losslessly divide <code>x</code> by <code>factor</code> :3
+	 * (eg, if x is 4981000 and factor is 10, then this returns 3, {@link #factorPower(long, long)} returns 1000, and {@link #removeUniqueFactor(long, long)} returns 4981 :D )
+	 */
+	public static long factorMultiplicity(@Positive long x, @Positive long factor)
+	{
+		requirePositive(x);
+		requirePositive(factor);
+		
+		
+		//Todo more efficient implementation??!
+		
+		long c = 0;
+		
+		while (x % factor == 0)
+		{
+			c++;
+			x /= factor;
+		}
+		
+		return c;
+	}
 }
