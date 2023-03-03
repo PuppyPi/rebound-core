@@ -3412,6 +3412,8 @@ implements JavaNamespace
 			{
 				if (n instanceof Long)
 					nn = BigInteger.valueOf((Long)n);
+				else if (n instanceof UnsignedLong)
+					nn = ((UnsignedLong)n).bigIntegerValue();
 				else if (n instanceof BigInteger)
 					nn = (BigInteger)n;
 				else
@@ -3423,6 +3425,8 @@ implements JavaNamespace
 			{
 				if (d instanceof Long)
 					dd = BigInteger.valueOf((Long)d);
+				else if (d instanceof UnsignedLong)
+					dd = ((UnsignedLong)d).bigIntegerValue();
 				else if (d instanceof BigInteger)
 					dd = (BigInteger)d;
 				else
