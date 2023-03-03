@@ -3426,7 +3426,7 @@ implements JavaNamespace
 				else if (d instanceof BigInteger)
 					dd = (BigInteger)d;
 				else
-					throw new IllegalArgumentException("Denominator not an integer!!: ("+getClassNT(n)+")"+d);
+					throw new IllegalArgumentException("Denominator not an integer!!: ("+getClassNT(d)+")"+d);
 			}
 			
 			
