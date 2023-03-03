@@ -749,6 +749,11 @@ public class SmallIntegerMathUtilities
 		return a < 0 ? safe_neg_s32(a) : a;
 	}
 	
+	public static long safe_abs_s64(long a)
+	{
+		return a < 0 ? safe_neg_s64(a) : a;
+	}
+	
 	@Nonnegative
 	public static int lossyAbs(int a)
 	{
