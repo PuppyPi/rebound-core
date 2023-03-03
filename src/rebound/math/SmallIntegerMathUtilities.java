@@ -3743,6 +3743,7 @@ _$$primxpconf:noboolean$$_
 		
 		
 		//Todo more efficient implementation??!
+		//  (like how countTrailingZeros() works for factor == 2???)
 		
 		long c = 0;
 		
