@@ -5329,11 +5329,12 @@ implements JavaNamespace
 			else
 			{
 				int numberOfTrailingZeros = countTrailing(significandIntegerPartStr, '0');
-				numberOfSignificantFigures = significandIntegerPartStr.length() - numberOfTrailingZeros;
+				int n = significandIntegerPartStr.length() - numberOfTrailingZeros;
 				
-				boolean allZeros = numberOfSignificantFigures == 0;
+				boolean allZeros = n == 0;
 				
-				multiplierExponentForTolerance = (allZeros ? 0 : numberOfTrailingZeros);
+				multiplierExponentForTolerance = allZeros ? 0 : numberOfTrailingZeros;
+				numberOfSignificantFigures = allZeros ? 1 : n;
 			}
 		}
 		
