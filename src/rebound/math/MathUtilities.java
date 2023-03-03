@@ -5314,7 +5314,7 @@ implements JavaNamespace
 		
 		long significandIntegerPart = dotc == 0 ? 0 : Long.parseLong(significandIntegerPartStr, base);  //may throw NumberFormatException
 		long significandFractionalPart = (significandFractionalPartStr == null || significandFractionalPartStr.isEmpty()) ? 0 : Long.parseLong(significandFractionalPartStr, base);  //may throw NumberFormatException
-		int characteristic = expc == -1 ? 0 : Integer.parseInt(characteristicStr, base);  //may throw NumberFormatException
+		int characteristic = (significandIntegerPart == 0 && significandFractionalPart == 0) ? 0 : (expc == -1 ? 0 : Integer.parseInt(characteristicStr, base));  //may throw NumberFormatException
 		
 		long multiplierOrDivider = SmallIntegerMathUtilities.pow((long)base, abs(characteristic));
 		
