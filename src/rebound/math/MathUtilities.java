@@ -5456,6 +5456,9 @@ implements JavaNamespace
 	
 	
 	
+	
+	//Todo better handling of non-sigfig-type intervals!
+	
 	public static String formatDecimalPreservingSigfigs(ArithmeticGenericInterval<Object> value) throws NumberFormatException, OverflowException
 	{
 		return formatDecimalPreservingSigfigs(value, 10, '.', 'e', false);
