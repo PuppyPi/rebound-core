@@ -35,6 +35,8 @@ import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.bits.Bytes;
+import rebound.exceptions.DecimalUnrepresentableFractionException;
+import rebound.exceptions.DecimalUnrepresentableToleranceException;
 import rebound.exceptions.DivisionByZeroException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.InfinityException;
@@ -46,6 +48,7 @@ import rebound.exceptions.OverflowException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.TruncationException;
 import rebound.math.MathUtilities.CastableToIntegerTrait.CastableToSmallIntegerTrait;
+import rebound.text.StringUtilities;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.collections.ArrayUtilities;
 import rebound.util.collections.FilterAwayReturnPath;
@@ -5444,5 +5447,327 @@ implements JavaNamespace
 			
 			return ginterval(low, true, high, false);
 		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static String formatDecimalPreservingSigfigs(ArithmeticGenericInterval<Object> value) throws NumberFormatException, OverflowException
+	{
+		return formatDecimalPreservingSigfigs(value, 10, '.', 'e', false);
+	}
+	
+	/**
+	 * Canonical inverse of the noninjective function {@link #parseDecimalPreservingSigfigs(String, int, char, char, boolean)} :3
+	 * If the provided value isn't of the right kind (eg, it can only be represented with non-sigfig tolerance, or its denominators aren't even representable as exact non-repeating decimals!), {@link DecimalUnrepresentableFractionException} or {@link DecimalUnrepresentableToleranceException} is thrown.
+	 * 
+	 * This always uses scientific notation except that the "e0" (or whatever char if not 'e') is left off if the characteristic is zero (eg, for "1.340", it actually is that, no need for a "*10^" part XD )
+	 */
+	public static String formatDecimalPreservingSigfigs(ArithmeticGenericInterval<Object> value, int base, char decimalPointChar, char exponentialChar, boolean oddBasesRoundMidpointDigitDown) throws DecimalUnrepresentableFractionException, DecimalUnrepresentableToleranceException
+	{
+		//Todo handle inclusivity/exclusivity of endpoints!
+		long[] r = commonizeToPowerOfBaseForm(value, base);
+		
+		long numeratorLowBasePower = r[0];
+		long numeratorHighBasePower = r[1];
+		//long denominatorBasePower = r[2];
+		int denominatorBasePowerExponent = (int)r[3];  //denominatorBasePower = base ^ denominatorBasePowerExponent
+		
+		if ((base % 2) == 0)
+		{
+			long p = numeratorLowBasePower + numeratorHighBasePower;
+			
+			if ((p % 2) != 0)
+				throw new DecimalUnrepresentableToleranceException();
+			
+			long midpointNumerator = p / 2;
+			long toleranceNumerator = (numeratorHighBasePower - numeratorLowBasePower) / 2;  //if a + b is even, a - b is even too!
+			
+			
+			long significandInteger;
+			int numberOfSignificantDigits;
+			int characteristic;
+			{
+				int bh = base / 2;
+				
+				//@RationalOrInteger Object midpoint = characteristic >= 0 ? multiply(significand, multiplierOrDivider) : divide(significand, multiplierOrDivider);
+				//@RationalOrInteger Object plusOrMinus = mul(base/2, MathUtilities.pow(base, -numberOfSignificantFigures + multiplierExponentForTolerance + characteristic));
+				
+				
+				//We have to divide/increment/decrement to account for the fact that the midpointNumerator here will always be a little too big.
+				//The rational number will be the same but if you have, say, 0.01 ± 0.005 then you have [0.005, 0.015) which is [1/200, 3/200) which is [5/1000, 15/1000) the midpoint of which is 10/1000 which is 1/100 which is 0.01 like we started with!   But the midpoint fraction's numerator and denominator will be both "base" times too big because of how we do things with the lower/upper bound rationals!  So we have to drop it back down :3
+				//Note that we don't change denominatorBasePowerExponent, but just have to subtract one from it when we use it for the midpoint, but *not* for the tolerance!!
+				asrt(midpointNumerator % base == 0);
+				midpointNumerator /= base;
+				
+				int floorLogOfMidpointNumerator = midpointNumerator == 0 ? 1 : floorLog(safe_abs_s64(midpointNumerator), base);
+				
+				//Table! :D
+				/*
+				 * midpoint | midpoint basepower-fraction | floorLogOfNumerator | denominatorBasePowerExponent | Scientific Notation | Desired characteristic | Desired significand (integer)
+				 * ---------+-----------------------------+---------------------+------------------------------+---------------------+------------------------+------------------------------
+				 * 0.001    | 1/1000                      | 0                   | 3                            | 1e-3                | -3                     | 1
+				 * 0.01     | 1/100                       | 0                   | 2                            | 1e-2                | -2                     | 1
+				 * 0.1      | 1/10                        | 0                   | 1                            | 1e-1                | -1                     | 1
+				 * 1        | 1/1                         | 0                   | 0                            | 1                   |  0                     | 1
+				 * 10       | 10/1                        | 1                   | 0                            | 1e1                 |  1                     | 1
+				 * 100      | 100/1                       | 2                   | 0                            | 1e2                 |  2                     | 1
+				 * 1000     | 1000/1                      | 3                   | 0                            | 1e3                 |  3                     | 1
+				 * 134200   | 134200/1                    | 5                   | 0                            | 1.342e5             |  5                     | 1342
+				 * 13420    | 13420/1                     | 4                   | 0                            | 1.342e4             |  4                     | 1342
+				 * 1342     | 1342/1                      | 3                   | 0                            | 1.342e3             |  3                     | 1342
+				 * 134.2    | 1342/10                     | 3                   | 1                            | 1.342e2             |  2                     | 1342
+				 * 13.42    | 1342/100                    | 3                   | 2                            | 1.342e1             |  1                     | 1342
+				 * 1.342    | 1342/1000                   | 3                   | 3                            | 1.342               |  0                     | 1342
+				 * 0.1342   | 1342/10000                  | 3                   | 4                            | 1.342e-1            | -1                     | 1342
+				 * 0.01342  | 1342/100000                 | 3                   | 5                            | 1.342e-2            | -2                     | 1342
+				 * 
+				 * 0.0010   | 1/1000                      | 0                   | 3                            | 1.0e-3              | -3                     | 10
+				 * 0.010    | 1/100                       | 0                   | 2                            | 1.0e-2              | -2                     | 10
+				 * 0.10     | 1/10                        | 0                   | 1                            | 1.0e-1              | -1                     | 10
+				 * 1.0      | 1/1                         | 0                   | 0                            | 1.0                 |  0                     | 10
+				 * 10.      | 10/1                        | 1                   | 0                            | 1.0e1               |  1                     | 10
+				 * 100.     | 100/1                       | 2                   | 0                            | 1.00e2              |  2                     | 100
+				 * 1000.    | 1000/1                      | 3                   | 0                            | 1.000e3             |  3                     | 1000
+				 * 134200.  | 134200/1                    | 5                   | 0                            | 1.34200e5           |  5                     | 134200
+				 * 13420.   | 13420/1                     | 4                   | 0                            | 1.3420e4            |  4                     | 13420
+				 * 1342.0   | 1342/1                      | 3                   | 0                            | 1.3420e3            |  3                     | 13420
+				 * 134.20   | 1342/10                     | 3                   | 1                            | 1.3420e2            |  2                     | 13420
+				 * 13.420   | 1342/100                    | 3                   | 2                            | 1.3420e1            |  1                     | 13420
+				 * 1.3420   | 1342/1000                   | 3                   | 3                            | 1.3420              |  0                     | 13420
+				 * 0.13420  | 1342/10000                  | 3                   | 4                            | 1.3420e-1           | -1                     | 13420
+				 * 0.013420 | 1342/100000                 | 3                   | 5                            | 1.3420e-2           | -2                     | 13420
+				 */
+				
+				characteristic = floorLogOfMidpointNumerator - (denominatorBasePowerExponent - 1);  //the -1 is because of the dropping down by 'base' as described above
+				
+				
+				
+				
+				// significandInteger / base^(numberOfDigitsInMidpoint - 1) * base^characteristic = midpoint
+				// significandInteger / base^(numberOfDigitsInMidpoint - 1) * base^((numberOfDigitsInMidpoint - 1) - denominatorBasePowerExponent) = midpoint
+				// significandInteger * base^(-denominatorBasePowerExponent) = midpoint
+				// significandInteger / base^(denominatorBasePowerExponent) = midpoint
+				// significandInteger / denominatorBasePower = midpoint
+				// significandInteger = midpoint * denominatorBasePower
+				// significandInteger = midpointNumerator
+				significandInteger = midpointNumerator == 0 ? 0 : (SmallIntegerMathUtilities.removeUniqueFactor(safe_abs_s64(midpointNumerator), base) * SmallIntegerMathUtilities.signum(midpointNumerator));
+				
+				
+				
+				//Pulling from the parse() code!
+				// @RationalOrInteger Object plusOrMinus = mul(base/2, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic));
+				// tolerance = (base/2) * base ^(-numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)
+				// tolerance / (base/2) = base ^(-numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)
+				// log[base](tolerance / (base/2)) = -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic
+				// log[base](tolerance / (base/2)) + numberOfFractionalSignificantFigures = multiplierExponentForTolerance + characteristic
+				// numberOfFractionalSignificantFigures = multiplierExponentForTolerance + characteristic - log[base](tolerance / (base/2))
+				// numberOfFractionalSignificantFigures - multiplierExponentForTolerance = characteristic - log[base](tolerance / (base/2))
+				//    numberOfSignificantFigures = numberOfFractionalSignificantFigures - multiplierExponentForTolerance  ???
+				// numberOfSignificantFigures = characteristic - log[base](tolerance / (base/2))
+				
+				if ((toleranceNumerator % bh) != 0)
+					throw new DecimalUnrepresentableToleranceException();
+				
+				int logOfToleranceOverHalfBase;
+				{
+					// (Examples given for base 10 )
+					//If the tolerance is ± .0005 or something, then denominatorBasePower encodes its information!
+					//If the tolerance is ± 5000 or something, then toleranceNumerator encodes its information!
+					//If the tolerance is ± 5, then toleranceNumerator = 5 and denominatorBasePower = 0
+					//If the tolerance is ± .5, then toleranceNumerator = 5 and denominatorBasePower = 1
+					
+					//Table! :D
+					/*
+					 * Tolerance | toleranceNumerator | denominatorBasePowerExponent | Desired logOfToleranceOverHalfBase
+					 * ----------+--------------------+------------------------+----------------------------
+					 *    0.0005 |    5               | 4                            | -4
+					 *    0.005  |    5               | 3                            | -3
+					 *    0.05   |    5               | 2                            | -2
+					 *    0.5    |    5               | 1                            | -1
+					 *    5      |    5               | 0                            | 0
+					 *   50      |   50               | 0                            | 1
+					 *  500      |  500               | 0                            | 2
+					 * 5000      | 5000               | 0                            | 3
+					 */
+					
+					if (denominatorBasePowerExponent != 0)
+					{
+						asrt(toleranceNumerator == bh);
+						logOfToleranceOverHalfBase = -denominatorBasePowerExponent;
+					}
+					else
+					{
+						long x = toleranceNumerator / bh;
+						
+						long te;
+						try
+						{
+							te = losslessLog(x, base);
+						}
+						catch (TruncationException exc)
+						{
+							throw new DecimalUnrepresentableToleranceException();
+						}
+						
+						logOfToleranceOverHalfBase = safeCastS64toS32(te);
+					}
+				}
+				
+				numberOfSignificantDigits = characteristic - logOfToleranceOverHalfBase;
+				asrt(numberOfSignificantDigits > 0);
+				
+				
+				long significandIntegerAbs = safe_abs_s64(significandInteger);
+				int numberOfDigitsInSignificandIntegerCurrently = significandIntegerAbs <= 1 ? 1 : ceilLog(significandIntegerAbs, base);  //other than it being -1, 0, or 1, it won't ever be a power of "base", so ceilLog[base]() works on it to find the number of digits!
+				significandInteger *= SmallIntegerMathUtilities.pow(base, numberOfSignificantDigits - numberOfDigitsInSignificandIntegerCurrently);
+			}
+			
+			
+			
+			
+			String significandStr;
+			{
+				asrt(numberOfSignificantDigits > 0);
+				
+				if (significandInteger == 0)
+				{
+					significandStr = "0" + decimalPointChar + StringUtilities.mulnn('0', numberOfSignificantDigits-1);  //may lead to an empty fractional part but that's fine!  eg, "0."
+				}
+				else
+				{
+					boolean negative = significandInteger < 0;
+					String s = Long.toString(safe_abs_s64(significandInteger), base);
+					asrt(!s.isEmpty());
+					asrt(s.length() == numberOfSignificantDigits);
+					
+					char first = s.charAt(0);
+					asrt(first != '0');
+					
+					significandStr = (negative ? "-" : "") + String.valueOf(first) + decimalPointChar + s.substring(1);  //may lead to an empty fractional part but that's fine!  eg, "7."
+				}
+			}
+			
+			return characteristic == 0 ? significandStr : (significandStr + exponentialChar + Integer.toString(characteristic, base));
+		}
+		else
+		{
+			throw new NotYetImplementedException();  //Todo
+		}
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @return {new numeratorA, new numeratorB, new (common) denominator, new denominatorExponent (new denominator = base ^ (new denominatorExponent))}
+	 */
+	public static long[] commonizeToPowerOfBaseForm(ArithmeticGenericInterval<Object> value, long base) throws IllegalArgumentException, DecimalUnrepresentableFractionException
+	{
+		long[] low = getRationalNumeratorAndDenominatorSmall(value.getStart());
+		long[] high = getRationalNumeratorAndDenominatorSmall(value.getEnd());
+		
+		return commonizeTwoRationalsToPowerOfBaseForm(low[0], low[1], high[0], high[1], base);
+	}
+	
+	
+	/**
+	 * @return {new numeratorA, new numeratorB, new (common) denominator, new denominatorExponent (new denominator = base ^ (new denominatorExponent))}
+	 */
+	public static long[] commonizeTwoRationalsToPowerOfBaseForm(long an, long ad, long bn, long bd, long base) throws IllegalArgumentException, DecimalUnrepresentableFractionException
+	{
+		long anCommon, bnCommon, denominatorCommon;
+		{
+			long[] low = new long[]{an, ad};
+			long[] high = new long[]{bn, bd};
+			
+			commonizeFractionsDenominators(low, high);
+			
+			anCommon = low[0];
+			bnCommon = high[0];
+			denominatorCommon = arbitraryCheckingEq(low[1], high[1]);
+		}
+		
+		return rationalToPowerOfBaseFormForTwoCommonDenominatorRationals(anCommon, bnCommon, denominatorCommon, base);
+	}
+	
+	
+	
+	
+	/**
+	 * @return {new numeratorA, new numeratorB, new denominator, new denominatorExponent (new denominator = base ^ (new denominatorExponent))}
+	 */
+	public static long[] rationalToPowerOfBaseFormForTwoCommonDenominatorRationals(long numeratorA, long numeratorB, long denominator, long base) throws IllegalArgumentException, DecimalUnrepresentableFractionException
+	{
+		long numeratorABasePower, numeratorBBasePower, denominatorBasePower;
+		int denominatorBasePowerExponent;  //denominatorBasePower = base ^ denominatorBasePowerExponent
+		{
+			long[] r = prepareForRationalToPowerOfBaseForm(denominator, base);
+			
+			denominatorBasePower = r[0];
+			denominatorBasePowerExponent = (int)r[1];
+			long multiplier = r[2];
+			
+			numeratorABasePower = safe_mul_s64(numeratorA, multiplier);
+			numeratorBBasePower = safe_mul_s64(numeratorB, multiplier);
+		}
+		
+		
+		return new long[]{numeratorABasePower, numeratorBBasePower, denominatorBasePower, denominatorBasePowerExponent};
+	}
+	
+	
+	/**
+	 * @return {new numerator, new denominator, new denominatorExponent (new denominator = base ^ (new denominatorExponent))}
+	 */
+	public static long[] rationalToPowerOfBaseForm(long numerator, long denominator, long base) throws IllegalArgumentException, DecimalUnrepresentableFractionException
+	{
+		long numeratorBasePower, denominatorBasePower;
+		int denominatorBasePowerExponent;  //denominatorBasePower = base ^ denominatorBasePowerExponent
+		{
+			long[] r = prepareForRationalToPowerOfBaseForm(denominator, base);
+			
+			denominatorBasePower = r[0];
+			denominatorBasePowerExponent = (int)r[1];
+			long multiplier = r[2];
+			
+			numeratorBasePower = safe_mul_s64(numerator, multiplier);
+		}
+		
+		
+		return new long[]{numeratorBasePower, denominatorBasePower, denominatorBasePowerExponent};
+	}
+	
+	
+	/**
+	 * @return {denominatorBasePower (base ^ denominatorBasePowerExponent), denominatorBasePowerExponent, multiplier for numerators}
+	 */
+	public static long[] prepareForRationalToPowerOfBaseForm(long denominator, long base) throws IllegalArgumentException, DecimalUnrepresentableFractionException
+	{
+		if (base < 2)
+			throw new IllegalArgumentException("Invalid base: "+base);
+		
+		
+		long denominatorBasePower;
+		int denominatorBasePowerExponent;  //denominatorBasePower = base ^ denominatorBasePowerExponent
+		long multiplier;
+		{
+			denominatorBasePowerExponent = ceilLog(denominator, base);
+			
+			denominatorBasePower = SmallIntegerMathUtilities.pow(base, denominatorBasePowerExponent);
+			
+			if ((denominatorBasePower % denominator) != 0)
+				throw new IllegalArgumentException("Not representable in base "+base+" with finite decimal places!");
+			
+			multiplier = denominatorBasePower / denominator;
+		}
+		
+		
+		return new long[]{denominatorBasePower, denominatorBasePowerExponent, multiplier};
 	}
 }
