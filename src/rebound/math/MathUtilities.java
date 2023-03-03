@@ -5458,6 +5458,7 @@ implements JavaNamespace
 	
 	
 	//Todo better handling of non-sigfig-type intervals!
+	//Todo more syntaxes, like "always have 'e'" and "never have 'e'" (requires overline/underline thing) and "have 'e' as infrequently as possible to avoid overline/underline things" and "have 'e' as infrequently as possible to avoid overline/underling and dangling period (like 1200.)" and "avoid 'e' unless it would make N digits long things" and "avoid 'e' unless it would make N digits long things or dangling period / overline/underline things" and possibly more :33
 	
 	public static String formatDecimalPreservingSigfigs(ArithmeticGenericInterval<Object> value) throws NumberFormatException, OverflowException
 	{
