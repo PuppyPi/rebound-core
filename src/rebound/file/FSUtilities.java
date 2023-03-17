@@ -3699,7 +3699,7 @@ implements JavaNamespace
 	 * See docs on (better) Python version xD'
 	 * @param descendRecurseFilter If this returns false, then we won't even descend into it recursively!  Much less will 'inclusion' filters in the observer have any affect on it! XP  :>
 	 */
-	public static void recurse(UnaryProcedure<File> observer, Predicate<File> descendRecurseFilter, Iterable<File> targets)
+	public static void recurseThrowing(UnaryProcedureThrowingIOException<File> observer, Predicate<File> descendRecurseFilter, Iterable<File> targets) throws IOException
 	{
 		Collection<File> done = new HashSet<File>();
 		Stack<File> todo = new Stack<File>();
@@ -3737,7 +3737,7 @@ implements JavaNamespace
 				}
 				
 				if (files == null)
-					throw new WrappedThrowableRuntimeException(new IOException("Listing directory failed for: "+repr(dir.getAbsolutePath())));
+					throw new IOException("Listing directory failed for: "+repr(dir.getAbsolutePath()));
 				
 				for (final File f : sorted(files))
 				{
@@ -3760,20 +3760,76 @@ implements JavaNamespace
 			}
 		}
 	}
-	public static void recurse(UnaryProcedure<File> observer, Iterable<File> targets)
+	public static void recurseThrowing(UnaryProcedureThrowingIOException<File> observer, Iterable<File> targets) throws IOException
 	{
-		recurse(observer, DescendRecurse_Always, targets);
+		recurseThrowing(observer, DescendRecurse_Always, targets);
 	}
 	
 	
+	public static void recurseThrowing(UnaryProcedureThrowingIOException<File> observer, Predicate<File> descendRecurseFilter, File... targets) throws IOException
+	{
+		recurseThrowing(observer, descendRecurseFilter, Arrays.asList(targets));
+	}
+	
+	public static void recurseThrowing(UnaryProcedureThrowingIOException<File> observer, File... targets) throws IOException
+	{
+		recurseThrowing(observer, Arrays.asList(targets));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void recurse(UnaryProcedure<File> observer, Predicate<File> descendRecurseFilter, Iterable<File> targets)
+	{
+		try
+		{
+			recurseThrowing(observer::f, descendRecurseFilter, targets);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
+	public static void recurse(UnaryProcedure<File> observer, Iterable<File> targets)
+	{
+		try
+		{
+			recurseThrowing(observer::f, targets);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
+	}
+	
 	public static void recurse(UnaryProcedure<File> observer, Predicate<File> descendRecurseFilter, File... targets)
 	{
-		recurse(observer, descendRecurseFilter, Arrays.asList(targets));
+		try
+		{
+			recurseThrowing(observer::f, descendRecurseFilter, targets);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
 	}
 	
 	public static void recurse(UnaryProcedure<File> observer, File... targets)
 	{
-		recurse(observer, Arrays.asList(targets));
+		try
+		{
+			recurseThrowing(observer::f, targets);
+		}
+		catch (IOException exc)
+		{
+			throw new WrappedThrowableRuntimeException(exc);
+		}
 	}
 	
 	
