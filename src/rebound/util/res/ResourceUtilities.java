@@ -1281,10 +1281,10 @@ implements JavaNamespace
 			readFully(in, magic);
 			
 			if (magic[0] != 'J')
-				throw BinarySyntaxIOException.inst("Bag JMOD magic");
+				throw BinarySyntaxIOException.inst("Bad JMOD magic");
 			
 			if (magic[1] != 'M')
-				throw BinarySyntaxIOException.inst("Bag JMOD magic");
+				throw BinarySyntaxIOException.inst("Bad JMOD magic");
 		}
 		
 		try (ZipInputStream zipDecoder = new ZipInputStream(in))
