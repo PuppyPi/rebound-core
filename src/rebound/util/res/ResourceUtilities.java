@@ -49,6 +49,7 @@ import rebound.io.util.FSIOUtilities;
 import rebound.io.util.JRECompatIOUtilities;
 import rebound.io.util.TextIOUtilities;
 import rebound.util.FlushableCache;
+import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
@@ -1247,8 +1248,27 @@ implements JavaNamespace
 	
 	
 	
-	
 	public static ZipEntry[] readAllZipEntriesFromZipfile(URL url, boolean jmod) throws IOException
+	{
+		List<ZipEntry> entries = new ArrayList<>();
+		readAllZipEntriesFromZipfile(url, jmod, entries::add);
+		return entries.toArray(new ZipEntry[entries.size()]);
+	}
+	
+	public static ZipEntry[] readAllZipEntriesFromZipfile(InputStream in, boolean jmod) throws IOException
+	{
+		List<ZipEntry> entries = new ArrayList<>();
+		readAllZipEntriesFromZipfile(in, jmod, entries::add);
+		return entries.toArray(new ZipEntry[entries.size()]);
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static void readAllZipEntriesFromZipfile(URL url, boolean jmod, UnaryProcedure<ZipEntry> observer) throws IOException
 	{
 		InputStream in;
 		try
@@ -1262,7 +1282,7 @@ implements JavaNamespace
 		
 		try
 		{
-			return readAllZipEntriesFromZipfile(in, jmod);
+			readAllZipEntriesFromZipfile(in, jmod, observer);
 		}
 		finally
 		{
@@ -1271,10 +1291,8 @@ implements JavaNamespace
 	}
 	
 	
-	public static ZipEntry[] readAllZipEntriesFromZipfile(InputStream in, boolean jmod) throws IOException
+	public static void readAllZipEntriesFromZipfile(InputStream in, boolean jmod, UnaryProcedure<ZipEntry> observer) throws IOException
 	{
-		List<ZipEntry> entries = new ArrayList<>();
-		
 		if (jmod)
 		{
 			byte[] magic = new byte[4];
@@ -1296,11 +1314,9 @@ implements JavaNamespace
 				if (e == null)
 					break;
 				
-				entries.add(e);
+				observer.f(e);
 			}
 		}
-		
-		return entries.toArray(new ZipEntry[entries.size()]);
 	}
 	
 	
