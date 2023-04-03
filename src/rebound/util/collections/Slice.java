@@ -1,5 +1,6 @@
 package rebound.util.collections;
 
+import static rebound.math.SmallIntegerMathUtilities.*;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 
@@ -12,6 +13,8 @@ extends Interval<Slice<A>>
 	public Slice(@Nonnull A underlying, @Nonnegative int offset, @Nonnegative int length)
 	{
 		super(offset, length);
+		
+		requireNonNegative(offset);
 		
 		if (underlying == null)  //If you wanted to set it to null, use Interval instead :>
 			throw new NullPointerException();

@@ -9,13 +9,13 @@ import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenBy
 @Immutable
 public class Interval<RuntimeType extends Interval<RuntimeType>>
 {
-	protected final @Nonnegative int offset;
+	protected final int offset;
 	protected final @Nonnegative int length;
 	
 	
-	public Interval(@Nonnegative int offset, @Nonnegative int length)
+	public Interval(int offset, @Nonnegative int length)
 	{
-		this.offset = requireNonNegative(offset);
+		this.offset = offset;
 		this.length = requireNonNegative(length);
 	}
 	
