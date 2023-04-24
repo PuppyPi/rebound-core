@@ -3019,15 +3019,16 @@ public class CollectionUtilities
 		throw NoSuchElementReturnPath.I;
 	}
 	
-	public static <E> E findFirstRP(Predicate<E> predicate, @CollectionValue List<E> list) throws NoSuchElementReturnPath
+	public static <E> E findFirstRP(Predicate<E> predicate, @CollectionValue Iterable<E> list) throws NoSuchElementReturnPath
 	{
-		if (isRandomAccessFast(list))
+		if (list instanceof List && isRandomAccessFast((List)list))
 		{
-			int length = list.size();
+			List<E> l = (List<E>) list;
+			int length = l.size();
 			E element = null;
 			for (int i = 0; i < length; i++)
 			{
-				element = list.get(i);
+				element = l.get(i);
 				if (predicate.test(element))
 					return element;
 			}
@@ -3079,7 +3080,7 @@ public class CollectionUtilities
 		}
 	}
 	
-	public static @Nullable <E> E findFirst(Predicate<E> predicate, @CollectionValue List<E> list)
+	public static @Nullable <E> E findFirst(Predicate<E> predicate, @CollectionValue Iterable<E> list)
 	{
 		try
 		{
