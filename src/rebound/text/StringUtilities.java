@@ -125,6 +125,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToChar;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
+import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
 
@@ -9738,6 +9739,7 @@ primxp
 	/**
 	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
 	 * (You could, for example, use it to make sure, given a list of paths like from URLs or etc., that none of them would be a directory of another!  Which would require ensuring a slash at the end of each of them before passing to this function, ofc!)
+	 * @return null if none start with each other! otherwise {@link BasicCollectionUtilities#pair(Object, Object)} (shorter/prefix, longer/includes-the-prefix)
 	 */
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother(@Nonnull @NonnullElements Iterable<String> strings)
 	{
