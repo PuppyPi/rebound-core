@@ -62,6 +62,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.Nonempty;
+import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.BitfieldSafeCasts;
@@ -9738,7 +9739,7 @@ primxp
 	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
 	 * (You could, for example, use it to make sure, given a list of paths like from URLs or etc., that none of them would be a directory of another!  Which would require ensuring a slash at the end of each of them before passing to this function, ofc!)
 	 */
-	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother(Iterable<String> strings)
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother(@Nonnull @NonnullElements Iterable<String> strings)
 	{
 		
 	}
@@ -9748,7 +9749,7 @@ primxp
 	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
 	 */
 	@ImplementationTransparency
-	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Naive(Iterable<String> strings)
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Naive(@Nonnull @NonnullElements Iterable<String> strings)
 	{
 		//This O(n^2) algorithm is too slow when there's 100,000 to process!  Idk how long it would take, but I waited like 15 minutes just for this loop to finish XD   —2023-04-24 02:21:52 z
 		for (String longer : strings)
@@ -9769,7 +9770,7 @@ primxp
 	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
 	 */
 	@ImplementationTransparency
-	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Sorted(Iterable<String> strings)
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Sorted(@Nonnull @NonnullElements Iterable<String> strings)
 	{
 		
 	}
