@@ -9747,9 +9747,6 @@ primxp
 	}
 	
 	
-	/**
-	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
-	 */
 	@ImplementationTransparency
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Naive(@Nonnull @NonnullElements Iterable<String> strings)
 	{
@@ -9768,9 +9765,6 @@ primxp
 	}
 	
 	
-	/**
-	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
-	 */
 	@ImplementationTransparency
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Sorted(@Nonnull @NonnullElements Iterable<String> strings)
 	{
