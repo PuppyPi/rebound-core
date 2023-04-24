@@ -13,6 +13,7 @@ import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
+import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
@@ -54,6 +55,7 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
+import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
@@ -85,6 +87,7 @@ import rebound.math.Direction1D;
 import rebound.math.MathUtilities;
 import rebound.math.PlaceValueEncodingAlgorithm;
 import rebound.math.SmallIntegerMathUtilities;
+import rebound.testing.TestError;
 import rebound.text.CharacterPredicates.NaiveCharacterSequencePattern;
 import rebound.text.StringUtilities.RPBasicNaiveParsingSyntaxDescription.RPBasicNaiveParsingSyntaxStateDescription;
 import rebound.text.encodings.detection.TextEncodingDetector;
@@ -9722,5 +9725,51 @@ primxp
 			return "-Infinity";
 		else
 			return f.format(v);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
+	 * (You could, for example, use it to make sure, given a list of paths like from URLs or etc., that none of them would be a directory of another!  Which would require ensuring a slash at the end of each of them before passing to this function, ofc!)
+	 */
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother(Iterable<String> strings)
+	{
+		
+	}
+	
+	
+	/**
+	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
+	 */
+	@ImplementationTransparency
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Naive(Iterable<String> strings)
+	{
+		//This O(n^2) algorithm is too slow when there's 100,000 files to process!  Idk how long it would take, but I waited like 15 minutes just for this loop to finish XD   —2023-04-24 02:21:52 z
+		for (String relpath : relpaths)
+		{
+			String p = relpath + '/';
+			boolean isDirectoryRelpath = forAny(r -> r.startsWith(p), relpaths);  //if there is at least one input relpath which is inside this relpath, it's a directory relpath!
+			
+			if (isDirectoryRelpath)
+				throw new TestError(new AssertionError("Bug in testing framework: this is both a subcase and contains subcases!!!: "+repr(relpath)));
+		}
+	}
+	
+	
+	/**
+	 * This uses an asymptotically fast algorithm to find if no two strings start with one another (like "a" and "ab"), not counting duplicates that are exactly equal.
+	 */
+	@ImplementationTransparency
+	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Sorted(Iterable<String> strings)
+	{
+		
 	}
 }
