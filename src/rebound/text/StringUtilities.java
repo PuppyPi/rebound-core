@@ -125,7 +125,6 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionIntToChar;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedure;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureChar;
 import rebound.util.functional.FunctionalUtilities.SingletonCharEqualityPredicate;
-import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.JavaNamespace;
 import rebound.util.objectutil.ObjectUtilities;
 
@@ -9743,7 +9742,7 @@ primxp
 	 */
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother(@Nonnull @NonnullElements Iterable<String> strings)
 	{
-		
+		return findAtLeastOneStartingWithAnother_Sorted(strings);
 	}
 	
 	
@@ -9751,14 +9750,14 @@ primxp
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Naive(@Nonnull @NonnullElements Iterable<String> strings)
 	{
 		//This O(n^2) algorithm is too slow when there's 100,000 to process!  Idk how long it would take, but I waited like 15 minutes just for this loop to finish XD   —2023-04-24 02:21:52 z
-		for (String longer : strings)
+		for (String shorter : strings)
 		{
-			requireNonNull(longer);
+			requireNonNull(shorter);
 			
-			@Nullable String shorter = findFirst(r -> r.startsWith(longer) && !eq(r, longer), strings);  //if there is at least one input relpath which is inside this relpath, it's a directory relpath!
+			@Nullable String longer = findFirst(r -> r.startsWith(shorter) && !eq(r, shorter), strings);  //if there is at least one input relpath which is inside this relpath, it's a directory relpath!
 			
-			if (shorter != null)
-				return pair(longer, shorter);
+			if (longer != null)
+				return pair(shorter, longer);
 		}
 		
 		return null;
@@ -9768,6 +9767,28 @@ primxp
 	@ImplementationTransparency
 	public static @Nullable PairOrdered<String, String> findAtLeastOneStartingWithAnother_Sorted(@Nonnull @NonnullElements Iterable<String> strings)
 	{
+		Set<String> duplicateless = asSetUniqueifying(strings);
 		
+		requireNonNullElements(duplicateless);
+		
+		List<String> sorted = sorted(duplicateless);
+		
+		//Shorter ones sort before longer ones, so if there's ever a pair with that relationship, they'll be adjacent! :DD
+		
+		String prev = null;
+		for (String s : sorted)
+		{
+			asrt(s != null);
+			
+			if (prev == null)
+				prev = s;
+			else
+			{
+				if (s.startsWith(prev))
+					return pair(prev, s);
+			}
+		}
+		
+		return null;
 	}
 }
