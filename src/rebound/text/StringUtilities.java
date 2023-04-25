@@ -9780,13 +9780,13 @@ primxp
 		{
 			asrt(s != null);
 			
-			if (prev == null)
-				prev = s;
-			else
+			if (prev != null)
 			{
 				if (s.startsWith(prev))
 					return pair(prev, s);
 			}
+			
+			prev = s;
 		}
 		
 		return null;
