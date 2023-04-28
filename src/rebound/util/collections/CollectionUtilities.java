@@ -9033,6 +9033,26 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	/**
+	 * @return a live view-object of the underlying list passed through the mapping function!  {@link List#size()} simply delegates to the underlying list :>
+	 */
+	public static <I, O> List<O> mappedList(UnaryFunction<I, O> mapper, List<I> underlying)
+	{
+		return new DefaultReadonlyList<O>()
+		{
+			@Override
+			public int size()
+			{
+				return underlying.size();
+			}
+			
+			@Override
+			public O get(int index)
+			{
+				return mapper.f(underlying.get(index));
+			}
+		};
+	}
 	
 	
 	
