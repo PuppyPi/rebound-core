@@ -7736,7 +7736,7 @@ implements JavaNamespace
 	
 	
 	
-	public static String reverse(String x)
+	public static String reversed(String x)
 	{
 		if (x.length() < 2)
 		{
