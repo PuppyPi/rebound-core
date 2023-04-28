@@ -15514,4 +15514,62 @@ _$$primxpconf:byte,char,short,int$$_
 		else
 			return getRandomElement(map.entrySet(), pullIntegerZeroToExclusiveHighBound);
 	}
+	
+	
+	
+	
+	/**
+	 * @return if the first element is {@link IdentityCardinality#Zero}, both second and third are null, if it's {@link IdentityCardinality#One}, the third is null, otherwise no guarantees are made about nullness (since null might be a valid value!)
+	 */
+	public static <E> TripleOrdered<IdentityCardinality, E, E> tryGettingFirstAndSecondElement(SimpleIterator<E> i)
+	{
+		E first;
+		try
+		{
+			first = i.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			return triple(IdentityCardinality.Zero, null, null);
+		}
+		
+		E second;
+		try
+		{
+			second = i.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			return triple(IdentityCardinality.Zero, first, null);
+		}
+		
+		return triple(IdentityCardinality.Multiple, first, second);
+	}
+	
+	
+	/**
+	 * @return if the first element is {@link IdentityCardinality#Zero}, both second and third are null, if it's {@link IdentityCardinality#One}, the third is null, otherwise no guarantees are made about nullness (since null might be a valid value!)
+	 */
+	public static <E> TripleOrdered<IdentityCardinality, E, E> tryGettingFirstAndSecondElement(Iterator<E> i)
+	{
+		return tryGettingFirstAndSecondElement(simpleIterator(i));
+	}
+	
+	
+	/**
+	 * @return if the first element is {@link IdentityCardinality#Zero}, both second and third are null, if it's {@link IdentityCardinality#One}, the third is null, otherwise no guarantees are made about nullness (since null might be a valid value!)
+	 */
+	public static <E> TripleOrdered<IdentityCardinality, E, E> tryGettingFirstAndSecondElement(SimpleIterable<E> i)
+	{
+		return tryGettingFirstAndSecondElement(i.simpleIterator());
+	}
+	
+	
+	/**
+	 * @return if the first element is {@link IdentityCardinality#Zero}, both second and third are null, if it's {@link IdentityCardinality#One}, the third is null, otherwise no guarantees are made about nullness (since null might be a valid value!)
+	 */
+	public static <E> TripleOrdered<IdentityCardinality, E, E> tryGettingFirstAndSecondElement(Iterable<E> i)
+	{
+		return tryGettingFirstAndSecondElement(simpleIterator(i));
+	}
 }
