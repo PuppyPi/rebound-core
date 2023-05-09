@@ -161,7 +161,7 @@ extends List<E>, DefaultCollection<E>, DefaultToStringRestrictionCircumvention
 	}
 	
 	public static interface DefaultImmutableList<E>
-	extends DefaultList<E>, DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumvention, DefaultToStringRestrictionCircumvention
+	extends DefaultReadonlyList<E>, DefaultEqualsRestrictionCircumvention, DefaultHashCodeRestrictionCircumvention, DefaultToStringRestrictionCircumvention
 	{
 		@Override
 		public default int _hashCode()
