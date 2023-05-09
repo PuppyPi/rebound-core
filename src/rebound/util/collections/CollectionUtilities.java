@@ -106,6 +106,7 @@ import rebound.util.Maybe;
 import rebound.util.Primitives;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.classhacking.jre.JREGlassBox;
+import rebound.util.collections.DefaultList.DefaultImmutableList;
 import rebound.util.collections.SimpleIterator.SimpleIterable;
 import rebound.util.collections.maps.EquivalenceMap;
 import rebound.util.collections.maps.IdentityMap;
@@ -9038,7 +9039,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 */
 	public static <I, O> List<O> mappedList(UnaryFunction<I, O> mapper, List<I> underlying)
 	{
-		return new DefaultReadonlyList<O>()
+		return new DefaultImmutableList<O>()
 		{
 			@Override
 			public int size()
@@ -9050,6 +9051,24 @@ _$$primxpconf:byte,char,short,int$$_
 			public O get(int index)
 			{
 				return mapper.f(underlying.get(index));
+			}
+			
+			@Override
+			public boolean equals(Object obj)
+			{
+				return _equals(obj);
+			}
+			
+			@Override
+			public int hashCode()
+			{
+				return _hashCode();
+			}
+			
+			@Override
+			public String toString()
+			{
+				return _toString();
 			}
 		};
 	}
