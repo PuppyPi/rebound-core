@@ -15592,4 +15592,40 @@ _$$primxpconf:byte,char,short,int$$_
 	{
 		return tryGettingFirstAndSecondElement(simpleIterator(i));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This calculates the number of elements at the beginning of <code>possiblePreceding</code> and the end of <code>possibleSucceeding</code> that are exactly the same! :D
+	 * (The value will never be more than the smaller of the two lists, ofc X3 )
+	 * @param possiblePreceding  The one that may come first, have leading elements that don't overlap, but have trailing elements that do.
+	 * @param possibleSucceeding  The one that may come last, have leading elements that overlap, and have trailing elements that don't.
+	 * @return zero if there is no overlap, otherwise this the size of the overlap!  (if either input is empty, this always returns 0)
+	 */
+	public static <E> int calculateMatchOverlap(List<E> possiblePreceding, List<E> possibleSucceeding)
+	{
+		//Todo an algorithm better than this Naive one XD
+		
+		int possiblePrecedingSize = possiblePreceding.size();
+		int possibleSucceedingSize = possibleSucceeding.size();
+		
+		if (possiblePrecedingSize == 0 || possibleSucceedingSize == 0)
+			return 0;
+		
+		for (int i = 0; i < possiblePrecedingSize; i++)
+		{
+			int overlapCandidateSize = least(possibleSucceedingSize, possiblePrecedingSize - i);
+			List<E> precedingSublist = possiblePreceding.subList(i, overlapCandidateSize);
+			List<E> succeedingSublist = possibleSucceeding.subList(0, overlapCandidateSize);
+			if (eqv(precedingSublist, succeedingSublist))
+				return overlapCandidateSize;
+		}
+		
+		return 0;
+	}
 }
