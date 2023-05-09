@@ -15620,6 +15620,7 @@ _$$primxpconf:byte,char,short,int$$_
 		for (int i = 0; i < possiblePrecedingSize; i++)
 		{
 			int overlapCandidateSize = least(possibleSucceedingSize, possiblePrecedingSize - i);
+			assert overlapCandidateSize > 0;
 			List<E> precedingSublist = possiblePreceding.subList(possiblePrecedingSize - overlapCandidateSize, possiblePrecedingSize);
 			List<E> succeedingSublist = possibleSucceeding.subList(0, overlapCandidateSize);
 			if (eqv(precedingSublist, succeedingSublist))
