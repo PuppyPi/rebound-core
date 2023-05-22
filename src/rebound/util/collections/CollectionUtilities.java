@@ -3230,8 +3230,9 @@ public class CollectionUtilities
 	
 	
 	
+	//Todo findLastRP() / findLast()
 	
-	
+	//Todo findXyz(..) completeness!  (incl. SimpleIterable / SimpleIterator!)
 	
 	
 	
