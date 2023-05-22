@@ -4,6 +4,8 @@
  */
 package rebound.exceptions;
 
+//Todo should we have subtypes of this for Zero and More-than-One??
+
 public class NotSingletonException
 extends RuntimeException
 {
