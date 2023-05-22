@@ -36,6 +36,21 @@ public class CodeHinting
 	}
 	
 	
+	/**
+	 * In reality this is Java Reference Identity/Equality, but what using this means is that you don't actually need them to be perfectly reference-identical!
+	 * You're just using it as a quick-and-dirty check for equality when it's fine to have false negatives (returns false/unequal when they're really equal)
+	 * but not false positives (returns true/equal when they're really different!).
+	 * 
+	 * For example, if they're equal you can skip some things, but you don't have to, it's just a performance benefit.  But if testing if they're equal takes
+	 * a long time..then that negates the whole point of doing the optimization!! XD   So you might just do this quick check, and if this returns true, they're
+	 * *definitely* equal!  But if it returns false you don't know, but it's right a lot of the time and it's *blazing* fast XD so fast there's almost never
+	 * any reason not to at least try it XD
+	 */
+	public static boolean quickEq(Object a, Object b)
+	{
+		return a == b;
+	}
+	
 	
 	
 	
