@@ -3010,10 +3010,9 @@ public class CollectionUtilities
 	public static <E> E findFirstRP(Predicate<E> predicate, @CollectionValue E[] list) throws NoSuchElementReturnPath
 	{
 		int length = list.length;
-		E element = null;
 		for (int i = 0; i < length; i++)
 		{
-			element = list[i];
+			E element = list[i];
 			if (predicate.test(element))
 				return element;
 		}
@@ -3026,10 +3025,9 @@ public class CollectionUtilities
 		{
 			List<E> l = (List<E>) list;
 			int length = l.size();
-			E element = null;
 			for (int i = 0; i < length; i++)
 			{
-				element = l.get(i);
+				E element = l.get(i);
 				if (predicate.test(element))
 					return element;
 			}
