@@ -3110,6 +3110,8 @@ public class CollectionUtilities
 			{
 				if (has)
 					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
 				match = e;
 			}
 		}
@@ -3135,6 +3137,8 @@ public class CollectionUtilities
 				{
 					if (has)
 						throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+					else
+						has = true;
 					match = e;
 				}
 			}
@@ -3178,6 +3182,8 @@ public class CollectionUtilities
 			{
 				if (has)
 					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
 				match = e;
 			}
 		}
@@ -3209,6 +3215,8 @@ public class CollectionUtilities
 			{
 				if (has)
 					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
 				match = e;
 			}
 		}
