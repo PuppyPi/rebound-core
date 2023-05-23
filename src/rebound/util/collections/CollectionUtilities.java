@@ -3233,6 +3233,164 @@ public class CollectionUtilities
 	
 	
 	
+	public static <E> E findOnlyOrNone(Predicate<E> predicate, @CollectionValue E[] list, E noneValue) throws NotSingletonException
+	{
+		int length = list.length;
+		E match = null;
+		boolean has = false;
+		for (int i = 0; i < length; i++)
+		{
+			E e = list[i];
+			if (predicate.test(e))
+			{
+				if (has)
+					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
+				match = e;
+			}
+		}
+		
+		if (has)
+			return match;
+		else
+			return noneValue;
+	}
+	
+	public static <E> E findOnlyOrNone(Predicate<E> predicate, @CollectionValue Iterable<E> list, E noneValue) throws NotSingletonException
+	{
+		if (list instanceof List && isRandomAccessFast((List)list))
+		{
+			List<E> l = (List<E>) list;
+			int length = l.size();
+			E match = null;
+			boolean has = false;
+			for (int i = 0; i < length; i++)
+			{
+				E e = l.get(i);
+				if (predicate.test(e))
+				{
+					if (has)
+						throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+					else
+						has = true;
+					match = e;
+				}
+			}
+			
+			if (has)
+				return match;
+			else
+				return noneValue;
+		}
+		else
+		{
+			E match = null;
+			boolean has = false;
+			
+			for (E e : list)
+			{
+				if (predicate.test(e))
+				{
+					if (has)
+						throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+					match = e;
+				}
+			}
+			
+			if (has)
+				return match;
+			else
+				return noneValue;
+		}
+	}
+	
+	public static <E> E findOnlyOrNone(Predicate<E> predicate, @CollectionValue Iterator<E> it, E noneValue) throws NotSingletonException
+	{
+		E match = null;
+		boolean has = false;
+		
+		while (it.hasNext())
+		{
+			E e = it.next();
+			if (predicate.test(e))
+			{
+				if (has)
+					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
+				match = e;
+			}
+		}
+		
+		if (has)
+			return match;
+		else
+			return noneValue;
+	}
+	
+	public static <E> E findOnlyOrNone(Predicate<E> predicate, @CollectionValue SimpleIterator<E> it, E noneValue) throws NotSingletonException
+	{
+		E match = null;
+		boolean has = false;
+		
+		while (true)
+		{
+			E e;
+			try
+			{
+				e = it.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				break;
+			}
+			
+			if (predicate.test(e))
+			{
+				if (has)
+					throw new NotSingletonException("more than one element!: "+reprListContentsSingleLine(listof(match, e))+", (possibly more)");
+				else
+					has = true;
+				match = e;
+			}
+		}
+		
+		if (has)
+			return match;
+		else
+			return noneValue;
+	}
+	
+	
+	
+	public static <E> E findOnlyOrNull(Predicate<E> predicate, @CollectionValue E[] list) throws NotSingletonException
+	{
+		return findOnlyOrNone(predicate, list, null);
+	}
+	
+	public static <E> E findOnlyOrNull(Predicate<E> predicate, @CollectionValue Iterable<E> list) throws NotSingletonException
+	{
+		return findOnlyOrNone(predicate, list, null);
+	}
+	
+	public static <E> E findOnlyOrNull(Predicate<E> predicate, @CollectionValue Iterator<E> it) throws NotSingletonException
+	{
+		return findOnlyOrNone(predicate, it, null);
+	}
+	
+	public static <E> E findOnlyOrNull(Predicate<E> predicate, @CollectionValue SimpleIterator<E> it) throws NotSingletonException
+	{
+		return findOnlyOrNone(predicate, it, null);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
