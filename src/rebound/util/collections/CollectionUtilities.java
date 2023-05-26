@@ -1411,6 +1411,25 @@ public class CollectionUtilities
 		return l;
 	}
 	
+	@SnapshotValue
+	public static <E> List<E> drainToList(SimpleIterator<E> i)
+	{
+		E first;
+		try
+		{
+			first = i.nextrp();
+		}
+		catch (StopIterationReturnPath exc)
+		{
+			return emptyList();
+		}
+		
+		List<E> l = new ArrayList<>();
+		l.add(first);
+		i.drainTo(l);
+		return l;
+	}
+	
 	
 	
 	
