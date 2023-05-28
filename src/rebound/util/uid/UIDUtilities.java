@@ -51,7 +51,7 @@ public class UIDUtilities
 	 */
 	public static String formatRUID128(RUID128 id)
 	{
-		return StringUtilities.zeroPad(Long.toString(id.getHighBits(), 16), 16) + StringUtilities.zeroPad(Long.toString(id.getLowBits(), 16), 16);
+		return zeroPad(Long.toString(id.getHighBits(), 16), 16) + zeroPad(Long.toString(id.getLowBits(), 16), 16);
 	}
 	
 	
