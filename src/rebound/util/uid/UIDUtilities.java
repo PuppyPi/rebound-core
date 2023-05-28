@@ -15,6 +15,8 @@ import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.TextSyntaxException;
+import rebound.text.StringUtilities;
+import rebound.util.RUID128;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
@@ -22,6 +24,36 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
 public class UIDUtilities
 {
 	public static final UnaryFunctionCharToBoolean DelimiterPattern = c -> c == '-' || c == ' ' || c == ':' || c == '/' || c == ',';
+	
+	
+	public static RUID128 parseRUID128(String s) throws TextSyntaxException
+	{
+		if (s.length() != 32)
+			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
+		
+		long highBits;
+		long lowBits;
+		try
+		{
+			highBits = Long.parseUnsignedLong(s.substring(0, 16), 16);
+			lowBits = Long.parseUnsignedLong(s.substring(16, 32), 16);
+		}
+		catch (NumberFormatException exc)
+		{
+			throw TextSyntaxException.inst(exc);
+		}
+		
+		return new RUID128(lowBits, highBits);
+	}
+	
+	/**
+	 * @return the lowercase version
+	 */
+	public static String formatRUID128(RUID128 id)
+	{
+		return StringUtilities.zeroPad(Long.toString(id.getHighBits(), 16), 16) + StringUtilities.zeroPad(Long.toString(id.getLowBits(), 16), 16);
+	}
+	
 	
 	
 	
