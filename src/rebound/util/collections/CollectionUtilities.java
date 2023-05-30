@@ -16158,7 +16158,7 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	/**
-	 * This calculates the number of elements at the beginning of <code>possiblePreceding</code> and the end of <code>possibleSucceeding</code> that are exactly the same! :D
+	 * This calculates the largest number of elements at the beginning of <code>possiblePreceding</code> and the end of <code>possibleSucceeding</code> that are exactly the same! :D
 	 * (The value will never be more than the smaller of the two lists, ofc X3 )
 	 * @param possiblePreceding  The one that may come first, have leading elements that don't overlap, but have trailing elements that do.
 	 * @param possibleSucceeding  The one that may come last, have leading elements that overlap, and have trailing elements that don't.
