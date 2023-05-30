@@ -163,6 +163,7 @@ import rebound.util.container.ContainerInterfaces.BooleanContainer;
 import rebound.util.container.ContainerInterfaces.ObjectContainer;
 import rebound.util.container.SimpleContainers.SimpleBooleanContainer;
 import rebound.util.container.SimpleContainers.SimpleObjectContainer;
+import rebound.util.functional.AsymmetricalEqualityComparator;
 import rebound.util.functional.CollectionFunctionalIterable;
 import rebound.util.functional.ContinueSignal;
 import rebound.util.functional.EqualityComparator;
@@ -15945,6 +15946,217 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	
+	
+	/**
+	 * For example, if <code>larger</code> is "..1..2.345..67..8" and <code>header</code> is "12345" then this will return the size of largest region starting at the start of <code>larger</code>, "..1..2.345..".length(), or 12.
+	 * + Note: extra or incomplete consumption of the input iterators is entirely possible!
+	 * This returns a pair(the number of elements matching in <code>header</code>; all of them if there's a match at all (always false if <code>header</code> is empty!), and the (largest) amount of <code>larger</code> legitimately consumed and matching or skipped).
+	 * So if the match fails at the very first element, then the first element will of course be <code>false</code>, but the second element in the pair will be the number of skippable elements in the underlying list (<code>larger</code>)!
+	 * @param patternForLarger  Whether elements in <code>larger</code> should be counted, or if this returns false, skipped over!
+	 */
+	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		A currentInLarger = null;
+		B currentInHeader = null;
+		
+		int numberMatchingFromHeader = 0;
+		int numberMatchingFromLarger = 0;
+		
+		while (true)
+		{
+			//Advance Larger
+			while (true)
+			{
+				try
+				{
+					currentInLarger = larger.nextrp();
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+				}
+				
+				if (patternForLarger.test(currentInLarger))
+					break;
+				else
+					numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
+			}
+			
+			
+			//Advance Header
+			try
+			{
+				currentInHeader = header.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				//We matched all the elements in Header!! :DD
+				//Now just skip over the extra elements at the end, since we're meant to be the Largest one! :33
+				
+				//Advance Larger
+				while (true)
+				{
+					try
+					{
+						currentInLarger = larger.nextrp();
+					}
+					catch (StopIterationReturnPath exc1)
+					{
+						return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+					}
+					
+					if (patternForLarger.test(currentInLarger))
+						break;
+					else
+						numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
+				}
+			}
+			
+			if (comparator.equals(currentInLarger, currentInHeader))
+			{
+				numberMatchingFromLarger++;  //okay now it counts :33
+				numberMatchingFromHeader++;
+			}
+			else
+			{
+				//Oops! Mismatch!!
+				return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+			}
+		}
+	}
+	
+	
+	
+	/**
+	 * Like {@link #findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator, Predicate, SimpleIterator, AsymmetricalEqualityComparator)} but finds the *smallest* region, ignoring the start and end of the skippable elements!
+	 * For example, if <code>larger</code> is "..1..2.345..67..8" and <code>header</code> is "12345" then this will return the size of smallest region starting at the start of <code>larger</code>, "1..2.345".length(), or 8.
+	 * @return pair(amount of <code>header</code> that matches (same as largest version), and the (smallest) region of <code>larger</code> that matches!)   (in the largest-region version, it would always include the run of skippables at the start, so an integer size/exclusive-end-index is used not an {@link Interval}!)
+	 */
+	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		A currentInLarger = null;
+		B currentInHeader = null;
+		
+		int numberMatchingFromHeader = 0;
+		int numberMatchingFromLarger = 0;
+		
+		boolean first = true;
+		int startSkippedFromLarger = 0;
+		
+		while (true)
+		{
+			//Advance Larger
+			while (true)
+			{
+				try
+				{
+					currentInLarger = larger.nextrp();
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+				}
+				
+				if (patternForLarger.test(currentInLarger))
+					break;
+				else
+					numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
+			}
+			
+			if (first)
+			{
+				startSkippedFromLarger = numberMatchingFromLarger;
+				first = false;
+			}
+			
+			
+			//Advance Header
+			try
+			{
+				currentInHeader = header.nextrp();
+			}
+			catch (StopIterationReturnPath exc)
+			{
+				//We matched all the elements in Header!! :DD
+				//Now just skip over the extra elements at the end, since we're meant to be the Largest one! :33
+				
+				//Do NOT Advance Larger!! :D
+				return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+			}
+			
+			if (comparator.equals(currentInLarger, currentInHeader))
+			{
+				numberMatchingFromLarger++;  //okay now it counts :33
+				numberMatchingFromHeader++;
+			}
+			else
+			{
+				//Oops! Mismatch!!
+				return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+			}
+		}
+	}
+	
+	
+	
+	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
+	}
+	
+	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
+	}
+	
+	
+	
+	
+	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
+	}
+	
+	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
+	}
+	
+	
+	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
+	}
+	
+	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	{
+		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * This calculates the number of elements at the beginning of <code>possiblePreceding</code> and the end of <code>possibleSucceeding</code> that are exactly the same! :D
 	 * (The value will never be more than the smaller of the two lists, ofc X3 )
@@ -15973,5 +16185,170 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		
 		return 0;
+	}
+	
+	
+	
+	
+	/**
+	 * Same as {@link #calculateMatchOverlap(List, List)} but skips over some lines as if they weren't in the list, yet the overlap counts of lines match with the indexes of the lines skipped over!
+	 * 
+	 * ==Note==
+	 * This is not mathematically a reverse-injective (proper/deterministic) function!  Ie, The same inputs can have multiple valid outputs!
+	 * -Because if there are skipped elements at the edge of the overlap regions, then you could consider them to be "part of the overlap" or "not part of it" and the nonskipped overlap would be the same either way!:
+	 * 
+	 * Consider this situation:
+	 * <pre>
+	 * Possible  Preceding: ald123456skj...12345.6...
+	 * Possible Succeeding:                12.34..56..sdflfkjl
+	 * </pre>
+	 * 
+	 * Here we could include the elements before the 1 or after the 6 in either or not include them!
+	 * The implementation is free to do whatever behavior it wants there (ideally to maximize performance, as always in leniency in specifications X3 )
+	 * After all, if they're to be skipped over, conceptually you probably don't care much about them, do you, function-caller? XD :3
+	 * ==/==
+	 * 
+	 * 
+	 * @param patternForPreceding  If true, the line in the first list is counted, if false, it's skipped as if it's not there :3
+	 * @param patternForSucceeding  If true, the line in the second list is counted, if false, it's skipped as if it's not there :3
+	 * @return null if and only if there was no match at all!
+	 */
+	public static @Nonnull <E> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		return calculateSkippablyLargestMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);  //at the moment :3
+	}
+	
+	
+	/**
+	 * Same as {@link #calculateMatchOverlapSkipping(List, Predicate, List, Predicate)} but with guaranteed semantics that it will find the largest one! (possibly at the expense of a more efficient implementation, like always when using a stricter specification)
+	 * 
+	 * In other words, like its simpler cousin {@link #calculateMatchOverlap(List, List)}, this always finds the largest overlap if there is more than one valid value.
+	 * But unlike that one, there's another way it can be larger: if there are skipped elements at the edge[s]!
+	 * 
+	 * Consider this situation:
+	 * <pre>
+	 * Possible  Preceding: ald123456skj...12345.6...
+	 * Possible Succeeding:                12.34..56..sdflfkjl
+	 * </pre>
+	 * 
+	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in succeeding is "12.34..56.." (not "12.34..56")/
+	 */
+	public static @Nonnull <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		SkippingOverlapCalculationResults r = calculateSkippablyLargestMatchOverlapSkipping_a(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);
+		asrt(eq(r, calculateSkippablyLargestMatchOverlapSkipping_b(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding)));  //Todo remove after thorough testing or usage :3
+		return r;
+	}
+	
+	
+	
+	
+	@ImplementationTransparency
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_a(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		requireNonEmpty(possiblePreceding);
+		requireNonEmpty(possibleSucceeding);
+		
+		List<E> possiblePrecedingFiltered = filterToList(patternForPreceding, possiblePreceding);
+		List<E> possibleSucceedingFiltered = filterToList(patternForSucceeding, possibleSucceeding);
+		
+		int overlapSize = calculateMatchOverlap(possiblePrecedingFiltered, possibleSucceedingFiltered);
+		
+		if (overlapSize == 0)
+			return null;
+		
+		List<E> overlap = arbitrary(possibleSucceedingFiltered.subList(0, overlapSize), possiblePrecedingFiltered.subList(possiblePrecedingFiltered.size() - overlapSize, possiblePrecedingFiltered.size()));
+		
+		PairOrdered<Integer, Integer> p = findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(possiblePreceding, patternForPreceding, overlap, (a, b) -> eq(a, b));
+		PairOrdered<Integer, Integer> s = findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(possibleSucceeding, patternForSucceeding, overlap, (a, b) -> eq(a, b));
+		
+		asrt(p.getA() == overlapSize);
+		asrt(s.getA() == overlapSize);
+		
+		return new SkippingOverlapCalculationResults(p.getB(), s.getB(), overlapSize);
+	}
+	
+	
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_b(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		int possiblePrecedingSize = possiblePreceding.size();
+		int possibleSucceedingSize = possibleSucceeding.size();
+		
+		if (possiblePrecedingSize == 0)   throw new IllegalArgumentException();  //on its own line number :3
+		if (possibleSucceedingSize == 0)  throw new IllegalArgumentException();  //on its own line number :3
+		
+		for (int preSublistSize = possiblePrecedingSize; preSublistSize > 0; preSublistSize--)
+		{
+			for (int postSublistSize = possibleSucceedingSize; postSublistSize > 0; postSublistSize--)
+			{
+				List<E> precedingSublist = filterToList(patternForPreceding, possiblePreceding.subList(possiblePrecedingSize - preSublistSize, possiblePrecedingSize));
+				List<E> succeedingSublist = filterToList(patternForSucceeding, possibleSucceeding.subList(0, postSublistSize));
+				if (eqv(precedingSublist, succeedingSublist))
+					return new SkippingOverlapCalculationResults(preSublistSize, postSublistSize, arbitrary(precedingSublist.size(), succeedingSublist.size()));
+			}
+		}
+		
+		return null;
+	}
+	
+	
+	
+	public static class SkippingOverlapCalculationResults
+	{
+		protected final int sizeOfOverlapRegionAtEndOfFirst;
+		protected final int sizeOfOverlapRegionAtStartOfSecond;
+		protected final int numberOfNonskippedLinesInEitherOverlapRegion;
+		
+		public SkippingOverlapCalculationResults(int sizeOfOverlapRegionAtEndOfFirst, int sizeOfOverlapRegionAtStartOfSecond, int numberOfNonskippedLinesInEitherOverlapRegion)
+		{
+			this.sizeOfOverlapRegionAtEndOfFirst = sizeOfOverlapRegionAtEndOfFirst;
+			this.sizeOfOverlapRegionAtStartOfSecond = sizeOfOverlapRegionAtStartOfSecond;
+			this.numberOfNonskippedLinesInEitherOverlapRegion = numberOfNonskippedLinesInEitherOverlapRegion;
+		}
+		
+		public int getSizeOfOverlapRegionAtEndOfFirst()
+		{
+			return sizeOfOverlapRegionAtEndOfFirst;
+		}
+		
+		public int getSizeOfOverlapRegionAtStartOfSecond()
+		{
+			return sizeOfOverlapRegionAtStartOfSecond;
+		}
+		
+		public int getNumberOfNonskippedLinesInEitherOverlapRegion()
+		{
+			return numberOfNonskippedLinesInEitherOverlapRegion;
+		}
+		
+		@Override
+		public int hashCode()
+		{
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + numberOfNonskippedLinesInEitherOverlapRegion;
+			result = prime * result + sizeOfOverlapRegionAtEndOfFirst;
+			result = prime * result + sizeOfOverlapRegionAtStartOfSecond;
+			return result;
+		}
+		
+		@Override
+		public boolean equals(Object obj)
+		{
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SkippingOverlapCalculationResults other = (SkippingOverlapCalculationResults) obj;
+			if (numberOfNonskippedLinesInEitherOverlapRegion != other.numberOfNonskippedLinesInEitherOverlapRegion)
+				return false;
+			if (sizeOfOverlapRegionAtEndOfFirst != other.sizeOfOverlapRegionAtEndOfFirst)
+				return false;
+			if (sizeOfOverlapRegionAtStartOfSecond != other.sizeOfOverlapRegionAtStartOfSecond)
+				return false;
+			return true;
+		}
 	}
 }
