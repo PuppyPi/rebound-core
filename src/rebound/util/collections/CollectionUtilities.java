@@ -15951,7 +15951,7 @@ _$$primxpconf:byte,char,short,int$$_
 	/**
 	 * For example, if <code>larger</code> is "..1..2.345..67..8" and <code>header</code> is "12345" then this will return the size of largest region starting at the start of <code>larger</code>, "..1..2.345..".length(), or 12.
 	 * + Note: extra or incomplete consumption of the input iterators is entirely possible!
-	 * This returns a pair(the number of elements matching in <code>header</code>; all of them if there's a match at all (always false if <code>header</code> is empty!), and the (largest) amount of <code>larger</code> legitimately consumed and matching or skipped).
+	 * This returns a pair(the (largest) amount of <code>larger</code> legitimately consumed—ie, is matching or skipped,  and then the number of elements matching in <code>header</code>; all of them if there's a match at all (always false if <code>header</code> is empty!)).
 	 * So if the match fails at the very first element, then the first element will of course be <code>false</code>, but the second element in the pair will be the number of skippable elements in the underlying list (<code>larger</code>)!
 	 * @param patternForLarger  Whether elements in <code>larger</code> should be counted, or if this returns false, skipped over!
 	 */
@@ -15974,7 +15974,7 @@ _$$primxpconf:byte,char,short,int$$_
 				}
 				catch (StopIterationReturnPath exc)
 				{
-					return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+					return pair(numberMatchingFromLarger, numberMatchingFromHeader);
 				}
 				
 				if (patternForLarger.test(currentInLarger))
@@ -16003,7 +16003,7 @@ _$$primxpconf:byte,char,short,int$$_
 					}
 					catch (StopIterationReturnPath exc1)
 					{
-						return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+						return pair(numberMatchingFromLarger, numberMatchingFromHeader);
 					}
 					
 					if (patternForLarger.test(currentInLarger))
@@ -16021,7 +16021,7 @@ _$$primxpconf:byte,char,short,int$$_
 			else
 			{
 				//Oops! Mismatch!!
-				return pair(numberMatchingFromHeader, numberMatchingFromLarger);
+				return pair(numberMatchingFromLarger, numberMatchingFromHeader);
 			}
 		}
 	}
@@ -16031,15 +16031,15 @@ _$$primxpconf:byte,char,short,int$$_
 	/**
 	 * Like {@link #findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator, Predicate, SimpleIterator, AsymmetricalEqualityComparator)} but finds the *smallest* region, ignoring the start and end of the skippable elements!
 	 * For example, if <code>larger</code> is "..1..2.345..67..8" and <code>header</code> is "12345" then this will return the size of smallest region starting at the start of <code>larger</code>, "1..2.345".length(), or 8.
-	 * @return pair(amount of <code>header</code> that matches (same as largest version), and the (smallest) region of <code>larger</code> that matches!)   (in the largest-region version, it would always include the run of skippables at the start, so an integer size/exclusive-end-index is used not an {@link Interval}!)
+	 * @return pair(the (smallest) region of <code>larger</code> that matches!, amount of <code>header</code> that matches (same as largest version))   (in the largest-region version, it would always include the run of skippables at the start, so an integer size/exclusive-end-index is used not an {@link Interval}!)
 	 */
-	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static <A, B> PairOrdered<Interval, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		A currentInLarger = null;
 		B currentInHeader = null;
 		
-		int numberMatchingFromHeader = 0;
 		int numberMatchingFromLarger = 0;
+		int numberMatchingFromHeader = 0;
 		
 		boolean first = true;
 		int startSkippedFromLarger = 0;
@@ -16055,7 +16055,7 @@ _$$primxpconf:byte,char,short,int$$_
 				}
 				catch (StopIterationReturnPath exc)
 				{
-					return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+					return pair(new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger), numberMatchingFromHeader);
 				}
 				
 				if (patternForLarger.test(currentInLarger))
@@ -16082,7 +16082,7 @@ _$$primxpconf:byte,char,short,int$$_
 				//Now just skip over the extra elements at the end, since we're meant to be the Largest one! :33
 				
 				//Do NOT Advance Larger!! :D
-				return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+				return pair(new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger), numberMatchingFromHeader);
 			}
 			
 			if (comparator.equals(currentInLarger, currentInHeader))
@@ -16093,7 +16093,7 @@ _$$primxpconf:byte,char,short,int$$_
 			else
 			{
 				//Oops! Mismatch!!
-				return pair(numberMatchingFromHeader, new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger));
+				return pair(new Interval(startSkippedFromLarger, numberMatchingFromLarger - startSkippedFromLarger), numberMatchingFromHeader);
 			}
 		}
 	}
@@ -16105,7 +16105,7 @@ _$$primxpconf:byte,char,short,int$$_
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
 	}
 	
-	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
+	public static <A, B> PairOrdered<Interval, Integer> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
 	}
@@ -16118,7 +16118,7 @@ _$$primxpconf:byte,char,short,int$$_
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
 	
-	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static <A, B> PairOrdered<Interval, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
@@ -16129,7 +16129,7 @@ _$$primxpconf:byte,char,short,int$$_
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
 	
-	public static <A, B> PairOrdered<Integer, Interval> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static <A, B> PairOrdered<Interval, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
@@ -16262,10 +16262,10 @@ _$$primxpconf:byte,char,short,int$$_
 		PairOrdered<Integer, Integer> p = findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(possiblePreceding, patternForPreceding, overlap, (a, b) -> eq(a, b));
 		PairOrdered<Integer, Integer> s = findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(possibleSucceeding, patternForSucceeding, overlap, (a, b) -> eq(a, b));
 		
-		asrt(p.getA() == overlapSize);
-		asrt(s.getA() == overlapSize);
+		asrt(p.getB() == overlapSize);
+		asrt(s.getB() == overlapSize);
 		
-		return new SkippingOverlapCalculationResults(p.getB(), s.getB(), overlapSize);
+		return new SkippingOverlapCalculationResults(p.getA(), s.getA(), overlapSize);
 	}
 	
 	
