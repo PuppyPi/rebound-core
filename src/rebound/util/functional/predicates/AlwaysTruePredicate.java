@@ -20,6 +20,11 @@ implements Predicate
 	}
 	
 	
+	public static <E> Predicate<E> value()
+	{
+		return I;
+	}
+	
 	
 	
 	
