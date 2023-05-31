@@ -26,4 +26,10 @@ implements EqualityComparator
 	{
 		return Objects.equals(a, b);
 	}
+	
+	
+	public static <E> EqualityComparator<E> value()
+	{
+		return I;
+	}
 }
