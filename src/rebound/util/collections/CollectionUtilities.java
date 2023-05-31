@@ -16003,7 +16003,7 @@ _$$primxpconf:byte,char,short,int$$_
 					}
 					catch (StopIterationReturnPath exc1)
 					{
-						return pair(numberMatchingFromLarger, numberMatchingFromHeader);
+						break;
 					}
 					
 					if (patternForLarger.test(currentInLarger))
@@ -16011,6 +16011,8 @@ _$$primxpconf:byte,char,short,int$$_
 					else
 						numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
 				}
+				
+				return pair(numberMatchingFromLarger, numberMatchingFromHeader);
 			}
 			
 			if (comparator.equals(currentInLarger, currentInHeader))
