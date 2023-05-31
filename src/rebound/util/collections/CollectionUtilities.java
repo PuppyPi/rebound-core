@@ -16386,4 +16386,48 @@ _$$primxpconf:byte,char,short,int$$_
 			return true;
 		}
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param pattern  True for things to trim away!  False for things to keep!
+	 */
+	public static <E> List<E> ltrimList(List<E> s, Predicate<E> pattern)
+	{
+		if (s == null)
+			return null;
+		int len = s.size();
+		if (len == 0)
+			return s;
+		
+		int firstKeeper = len;
+		for (int i = 0; i < len && firstKeeper == len; i++)
+			if (!pattern.test(s.get(i)))
+				firstKeeper = i;
+		return s.subList(firstKeeper, s.size());
+	}
+	
+	/**
+	 * @param pattern  True for things to trim away!  False for things to keep!
+	 */
+	public static <E> List<E> rtrimList(List<E> s, Predicate<E> pattern)
+	{
+		if (s == null)
+			return null;
+		int len = s.size();
+		if (len == 0)
+			return s;
+		
+		int lastKeeper = -1;
+		for (int i = len-1; i >= 0 && lastKeeper == -1; i--)
+			if (!pattern.test(s.get(i)))
+				lastKeeper = i;
+		return s.subList(0, lastKeeper+1);
+	}
 }
