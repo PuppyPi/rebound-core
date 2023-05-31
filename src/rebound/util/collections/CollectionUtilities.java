@@ -16044,6 +16044,8 @@ _$$primxpconf:byte,char,short,int$$_
 		
 		int startSkippedFromLarger = 0;
 		
+		//Todo can this logic be cleaner?
+		
 		
 		//Initial advancement!
 		{
