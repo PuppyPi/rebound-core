@@ -16100,11 +16100,17 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	/**
+	 * @return  NOTE that the indexes/sizes are *from the ends* of the given lists!!  Opposite to {@link #findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable, Predicate, Iterable, AsymmetricalEqualityComparator)}!
+	 */
 	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
 	}
 	
+	/**
+	 * @return  NOTE that the indexes/sizes are *from the ends* of the given lists!!  Opposite to {@link #findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable, Predicate, Iterable, AsymmetricalEqualityComparator)}!
+	 */
 	public static <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
