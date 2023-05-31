@@ -187,6 +187,7 @@ import rebound.util.functional.FunctionInterfaces.UnaryProcedureBoolean;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureInt;
 import rebound.util.functional.MapFunctionalIterable;
 import rebound.util.functional.SuccessfulIterationStopType;
+import rebound.util.functional.functions.DefaultAsymmetricalEqualityComparator;
 import rebound.util.functional.functions.DefaultEqualityComparator;
 import rebound.util.objectutil.BasicObjectUtilities;
 import rebound.util.objectutil.Equivalenceable;
@@ -16200,6 +16201,91 @@ _$$primxpconf:byte,char,short,int$$_
 	 */
 	public static @Nonnegative <E> int calculateMatchOverlap(List<E> possiblePreceding, List<E> possibleSucceeding)
 	{
+		return calculateMatchOverlap(possiblePreceding, possibleSucceeding, DefaultAsymmetricalEqualityComparator.value());
+	}
+	
+	
+	
+	
+	/**
+	 * Same as {@link #calculateMatchOverlap(List, List)} but skips over some lines as if they weren't in the list, yet the overlap counts of lines match with the indexes of the lines skipped over!
+	 * 
+	 * ==Note==
+	 * This is not mathematically a reverse-injective (proper/deterministic) function!  Ie, The same inputs can have multiple valid outputs!
+	 * -Because if there are skipped elements at the edge of the overlap regions, then you could consider them to be "part of the overlap" or "not part of it" and the nonskipped overlap would be the same either way!:
+	 * 
+	 * Consider this situation:
+	 * <pre>
+	 * Possible  Preceding: ald123456skj...12345.6...
+	 * Possible Succeeding:                12.34..56..sdflfkjl
+	 * </pre>
+	 * 
+	 * Here we could include the elements before the 1 or after the 6 in either or not include them!
+	 * The implementation is free to do whatever behavior it wants there (ideally to maximize performance, as always in leniency in specifications X3 )
+	 * After all, if they're to be skipped over, conceptually you probably don't care much about them, do you, function-caller? XD :3
+	 * ==/==
+	 * 
+	 * 
+	 * @param patternForPreceding  If true, the line in the first list is counted, if false, it's skipped as if it's not there :3
+	 * @param patternForSucceeding  If true, the line in the second list is counted, if false, it's skipped as if it's not there :3
+	 * @return null if and only if there was no match at all!
+	 */
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		return calculateMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding, DefaultAsymmetricalEqualityComparator.value());
+	}
+	
+	
+	/**
+	 * Same as {@link #calculateMatchOverlapSkipping(List, Predicate, List, Predicate)} but with guaranteed semantics that it will find the largest one! (possibly at the expense of a more efficient implementation, like always when using a stricter specification)
+	 * 
+	 * In other words, like its simpler cousin {@link #calculateMatchOverlap(List, List)}, this always finds the largest overlap if there is more than one valid value.
+	 * But unlike that one, there's another way it can be larger: if there are skipped elements at the edge[s]!
+	 * 
+	 * Consider this situation:
+	 * <pre>
+	 * Possible  Preceding: ald123456skj...12345.6...
+	 * Possible Succeeding:                12.34..56..sdflfkjl
+	 * </pre>
+	 * 
+	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in Succeeding is "12.34..56.." (not "12.34..56").
+	 * @return null if and only if there was no match at all!
+	 */
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	{
+		return calculateSkippablyLargestMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding, DefaultAsymmetricalEqualityComparator.value());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * This calculates the largest number of elements at the beginning of <code>possiblePreceding</code> and the end of <code>possibleSucceeding</code> that are exactly the same! :D
+	 * (The value will never be more than the smaller of the two lists, ofc X3 )
+	 * 
+	 * Eg, given:
+	 * <pre>
+	 * 		preceding = sdlkjflj1234
+	 * 		succeeding =        1234wproierpi
+	 * </pre>
+	 * this would return 4 :3
+	 * 
+	 * 
+	 * @param possiblePreceding  The one that may come first, have leading elements that don't overlap, but have trailing elements that do.
+	 * @param possibleSucceeding  The one that may come last, have leading elements that overlap, and have trailing elements that don't.
+	 * @return zero if there is no overlap, otherwise this the size of the overlap!  (if either input is empty, this always returns 0)
+	 */
+	public static @Nonnegative <A, B> int calculateMatchOverlap(List<A> possiblePreceding, List<B> possibleSucceeding, AsymmetricalEqualityComparator<A, B> eq)
+	{
 		//Todo an algorithm better than this Naive one XD
 		
 		int possiblePrecedingSize = possiblePreceding.size();
@@ -16212,9 +16298,11 @@ _$$primxpconf:byte,char,short,int$$_
 		{
 			int overlapCandidateSize = least(possibleSucceedingSize, possiblePrecedingSize - i);
 			assert overlapCandidateSize > 0;
-			List<E> precedingSublist = possiblePreceding.subList(possiblePrecedingSize - overlapCandidateSize, possiblePrecedingSize);
-			List<E> succeedingSublist = possibleSucceeding.subList(0, overlapCandidateSize);
-			if (eqv(precedingSublist, succeedingSublist))
+			List<A> precedingSublist = possiblePreceding.subList(possiblePrecedingSize - overlapCandidateSize, possiblePrecedingSize);
+			List<B> succeedingSublist = possibleSucceeding.subList(0, overlapCandidateSize);
+			asrt(precedingSublist.size() == overlapCandidateSize);
+			asrt(precedingSublist.size() == overlapCandidateSize);
+			if (eq == DefaultAsymmetricalEqualityComparator.I ? eqv(precedingSublist, succeedingSublist) : forAll(j -> eq.equals(precedingSublist.get(j), succeedingSublist.get(j)), intervalIntegersList(0, overlapCandidateSize)))
 				return overlapCandidateSize;
 		}
 		
@@ -16247,9 +16335,9 @@ _$$primxpconf:byte,char,short,int$$_
 	 * @param patternForSucceeding  If true, the line in the second list is counted, if false, it's skipped as if it's not there :3
 	 * @return null if and only if there was no match at all!
 	 */
-	public static @Nullable <E> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <A, B> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<A> possiblePreceding, Predicate<A> patternForPreceding, @Nonempty List<B> possibleSucceeding, Predicate<B> patternForSucceeding, AsymmetricalEqualityComparator<A, B> eq)
 	{
-		return calculateSkippablyLargestMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);  //at the moment :3
+		return calculateSkippablyLargestMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding, eq);  //at the moment :3
 	}
 	
 	
@@ -16268,10 +16356,10 @@ _$$primxpconf:byte,char,short,int$$_
 	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in Succeeding is "12.34..56.." (not "12.34..56").
 	 * @return null if and only if there was no match at all!
 	 */
-	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <A, B> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<A> possiblePreceding, Predicate<A> patternForPreceding, @Nonempty List<B> possibleSucceeding, Predicate<B> patternForSucceeding, AsymmetricalEqualityComparator<A, B> eq)
 	{
-		@Nullable SkippingOverlapCalculationResults r = calculateSkippablyLargestMatchOverlapSkipping_a(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);
-		asrt(eq(r, calculateSkippablyLargestMatchOverlapSkipping_b(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding)));  //Todo remove after thorough testing or usage :3
+		@Nullable SkippingOverlapCalculationResults r = calculateSkippablyLargestMatchOverlapSkipping_a(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding, eq);
+		asrt(eq(r, calculateSkippablyLargestMatchOverlapSkipping_b(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding, eq)));  //Todo remove after thorough testing or usage :3
 		return r;
 	}
 	
@@ -16279,23 +16367,24 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	@ImplementationTransparency
-	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_a(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <A, B> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_a(@Nonempty List<A> possiblePreceding, Predicate<A> patternForPreceding, @Nonempty List<B> possibleSucceeding, Predicate<B> patternForSucceeding, AsymmetricalEqualityComparator<A, B> eq)
 	{
 		requireNonEmpty(possiblePreceding);
 		requireNonEmpty(possibleSucceeding);
 		
-		List<E> possiblePrecedingFiltered = filterToList(patternForPreceding, possiblePreceding);
-		List<E> possibleSucceedingFiltered = filterToList(patternForSucceeding, possibleSucceeding);
+		List<A> possiblePrecedingFiltered = filterToList(patternForPreceding, possiblePreceding);
+		List<B> possibleSucceedingFiltered = filterToList(patternForSucceeding, possibleSucceeding);
 		
-		int overlapSize = calculateMatchOverlap(possiblePrecedingFiltered, possibleSucceedingFiltered);
+		int overlapSize = calculateMatchOverlap(possiblePrecedingFiltered, possibleSucceedingFiltered, eq);
 		
 		if (overlapSize == 0)
 			return null;
 		
-		List<E> overlap = arbitrary(possibleSucceedingFiltered.subList(0, overlapSize), possiblePrecedingFiltered.subList(possiblePrecedingFiltered.size() - overlapSize, possiblePrecedingFiltered.size()));
+		List<A> overlapP = possiblePrecedingFiltered.subList(possiblePrecedingFiltered.size() - overlapSize, possiblePrecedingFiltered.size());
+		List<B> overlapS = possibleSucceedingFiltered.subList(0, overlapSize);
 		
-		PairOrdered<Integer, Integer> p = findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(possiblePreceding, patternForPreceding, overlap, (a, b) -> eq(a, b));
-		PairOrdered<Integer, Integer> s = findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(possibleSucceeding, patternForSucceeding, overlap, (a, b) -> eq(a, b));
+		PairOrdered<Integer, Integer> p = findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(possiblePreceding, patternForPreceding, overlapP, DefaultAsymmetricalEqualityComparator.value());
+		PairOrdered<Integer, Integer> s = findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(possibleSucceeding, patternForSucceeding, overlapS, DefaultAsymmetricalEqualityComparator.value());
 		
 		asrt(p.getB() == overlapSize);
 		asrt(s.getB() == overlapSize);
@@ -16304,7 +16393,7 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	
-	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_b(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <A, B> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping_b(@Nonempty List<A> possiblePreceding, Predicate<A> patternForPreceding, @Nonempty List<B> possibleSucceeding, Predicate<B> patternForSucceeding, AsymmetricalEqualityComparator<A, B> eq)
 	{
 		int possiblePrecedingSize = possiblePreceding.size();
 		int possibleSucceedingSize = possibleSucceeding.size();
@@ -16316,10 +16405,16 @@ _$$primxpconf:byte,char,short,int$$_
 		{
 			for (int postSublistSize = possibleSucceedingSize; postSublistSize > 0; postSublistSize--)
 			{
-				List<E> precedingSublist = filterToList(patternForPreceding, possiblePreceding.subList(possiblePrecedingSize - preSublistSize, possiblePrecedingSize));
-				List<E> succeedingSublist = filterToList(patternForSucceeding, possibleSucceeding.subList(0, postSublistSize));
-				if (eqv(precedingSublist, succeedingSublist))
-					return new SkippingOverlapCalculationResults(preSublistSize, postSublistSize, arbitrary(precedingSublist.size(), succeedingSublist.size()));
+				List<A> precedingFilteredSublist = filterToList(patternForPreceding, possiblePreceding.subList(possiblePrecedingSize - preSublistSize, possiblePrecedingSize));
+				List<B> succeedingFilteredSublist = filterToList(patternForSucceeding, possibleSucceeding.subList(0, postSublistSize));
+				int precedingFilteredSublistSize = precedingFilteredSublist.size();
+				int succeedingFilteredSublistSize = succeedingFilteredSublist.size();
+				if (precedingFilteredSublistSize == succeedingFilteredSublistSize)
+				{
+					int nonskippablesSize = arbitrary(precedingFilteredSublistSize, succeedingFilteredSublistSize);
+					if (eq == DefaultAsymmetricalEqualityComparator.I ? eqv(precedingFilteredSublist, succeedingFilteredSublist) : forAll(j -> eq.equals(precedingFilteredSublist.get(j), succeedingFilteredSublist.get(j)), intervalIntegersList(0, nonskippablesSize)))
+						return new SkippingOverlapCalculationResults(preSublistSize, postSublistSize, nonskippablesSize);
+				}
 			}
 		}
 		
