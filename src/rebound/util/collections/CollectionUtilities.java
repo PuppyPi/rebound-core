@@ -16039,6 +16039,7 @@ _$$primxpconf:byte,char,short,int$$_
 		B currentInHeader = null;
 		
 		int numberMatchingFromLarger = 0;
+		int numberMatchingFromLargerPrevious = 0;
 		int numberMatchingFromHeader = 0;
 		
 		int startSkippedFromLarger = 0;
@@ -16065,6 +16066,7 @@ _$$primxpconf:byte,char,short,int$$_
 			}
 			
 			startSkippedFromLarger = numberMatchingFromLarger;
+			numberMatchingFromLargerPrevious = numberMatchingFromLarger;
 		}
 		
 		
@@ -16084,7 +16086,7 @@ _$$primxpconf:byte,char,short,int$$_
 				//Now just skip over the extra elements at the end, since we're meant to be the Largest one! :33
 				
 				//Do NOT Advance Larger!! :D
-				return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
+				return triple(startSkippedFromLarger, numberMatchingFromLargerPrevious, numberMatchingFromHeader);
 			}
 			
 			
@@ -16102,7 +16104,7 @@ _$$primxpconf:byte,char,short,int$$_
 					}
 					catch (StopIterationReturnPath exc)
 					{
-						return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
+						return triple(startSkippedFromLarger, numberMatchingFromLargerPrevious, numberMatchingFromHeader);
 					}
 					
 					if (patternForLarger.test(currentInLarger))
@@ -16119,11 +16121,12 @@ _$$primxpconf:byte,char,short,int$$_
 			{
 				numberMatchingFromLarger++;  //okay now it counts :33
 				numberMatchingFromHeader++;
+				numberMatchingFromLargerPrevious = numberMatchingFromLarger;
 			}
 			else
 			{
 				//Oops! Mismatch!!
-				return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
+				return triple(startSkippedFromLarger, numberMatchingFromLargerPrevious, numberMatchingFromHeader);
 			}
 		}
 	}
