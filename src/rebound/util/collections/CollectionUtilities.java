@@ -16068,6 +16068,9 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 		
 		
+		
+		boolean first = true;
+		
 		while (true)
 		{
 			//Advance Header
@@ -16086,22 +16089,27 @@ _$$primxpconf:byte,char,short,int$$_
 			
 			
 			
-			//Advance Larger
-			while (true)
+			if (first)
+				first = false;
+			else
 			{
-				try
+				//Advance Larger
+				while (true)
 				{
-					currentInLarger = larger.nextrp();
+					try
+					{
+						currentInLarger = larger.nextrp();
+					}
+					catch (StopIterationReturnPath exc)
+					{
+						return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
+					}
+					
+					if (patternForLarger.test(currentInLarger))
+						break;
+					else
+						numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
 				}
-				catch (StopIterationReturnPath exc)
-				{
-					return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
-				}
-				
-				if (patternForLarger.test(currentInLarger))
-					break;
-				else
-					numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
 			}
 			
 			
