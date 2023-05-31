@@ -16041,10 +16041,10 @@ _$$primxpconf:byte,char,short,int$$_
 		int numberMatchingFromLarger = 0;
 		int numberMatchingFromHeader = 0;
 		
-		boolean first = true;
 		int startSkippedFromLarger = 0;
 		
-		while (true)
+		
+		//Initial advancement!
 		{
 			//Advance Larger
 			while (true)
@@ -16064,13 +16064,12 @@ _$$primxpconf:byte,char,short,int$$_
 					numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
 			}
 			
-			if (first)
-			{
-				startSkippedFromLarger = numberMatchingFromLarger;
-				first = false;
-			}
-			
-			
+			startSkippedFromLarger = numberMatchingFromLarger;
+		}
+		
+		
+		while (true)
+		{
 			//Advance Header
 			try
 			{
@@ -16084,6 +16083,29 @@ _$$primxpconf:byte,char,short,int$$_
 				//Do NOT Advance Larger!! :D
 				return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
 			}
+			
+			
+			
+			//Advance Larger
+			while (true)
+			{
+				try
+				{
+					currentInLarger = larger.nextrp();
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					return triple(startSkippedFromLarger, numberMatchingFromLarger, numberMatchingFromHeader);
+				}
+				
+				if (patternForLarger.test(currentInLarger))
+					break;
+				else
+					numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
+			}
+			
+			
+			
 			
 			if (comparator.equals(currentInLarger, currentInHeader))
 			{
