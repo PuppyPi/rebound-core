@@ -15992,26 +15992,7 @@ _$$primxpconf:byte,char,short,int$$_
 			catch (StopIterationReturnPath exc)
 			{
 				//We matched all the elements in Header!! :DD
-				//Now just skip over the extra elements at the end, since we're meant to be the Largest one! :33
-				
-				//Advance Larger
-				while (true)
-				{
-					try
-					{
-						currentInLarger = larger.nextrp();
-					}
-					catch (StopIterationReturnPath exc1)
-					{
-						break;
-					}
-					
-					if (patternForLarger.test(currentInLarger))
-						break;
-					else
-						numberMatchingFromLarger++;  //count the skipped-over ones; that's a legitimate consumption!
-				}
-				
+				//We already skipped over the extra elements at the end above, and that's good since we're meant to be the Largest one! :33
 				return pair(numberMatchingFromLarger, numberMatchingFromHeader);
 			}
 			
