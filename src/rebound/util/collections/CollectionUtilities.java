@@ -16256,7 +16256,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * Possible Succeeding:                12.34..56..sdflfkjl
 	 * </pre>
 	 * 
-	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in succeeding is "12.34..56.." (not "12.34..56").
+	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in Succeeding is "12.34..56.." (not "12.34..56").
 	 * @return null if and only if there was no match at all!
 	 */
 	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
