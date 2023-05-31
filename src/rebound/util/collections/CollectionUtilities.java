@@ -16238,7 +16238,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * @param patternForSucceeding  If true, the line in the second list is counted, if false, it's skipped as if it's not there :3
 	 * @return null if and only if there was no match at all!
 	 */
-	public static @Nonnull <E> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
 	{
 		return calculateSkippablyLargestMatchOverlapSkipping(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);  //at the moment :3
 	}
@@ -16257,10 +16257,11 @@ _$$primxpconf:byte,char,short,int$$_
 	 * </pre>
 	 * 
 	 * Here we are guaranteed to include all the skippable elements!  This means the overlap region in Preceding is "...12345.6..." (not "12345.6") and in succeeding is "12.34..56.." (not "12.34..56")/
+	 * @return null if and only if there was no match at all!
 	 */
-	public static @Nonnull <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
+	public static @Nullable <E> SkippingOverlapCalculationResults calculateSkippablyLargestMatchOverlapSkipping(@Nonempty List<E> possiblePreceding, Predicate<E> patternForPreceding, @Nonempty List<E> possibleSucceeding, Predicate<E> patternForSucceeding)
 	{
-		SkippingOverlapCalculationResults r = calculateSkippablyLargestMatchOverlapSkipping_a(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);
+		@Nullable SkippingOverlapCalculationResults r = calculateSkippablyLargestMatchOverlapSkipping_a(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding);
 		asrt(eq(r, calculateSkippablyLargestMatchOverlapSkipping_b(possiblePreceding, patternForPreceding, possibleSucceeding, patternForSucceeding)));  //Todo remove after thorough testing or usage :3
 		return r;
 	}
