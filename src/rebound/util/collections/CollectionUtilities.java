@@ -76,6 +76,7 @@ import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
 import rebound.annotations.semantic.simpledata.NonnullValues;
 import rebound.annotations.semantic.simpledata.NullableElements;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.exceptions.AlreadyExistsException;
 import rebound.exceptions.DuplicatesException;
 import rebound.exceptions.EmptyInputReturnPath;
@@ -15955,7 +15956,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * So if the match fails at the very first element, then the first element will of course be <code>false</code>, but the second element in the pair will be the number of skippable elements in the underlying list (<code>larger</code>)!
 	 * @param patternForLarger  Whether elements in <code>larger</code> should be counted, or if this returns false, skipped over!
 	 */
-	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		A currentInLarger = null;
 		B currentInHeader = null;
@@ -16016,7 +16017,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * For example, if <code>larger</code> is "..1..2.345..67..8" and <code>header</code> is "12345" then this will return the size of smallest region starting at the start of <code>larger</code>, "1..2.345".length(), or 8.
 	 * @return triple(the (smallest) region of <code>larger</code> that matches! it may be empty but its location still matters unlike a mathematical set-theoretic interval!! start (inclusive low bound), then its end (exclusive high bound), then the amount of <code>header</code> that matches (same as largest version))   (in the largest-region version, it would always include the run of skippables at the start, so an integer size/exclusive-end-index is used not an {@link Interval}!)
 	 */
-	public static <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(SimpleIterator<A> larger, Predicate<A> patternForLarger, SimpleIterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		A currentInLarger = null;
 		B currentInHeader = null;
@@ -16121,7 +16122,7 @@ _$$primxpconf:byte,char,short,int$$_
 	/**
 	 * @return  NOTE that the indexes/sizes are *from the ends* of the given lists!!  Opposite to {@link #findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable, Predicate, Iterable, AsymmetricalEqualityComparator)}!
 	 */
-	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> PairOrdered<Integer, Integer> findLargestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
 	}
@@ -16129,7 +16130,7 @@ _$$primxpconf:byte,char,short,int$$_
 	/**
 	 * @return  NOTE that the indexes/sizes are *from the ends* of the given lists!!  Opposite to {@link #findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable, Predicate, Iterable, AsymmetricalEqualityComparator)}!
 	 */
-	public static <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtEndOfListIgnoringSomeThatMatchesGivenList(List<A> larger, Predicate<A> patternForLarger, List<B> footer, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(reversedIterator(larger), patternForLarger, reversedIterator(footer), comparator);
 	}
@@ -16137,23 +16138,23 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
 	
-	public static <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterator<A> larger, Predicate<A> patternForLarger, Iterator<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
 	
 	
-	public static <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> PairOrdered<Integer, Integer> findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findLargestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
 	
-	public static <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
+	public static @Nonnull <A, B> TripleOrdered<Integer, Integer, Integer> findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(Iterable<A> larger, Predicate<A> patternForLarger, Iterable<B> header, AsymmetricalEqualityComparator<A, B> comparator)
 	{
 		return findSmallestRegionAtStartOfListIgnoringSomeThatMatchesGivenList(simpleIterator(larger), patternForLarger, simpleIterator(header), comparator);
 	}
@@ -16188,7 +16189,7 @@ _$$primxpconf:byte,char,short,int$$_
 	 * @param possibleSucceeding  The one that may come last, have leading elements that overlap, and have trailing elements that don't.
 	 * @return zero if there is no overlap, otherwise this the size of the overlap!  (if either input is empty, this always returns 0)
 	 */
-	public static <E> int calculateMatchOverlap(List<E> possiblePreceding, List<E> possibleSucceeding)
+	public static @Nonnegative <E> int calculateMatchOverlap(List<E> possiblePreceding, List<E> possibleSucceeding)
 	{
 		//Todo an algorithm better than this Naive one XD
 		
@@ -16319,15 +16320,15 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	public static class SkippingOverlapCalculationResults
 	{
-		protected final int sizeOfOverlapRegionAtEndOfFirst;
-		protected final int sizeOfOverlapRegionAtStartOfSecond;
-		protected final int numberOfNonskippedLinesInEitherOverlapRegion;
+		protected final @Positive int sizeOfOverlapRegionAtEndOfFirst;
+		protected final @Positive int sizeOfOverlapRegionAtStartOfSecond;
+		protected final @Positive int numberOfNonskippedLinesInEitherOverlapRegion;
 		
 		public SkippingOverlapCalculationResults(int sizeOfOverlapRegionAtEndOfFirst, int sizeOfOverlapRegionAtStartOfSecond, int numberOfNonskippedLinesInEitherOverlapRegion)
 		{
-			this.sizeOfOverlapRegionAtEndOfFirst = sizeOfOverlapRegionAtEndOfFirst;
-			this.sizeOfOverlapRegionAtStartOfSecond = sizeOfOverlapRegionAtStartOfSecond;
-			this.numberOfNonskippedLinesInEitherOverlapRegion = numberOfNonskippedLinesInEitherOverlapRegion;
+			this.sizeOfOverlapRegionAtEndOfFirst = requirePositive(sizeOfOverlapRegionAtEndOfFirst);
+			this.sizeOfOverlapRegionAtStartOfSecond = requirePositive(sizeOfOverlapRegionAtStartOfSecond);
+			this.numberOfNonskippedLinesInEitherOverlapRegion = requirePositive(numberOfNonskippedLinesInEitherOverlapRegion);
 		}
 		
 		public int getSizeOfOverlapRegionAtEndOfFirst()
