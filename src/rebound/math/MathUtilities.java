@@ -4077,9 +4077,12 @@ implements JavaNamespace
 	 * 
 	 * If M is slightly after S, then a small number is returned.
 	 * If M is slightly before S, then a big number is returned!  (That much slightly smaller than the size of the clock; eg, 12 hours or 24 hours or 360 degrees or etc.  :3 )
+	 * 
+	 * @param minuend  (must already be in modular canonical form; ie, in the interval <code>[0, modularBase)</code> )
+	 * @param subtrahend  (must already be in modular canonical form; ie, in the interval <code>[0, modularBase)</code> )
 	 */
 	@Nonnegative
-	public static int modularSubtraction(int minuend, int subtrahend, int modularBase)
+	public static int modularSubtraction(@Nonnegative int minuend, @Nonnegative int subtrahend, int modularBase)
 	{
 		int diff = minuend - subtrahend;
 		
@@ -4091,8 +4094,12 @@ implements JavaNamespace
 	
 	
 	
+	/**
+	 * @param minuend  (must already be in modular canonical form; ie, in the interval <code>[0, modularBase)</code> )
+	 * @param subtrahend  (must already be in modular canonical form; ie, in the interval <code>[0, modularBase)</code> )
+	 */
 	@Nonnegative
-	public static int modularSubtractionLesser(int minuend, int subtrahend, int modularBase)
+	public static int modularSubtractionLesser(@Nonnegative int minuend, @Nonnegative int subtrahend, int modularBase)
 	{
 		int diff = minuend - subtrahend;
 		
