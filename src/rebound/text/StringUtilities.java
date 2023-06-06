@@ -9700,7 +9700,7 @@ primxp
 	
 	//Todo a more efficient way of doing this ^^'   (and update the tests for LeastPositiveSubnormalDouble if that changes!)
 	////////////////////////////////////////////////////////////0.0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000049
-	protected static final DecimalFormat f = new DecimalFormat("0.0########################################################################################################################################################################################################################################################################################################################################");
+	protected static final DecimalFormat ldskjdlfkdjfldkjfldfkjdslfkj = new DecimalFormat("0.0########################################################################################################################################################################################################################################################################################################################################");
 	
 	public static String doubleToStringExponentless(double v)
 	{
@@ -9711,7 +9711,7 @@ primxp
 		else if (v == Double.NEGATIVE_INFINITY)
 			return "-Infinity";
 		else
-			return f.format(v);
+			return ldskjdlfkdjfldkjfldfkjdslfkj.format(v);
 	}
 	
 	public static String floatToStringExponentless(float v)
@@ -9723,7 +9723,7 @@ primxp
 		else if (v == Float.NEGATIVE_INFINITY)
 			return "-Infinity";
 		else
-			return f.format(v);
+			return ldskjdlfkdjfldkjfldfkjdslfkj.format(v);
 	}
 	
 	
