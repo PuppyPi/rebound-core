@@ -63,6 +63,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.annotations.semantic.AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.operationspecification.CollectionValue;
@@ -6754,6 +6755,11 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	@AccessedDynamicallyOrExternallyToJavaOrKnownToBeInImportantSerializedUse  //Todo remove this once no longer in use X3
+	public static <E> boolean defaultSetsEquivalent(Set<? extends E> a, Set<? extends E> b)
+	{
+		return defaultSetsEquivalent((Collection)a, (Set)b);
+	}
 	
 	/**
 	 * @param a The one that will be iterated over (and should have fast iteration (eg, {@link ArrayList}))
