@@ -15,7 +15,6 @@ import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.TextSyntaxException;
-import rebound.text.StringUtilities;
 import rebound.util.RUID128;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
