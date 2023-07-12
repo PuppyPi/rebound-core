@@ -9,6 +9,7 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.annotations.purelyforhumans.DeprecatedInFavorOf;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.bits.Bytes;
 import rebound.bits.DataEncodingUtilities;
@@ -99,14 +100,14 @@ public class UIDUtilities
 	}
 	
 	@ImplementationTransparency
-	public static String formatString(@ReadonlyValue @Nonnull byte[] bytes)
+	public static String formatString(@ReadonlyValue @Nonnull byte[] bytes, boolean uppercase)
 	{
 		requireNonNull(bytes);
 		
 		//return DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_LOWERCASE);
 		
 		
-		String s = DataEncodingUtilities.encodeHexNoDelimiter(bytes, DataEncodingUtilities.HEX_LOWERCASE);  //Lowercase by default because Eclipse scans across it as one token and life is easier XD'  (also it's less shouty X3 )
+		String s = DataEncodingUtilities.encodeHexNoDelimiter(bytes, uppercase ? DataEncodingUtilities.HEX_UPPERCASE : DataEncodingUtilities.HEX_LOWERCASE);  //Lowercase by default because Eclipse scans across it as one token and life is easier XD'  (also it's less shouty X3 )
 		
 		//s = StringUtilities.reverse(s);  //DEU only does big-endian nibbles XP
 		
@@ -122,11 +123,26 @@ public class UIDUtilities
 		return s;
 	}
 	
+	@Deprecated
+	@DeprecatedInFavorOf("formatStringUppercase() | formatStringLowercase()")
 	@ImplementationTransparency
 	public static String formatString(@Nonnull ImmutableByteArrayList bytes)
 	{
+		return formatStringUppercase(bytes);
+	}
+	
+	@ImplementationTransparency
+	public static String formatStringUppercase(@Nonnull ImmutableByteArrayList bytes)
+	{
 		requireNonNull(bytes);
-		return formatString(bytes.getREADONLYLiveWholeArrayBackingUNSAFE());
+		return formatString(bytes.getREADONLYLiveWholeArrayBackingUNSAFE(), true);
+	}
+	
+	@ImplementationTransparency
+	public static String formatStringLowercase(@Nonnull ImmutableByteArrayList bytes)
+	{
+		requireNonNull(bytes);
+		return formatString(bytes.getREADONLYLiveWholeArrayBackingUNSAFE(), false);
 	}
 	
 	
