@@ -12,7 +12,7 @@ extends UIDConflictException
 	
 	public UIDConflictExceptionWithUID(ImmutableByteArrayList uid)
 	{
-		super(UIDUtilities.formatString(uid));
+		super(UIDUtilities.formatStringLowercase(uid));
 		this.uid = uid;
 	}
 	
