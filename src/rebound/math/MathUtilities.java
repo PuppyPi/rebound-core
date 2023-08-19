@@ -3611,7 +3611,54 @@ implements JavaNamespace
 	//Todo more Object-polymorphics! :D
 	
 	
+	public static boolean isDivisible(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		return matheq(progmod(numerator, denominator), 0);
+	}
 	
+	/**
+	 * • Includes negative evens, like -2, -4, -6, ..
+	 * • Includes 0
+	 */
+	public static boolean isEven(@Nonnull @PolyInteger Object a)
+	{
+		return isDivisible(a, 2);
+	}
+	
+	/**
+	 * • Includes negative odds, like -1, -3, -5, ..
+	 * • Does not include 0
+	 */
+	public static boolean isOdd(@Nonnull @PolyInteger Object a)
+	{
+		return !isEven(a);
+	}
+	
+	
+	public static @Nonnull @PolyInteger Object progmod(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		if (matheq(denominator, 0))
+			throw new DivisionByZeroException();
+		
+		//Todo faster operation here!
+		if (numerator instanceof UnsignedLong)
+			numerator = ((UnsignedLong)numerator).bigIntegerValue();
+		if (denominator instanceof UnsignedLong)
+			denominator = ((UnsignedLong)denominator).bigIntegerValue();
+		
+		if (numerator instanceof BigInteger || denominator instanceof BigInteger)
+		{
+			BigInteger n = toBigInteger(numerator);
+			BigInteger d = toBigInteger(denominator);
+			return n.mod(d);
+		}
+		else
+		{
+			long n = safeCastAnythingToS64(numerator);
+			long d = safeCastAnythingToS64(denominator);
+			return SmallIntegerMathUtilities.progmod(n, d);
+		}
+	}
 	
 	
 	
