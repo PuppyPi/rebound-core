@@ -1285,6 +1285,27 @@ public class SmallIntegerMathUtilities
 	
 	
 	
+	public static boolean isEven(long a)
+	{
+		return (a & 1l) == 0l;
+	}
+	
+	public static boolean isEven(int a)
+	{
+		return (a & 1) == 0;
+	}
+	
+	
+	public static boolean isOdd(long a)
+	{
+		return (a & 1l) == 1l;
+	}
+	
+	public static boolean isOdd(int a)
+	{
+		return (a & 1) == 1;
+	}
+	
 	
 	
 	
