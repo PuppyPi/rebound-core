@@ -2114,15 +2114,15 @@ implements JavaNamespace
 	public static long roundingDivision(long numerator, long divisor, RoundingMode roundingMode)
 	{
 		if (roundingMode == RoundingMode.CEILING)
-			return ceilingDivision(numerator, divisor);
+			return SmallIntegerMathUtilities.ceilingDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.FLOOR)
-			return floorDivision(numerator, divisor);
+			return SmallIntegerMathUtilities.floorDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.UNNECESSARY)
-			return losslessDivision(numerator, divisor);
+			return SmallIntegerMathUtilities.losslessDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.UP)
-			return awayfromzeroDivision(numerator, divisor);
+			return SmallIntegerMathUtilities.awayfromzeroDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.DOWN)
-			return towardzeroDivision(numerator, divisor);
+			return SmallIntegerMathUtilities.towardzeroDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.HALF_UP)
 			return halfawayfromzeroDivision(numerator, divisor);
 		else if (roundingMode == RoundingMode.HALF_DOWN)
@@ -5912,8 +5912,8 @@ implements JavaNamespace
 		}
 		else
 		{
-			int l = oddBasesRoundMidpointDigitDown ? floorDivision(base, 2) : ceilingDivision(base, 2);
-			int h = oddBasesRoundMidpointDigitDown ? ceilingDivision(base, 2) : floorDivision(base, 2);
+			int l = oddBasesRoundMidpointDigitDown ? SmallIntegerMathUtilities.floorDivision(base, 2) : SmallIntegerMathUtilities.ceilingDivision(base, 2);
+			int h = oddBasesRoundMidpointDigitDown ? SmallIntegerMathUtilities.ceilingDivision(base, 2) : SmallIntegerMathUtilities.floorDivision(base, 2);
 			
 			Object low = subtract(midpoint, mul(l, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)));
 			Object high = add(midpoint, mul(h, MathUtilities.pow(base, -numberOfFractionalSignificantFigures + multiplierExponentForTolerance + characteristic)));
