@@ -16,7 +16,7 @@ import rebound.util.ValueType;
  */
 public class ImmutableRational
 extends Number
-implements Rational, Serializable, ValueType
+implements Rational<Object>, Serializable, ValueType
 {
 	private static final long serialVersionUID = 1L;
 	
