@@ -47,6 +47,7 @@ import rebound.exceptions.NonfiniteException;
 import rebound.exceptions.NotANumberException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OutOfDomainArithmeticException;
+import rebound.exceptions.OutOfDomainArithmeticException.ComplexNumberArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.TruncationException;
@@ -3848,10 +3849,125 @@ implements JavaNamespace
 	
 	
 	
-	public static @Nonnegative @PolyInteger Object losslessRootOrNullIfAndOnlyIfIrrational(@Nonnegative @PolyInteger Object base, @Positive @PolyInteger Object degree)
+	public static @Nonnegative @PolyInteger Object floorRoot(@Nonnegative @PolyInteger Object base, @Positive @PolyInteger Object degree)
 	{
+		base = normalizeIfIntegerPrimitive(base);
+		degree = normalizeIfIntegerPrimitive(degree);
 		
+		if (base instanceof Long)
+		{
+			long b = (Long)base;
+			
+			requireNonNegative(b);
+			
+			/*
+			 * Long.MAX_VALUE^(1/63) < 2
+			 * Long.MAX_VALUE^(1/62) = 2.022485041330361...
+			 * 
+			 * So if it's 63 or higher, the result is guaranteed to be 1!
+			 */
+			if (mathcmp(degree, 63) >= 0)
+				return 1;
+			else
+				return floorRoot(b, safeCastAnythingToS32(degree));
+		}
+		else
+		{
+			BigInteger b = (BigInteger) base;
+			
+			if (b.signum() < 0)
+				throw new IllegalArgumentException();
+			
+			/*
+			 * BigInteger is limited in the number of bits it can handle anyways!
+			 */
+			if (mathcmp(degree, Integer.MAX_VALUE) > 0)
+				return 1;
+			else
+				return floorRoot(b, safeCastAnythingToS32(degree));
+		}
 	}
+	
+	
+	/**
+	 * If degree >= 63 the result is always 1, so a *byte* would do, really!  There's no need for a <code>long</code> degree X3
+	 */
+	public static long floorRoot(@Nonnegative long radicand, int degree)
+	{
+		//The Newton-Rhapson method.
+		//Credit: https://stackoverflow.com/a/32553759
+		
+		int sign = SmallIntegerMathUtilities.signum(radicand);
+		if (degree <= 0)
+			throw new IllegalArgumentException();
+		if (sign < 0)
+			throw new IllegalArgumentException();
+		if (sign == 0)
+			return 0;
+		if (degree == 1)
+			return radicand;
+		long a;
+		long bigN = degree;
+		long bigNMinusOne = degree - 1;
+		long b = 1l << (1 + ceilLogBase2(radicand) / degree);
+		do
+		{
+			a = b;
+			b = ((a * bigNMinusOne) + (radicand / SmallIntegerMathUtilities.pow(a, degree - 1))) / bigN;
+		}
+		while (b < a);
+		return a;
+	}
+	
+	
+	/**
+	 * {@link BigInteger#bitLength()} (aka ceil(log2(radicand))) it limited to {@link Integer#MAX_VALUE}, so there's no need for <code>degree</code> to be more than an int either!
+	 */
+	public static BigInteger floorRoot(BigInteger radicand, int degree)
+	{
+		//The Newton-Rhapson method.
+		//Credit: https://stackoverflow.com/a/32553759
+		
+		int sign = radicand.signum();
+		if (degree <= 0)
+			throw new IllegalArgumentException();
+		if (sign < 0)
+			throw new IllegalArgumentException();
+		if (sign == 0)
+			return BigInteger.ZERO;
+		if (degree == 1)
+			return radicand;
+		BigInteger a;
+		BigInteger bigN = BigInteger.valueOf(degree);
+		BigInteger bigNMinusOne = BigInteger.valueOf(degree - 1);
+		BigInteger b = BigInteger.ZERO.setBit(1 + radicand.bitLength() / degree);
+		do
+		{
+			a = b;
+			b = a.multiply(bigNMinusOne).add(radicand.divide(a.pow(degree - 1))).divide(bigN);
+		}
+		while (b.compareTo(a) == -1);
+		return a;
+	}
+	
+	
+	
+	
+	
+	public static @Nullable @Nonnegative @PolyInteger Object losslessRootOrNullIfAndOnlyIfIrrational(@Nonnegative @PolyInteger Object base, @Positive @PolyInteger Object degree)
+	{
+		@Nonnegative @PolyInteger Object fr = floorRoot(base, degree);
+		
+		if (matheq(pow(fr, degree), base))
+			return fr;
+		else
+			return null;
+	}
+	
+	
+	
+	
+	
 	
 	
 	/**
