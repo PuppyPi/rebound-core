@@ -34,6 +34,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
+import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.Bytes;
 import rebound.exceptions.DecimalUnrepresentableFractionException;
 import rebound.exceptions.DecimalUnrepresentableToleranceException;
@@ -3659,6 +3660,33 @@ implements JavaNamespace
 			return SmallIntegerMathUtilities.progmod(n, d);
 		}
 	}
+	
+	
+	
+	
+	
+	
+	public static @Nonnegative @PolyInteger Object losslessRootOrNullIfAndOnlyIfIrrational(@Nonnegative @PolyInteger Object base, @Positive @PolyInteger Object degree)
+	{
+		
+	}
+	
+	
+	/**
+	 * This simplifies the radical expression (eg, a square root if Degree = 2, a cube root if Degree = 3, etc.) not in the normal way which involves pulling Square/Cube/Etc.-Free Kernel integers out and currently no fast implementation is known for,
+	 * but simplifies it merely by trying to take the root for factors *of the degree!* and returning a root *with a smaller degree!*
+	 * 
+	 * Example: 5044200875000^(1/6) → 17150^(1/2)
+	 */
+	public static @Nonnull Radical<Object> internallySimplifyRadical(@Nonnull Radical<Object> radical)
+	{
+		
+	}
+	
+	
+	
+	
+	
 	
 	
 	
