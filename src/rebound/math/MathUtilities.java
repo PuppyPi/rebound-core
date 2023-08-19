@@ -35,7 +35,6 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
-import rebound.annotations.semantic.simpledata.LowerBoundedBigInt;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.Bytes;
@@ -48,7 +47,6 @@ import rebound.exceptions.NonfiniteException;
 import rebound.exceptions.NotANumberException;
 import rebound.exceptions.NotYetImplementedException;
 import rebound.exceptions.OutOfDomainArithmeticException;
-import rebound.exceptions.OutOfDomainArithmeticException.ComplexNumberArithmeticException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.TruncationException;
@@ -3840,6 +3838,21 @@ implements JavaNamespace
 				
 				putNewMandatory(rv, factor, exponent);
 			}
+		}
+		
+		return rv;
+	}
+	
+	
+	
+	
+	public static @Nonnull @PolyInteger @Positive Object defactorize(Map<Object, Object> factorsToExponents)
+	{
+		@Nonnull @PolyInteger @Positive Object rv = 1l;
+		
+		for (Entry<Object, Object> e : factorsToExponents.entrySet())
+		{
+			rv = multiply(rv, pow(e.getKey(), e.getValue()));
 		}
 		
 		return rv;
