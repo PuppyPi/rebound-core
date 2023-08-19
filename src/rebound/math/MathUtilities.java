@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -33,6 +34,7 @@ import javax.annotation.Nullable;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
+import rebound.annotations.semantic.simpledata.LowerBoundedBigInt;
 import rebound.annotations.semantic.simpledata.MayNormalizePrimitives;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.Bytes;
@@ -3664,6 +3666,104 @@ implements JavaNamespace
 	
 	
 	
+	public static Map<Object, Object> primeFactorization(@Nonnegative @PolyInteger Object n)
+	{
+		n = normalizeIfIntegerPrimitive(n);
+		if (n instanceof Long)
+			return primeFactorization((long)(Long)n);
+		else
+			return primeFactorization((BigInteger)n);
+	}
+	
+	/**
+	 * @return the empty map if and only if the input = 1, {n: 1} if and only if n is prime!
+	 */
+	public static Map<Object, Object> primeFactorization(@Positive long n)
+	{
+		if (n < 1)
+			throw new IllegalArgumentException();
+		if (n == 1)
+			return emptyMap();
+		
+		Map<Object, Object> rv = new HashMap<>();
+		
+		for (long factor = 2; factor < n / 2; factor = (factor == 2 ? 3 : (factor + 2)))  //flooring division because if n is even, then we don't need to pull n/2 out of it, we'll just pull 2 out of it! XD     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
+		{
+			boolean prime;
+			{
+				prime = true;
+				for (long f = 2; f < factor / 2 && prime; f = (f == 2 ? 3 : (f + 2)))  //flooring division because if factor is even but not two, then we'll realize that immediately upon testing if 2 is a divisor!     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
+				{
+					if ((factor % f) == 0)
+						prime = false;
+				}
+			}
+			
+			if (prime)
+			{
+				long exponent = 1;
+				
+				while ((n % factor) == 0)
+				{
+					n /= factor;
+					exponent++;
+				}
+				
+				putNewMandatory(rv, factor, exponent);
+			}
+		}
+		
+		return rv;
+	}
+	
+	/**
+	 * @return the empty map if and only if the input = 1, {n: 1} if and only if n is prime!
+	 */
+	public static Map<Object, Object> primeFactorization(@Positive BigInteger n)
+	{
+		int r = n.compareTo(BigInteger.ONE);
+		if (r < 0)
+			throw new IllegalArgumentException();
+		if (r == 0)
+			return emptyMap();
+		
+		Map<Object, Object> rv = new HashMap<>();
+		
+		@PolyInteger Object nHalfFloored = divide(n, 2);
+		
+		for (Object factor = 2; mathcmp(factor, nHalfFloored) < 0; factor = (matheq(factor, 2) ? 3 : add(factor, 2)))  //flooring division because if n is even, then we don't need to pull n/2 out of it, we'll just pull 2 out of it! XD     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
+		{
+			boolean prime;
+			{
+				prime = true;
+				Object factorHalfFloored = floorDivision(factor, 2);
+				for (Object f = 2; mathcmp(f, factorHalfFloored) < 0 && prime; f = (matheq(f, 2) ? 3 : add(f, 2)))  //flooring division because if factor is even but not two, then we'll realize that immediately upon testing if 2 is a divisor!     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
+				{
+					if (matheq(progmod(factor, f), 0))
+						prime = false;
+				}
+			}
+			
+			if (prime)
+			{
+				long exponent = 1;
+				
+				while (matheq(progmod(n, factor), 0))
+				{
+					n = losslessDivision(factor);
+					exponent++;
+				}
+				
+				putNewMandatory(rv, factor, exponent);
+			}
+		}
+		
+		return rv;
+	}
+	
+	
+	
+	
 	
 	
 	public static @Nonnegative @PolyInteger Object losslessRootOrNullIfAndOnlyIfIrrational(@Nonnegative @PolyInteger Object base, @Positive @PolyInteger Object degree)
@@ -3876,9 +3976,9 @@ implements JavaNamespace
 	 */
 	public static boolean isInModularInterval(double x, double modularLow, double modularHigh, double modularBase)
 	{
-		x = progmod(x, modularBase);
-		modularLow = progmod(modularLow, modularBase);
-		modularHigh = progmod(modularHigh, modularBase);
+		x = SmallFloatMathUtilities.progmod(x, modularBase);
+		modularLow = SmallFloatMathUtilities.progmod(modularLow, modularBase);
+		modularHigh = SmallFloatMathUtilities.progmod(modularHigh, modularBase);
 		
 		if (modularLow > modularHigh)
 		{
