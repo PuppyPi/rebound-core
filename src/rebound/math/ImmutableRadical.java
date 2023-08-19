@@ -6,14 +6,14 @@ import rebound.annotations.semantic.simpledata.Positive;
 import rebound.exceptions.OutOfDomainArithmeticException.ComplexNumberArithmeticException;
 
 public class ImmutableRadical
-implements Radical<Object>
+implements Radical<Object, Object>
 {
 	protected final @Positive @PolyInteger Object degree;
 	
 	/**
 	 * Must be nonnegative if degree {@link MathUtilities#isEven(Object)}
 	 */
-	protected final @PolyInteger Object radicand;
+	protected final @RationalOrInteger Object radicand;
 	
 	
 	public ImmutableRadical(Object degree, Object radicand) throws IllegalArgumentException, ComplexNumberArithmeticException
@@ -86,6 +86,6 @@ implements Radical<Object>
 	@Override
 	public String toString()
 	{
-		return radicand + "^(1/"+degree+")";
+		return (isInteger(radicand) ? radicand : ("("+radicand+")")) + "^(1/"+degree+")";
 	}
 }
