@@ -49,8 +49,8 @@ implements Radical<Object, Object>
 	{
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((degree == null) ? 0 : degree.hashCode());
-		result = prime * result + ((radicand == null) ? 0 : radicand.hashCode());
+		result = prime * result + mathhash(degree);
+		result = prime * result + mathhash(radicand);
 		return result;
 	}
 	
@@ -65,19 +65,9 @@ implements Radical<Object, Object>
 		if (getClass() != obj.getClass())
 			return false;
 		ImmutableRadical other = (ImmutableRadical) obj;
-		if (degree == null)
-		{
-			if (other.degree != null)
-				return false;
-		}
-		else if (!degree.equals(other.degree))
+		if (!matheq(degree, other.degree))
 			return false;
-		if (radicand == null)
-		{
-			if (other.radicand != null)
-				return false;
-		}
-		else if (!radicand.equals(other.radicand))
+		if (!matheq(radicand, other.radicand))
 			return false;
 		return true;
 	}
