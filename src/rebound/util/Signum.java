@@ -8,8 +8,15 @@ public enum Signum
 	;
 	
 	
+	public int toIntegerValue()
+	{
+		return this == Positive ? 1 : (this == Zero ? 0 : -1);
+	}
 	
-	
+	public static Signum fromIntegerValue(int v)
+	{
+		return v > 0 ? Positive : (v < 0 ? Negative : Zero);
+	}
 	
 	
 	
