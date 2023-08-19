@@ -3678,8 +3678,16 @@ implements JavaNamespace
 	 * 
 	 * Example: 5044200875000^(1/6) → 17150^(1/2)
 	 */
-	public static @Nonnull Radical<Object> internallySimplifyRadical(@Nonnull Radical<Object> radical)
+	public static @Nonnull Radical<Object, Object> internallySimplifyIntegerRadical(@Nonnull Radical<Object, Object> radical)
 	{
+		
+	}
+	
+	public static @Nonnull Radical<Object, Object> internallySimplifyRationalRadical(@Nonnull Radical<Object, Object> radical)
+	{
+		if (isInteger(radical.getRadicand()))
+			return internallySimplifyIntegerRadical(radical);
+		
 		
 	}
 	
