@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Emptyable;
@@ -3978,7 +3979,40 @@ implements JavaNamespace
 	 */
 	public static @Nonnull Radical<Object, Object> internallySimplifyIntegerRadical(@Nonnull Radical<Object, Object> radical)
 	{
+		@WritableValue Map<Object, Object> degreeFactors = new HashMap<>(primeFactorization(radical.getDegree()));
 		
+		Object radicand = radical.getRadicand();
+		
+		while (true)
+		{
+			boolean clean = true;
+			
+			for (Object factor : degreeFactors.keySet().toArray())
+			{
+				Object root = losslessRootOrNullIfAndOnlyIfIrrational(radicand, factor);
+				
+				if (root != null)
+				{
+					clean = false;
+					radicand = root;
+					
+					Object factorExponent = degreeFactors.get(factor);
+					factorExponent = subtract(factorExponent, 1);
+					
+					if (matheq(factorExponent, 0))
+						degreeFactors.remove(factor);
+					else
+						degreeFactors.put(factor, factorExponent);
+				}
+			}
+			
+			if (clean)
+				break;
+		}
+		
+		@PolyInteger Object newDegree = defactorize(degreeFactors);
+		
+		return new ImmutableRadical(newDegree, radicand);
 	}
 	
 	public static @Nonnull Radical<Object, Object> internallySimplifyRationalRadical(@Nonnull Radical<Object, Object> radical)
@@ -3987,6 +4021,44 @@ implements JavaNamespace
 			return internallySimplifyIntegerRadical(radical);
 		
 		
+		@WritableValue Map<Object, Object> degreeFactors = new HashMap<>(primeFactorization(radical.getDegree()));
+		
+		Rational rationalRadicand = (Rational) radical.getRadicand();
+		Object radicandNumerator = rationalRadicand.getNumerator();
+		Object radicandDenominator = rationalRadicand.getDenominator();
+		
+		while (true)
+		{
+			boolean clean = true;
+			
+			for (Object factor : degreeFactors.keySet().toArray())
+			{
+				Object rootN = losslessRootOrNullIfAndOnlyIfIrrational(radicandNumerator, factor);
+				Object rootD = losslessRootOrNullIfAndOnlyIfIrrational(radicandDenominator, factor);
+				
+				if (rootN != null && rootD != null)
+				{
+					clean = false;
+					radicandNumerator = rootN;
+					radicandDenominator = rootD;
+					
+					Object factorExponent = degreeFactors.get(factor);
+					factorExponent = subtract(factorExponent, 1);
+					
+					if (matheq(factorExponent, 0))
+						degreeFactors.remove(factor);
+					else
+						degreeFactors.put(factor, factorExponent);
+				}
+			}
+			
+			if (clean)
+				break;
+		}
+		
+		@PolyInteger Object newDegree = defactorize(degreeFactors);
+		
+		return new ImmutableRadical(newDegree, reduce(radicandNumerator, radicandDenominator));
 	}
 	
 	
