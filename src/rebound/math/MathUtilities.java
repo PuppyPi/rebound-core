@@ -3811,12 +3811,14 @@ implements JavaNamespace
 		
 		@PolyInteger Object nHalfFloored = divide(n, 2);
 		
+		@PolyInteger Object nn = n;
+		
 		for (Object factor = 2; mathcmp(factor, nHalfFloored) < 0; factor = (matheq(factor, 2) ? 3 : add(factor, 2)))  //flooring division because if n is even, then we don't need to pull n/2 out of it, we'll just pull 2 out of it! XD     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
 		{
 			boolean prime;
 			{
 				prime = true;
-				Object factorHalfFloored = floorDivision(factor, 2);
+				@PolyInteger Object factorHalfFloored = floorDivision(factor, 2);
 				for (Object f = 2; mathcmp(f, factorHalfFloored) < 0 && prime; f = (matheq(f, 2) ? 3 : add(f, 2)))  //flooring division because if factor is even but not two, then we'll realize that immediately upon testing if 2 is a divisor!     (and increment to skip over even numbers at the very least even if we aren't doing a sieve!)
 				{
 					if (matheq(progmod(factor, f), 0))
@@ -3826,12 +3828,12 @@ implements JavaNamespace
 			
 			if (prime)
 			{
-				long exponent = 1;
+				@PolyInteger Object exponent = 1;
 				
-				while (matheq(progmod(n, factor), 0))
+				while (matheq(progmod(nn, factor), 0))
 				{
-					n = losslessDivision(factor);
-					exponent++;
+					nn = losslessDivision(nn, factor);
+					exponent = add(exponent, 1);
 				}
 				
 				putNewMandatory(rv, factor, exponent);
