@@ -3665,6 +3665,86 @@ implements JavaNamespace
 	
 	
 	
+	public static @Nonnull @PolyInteger Object awayfromzeroDivision(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		return add(towardzeroDivision(numerator, denominator), (!isDivisible(numerator, denominator) ? signum(numerator) * signum(denominator) : 0));
+	}
+	
+	public static @Nonnull @PolyInteger Object towardzeroDivision(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		numerator = normalizeIfIntegerPrimitive(numerator);
+		denominator = normalizeIfIntegerPrimitive(denominator);
+		
+		if (numerator instanceof Long && denominator instanceof Long)
+		{
+			long n = (Long)numerator;
+			long d = (Long)denominator;
+			return n / d;  //XDD
+		}
+		else
+		{
+			BigInteger n = toBigInteger(numerator);
+			BigInteger d = toBigInteger(denominator);
+			return n.divide(d);  //Todo ensure that this matches with the rounding of Java primitive integers when there's negatives!
+		}
+	}
+	
+	public static @Nonnull @PolyInteger Object ceilingDivision(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		return add(floorDivision(numerator, denominator), (!isDivisible(numerator, denominator) ? 1 : 0));
+	}
+	
+	public static @Nonnull @PolyInteger Object floorDivision(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator)
+	{
+		boolean nn = mathcmp(numerator, 0) < 0;
+		boolean dn = mathcmp(denominator, 0) < 0;
+		boolean negative = nn ^ dn;
+		
+		if (negative)
+		{
+			//For negatives, nearzero (Java) >= floor
+			
+			@Nonnull @PolyInteger Object nearzeroQuotient = towardzeroDivision(numerator, denominator);
+			
+			if (multiply(nearzeroQuotient, denominator) == numerator) //division without remainder is equal in any truncation/rounding scheme
+			{
+				return nearzeroQuotient;
+			}
+			else
+			{
+				//nearzero returns the integer nearer to zero, which is 1 greater than floor.
+				return subtract(nearzeroQuotient, 1);
+			}
+		}
+		else
+		{
+			//For positives, nearzero (Java) = floor
+			
+			//TODO is this necessary?
+			if (nn && dn)
+			{
+				numerator = negate(numerator);
+				denominator = negate(denominator);
+			}
+			
+			return towardzeroDivision(numerator, denominator);
+		}
+	}
+	
+	public static @Nonnull @PolyInteger Object losslessDivision(@Nonnull @PolyInteger Object numerator, @Nonnull @PolyInteger Object denominator) throws ArithmeticException
+	{
+		if (!isDivisible(numerator, denominator))
+			throw new ArithmeticException("Lossy division detected");
+		return towardzeroDivision(numerator, denominator);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public static Map<Object, Object> primeFactorization(@Nonnegative @PolyInteger Object n)
 	{
