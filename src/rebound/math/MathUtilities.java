@@ -3465,6 +3465,37 @@ implements JavaNamespace
 	
 	
 	
+	@MayNormalizePrimitives
+	public static @PolyInteger Object gcd(@PolyInteger @Positive Object a, @PolyInteger @Positive Object b)
+	{
+		a = normalizeIfIntegerPrimitive(a);
+		b = normalizeIfIntegerPrimitive(b);
+		
+		if (!isInteger(a))
+			throw new IllegalArgumentException();
+		if (!isInteger(b))
+			throw new IllegalArgumentException();
+		
+		if (mathcmp(a, Zero) <= 0)
+			throw new IllegalArgumentException();
+		if (mathcmp(b, Zero) <= 0)
+			throw new IllegalArgumentException();
+		
+		
+		if (a instanceof Long && b instanceof Long)
+		{
+			return SmallIntegerMathUtilities.gcd((Long)a, (Long)b);
+		}
+		
+		else
+		{
+			return toBigInteger(a).gcd(toBigInteger(b));
+		}
+	}
+	
+	
+	
+	
 	
 	
 	
