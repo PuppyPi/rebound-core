@@ -39,7 +39,7 @@ implements TransientTransactionalExceptionType, ClosedExceptionType
 	}
 	
 	@Override
-	public boolean isClosedDatabaseExceptionType()
+	public boolean isClosedExceptionType()
 	{
 		SQLException c = getCause();
 		return ClosedExceptionType.is(c) || c instanceof SQLNonTransientConnectionException;  //we'll just assume anything of this type is at least equivalent to the connection being closed (eg, TCP connection timeout)
