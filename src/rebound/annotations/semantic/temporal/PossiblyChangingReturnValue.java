@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Opposite of {@link ConstantReturnValue}, for to be explicits ^_^
+ * Opposite of {@link ConstantReturnValue}, for to be explicit ^_^
  * 
  * 
  * @see ConstantReturnValue
