@@ -1306,6 +1306,38 @@ implements JavaNamespace
 	
 	
 	
+	public static boolean isSimplePosixBackslashlessPath(@Nonnull String s)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
+		return !(
+		s.isEmpty() ||
+		s.contains("\\") ||   //This tests for a single backslash!
+		s.contains("//") ||   //This tests for two forward slashes!
+		s.endsWith("/") ||
+		s.equals(".") || s.startsWith("./") || s.endsWith("/.") || s.contains("/./") ||
+		s.equals("..") || s.startsWith("../") || s.endsWith("/..") || s.contains("/../")
+		);
+	}
+	
+	/**
+	 * • Note!! it also may not be empty!!  (since preventing that unintentionally is less of a security risk than allowing that unintentionally!, so explicit code to allow empty paths is required instead of explicit code to prevent them)
+	 */
+	public static boolean isSimpleRelativePosixBackslashlessPath(@Nonnull String s)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
+		return !s.isEmpty() && !s.startsWith("/") && isSimplePosixBackslashlessPath(s);
+	}
+	
+	/**
+	 * • Note: it must always start with a forward slash, and thus it implicitly can't be empty.
+	 */
+	public static boolean isSimpleAbsolutePosixBackslashlessPath(@Nonnull String s)
+	{
+		//NOTE: THIS IS USED IN SECURITY BREACH DETECTING CODE IN FTP SERVERS AND SUCH!!!!
+		return s.startsWith("/") && isSimplePosixBackslashlessPath(s);
+	}
+	
+	
 	
 	
 	
