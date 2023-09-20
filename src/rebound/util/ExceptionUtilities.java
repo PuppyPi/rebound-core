@@ -83,6 +83,7 @@ implements JavaNamespace
 	
 	
 	
+	//Todo deduplicate this with BasicExceptionUtilities.rethrowIfFatalError()!!
 	public static void throwIfFatalError(Throwable t)
 	{
 		if (BasicExceptionUtilities.isFatalError(t))
