@@ -2999,35 +2999,35 @@ primxp
 
 _$$primxpconf:noboolean$$_
 
-	public static _$$prim$$_ requireNonNegative(@Nonnegative _$$prim$$_ i)
+	public static @Nonnegative _$$prim$$_ requireNonNegative(_$$prim$$_ i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 
-	public static _$$prim$$_ requirePositive(@Positive _$$prim$$_ i)
+	public static @Positive _$$prim$$_ requirePositive(_$$prim$$_ i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 
-	public static _$$prim$$_ requireNonPositive(@Nonpositive _$$prim$$_ i)
+	public static @Nonpositive _$$prim$$_ requireNonPositive(_$$prim$$_ i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 
-	public static _$$prim$$_ requireNegative(@Negative _$$prim$$_ i)
+	public static @Negative _$$prim$$_ requireNegative(_$$prim$$_ i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 
-	public static _$$prim$$_ requireNonZero(@Negative _$$prim$$_ i)
+	public static @Negative _$$prim$$_ requireNonZero(_$$prim$$_ i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
