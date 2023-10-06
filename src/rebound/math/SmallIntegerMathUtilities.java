@@ -2999,6 +2999,13 @@ primxp
 
 _$$primxpconf:noboolean$$_
 	
+	public static @Negative _$$prim$$_ requireNegative(_$$prim$$_ i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
 	public static @Nonnegative _$$prim$$_ requireNonNegative(_$$prim$$_ i)
 	{
 		if (i < 0)
@@ -3016,13 +3023,6 @@ _$$primxpconf:noboolean$$_
 	public static @Nonpositive _$$prim$$_ requireNonPositive(_$$prim$$_ i)
 	{
 		if (i > 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative _$$prim$$_ requireNegative(_$$prim$$_ i)
-	{
-		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
