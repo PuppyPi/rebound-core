@@ -3098,6 +3098,13 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
+	public static @Negative byte requireNegative(byte i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
 	public static @Nonnegative byte requireNonNegative(byte i)
 	{
 		if (i < 0)
@@ -3119,14 +3126,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative byte requireNegative(byte i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative byte requireNonZero(byte i)
+	public static @Nonzero byte requireNonZero(byte i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3134,6 +3134,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static byte requireAboveOrAt(byte i, byte minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireAboveButNot(byte i, byte minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireBelowOrAt(byte i, byte maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireBelowButNot(byte i, byte maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static byte requireBetweenOrAt(byte i, byte minimumInclusive, byte maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static byte requireBetweenButNot(byte i, byte minimumExclusive, byte maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static byte requireBetweenOrAtLowButNotHigh(byte i, byte minimumInclusive, byte maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static byte requireBetweenButNotLowOrAtHigh(byte i, byte minimumExclusive, byte maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static byte requireBetweenOrAtHighButNotLow(byte i, byte minimumExclusive, byte maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static byte requireBetweenButNotLowButAtHigh(byte i, byte minimumExclusive, byte maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative char requireNegative(char i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative char requireNonNegative(char i)
 	{
@@ -3156,14 +3224,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative char requireNegative(char i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative char requireNonZero(char i)
+	public static @Nonzero char requireNonZero(char i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3171,6 +3232,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static char requireAboveOrAt(char i, char minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireAboveButNot(char i, char minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireBelowOrAt(char i, char maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireBelowButNot(char i, char maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static char requireBetweenOrAt(char i, char minimumInclusive, char maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static char requireBetweenButNot(char i, char minimumExclusive, char maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static char requireBetweenOrAtLowButNotHigh(char i, char minimumInclusive, char maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static char requireBetweenButNotLowOrAtHigh(char i, char minimumExclusive, char maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static char requireBetweenOrAtHighButNotLow(char i, char minimumExclusive, char maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static char requireBetweenButNotLowButAtHigh(char i, char minimumExclusive, char maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative short requireNegative(short i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative short requireNonNegative(short i)
 	{
@@ -3193,14 +3322,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative short requireNegative(short i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative short requireNonZero(short i)
+	public static @Nonzero short requireNonZero(short i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3208,6 +3330,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static short requireAboveOrAt(short i, short minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireAboveButNot(short i, short minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireBelowOrAt(short i, short maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireBelowButNot(short i, short maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static short requireBetweenOrAt(short i, short minimumInclusive, short maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static short requireBetweenButNot(short i, short minimumExclusive, short maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static short requireBetweenOrAtLowButNotHigh(short i, short minimumInclusive, short maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static short requireBetweenButNotLowOrAtHigh(short i, short minimumExclusive, short maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static short requireBetweenOrAtHighButNotLow(short i, short minimumExclusive, short maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static short requireBetweenButNotLowButAtHigh(short i, short minimumExclusive, short maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative float requireNegative(float i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative float requireNonNegative(float i)
 	{
@@ -3230,14 +3420,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative float requireNegative(float i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative float requireNonZero(float i)
+	public static @Nonzero float requireNonZero(float i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3245,6 +3428,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static float requireAboveOrAt(float i, float minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireAboveButNot(float i, float minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireBelowOrAt(float i, float maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireBelowButNot(float i, float maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static float requireBetweenOrAt(float i, float minimumInclusive, float maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static float requireBetweenButNot(float i, float minimumExclusive, float maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static float requireBetweenOrAtLowButNotHigh(float i, float minimumInclusive, float maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static float requireBetweenButNotLowOrAtHigh(float i, float minimumExclusive, float maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static float requireBetweenOrAtHighButNotLow(float i, float minimumExclusive, float maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static float requireBetweenButNotLowButAtHigh(float i, float minimumExclusive, float maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative int requireNegative(int i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative int requireNonNegative(int i)
 	{
@@ -3267,14 +3518,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative int requireNegative(int i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative int requireNonZero(int i)
+	public static @Nonzero int requireNonZero(int i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3282,6 +3526,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static int requireAboveOrAt(int i, int minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireAboveButNot(int i, int minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireBelowOrAt(int i, int maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireBelowButNot(int i, int maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static int requireBetweenOrAt(int i, int minimumInclusive, int maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static int requireBetweenButNot(int i, int minimumExclusive, int maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static int requireBetweenOrAtLowButNotHigh(int i, int minimumInclusive, int maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static int requireBetweenButNotLowOrAtHigh(int i, int minimumExclusive, int maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static int requireBetweenOrAtHighButNotLow(int i, int minimumExclusive, int maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static int requireBetweenButNotLowButAtHigh(int i, int minimumExclusive, int maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative double requireNegative(double i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative double requireNonNegative(double i)
 	{
@@ -3304,14 +3616,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative double requireNegative(double i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative double requireNonZero(double i)
+	public static @Nonzero double requireNonZero(double i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3319,6 +3624,74 @@ _$$primxpconf:noboolean$$_
 	}
 	
 	
+	
+	public static double requireAboveOrAt(double i, double minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireAboveButNot(double i, double minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireBelowOrAt(double i, double maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireBelowButNot(double i, double maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static double requireBetweenOrAt(double i, double minimumInclusive, double maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static double requireBetweenButNot(double i, double minimumExclusive, double maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static double requireBetweenOrAtLowButNotHigh(double i, double minimumInclusive, double maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static double requireBetweenButNotLowOrAtHigh(double i, double minimumExclusive, double maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static double requireBetweenOrAtHighButNotLow(double i, double minimumExclusive, double maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static double requireBetweenButNotLowButAtHigh(double i, double minimumExclusive, double maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
+	
+	
+	
+	public static @Negative long requireNegative(long i)
+	{
+		if (i >= 0)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
 	
 	public static @Nonnegative long requireNonNegative(long i)
 	{
@@ -3341,19 +3714,73 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative long requireNegative(long i)
-	{
-		if (i >= 0)
-			throw new IllegalArgumentException(String.valueOf(i));
-		return i;
-	}
-	
-	public static @Negative long requireNonZero(long i)
+	public static @Nonzero long requireNonZero(long i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
+	
+	
+	
+	public static long requireAboveOrAt(long i, long minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireAboveButNot(long i, long minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireBelowOrAt(long i, long maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireBelowButNot(long i, long maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static long requireBetweenOrAt(long i, long minimumInclusive, long maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static long requireBetweenButNot(long i, long minimumExclusive, long maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static long requireBetweenOrAtLowButNotHigh(long i, long minimumInclusive, long maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static long requireBetweenButNotLowOrAtHigh(long i, long minimumExclusive, long maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static long requireBetweenOrAtHighButNotLow(long i, long minimumExclusive, long maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static long requireBetweenButNotLowButAtHigh(long i, long minimumExclusive, long maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
 	// >>>
 	
 	
