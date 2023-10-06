@@ -17,6 +17,7 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Negative;
 import rebound.annotations.semantic.simpledata.Nonpositive;
+import rebound.annotations.semantic.simpledata.Nonzero;
 import rebound.annotations.semantic.simpledata.Positive;
 import rebound.bits.BitUtilities;
 import rebound.bits.Unsigned;
