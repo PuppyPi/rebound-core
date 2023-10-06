@@ -3037,35 +3037,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static byte requireNonNegative(@Nonnegative byte i)
+	public static @Nonnegative byte requireNonNegative(byte i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static byte requirePositive(@Positive byte i)
+	public static @Positive byte requirePositive(byte i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static byte requireNonPositive(@Nonpositive byte i)
+	public static @Nonpositive byte requireNonPositive(byte i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static byte requireNegative(@Negative byte i)
+	public static @Negative byte requireNegative(byte i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static byte requireNonZero(@Negative byte i)
+	public static @Negative byte requireNonZero(byte i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3074,35 +3074,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static char requireNonNegative(@Nonnegative char i)
+	public static @Nonnegative char requireNonNegative(char i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static char requirePositive(@Positive char i)
+	public static @Positive char requirePositive(char i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static char requireNonPositive(@Nonpositive char i)
+	public static @Nonpositive char requireNonPositive(char i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static char requireNegative(@Negative char i)
+	public static @Negative char requireNegative(char i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static char requireNonZero(@Negative char i)
+	public static @Negative char requireNonZero(char i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3111,35 +3111,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static short requireNonNegative(@Nonnegative short i)
+	public static @Nonnegative short requireNonNegative(short i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static short requirePositive(@Positive short i)
+	public static @Positive short requirePositive(short i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static short requireNonPositive(@Nonpositive short i)
+	public static @Nonpositive short requireNonPositive(short i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static short requireNegative(@Negative short i)
+	public static @Negative short requireNegative(short i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static short requireNonZero(@Negative short i)
+	public static @Negative short requireNonZero(short i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3148,35 +3148,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static float requireNonNegative(@Nonnegative float i)
+	public static @Nonnegative float requireNonNegative(float i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static float requirePositive(@Positive float i)
+	public static @Positive float requirePositive(float i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static float requireNonPositive(@Nonpositive float i)
+	public static @Nonpositive float requireNonPositive(float i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static float requireNegative(@Negative float i)
+	public static @Negative float requireNegative(float i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static float requireNonZero(@Negative float i)
+	public static @Negative float requireNonZero(float i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3185,35 +3185,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static int requireNonNegative(@Nonnegative int i)
+	public static @Nonnegative int requireNonNegative(int i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static int requirePositive(@Positive int i)
+	public static @Positive int requirePositive(int i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static int requireNonPositive(@Nonpositive int i)
+	public static @Nonpositive int requireNonPositive(int i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static int requireNegative(@Negative int i)
+	public static @Negative int requireNegative(int i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static int requireNonZero(@Negative int i)
+	public static @Negative int requireNonZero(int i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3222,35 +3222,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static double requireNonNegative(@Nonnegative double i)
+	public static @Nonnegative double requireNonNegative(double i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static double requirePositive(@Positive double i)
+	public static @Positive double requirePositive(double i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static double requireNonPositive(@Nonpositive double i)
+	public static @Nonpositive double requireNonPositive(double i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static double requireNegative(@Negative double i)
+	public static @Negative double requireNegative(double i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static double requireNonZero(@Negative double i)
+	public static @Negative double requireNonZero(double i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
@@ -3259,35 +3259,35 @@ _$$primxpconf:noboolean$$_
 	
 	
 	
-	public static long requireNonNegative(@Nonnegative long i)
+	public static @Nonnegative long requireNonNegative(long i)
 	{
 		if (i < 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static long requirePositive(@Positive long i)
+	public static @Positive long requirePositive(long i)
 	{
 		if (i <= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static long requireNonPositive(@Nonpositive long i)
+	public static @Nonpositive long requireNonPositive(long i)
 	{
 		if (i > 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static long requireNegative(@Negative long i)
+	public static @Negative long requireNegative(long i)
 	{
 		if (i >= 0)
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
 	
-	public static long requireNonZero(@Negative long i)
+	public static @Negative long requireNonZero(long i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
