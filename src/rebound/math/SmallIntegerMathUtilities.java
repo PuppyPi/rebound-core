@@ -3033,6 +3033,67 @@ _$$primxpconf:noboolean$$_
 			throw new IllegalArgumentException(String.valueOf(i));
 		return i;
 	}
+	
+	
+	
+	public static _$$prim$$_ requireAboveOrAt(_$$prim$$_ i, _$$prim$$_ minimumInclusive)
+	{
+		if (i < minimumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static _$$prim$$_ requireAboveButNot(_$$prim$$_ i, _$$prim$$_ minimumExclusive)
+	{
+		if (i <= minimumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static _$$prim$$_ requireBelowOrAt(_$$prim$$_ i, _$$prim$$_ maximumInclusive)
+	{
+		if (i > maximumInclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static _$$prim$$_ requireBelowButNot(_$$prim$$_ i, _$$prim$$_ maximumExclusive)
+	{
+		if (i >= maximumExclusive)
+			throw new IllegalArgumentException(String.valueOf(i));
+		return i;
+	}
+	
+	public static _$$prim$$_ requireBetweenOrAt(_$$prim$$_ i, _$$prim$$_ minimumInclusive, _$$prim$$_ maximumInclusive)
+	{
+		return requireBelowOrAt(requireAboveOrAt(i, minimumInclusive), maximumInclusive);
+	}
+	
+	public static _$$prim$$_ requireBetweenButNot(_$$prim$$_ i, _$$prim$$_ minimumExclusive, _$$prim$$_ maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveButNot(i, minimumExclusive), maximumExclusive);
+	}
+	
+	public static _$$prim$$_ requireBetweenOrAtLowButNotHigh(_$$prim$$_ i, _$$prim$$_ minimumInclusive, _$$prim$$_ maximumExclusive)
+	{
+		return requireBelowButNot(requireAboveOrAt(i, minimumInclusive), maximumExclusive);
+	}
+	
+	public static _$$prim$$_ requireBetweenButNotLowOrAtHigh(_$$prim$$_ i, _$$prim$$_ minimumExclusive, _$$prim$$_ maximumInclusive)  //English makes this confusing x'D
+	{
+		return requireBelowOrAt(requireAboveButNot(i, minimumExclusive), maximumInclusive);
+	}
+	public static _$$prim$$_ requireBetweenOrAtHighButNotLow(_$$prim$$_ i, _$$prim$$_ minimumExclusive, _$$prim$$_ maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	public static _$$prim$$_ requireBetweenButNotLowButAtHigh(_$$prim$$_ i, _$$prim$$_ minimumExclusive, _$$prim$$_ maximumInclusive)
+	{
+		return requireBetweenButNotLowOrAtHigh(i, minimumExclusive, maximumInclusive);
+	}
+	
+	
+	
 	 */
 	
 	
