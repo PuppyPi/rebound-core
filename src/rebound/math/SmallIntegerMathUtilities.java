@@ -3027,7 +3027,7 @@ _$$primxpconf:noboolean$$_
 		return i;
 	}
 	
-	public static @Negative _$$prim$$_ requireNonZero(_$$prim$$_ i)
+	public static @Nonzero _$$prim$$_ requireNonZero(_$$prim$$_ i)
 	{
 		if (i == 0)
 			throw new IllegalArgumentException(String.valueOf(i));
