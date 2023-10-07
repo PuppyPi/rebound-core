@@ -24,6 +24,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -59,6 +60,7 @@ import rebound.util.collections.Mapper;
 import rebound.util.collections.PairOrdered;
 import rebound.util.collections.PairOrderedImmutable;
 import rebound.util.collections.PolymorphicCollectionUtilities;
+import rebound.util.collections.SimpleIterator;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableIntegerArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongArrayList;
 import rebound.util.collections.prim.PrimitiveCollections.LongList;
@@ -1187,6 +1189,22 @@ implements JavaNamespace
 	
 	
 	
+	public static <E extends Comparable> E least(E a, E b)
+	{
+		return DefaultComparisonNumericallyAbstract.I.compare(a, b) < 0 ? a : b;
+	}
+	
+	public static <E extends Comparable> E greatest(E a, E b)
+	{
+		return DefaultComparisonNumericallyAbstract.I.compare(a, b) > 0 ? a : b;
+	}
+	
+	
+	
+	
+	
+	
+	//<For Iterable
 	/**
 	 * @return null if there were 0 values given that weren't filtered away! XD''
 	 */
@@ -1195,6 +1213,7 @@ implements JavaNamespace
 		PairOrdered<I, O> p = leastMapPair(function, inputs);
 		return p == null ? null : p.getB();
 	}
+	
 	
 	/**
 	 * @return null if there were 0 values given!
@@ -1212,12 +1231,6 @@ implements JavaNamespace
 		PairOrdered<E, E> p = leastMapPair(x -> x, inputs, comparison);
 		return p == null ? null : p.getB();
 	}
-	
-	public static <E extends Comparable> E least(E a, E b)
-	{
-		return DefaultComparisonNumericallyAbstract.I.compare(a, b) < 0 ? a : b;
-	}
-	
 	
 	
 	
@@ -1249,15 +1262,6 @@ implements JavaNamespace
 		return p == null ? null : p.getB();
 	}
 	
-	public static <E extends Comparable> E greatest(E a, E b)
-	{
-		return DefaultComparisonNumericallyAbstract.I.compare(a, b) > 0 ? a : b;
-	}
-	
-	
-	
-	
-	
 	
 	
 	
@@ -1271,11 +1275,268 @@ implements JavaNamespace
 		return leastMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
 	}
 	
+	/**
+	 * If multiple are the least, then only count on this API to return an arbitrary one!
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	@Nullable
+	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs)
+	{
+		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	//For Iterable>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//<Same but for Iterator
+	/**
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	public static @Nullable <I, O extends Comparable> O leastMap(Mapper<I, O> function, Iterator<I> inputs)
+	{
+		PairOrdered<I, O> p = leastMapPair(function, inputs);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E least(Iterator<E> inputs)
+	{
+		return leastMap(x -> x, inputs);
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E least(Iterator<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = leastMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	public static @Nullable <I, O extends Comparable> O greatestMap(Mapper<I, O> function, Iterator<I> inputs)
+	{
+		PairOrdered<I, O> p = greatestMapPair(function, inputs);
+		return p == null ? null : p.getB();
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E greatest(Iterator<E> inputs)
+	{
+		return greatestMap(x -> x, inputs);
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E greatest(Iterator<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = greatestMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	
+	
+	/**
+	 * If multiple are the least, then only count on this API to return an arbitrary one!
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	@Nullable
+	public static <I, O extends Comparable> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterator<I> inputs)
+	{
+		return leastMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	/**
+	 * If multiple are the least, then only count on this API to return an arbitrary one!
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	@Nullable
+	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterator<I> inputs)
+	{
+		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	//Same but for Iterator>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//<Same but for SimpleIterator
+	/**
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	public static @Nullable <I, O extends Comparable> O leastMap(Mapper<I, O> function, SimpleIterator<I> inputs)
+	{
+		PairOrdered<I, O> p = leastMapPair(function, inputs);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E least(SimpleIterator<E> inputs)
+	{
+		return leastMap(x -> x, inputs);
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E least(SimpleIterator<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = leastMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	
+	
+	
+	/**
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	public static @Nullable <I, O extends Comparable> O greatestMap(Mapper<I, O> function, SimpleIterator<I> inputs)
+	{
+		PairOrdered<I, O> p = greatestMapPair(function, inputs);
+		return p == null ? null : p.getB();
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E extends Comparable> E greatest(SimpleIterator<E> inputs)
+	{
+		return greatestMap(x -> x, inputs);
+	}
+	
+	/**
+	 * @return null if there were 0 values given!
+	 */
+	public static @Nullable <E> E greatest(SimpleIterator<E> inputs, Comparator<E> comparison)
+	{
+		PairOrdered<E, E> p = greatestMapPair(x -> x, inputs, comparison);
+		return p == null ? null : p.getB();
+	}
+	
+	
+	
+	
+	/**
+	 * If multiple are the least, then only count on this API to return an arbitrary one!
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	@Nullable
+	public static <I, O extends Comparable> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, SimpleIterator<I> inputs)
+	{
+		return leastMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	/**
+	 * If multiple are the least, then only count on this API to return an arbitrary one!
+	 * @return null if there were 0 values given that weren't filtered away! XD''
+	 */
+	@Nullable
+	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, SimpleIterator<I> inputs)
+	{
+		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
+	}
+	//Same but for SimpleIterator>
+	
+	
+	
+	
+	
+	
+	
+	
+	@Nullable
+	public static <O> PairOrdered<Integer, O> leastPairIndexes(List<O> values)
+	{
+		return leastMapPair(values::get, intervalIntegersList(0, values.size()), DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	@Nullable
+	public static <O> PairOrdered<Integer, O> greatestPairIndexes(List<O> values)
+	{
+		return greatestMapPair(values::get, intervalIntegersList(0, values.size()), DefaultComparisonNumericallyAbstract.I);
+	}
+	
+	
 	@Nullable
 	public static <O> PairOrdered<Integer, O> leastPairIndexes(List<O> values, Comparator<O> comparison)
 	{
 		return leastMapPair(values::get, intervalIntegersList(0, values.size()), comparison);
 	}
+	
+	@Nullable
+	public static <O> PairOrdered<Integer, O> greatestPairIndexes(List<O> values, Comparator<O> comparison)
+	{
+		return greatestMapPair(values::get, intervalIntegersList(0, values.size()), comparison);
+	}
+	
+	
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterator<I> inputs, Comparator<O> comparison)
+	{
+		return leastMapPair(function, singleUseIterable(inputs), comparison);
+	}
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterator<I> inputs, Comparator<O> comparison)
+	{
+		return greatestMapPair(function, singleUseIterable(inputs), comparison);
+	}
+	
+	
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, SimpleIterator<I> inputs, Comparator<O> comparison)
+	{
+		return leastMapPair(function, singleUseIterable(inputs), comparison);
+	}
+	
+	@Nullable
+	public static <I, O> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, SimpleIterator<I> inputs, Comparator<O> comparison)
+	{
+		return greatestMapPair(function, singleUseIterable(inputs), comparison);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	@Nullable
 	public static <I, O> PairOrdered<I, O> leastMapPair(Mapper<I, O> function, Iterable<I> inputs, Comparator<O> comparison)
@@ -1320,24 +1581,6 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	
-	/**
-	 * If multiple are the least, then only count on this API to return an arbitrary one!
-	 * @return null if there were 0 values given that weren't filtered away! XD''
-	 */
-	@Nullable
-	public static <I, O extends Comparable> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs)
-	{
-		return greatestMapPair(function, inputs, DefaultComparisonNumericallyAbstract.I);
-	}
-	
-	@Nullable
-	public static <O> PairOrdered<Integer, O> greatestPairIndexes(List<O> values, Comparator<O> comparison)
-	{
-		return greatestMapPair(values::get, intervalIntegersList(0, values.size()), comparison);
-	}
 	
 	@Nullable
 	public static <I, O> PairOrdered<I, O> greatestMapPair(Mapper<I, O> function, Iterable<I> inputs, Comparator<O> comparison)
