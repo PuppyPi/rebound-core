@@ -1135,6 +1135,51 @@ implements JavaNamespace
 	
 	
 	
+	public static @Nullable Long getAndParseIntegerValueIfPresentFromQueryString(String url, String parameterName) throws NumberFormatException
+	{
+		String u = getUnescapedIfPresentFromQueryString(url, parameterName);
+		return u == null ? null : Long.parseLong(u);
+	}
+	
+	public static @Nullable String getUnescapedIfPresentFromQueryString(String url, String parameterName)
+	{
+		int q = url.indexOf('?');
+		if (q == -1)
+			return null;
+		
+		int n = url.length();
+		
+		//Try "?name=" then "&name=" :3
+		
+		int startOfCurrentParameterNameIndex = q+1;
+		
+		while (startOfCurrentParameterNameIndex < n)
+		{
+			int nextAmpersand = url.indexOf('&', startOfCurrentParameterNameIndex);
+			
+			if (url.regionMatches(true, startOfCurrentParameterNameIndex, parameterName, 0, parameterName.length()))
+			{
+				int hopefullyEqualsIndex = startOfCurrentParameterNameIndex+1+parameterName.length();
+				
+				if (hopefullyEqualsIndex == n)
+					break;
+				else if (url.charAt(hopefullyEqualsIndex) == '=')
+				{
+					//Got it!! :DD
+					int startOfValue = hopefullyEqualsIndex + 1;
+					return url.substring(startOfValue, nextAmpersand == -1 ? n : nextAmpersand);
+				}
+				//else: continue on!  It's a prefix!  like if we're looking for "flutter" then the url is "/page?fluttershy=yay"  :3
+			}
+			
+			if (nextAmpersand == -1)
+				break;
+			
+			startOfCurrentParameterNameIndex = nextAmpersand + 1;
+		}
+		
+		return null;
+	}
 	
 	
 	
