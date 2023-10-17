@@ -1159,7 +1159,7 @@ implements JavaNamespace
 			
 			if (url.regionMatches(true, startOfCurrentParameterNameIndex, parameterName, 0, parameterName.length()))
 			{
-				int hopefullyEqualsIndex = startOfCurrentParameterNameIndex+1+parameterName.length();
+				int hopefullyEqualsIndex = startOfCurrentParameterNameIndex+parameterName.length();
 				
 				if (hopefullyEqualsIndex == n)
 					break;
