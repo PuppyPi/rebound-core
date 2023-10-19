@@ -16511,7 +16511,7 @@ _$$primxpconf:byte,char,short,int$$_
 		for (int i = 0; i < len && firstKeeper == len; i++)
 			if (!pattern.test(l.get(i)))
 				firstKeeper = i;
-		return l.subList(firstKeeper, l.size());
+		return l.subList(firstKeeper, len);
 	}
 	
 	/**
