@@ -16499,6 +16499,7 @@ _$$primxpconf:byte,char,short,int$$_
 	/**
 	 * @param pattern  True for things to trim away!  False for things to keep!
 	 */
+	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> ltrimList(List<E> l, Predicate<E> pattern)
 	{
 		if (l == null)
@@ -16511,12 +16512,13 @@ _$$primxpconf:byte,char,short,int$$_
 		for (int i = 0; i < len && firstKeeper == len; i++)
 			if (!pattern.test(l.get(i)))
 				firstKeeper = i;
-		return l.subList(firstKeeper, len);
+		return firstKeeper == 0 ? l : l.subList(firstKeeper, len);
 	}
 	
 	/**
 	 * @param pattern  True for things to trim away!  False for things to keep!
 	 */
+	@PossiblySnapshotPossiblyLiveValue
 	public static <E> List<E> rtrimList(List<E> l, Predicate<E> pattern)
 	{
 		if (l == null)
@@ -16529,6 +16531,6 @@ _$$primxpconf:byte,char,short,int$$_
 		for (int i = len-1; i >= 0 && lastKeeper == -1; i--)
 			if (!pattern.test(l.get(i)))
 				lastKeeper = i;
-		return l.subList(0, lastKeeper+1);
+		return lastKeeper == len - 1 ? l : l.subList(0, lastKeeper+1);
 	}
 }
