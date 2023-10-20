@@ -11,6 +11,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import rebound.io.iio.BasicInputByteStream;
@@ -39,6 +40,7 @@ import rebound.util.objectutil.JavaNamespace;
  * 	• {@link ByteList}s
  * 	• {@link ByteBuffer}s
  * 	• {@link InputStream}s / {@link OutputStream}s
+ * 	• {@link RandomAccessFile}
  * 	• {@link BasicInputByteStream}s / {@link BasicOutputByteStream}s  (including, eg, {@link RandomAccessBytes}! :DD )
  * 
  * \:DDD/
@@ -48,6 +50,16 @@ implements JavaNamespace
 {
 	//Java.IO (SIO)  :D
 	public static byte getByte(InputStream source) throws IOException, EOFException
+	{
+		int v = source.read();
+		
+		if (v == -1)
+			throw new EOFException();
+		
+		return (byte)v;
+	}
+	
+	public static byte getByte(RandomAccessFile source) throws IOException, EOFException
 	{
 		int v = source.read();
 		
@@ -146,6 +158,7 @@ apis = [
 [  None,                                                                    [ "add", "", [["ByteList", "dest"]], None, "dest.addByte(%)"]         ],
 [  None,                                                                    [ "add", "", [["ByteList", "dest"], ["int", "offset"]], None, "dest.insertByte(offset+byteIndex, %)"]         ],
 [  [ "get", "", [["InputStream", "source"]], "IOException, EOFException", "getByte(source)"],           [ "put", "", [["OutputStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
+[  [ "get", "", [["RandomAccessFile", "source"]], "IOException, EOFException", "getByte(source)"],           [ "put", "", [["RandomAccessFile", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ "get", "", [["BasicInputByteStream", "source"]], "IOException, EOFException", "getByte(source)"],  [ "put", "", [["BasicOutputByteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 [  [ "get", "", [["ByteBlockReadStream", "source"]], "IOException, EOFException", "getByte(source)"],   [ "put", "", [["ByteBlockWriteStream", "dest"]], "IOException, EOFException", "dest.write(%)"]            ],
 ];
@@ -555,6 +568,14 @@ p(s);
 		return rv;
 	}
 	
+	public static char getLittleChar(RandomAccessFile source) throws IOException, EOFException
+	{
+		char rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		return rv;
+	}
+	
 	public static char getLittleChar(BasicInputByteStream source) throws IOException, EOFException
 	{
 		char rv = 0;
@@ -620,6 +641,14 @@ p(s);
 	}
 	
 	public static short getLittleShort(InputStream source) throws IOException, EOFException
+	{
+		short rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		return rv;
+	}
+	
+	public static short getLittleShort(RandomAccessFile source) throws IOException, EOFException
 	{
 		short rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -698,6 +727,15 @@ p(s);
 	}
 	
 	public static int getLittleUInt24(InputStream source) throws IOException, EOFException
+	{
+		int rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 16;
+		return rv;
+	}
+	
+	public static int getLittleUInt24(RandomAccessFile source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 0;
@@ -794,6 +832,16 @@ p(s);
 		return rv;
 	}
 	
+	public static int getLittleInt(RandomAccessFile source) throws IOException, EOFException
+	{
+		int rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 16;
+		rv |= ((getByte(source)) & 0xFF) << 24;
+		return rv;
+	}
+	
 	public static int getLittleInt(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
@@ -881,6 +929,17 @@ p(s);
 	}
 	
 	public static long getLittleULong40(InputStream source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		return rv;
+	}
+	
+	public static long getLittleULong40(RandomAccessFile source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -997,6 +1056,18 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleULong48(RandomAccessFile source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		return rv;
+	}
+	
 	public static long getLittleULong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -1100,6 +1171,19 @@ p(s);
 	}
 	
 	public static long getLittleULong56(InputStream source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		rv |= ((getByte(source)) & 0xFFl) << 48;
+		return rv;
+	}
+	
+	public static long getLittleULong56(RandomAccessFile source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 0;
@@ -1236,6 +1320,20 @@ p(s);
 		return rv;
 	}
 	
+	public static long getLittleLong(RandomAccessFile source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		rv |= ((getByte(source)) & 0xFFl) << 48;
+		rv |= ((getByte(source)) & 0xFFl) << 56;
+		return rv;
+	}
+	
 	public static long getLittleLong(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -1318,6 +1416,12 @@ p(s);
 		dest.write((byte)((value >>> 8) & 0xFF));
 	}
 	
+	public static void putLittleChar(RandomAccessFile dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
 	public static void putLittleChar(BasicOutputByteStream dest, char value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
@@ -1379,6 +1483,12 @@ p(s);
 	}
 	
 	public static void putLittleShort(OutputStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+	}
+	
+	public static void putLittleShort(RandomAccessFile dest, short value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1453,6 +1563,13 @@ p(s);
 	}
 	
 	public static void putLittleInt24(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+	}
+	
+	public static void putLittleInt24(RandomAccessFile dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1538,6 +1655,14 @@ p(s);
 	}
 	
 	public static void putLittleInt(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+	}
+	
+	public static void putLittleInt(RandomAccessFile dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1634,6 +1759,15 @@ p(s);
 	}
 	
 	public static void putLittleLong40(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+	}
+	
+	public static void putLittleLong40(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1741,6 +1875,16 @@ p(s);
 	}
 	
 	public static void putLittleLong48(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+	}
+	
+	public static void putLittleLong48(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1859,6 +2003,17 @@ p(s);
 	}
 	
 	public static void putLittleLong56(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
+	}
+	
+	public static void putLittleLong56(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -1999,6 +2154,18 @@ p(s);
 		dest.write((byte)((value >>> 56) & 0xFF));
 	}
 	
+	public static void putLittleLong(RandomAccessFile dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 0) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 56) & 0xFF));
+	}
+	
 	public static void putLittleLong(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 0) & 0xFF));
@@ -2079,6 +2246,14 @@ p(s);
 		return rv;
 	}
 	
+	public static char getBigChar(RandomAccessFile source) throws IOException, EOFException
+	{
+		char rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static char getBigChar(BasicInputByteStream source) throws IOException, EOFException
 	{
 		char rv = 0;
@@ -2144,6 +2319,14 @@ p(s);
 	}
 	
 	public static short getBigShort(InputStream source) throws IOException, EOFException
+	{
+		short rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static short getBigShort(RandomAccessFile source) throws IOException, EOFException
 	{
 		short rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 8;
@@ -2222,6 +2405,15 @@ p(s);
 	}
 	
 	public static int getBigUInt24(InputStream source) throws IOException, EOFException
+	{
+		int rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 16;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		return rv;
+	}
+	
+	public static int getBigUInt24(RandomAccessFile source) throws IOException, EOFException
 	{
 		int rv = 0;
 		rv |= ((getByte(source)) & 0xFF) << 16;
@@ -2318,6 +2510,16 @@ p(s);
 		return rv;
 	}
 	
+	public static int getBigInt(RandomAccessFile source) throws IOException, EOFException
+	{
+		int rv = 0;
+		rv |= ((getByte(source)) & 0xFF) << 24;
+		rv |= ((getByte(source)) & 0xFF) << 16;
+		rv |= ((getByte(source)) & 0xFF) << 8;
+		rv |= ((getByte(source)) & 0xFF) << 0;
+		return rv;
+	}
+	
 	public static int getBigInt(BasicInputByteStream source) throws IOException, EOFException
 	{
 		int rv = 0;
@@ -2405,6 +2607,17 @@ p(s);
 	}
 	
 	public static long getBigULong40(InputStream source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigULong40(RandomAccessFile source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 32;
@@ -2521,6 +2734,18 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigULong48(RandomAccessFile source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigULong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -2624,6 +2849,19 @@ p(s);
 	}
 	
 	public static long getBigULong56(InputStream source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 48;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		return rv;
+	}
+	
+	public static long getBigULong56(RandomAccessFile source) throws IOException, EOFException
 	{
 		long rv = 0;
 		rv |= ((getByte(source)) & 0xFFl) << 48;
@@ -2760,6 +2998,20 @@ p(s);
 		return rv;
 	}
 	
+	public static long getBigLong(RandomAccessFile source) throws IOException, EOFException
+	{
+		long rv = 0;
+		rv |= ((getByte(source)) & 0xFFl) << 56;
+		rv |= ((getByte(source)) & 0xFFl) << 48;
+		rv |= ((getByte(source)) & 0xFFl) << 40;
+		rv |= ((getByte(source)) & 0xFFl) << 32;
+		rv |= ((getByte(source)) & 0xFFl) << 24;
+		rv |= ((getByte(source)) & 0xFFl) << 16;
+		rv |= ((getByte(source)) & 0xFFl) << 8;
+		rv |= ((getByte(source)) & 0xFFl) << 0;
+		return rv;
+	}
+	
 	public static long getBigLong(BasicInputByteStream source) throws IOException, EOFException
 	{
 		long rv = 0;
@@ -2842,6 +3094,12 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
+	public static void putBigChar(RandomAccessFile dest, char value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
 	public static void putBigChar(BasicOutputByteStream dest, char value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -2903,6 +3161,12 @@ p(s);
 	}
 	
 	public static void putBigShort(OutputStream dest, short value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigShort(RandomAccessFile dest, short value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 8) & 0xFF));
 		dest.write((byte)((value >>> 0) & 0xFF));
@@ -2977,6 +3241,13 @@ p(s);
 	}
 	
 	public static void putBigInt24(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt24(RandomAccessFile dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 16) & 0xFF));
 		dest.write((byte)((value >>> 8) & 0xFF));
@@ -3062,6 +3333,14 @@ p(s);
 	}
 	
 	public static void putBigInt(OutputStream dest, int value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigInt(RandomAccessFile dest, int value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 24) & 0xFF));
 		dest.write((byte)((value >>> 16) & 0xFF));
@@ -3158,6 +3437,15 @@ p(s);
 	}
 	
 	public static void putBigLong40(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong40(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 32) & 0xFF));
 		dest.write((byte)((value >>> 24) & 0xFF));
@@ -3265,6 +3553,16 @@ p(s);
 	}
 	
 	public static void putBigLong48(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong48(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 40) & 0xFF));
 		dest.write((byte)((value >>> 32) & 0xFF));
@@ -3383,6 +3681,17 @@ p(s);
 	}
 	
 	public static void putBigLong56(OutputStream dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
+	public static void putBigLong56(RandomAccessFile dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 48) & 0xFF));
 		dest.write((byte)((value >>> 40) & 0xFF));
@@ -3523,6 +3832,18 @@ p(s);
 		dest.write((byte)((value >>> 0) & 0xFF));
 	}
 	
+	public static void putBigLong(RandomAccessFile dest, long value) throws IOException, EOFException
+	{
+		dest.write((byte)((value >>> 56) & 0xFF));
+		dest.write((byte)((value >>> 48) & 0xFF));
+		dest.write((byte)((value >>> 40) & 0xFF));
+		dest.write((byte)((value >>> 32) & 0xFF));
+		dest.write((byte)((value >>> 24) & 0xFF));
+		dest.write((byte)((value >>> 16) & 0xFF));
+		dest.write((byte)((value >>> 8) & 0xFF));
+		dest.write((byte)((value >>> 0) & 0xFF));
+	}
+	
 	public static void putBigLong(BasicOutputByteStream dest, long value) throws IOException, EOFException
 	{
 		dest.write((byte)((value >>> 56) & 0xFF));
@@ -3598,6 +3919,11 @@ p(s);
 		return signedUpcast24(getLittleUInt24(source));
 	}
 	
+	public static int getLittleSInt24(RandomAccessFile source) throws IOException, EOFException
+	{
+		return signedUpcast24(getLittleUInt24(source));
+	}
+	
 	public static int getLittleSInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast24(getLittleUInt24(source));
@@ -3639,6 +3965,11 @@ p(s);
 	}
 	
 	public static long getLittleSLong40(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getLittleULong40(source));
+	}
+	
+	public static long getLittleSLong40(RandomAccessFile source) throws IOException, EOFException
 	{
 		return signedUpcast40(getLittleULong40(source));
 	}
@@ -3688,6 +4019,11 @@ p(s);
 		return signedUpcast48(getLittleULong48(source));
 	}
 	
+	public static long getLittleSLong48(RandomAccessFile source) throws IOException, EOFException
+	{
+		return signedUpcast48(getLittleULong48(source));
+	}
+	
 	public static long getLittleSLong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast48(getLittleULong48(source));
@@ -3729,6 +4065,11 @@ p(s);
 	}
 	
 	public static long getLittleSLong56(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getLittleULong56(source));
+	}
+	
+	public static long getLittleSLong56(RandomAccessFile source) throws IOException, EOFException
 	{
 		return signedUpcast56(getLittleULong56(source));
 	}
@@ -3778,6 +4119,11 @@ p(s);
 		return signedUpcast24(getBigUInt24(source));
 	}
 	
+	public static int getBigSInt24(RandomAccessFile source) throws IOException, EOFException
+	{
+		return signedUpcast24(getBigUInt24(source));
+	}
+	
 	public static int getBigSInt24(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast24(getBigUInt24(source));
@@ -3819,6 +4165,11 @@ p(s);
 	}
 	
 	public static long getBigSLong40(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast40(getBigULong40(source));
+	}
+	
+	public static long getBigSLong40(RandomAccessFile source) throws IOException, EOFException
 	{
 		return signedUpcast40(getBigULong40(source));
 	}
@@ -3868,6 +4219,11 @@ p(s);
 		return signedUpcast48(getBigULong48(source));
 	}
 	
+	public static long getBigSLong48(RandomAccessFile source) throws IOException, EOFException
+	{
+		return signedUpcast48(getBigULong48(source));
+	}
+	
 	public static long getBigSLong48(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return signedUpcast48(getBigULong48(source));
@@ -3909,6 +4265,11 @@ p(s);
 	}
 	
 	public static long getBigSLong56(InputStream source) throws IOException, EOFException
+	{
+		return signedUpcast56(getBigULong56(source));
+	}
+	
+	public static long getBigSLong56(RandomAccessFile source) throws IOException, EOFException
 	{
 		return signedUpcast56(getBigULong56(source));
 	}
@@ -3974,6 +4335,11 @@ p(s);
 		return Float.intBitsToFloat(getLittleInt(source));
 	}
 	
+	public static float getLittleFloat(RandomAccessFile source) throws IOException, EOFException
+	{
+		return Float.intBitsToFloat(getLittleInt(source));
+	}
+	
 	public static float getLittleFloat(BasicInputByteStream source) throws IOException, EOFException
 	{
 		return Float.intBitsToFloat(getLittleInt(source));
@@ -4029,6 +4395,11 @@ p(s);
 		putLittleInt(dest, Float.floatToRawIntBits(value));
 	}
 	
+	public static void putLittleFloat(RandomAccessFile dest, float value) throws IOException, EOFException
+	{
+		putLittleInt(dest, Float.floatToRawIntBits(value));
+	}
+	
 	public static void putLittleFloat(BasicOutputByteStream dest, float value) throws IOException, EOFException
 	{
 		putLittleInt(dest, Float.floatToRawIntBits(value));
@@ -4070,6 +4441,11 @@ p(s);
 	}
 	
 	public static double getLittleDouble(InputStream source) throws IOException, EOFException
+	{
+		return Double.longBitsToDouble(getLittleLong(source));
+	}
+	
+	public static double getLittleDouble(RandomAccessFile source) throws IOException, EOFException
 	{
 		return Double.longBitsToDouble(getLittleLong(source));
 	}
@@ -4129,6 +4505,11 @@ p(s);
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
 	}
 	
+	public static void putLittleDouble(RandomAccessFile dest, double value) throws IOException, EOFException
+	{
+		putLittleLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
 	public static void putLittleDouble(BasicOutputByteStream dest, double value) throws IOException, EOFException
 	{
 		putLittleLong(dest, Double.doubleToRawLongBits(value));
@@ -4170,6 +4551,11 @@ p(s);
 	}
 	
 	public static float getBigFloat(InputStream source) throws IOException, EOFException
+	{
+		return Float.intBitsToFloat(getBigInt(source));
+	}
+	
+	public static float getBigFloat(RandomAccessFile source) throws IOException, EOFException
 	{
 		return Float.intBitsToFloat(getBigInt(source));
 	}
@@ -4229,6 +4615,11 @@ p(s);
 		putBigInt(dest, Float.floatToRawIntBits(value));
 	}
 	
+	public static void putBigFloat(RandomAccessFile dest, float value) throws IOException, EOFException
+	{
+		putBigInt(dest, Float.floatToRawIntBits(value));
+	}
+	
 	public static void putBigFloat(BasicOutputByteStream dest, float value) throws IOException, EOFException
 	{
 		putBigInt(dest, Float.floatToRawIntBits(value));
@@ -4270,6 +4661,11 @@ p(s);
 	}
 	
 	public static double getBigDouble(InputStream source) throws IOException, EOFException
+	{
+		return Double.longBitsToDouble(getBigLong(source));
+	}
+	
+	public static double getBigDouble(RandomAccessFile source) throws IOException, EOFException
 	{
 		return Double.longBitsToDouble(getBigLong(source));
 	}
@@ -4325,6 +4721,11 @@ p(s);
 	}
 	
 	public static void putBigDouble(OutputStream dest, double value) throws IOException, EOFException
+	{
+		putBigLong(dest, Double.doubleToRawLongBits(value));
+	}
+	
+	public static void putBigDouble(RandomAccessFile dest, double value) throws IOException, EOFException
 	{
 		putBigLong(dest, Double.doubleToRawLongBits(value));
 	}
@@ -4416,6 +4817,16 @@ p(s);
 	}
 	
 	public static char getChar(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleChar(source);
+		else if (endianness == Endianness.Big)
+			return getBigChar(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static char getChar(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleChar(source);
@@ -4535,6 +4946,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static short getShort(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleShort(source);
+		else if (endianness == Endianness.Big)
+			return getBigShort(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static short getShort(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4636,6 +5057,16 @@ p(s);
 	}
 	
 	public static int getUInt24(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigUInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getUInt24(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleUInt24(source);
@@ -4755,6 +5186,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static int getInt(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleInt(source);
+		else if (endianness == Endianness.Big)
+			return getBigInt(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static int getInt(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -4856,6 +5297,16 @@ p(s);
 	}
 	
 	public static long getULong40(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong40(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong40(source);
@@ -4975,6 +5426,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getULong48(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getULong48(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5076,6 +5537,16 @@ p(s);
 	}
 	
 	public static long getULong56(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleULong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigULong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getULong56(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleULong56(source);
@@ -5195,6 +5666,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getLong(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleLong(source);
+		else if (endianness == Endianness.Big)
+			return getBigLong(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getLong(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5296,6 +5777,16 @@ p(s);
 	}
 	
 	public static float getFloat(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleFloat(source);
+		else if (endianness == Endianness.Big)
+			return getBigFloat(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static float getFloat(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleFloat(source);
@@ -5415,6 +5906,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static double getDouble(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleDouble(source);
+		else if (endianness == Endianness.Big)
+			return getBigDouble(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static double getDouble(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5516,6 +6017,16 @@ p(s);
 	}
 	
 	public static int getSInt24(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSInt24(source);
+		else if (endianness == Endianness.Big)
+			return getBigSInt24(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static int getSInt24(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSInt24(source);
@@ -5635,6 +6146,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getSLong40(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong40(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong40(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getSLong40(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5745,6 +6266,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static long getSLong48(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong48(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong48(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static long getSLong48(BasicInputByteStream source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -5846,6 +6377,16 @@ p(s);
 	}
 	
 	public static long getSLong56(InputStream source, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleSLong56(source);
+		else if (endianness == Endianness.Big)
+			return getBigSLong56(source);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getSLong56(RandomAccessFile source, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleSLong56(source);
@@ -5976,6 +6517,16 @@ p(s);
 	}
 	
 	public static void putChar(OutputStream dest, char value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleChar(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigChar(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putChar(RandomAccessFile dest, char value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleChar(dest, value);
@@ -6125,6 +6676,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putShort(RandomAccessFile dest, short value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleShort(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigShort(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putShort(BasicOutputByteStream dest, short value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -6256,6 +6817,16 @@ p(s);
 	}
 	
 	public static void putInt24(OutputStream dest, int value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt24(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt24(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putInt24(RandomAccessFile dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleInt24(dest, value);
@@ -6405,6 +6976,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putInt(RandomAccessFile dest, int value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleInt(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigInt(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putInt(BasicOutputByteStream dest, int value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -6536,6 +7117,16 @@ p(s);
 	}
 	
 	public static void putLong40(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong40(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong40(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong40(RandomAccessFile dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong40(dest, value);
@@ -6685,6 +7276,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong48(RandomAccessFile dest, long value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong48(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong48(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong48(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -6816,6 +7417,16 @@ p(s);
 	}
 	
 	public static void putLong56(OutputStream dest, long value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong56(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong56(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putLong56(RandomAccessFile dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleLong56(dest, value);
@@ -6965,6 +7576,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLong(RandomAccessFile dest, long value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleLong(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigLong(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLong(BasicOutputByteStream dest, long value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -7105,6 +7726,16 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putFloat(RandomAccessFile dest, float value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleFloat(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigFloat(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putFloat(BasicOutputByteStream dest, float value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
@@ -7236,6 +7867,16 @@ p(s);
 	}
 	
 	public static void putDouble(OutputStream dest, double value, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittleDouble(dest, value);
+		else if (endianness == Endianness.Big)
+			putBigDouble(dest, value);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static void putDouble(RandomAccessFile dest, double value, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			putLittleDouble(dest, value);
@@ -7862,6 +8503,66 @@ p(s);
 	}
 	
 	public static long getUnsigned(InputStream source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			return getLittleUnsigned(source, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			return getBigUnsigned(source, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
+	public static long getLittleUnsigned(RandomAccessFile source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getLittleShort(source) & 0xFFFFl;
+			case 3:
+				return getLittleUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getLittleInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getLittleULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getLittleULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getLittleULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getLittleLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getBigUnsigned(RandomAccessFile source, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				return getByte(source) & 0xFFl;
+			case 2:
+				return getBigShort(source) & 0xFFFFl;
+			case 3:
+				return getBigUInt24(source) & 0xFF_FFFFl;
+			case 4:
+				return getBigInt(source) & 0xFFFF_FFFFl;
+			case 5:
+				return getBigULong40(source) & 0xFF_FFFF_FFFFl;
+			case 6:
+				return getBigULong48(source) & 0xFFFF_FFFF_FFFFl;
+			case 7:
+				return getBigULong56(source) & 0xFF_FFFF_FFFF_FFFFl;
+			case 8:
+				return getBigLong(source);
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static long getUnsigned(RandomAccessFile source, int numberOfBytes, Endianness endianness) throws IOException, EOFException
 	{
 		if (endianness == Endianness.Little)
 			return getLittleUnsigned(source, numberOfBytes);
@@ -8651,6 +9352,66 @@ p(s);
 			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
 	}
 	
+	public static void putLittle(RandomAccessFile dest, long value, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.write((byte)value); break;
+			case 2:
+				putLittleShort(dest, (short)value); break;
+			case 3:
+				putLittleInt24(dest, (int)value); break;
+			case 4:
+				putLittleInt(dest, (int)value); break;
+			case 5:
+				putLittleLong40(dest, (long)value); break;
+			case 6:
+				putLittleLong48(dest, (long)value); break;
+			case 7:
+				putLittleLong56(dest, (long)value); break;
+			case 8:
+				putLittleLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void putBig(RandomAccessFile dest, long value, int numberOfBytes) throws IOException, EOFException
+	{
+		switch (numberOfBytes)
+		{
+			case 1:
+				dest.write((byte)value); break;
+			case 2:
+				putBigShort(dest, (short)value); break;
+			case 3:
+				putBigInt24(dest, (int)value); break;
+			case 4:
+				putBigInt(dest, (int)value); break;
+			case 5:
+				putBigLong40(dest, (long)value); break;
+			case 6:
+				putBigLong48(dest, (long)value); break;
+			case 7:
+				putBigLong56(dest, (long)value); break;
+			case 8:
+				putBigLong(dest, (long)value); break;
+			default:
+				throw numberOfBytes <= 0 ? new IllegalArgumentException("Invalid number of bytes!: "+numberOfBytes) : new UnsupportedOperationException("Unsupported number of bytes: "+numberOfBytes);
+		}
+	}
+	
+	public static void put(RandomAccessFile dest, long value, int numberOfBytes, Endianness endianness) throws IOException, EOFException
+	{
+		if (endianness == Endianness.Little)
+			putLittle(dest, value, numberOfBytes);
+		else if (endianness == Endianness.Big)
+			putBig(dest, value, numberOfBytes);
+		else
+			throw newUnexpectedHardcodedEnumValueExceptionOrNullPointerException(endianness);
+	}
+	
 	public static void putLittle(BasicOutputByteStream dest, long value, int numberOfBytes) throws IOException, EOFException
 	{
 		switch (numberOfBytes)
@@ -8917,7 +9678,7 @@ p(s);
 	}
 	
 	// >>>
-	
+				
 	
 	
 	
@@ -12006,7 +12767,7 @@ _$$primxpconf:char,short,int,long,float,double,sint24,slong40,slong48,slong56,ui
 	
 	
 	// >>>
-	
+				
 	
 	
 	
