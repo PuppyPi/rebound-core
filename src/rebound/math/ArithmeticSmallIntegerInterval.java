@@ -1,5 +1,7 @@
 package rebound.math;
 
+import static rebound.math.SmallIntegerMathUtilities.*;
+import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 import rebound.exceptions.OverflowException;
 
@@ -7,13 +9,13 @@ import rebound.exceptions.OverflowException;
 public class ArithmeticSmallIntegerInterval
 {
 	protected final long start;
-	protected final long size;
+	protected final @Nonnegative long size;
 	
 	
 	public ArithmeticSmallIntegerInterval(long start, long size)
 	{
 		this.start = start;
-		this.size = size;
+		this.size = requireNonNegative(size);
 		
 		if (size < 0)
 			throw new OverflowException();
