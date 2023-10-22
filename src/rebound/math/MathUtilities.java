@@ -5190,37 +5190,37 @@ implements JavaNamespace
 	/**
 	 * Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, "[x, x)" ) to represent a single point without needing to use a whole other format than interval-typed values :3
 	 */
-	public static final ArithmeticIntegerInterval EmptyInterval = new ArithmeticIntegerInterval(0, 0);
+	public static final ArithmeticSmallIntegerInterval EmptyInterval = new ArithmeticSmallIntegerInterval(0, 0);
 	
-	public static ArithmeticIntegerInterval emptyInterval()
+	public static ArithmeticSmallIntegerInterval emptyInterval()
 	{
 		return EmptyInterval;
 	}
 	
 	
-	public static ArithmeticIntegerInterval singletonInterval(long v)
+	public static ArithmeticSmallIntegerInterval singletonInterval(long v)
 	{
 		return intervalByPointAndSize(v, 1);
 	}
 	
 	
-	public static ArithmeticIntegerInterval intervalByPoints(long lowInclusive, long highExclusive)
+	public static ArithmeticSmallIntegerInterval intervalByPoints(long lowInclusive, long highExclusive)
 	{
-		return new ArithmeticIntegerInterval(lowInclusive, highExclusive - lowInclusive);
+		return new ArithmeticSmallIntegerInterval(lowInclusive, highExclusive - lowInclusive);
 	}
 	
-	public static ArithmeticIntegerInterval intervalByPointAndSize(long lowInclusive, long size)
+	public static ArithmeticSmallIntegerInterval intervalByPointAndSize(long lowInclusive, long size)
 	{
-		return new ArithmeticIntegerInterval(lowInclusive, size);
+		return new ArithmeticSmallIntegerInterval(lowInclusive, size);
 	}
 	
 	
-	public static ArithmeticIntegerInterval intervalByPointsOrEmptyIfReversed(long lowInclusive, long highExclusive)
+	public static ArithmeticSmallIntegerInterval intervalByPointsOrEmptyIfReversed(long lowInclusive, long highExclusive)
 	{
 		return intervalByPointAndSizeOrEmptyIfReversed(lowInclusive, highExclusive - lowInclusive);
 	}
 	
-	public static ArithmeticIntegerInterval intervalByPointAndSizeOrEmptyIfReversed(long lowInclusive, long size)
+	public static ArithmeticSmallIntegerInterval intervalByPointAndSizeOrEmptyIfReversed(long lowInclusive, long size)
 	{
 		if (size < 0)
 			return emptyInterval();
@@ -5229,14 +5229,14 @@ implements JavaNamespace
 	}
 	
 	
-	public static ArithmeticIntegerInterval intervalByIntervalExplicitBounds(ArithmeticIntegerInterval low, boolean lowInclusive, ArithmeticIntegerInterval high, boolean highInclusive)
+	public static ArithmeticSmallIntegerInterval intervalByIntervalExplicitBounds(ArithmeticSmallIntegerInterval low, boolean lowInclusive, ArithmeticSmallIntegerInterval high, boolean highInclusive)
 	{
 		long l = lowInclusive ? low.getStart() : low.getPastEnd();
 		long h = highInclusive ? high.getPastEnd() : high.getStart();
 		return intervalByPointsOrEmptyIfReversed(l, h);
 	}
 	
-	public static ArithmeticIntegerInterval intervalByExplicitBounds(long low, boolean lowInclusive, long high, boolean highInclusive)
+	public static ArithmeticSmallIntegerInterval intervalByExplicitBounds(long low, boolean lowInclusive, long high, boolean highInclusive)
 	{
 		//return intervalByIntervalExplicitBounds(intervalByPointAndSize(low, 1), lowInclusive, intervalByPointAndSize(high, 1), highInclusive);
 		long l = lowInclusive ? low : low+1;
@@ -5247,7 +5247,7 @@ implements JavaNamespace
 	
 	
 	
-	public static ArithmeticIntegerInterval intervalAdd(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalAdd(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5257,7 +5257,7 @@ implements JavaNamespace
 		return intervalByPoints(al + bl, ah + bh);
 	}
 	
-	public static ArithmeticIntegerInterval intervalSubtract(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalSubtract(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5267,7 +5267,7 @@ implements JavaNamespace
 		return intervalByPoints(al - bh, ah - bl);
 	}
 	
-	public static ArithmeticIntegerInterval intervalNegate(ArithmeticIntegerInterval a)
+	public static ArithmeticSmallIntegerInterval intervalNegate(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5275,7 +5275,7 @@ implements JavaNamespace
 		return intervalByPoints(-ah, -al);
 	}
 	
-	public static ArithmeticIntegerInterval intervalMultiply(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalMultiply(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5293,7 +5293,7 @@ implements JavaNamespace
 	/**
 	 * NOTE: This can't work properly without the ability to represent infinity ^^'   (think of what happens when some points in b (the denominator) get close to and then include zero!  (eg, by being negative on one side and positive on the other!))
 	 */
-	public static ArithmeticIntegerInterval intervalDivide(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalDivide(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		if (b.containsPoint(0))
 			throw new DivisionByZeroException();
@@ -5319,7 +5319,7 @@ implements JavaNamespace
 	/**
 	 * @throws IllegalArgumentException if they aren't touching or overlapping!  (we don't support compound intervals!)
 	 */
-	public static ArithmeticIntegerInterval intervalUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalUnion(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5343,9 +5343,9 @@ implements JavaNamespace
 	
 	
 	/**
-	 * The lowest of the low to the highest of the high..including any space between the intervals even if that wasn't actually in either interval (which is what makes this different from {@link #intervalUnion(ArithmeticIntegerInterval, ArithmeticIntegerInterval)})
+	 * The lowest of the low to the highest of the high..including any space between the intervals even if that wasn't actually in either interval (which is what makes this different from {@link #intervalUnion(ArithmeticSmallIntegerInterval, ArithmeticSmallIntegerInterval)})
 	 */
-	public static ArithmeticIntegerInterval intervalBoundsUnion(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalBoundsUnion(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5362,7 +5362,7 @@ implements JavaNamespace
 	/**
 	 * @return an {@link #emptyInterval() empty interval} if they don't overlap (including if they just barely touch!)
 	 */
-	public static ArithmeticIntegerInterval intervalIntersection(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalIntersection(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5377,35 +5377,35 @@ implements JavaNamespace
 	
 	
 	
-	public static long intervalMidpointFloor(ArithmeticIntegerInterval a)
+	public static long intervalMidpointFloor(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
 		return SmallIntegerMathUtilities.floorDivision(ah - al, 2);
 	}
 	
-	public static long intervalMidpointCeiling(ArithmeticIntegerInterval a)
+	public static long intervalMidpointCeiling(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
 		return SmallIntegerMathUtilities.ceilingDivision(ah - al, 2);
 	}
 	
-	public static long intervalMidpointNearzero(ArithmeticIntegerInterval a)
+	public static long intervalMidpointNearzero(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
 		return (ah - al) / 2;
 	}
 	
-	public static long intervalMidpointAwayzero(ArithmeticIntegerInterval a)
+	public static long intervalMidpointAwayzero(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
 		return SmallIntegerMathUtilities.awayfromzeroDivision(ah - al, 2);
 	}
 	
-	public static long intervalMidpointRounding(ArithmeticIntegerInterval a)
+	public static long intervalMidpointRounding(ArithmeticSmallIntegerInterval a)
 	{
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5422,16 +5422,16 @@ implements JavaNamespace
 	/**
 	 * @return null if super doesn't completely enclose sub!
 	 */
-	public static ArithmeticIntegerInterval intervalIntersectionOfSubset(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	public static ArithmeticSmallIntegerInterval intervalIntersectionOfSubset(ArithmeticSmallIntegerInterval superCandidate, ArithmeticSmallIntegerInterval subCandidate)
 	{
 		return intervalIsSubsetOrEqual(superCandidate, subCandidate) ? subCandidate : null;
 	}
 	
 	
-	public static boolean intervalIsSubsetOrEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	public static boolean intervalIsSubsetOrEqual(ArithmeticSmallIntegerInterval superCandidate, ArithmeticSmallIntegerInterval subCandidate)
 	{
-		ArithmeticIntegerInterval a = superCandidate;
-		ArithmeticIntegerInterval b = subCandidate;
+		ArithmeticSmallIntegerInterval a = superCandidate;
+		ArithmeticSmallIntegerInterval b = subCandidate;
 		
 		long al = a.getStart();
 		long ah = a.getPastEnd();
@@ -5441,7 +5441,7 @@ implements JavaNamespace
 		return al <= bl && ah >= bh;
 	}
 	
-	public static boolean intervalIsSubsetNotEqual(ArithmeticIntegerInterval superCandidate, ArithmeticIntegerInterval subCandidate)
+	public static boolean intervalIsSubsetNotEqual(ArithmeticSmallIntegerInterval superCandidate, ArithmeticSmallIntegerInterval subCandidate)
 	{
 		return intervalIsSubsetOrEqual(superCandidate, subCandidate) && !eq(superCandidate, subCandidate);
 	}
@@ -5450,9 +5450,9 @@ implements JavaNamespace
 	/**
 	 * @return null if one doesn't completely enclose the other!
 	 */
-	public static ArithmeticIntegerInterval intervalIntersectionOfSubsetSymmetric(ArithmeticIntegerInterval a, ArithmeticIntegerInterval b)
+	public static ArithmeticSmallIntegerInterval intervalIntersectionOfSubsetSymmetric(ArithmeticSmallIntegerInterval a, ArithmeticSmallIntegerInterval b)
 	{
-		ArithmeticIntegerInterval r = intervalIntersectionOfSubset(a, b);
+		ArithmeticSmallIntegerInterval r = intervalIntersectionOfSubset(a, b);
 		return r != null ? r : intervalIntersectionOfSubset(b, a);
 	}
 	/////////////////////////////// Integer interval arithmetic!> ///////////////////////////////
@@ -5670,7 +5670,7 @@ implements JavaNamespace
 	/**
 	 * @param i  null is allowed to let you encode doubly-empty intervals :3
 	 */
-	public static ArithmeticGenericInterval<Long> gintervalFromIntegerInterval(@Nullable ArithmeticIntegerInterval i)
+	public static ArithmeticGenericInterval<Long> gintervalFromIntegerInterval(@Nullable ArithmeticSmallIntegerInterval i)
 	{
 		if (i == null)
 		{

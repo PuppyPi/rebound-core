@@ -4,13 +4,13 @@ import javax.annotation.concurrent.Immutable;
 import rebound.exceptions.OverflowException;
 
 @Immutable
-public class ArithmeticIntegerInterval
+public class ArithmeticSmallIntegerInterval
 {
 	protected final long start;
 	protected final long size;
 	
 	
-	public ArithmeticIntegerInterval(long start, long size)
+	public ArithmeticSmallIntegerInterval(long start, long size)
 	{
 		this.start = start;
 		this.size = size;
@@ -74,7 +74,7 @@ public class ArithmeticIntegerInterval
 	
 	
 	
-	public ArithmeticIntegerInterval subinterval(long start, long size)
+	public ArithmeticSmallIntegerInterval subinterval(long start, long size)
 	{
 		if (size < 0)
 			throw new IllegalArgumentException();
@@ -86,7 +86,7 @@ public class ArithmeticIntegerInterval
 		if (start == 0 && size == this.getSize())
 			return this;
 		else
-			return new ArithmeticIntegerInterval(this.start + start, size);
+			return new ArithmeticSmallIntegerInterval(this.start + start, size);
 	}
 	
 	
@@ -96,17 +96,17 @@ public class ArithmeticIntegerInterval
 	
 	
 	
-	public ArithmeticIntegerInterval subintervalByExclusiveBound(long start, long end)
+	public ArithmeticSmallIntegerInterval subintervalByExclusiveBound(long start, long end)
 	{
 		return subinterval(start, end - start);
 	}
 	
-	public ArithmeticIntegerInterval subintervalToEnd(long start)
+	public ArithmeticSmallIntegerInterval subintervalToEnd(long start)
 	{
 		return subinterval(start, this.size - start);
 	}
 	
-	public ArithmeticIntegerInterval subintervalFromBeginning(long sizeOrExclusiveEndingBound)
+	public ArithmeticSmallIntegerInterval subintervalFromBeginning(long sizeOrExclusiveEndingBound)
 	{
 		return subinterval(0, sizeOrExclusiveEndingBound);
 	}
@@ -133,7 +133,7 @@ public class ArithmeticIntegerInterval
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ArithmeticIntegerInterval other = (ArithmeticIntegerInterval) obj;
+		ArithmeticSmallIntegerInterval other = (ArithmeticSmallIntegerInterval) obj;
 		
 		if (this.isEmpty())
 			return other.isEmpty();
