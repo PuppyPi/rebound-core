@@ -5,7 +5,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
 
-public class ArithmeticIntegerIntervalSet
+public class ArithmeticIntegerIntervalsUnion
 {
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
@@ -14,7 +14,7 @@ public class ArithmeticIntegerIntervalSet
 	 */
 	protected final @Emptyable @Nonnull List<ArithmeticIntegerInterval> intervals;
 	
-	public ArithmeticIntegerIntervalSet(List<ArithmeticIntegerInterval> intervals)
+	public ArithmeticIntegerIntervalsUnion(List<ArithmeticIntegerInterval> intervals)
 	{
 		this.intervals = requireNonNull(intervals);
 	}
@@ -42,7 +42,7 @@ public class ArithmeticIntegerIntervalSet
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ArithmeticIntegerIntervalSet other = (ArithmeticIntegerIntervalSet) obj;
+		ArithmeticIntegerIntervalsUnion other = (ArithmeticIntegerIntervalsUnion) obj;
 		if (intervals == null)
 		{
 			if (other.intervals != null)
