@@ -62,7 +62,7 @@ public class ArithmeticIntegerInterval
 	}
 	
 	/**
-	 * @return {@link Direction1D#Zero} if 'value' is {@link #containsPoint(@PolyInteger Object) inside} this interval, {@link Direction1D#LowerDown} if 'value' is below the start of this interval, and {@link Direction1D#HigherUp} if it's >= the {@link #getPastEnd() high bound} :>
+	 * @return {@link Direction1D#Zero} if 'value' is {@link #containsPoint(Object) inside} this interval, {@link Direction1D#LowerDown} if 'value' is below the start of this interval, and {@link Direction1D#HigherUp} if it's >= the {@link #getPastEnd() high bound} :>
 	 */
 	public Direction1D comparePoint(@PolyInteger Object value)
 	{
