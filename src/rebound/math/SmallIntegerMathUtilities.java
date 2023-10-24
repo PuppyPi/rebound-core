@@ -2611,7 +2611,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	public static int losslessLogBase2(@ActuallyUnsigned int value) throws TruncationException
+	public static int losslessLogBase2(int value) throws TruncationException
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
@@ -2627,7 +2627,7 @@ _$$primxpconf:intsonly$$_
 		return exponent;
 	}
 	
-	public static int floorLogBase2(@ActuallyUnsigned int value)
+	public static int floorLogBase2(int value)
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
@@ -2638,7 +2638,7 @@ _$$primxpconf:intsonly$$_
 		return dcd32(getHighestOneBit(value));
 	}
 	
-	public static int ceilLogBase2(@ActuallyUnsigned int value)
+	public static int ceilLogBase2(int value)
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
@@ -2653,15 +2653,7 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	public static int losslessLogBase2(@ActuallyUnsigned long value) throws TruncationException
+	public static int losslessLogBase2(long value) throws TruncationException
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
@@ -2677,7 +2669,7 @@ _$$primxpconf:intsonly$$_
 		return exponent;
 	}
 	
-	public static int floorLogBase2(@ActuallyUnsigned long value)
+	public static int floorLogBase2(long value)
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
@@ -2688,13 +2680,89 @@ _$$primxpconf:intsonly$$_
 		return dcd64(getHighestOneBit(value));
 	}
 	
-	public static int ceilLogBase2(@ActuallyUnsigned long value)
+	public static int ceilLogBase2(long value)
 	{
 		if (value == 0)
 			throw new OutOfDomainArithmeticException("log(0)");
 		
 		if (value < 0) //takes care of two's-complement thingies :3
 			throw new ComplexNumberArithmeticException();
+		
+		long h = getHighestOneBit(value);
+		return dcd64(h) + (value != h ? 1 : 0);
+	}
+	
+
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	public static int losslessLogBase2Unsigned(@ActuallyUnsigned int value) throws TruncationException
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		int exponent = BitUtilities.dcd32(value);
+		
+		if (powb2_s32(exponent) != value)
+			throw new TruncationException("result was not integer");
+		
+		return exponent;
+	}
+	
+	public static int floorLogBase2Unsigned(@ActuallyUnsigned int value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		return dcd32(getHighestOneBit(value));
+	}
+	
+	public static int ceilLogBase2Unsigned(@ActuallyUnsigned int value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		int h = getHighestOneBit(value);
+		return dcd32(h) + (value != h ? 1 : 0);
+	}
+	
+	
+	
+	
+	
+	public static int losslessLogBase2Unsigned(@ActuallyUnsigned long value) throws TruncationException
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		int exponent = BitUtilities.dcd64(value);
+		
+		if (powb2_s64(exponent) != value)
+			throw new TruncationException("result was not integer");
+		
+		return exponent;
+	}
+	
+	public static int floorLogBase2Unsigned(@ActuallyUnsigned long value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
+		
+		return dcd64(getHighestOneBit(value));
+	}
+	
+	public static int ceilLogBase2Unsigned(@ActuallyUnsigned long value)
+	{
+		if (value == 0)
+			throw new OutOfDomainArithmeticException("log(0)");
 		
 		long h = getHighestOneBit(value);
 		return dcd64(h) + (value != h ? 1 : 0);
