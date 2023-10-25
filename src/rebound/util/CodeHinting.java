@@ -66,7 +66,7 @@ public class CodeHinting
 		//Todo check that this actually prevents elision with the stock Sun JIT compiler and also Graal
 	}
 	
-	protected static volatile byte PointlessByte = 0;
+	protected static byte PointlessByte = 0;
 	
 	
 	
