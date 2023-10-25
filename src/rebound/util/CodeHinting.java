@@ -54,6 +54,20 @@ public class CodeHinting
 	
 	
 	
+	/**
+	 * This does nothing, but can serve to keep information about suggestions as to where objects (hopefully!) become Garbage Collectable in code! :D
+	 * (Maybe someone someday can use that information :> )
+	 * 
+	 * Memory protection is this being a *hint*, not a reliable/guaranteed statement much less an actual free()/delete operation like in C/C++!
+	 */
+	public static void expectUnreachable(Object x)
+	{
+	}
+	
+	
+	
+	
+	
 	
 	/**
 	 * Hints for keeping a block/body/scope from getting removed by the compiler! :D
