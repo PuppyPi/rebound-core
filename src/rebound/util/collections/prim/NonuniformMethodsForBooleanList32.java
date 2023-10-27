@@ -85,11 +85,11 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @ActuallyUnsigned int totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToWriteInBits);
+		int lengthInBitsS32 = safeCastS64toS32(totalLengthOfDataToWriteInBits);
 		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
@@ -123,11 +123,11 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @ActuallyUnsigned int totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToReadInBits);
+		int lengthInBitsS32 = safeCastS64toS32(totalLengthOfDataToReadInBits);
 		if (destLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > destLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
