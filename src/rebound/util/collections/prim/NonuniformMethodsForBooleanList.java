@@ -176,7 +176,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -188,17 +188,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSlice_$$Prim$$_(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -206,7 +206,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -217,17 +217,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (_$$prim$$_)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@Nonnull @WritableValue _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSlice_$$Prim$$_(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSlice_$$Prim$$_(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSlice_$$Prim$$_(@WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSlice_$$Prim$$_(@WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSlice_$$Prim$$_(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -241,7 +241,7 @@ extends DefaultToArraysBooleanCollection
 	 */
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue byte[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 8;
 		
@@ -262,17 +262,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue byte[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull byte[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*8);
 	}
 	
-	public default void putArrayFromSliceByte(int destBitOffset, @ReadonlyValue Slice<byte[]> bitfields)
+	public default void putArrayFromSliceByte(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8);
 	}
 	
-	public default void putArrayFromSliceByte(@ReadonlyValue Slice<byte[]> bitfields)
+	public default void putArrayFromSliceByte(@ReadonlyValue @Nonnull Slice<byte[]> bitfields)
 	{
 		putArrayFromSliceByte(0, bitfields);
 	}
@@ -280,7 +280,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue byte[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -292,17 +292,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue byte[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull byte[] bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceByte(int destBitOffset, @ReadonlyValue Slice<byte[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceByte(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceByte(@ReadonlyValue Slice<byte[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceByte(@ReadonlyValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSliceByte(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -310,7 +310,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue byte[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -321,17 +321,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (byte)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue byte[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue byte[] bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceByte(int sourceBitOffset, @WritableValue Slice<byte[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceByte(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceByte(@WritableValue Slice<byte[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceByte(@WritableValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSliceByte(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -344,7 +344,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue char[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 16;
 		
@@ -365,17 +365,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue char[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull char[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*16);
 	}
 	
-	public default void putArrayFromSliceChar(int destBitOffset, @ReadonlyValue Slice<char[]> bitfields)
+	public default void putArrayFromSliceChar(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16);
 	}
 	
-	public default void putArrayFromSliceChar(@ReadonlyValue Slice<char[]> bitfields)
+	public default void putArrayFromSliceChar(@ReadonlyValue @Nonnull Slice<char[]> bitfields)
 	{
 		putArrayFromSliceChar(0, bitfields);
 	}
@@ -383,7 +383,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue char[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -395,17 +395,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue char[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull char[] bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceChar(int destBitOffset, @ReadonlyValue Slice<char[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceChar(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceChar(@ReadonlyValue Slice<char[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceChar(@ReadonlyValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSliceChar(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -413,7 +413,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue char[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -424,17 +424,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (char)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue char[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue char[] bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceChar(int sourceBitOffset, @WritableValue Slice<char[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceChar(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceChar(@WritableValue Slice<char[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceChar(@WritableValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSliceChar(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -447,7 +447,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue short[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 16;
 		
@@ -468,17 +468,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue short[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull short[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*16);
 	}
 	
-	public default void putArrayFromSliceShort(int destBitOffset, @ReadonlyValue Slice<short[]> bitfields)
+	public default void putArrayFromSliceShort(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16);
 	}
 	
-	public default void putArrayFromSliceShort(@ReadonlyValue Slice<short[]> bitfields)
+	public default void putArrayFromSliceShort(@ReadonlyValue @Nonnull Slice<short[]> bitfields)
 	{
 		putArrayFromSliceShort(0, bitfields);
 	}
@@ -486,7 +486,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue short[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -498,17 +498,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue short[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull short[] bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceShort(int destBitOffset, @ReadonlyValue Slice<short[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceShort(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceShort(@ReadonlyValue Slice<short[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceShort(@ReadonlyValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSliceShort(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -516,7 +516,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue short[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -527,17 +527,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (short)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue short[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue short[] bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceShort(int sourceBitOffset, @WritableValue Slice<short[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceShort(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceShort(@WritableValue Slice<short[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceShort(@WritableValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSliceShort(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -550,7 +550,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue int[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 32;
 		
@@ -571,17 +571,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue int[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull int[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*32);
 	}
 	
-	public default void putArrayFromSliceInt(int destBitOffset, @ReadonlyValue Slice<int[]> bitfields)
+	public default void putArrayFromSliceInt(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32);
 	}
 	
-	public default void putArrayFromSliceInt(@ReadonlyValue Slice<int[]> bitfields)
+	public default void putArrayFromSliceInt(@ReadonlyValue @Nonnull Slice<int[]> bitfields)
 	{
 		putArrayFromSliceInt(0, bitfields);
 	}
@@ -589,7 +589,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue int[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -601,17 +601,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue int[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull int[] bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceInt(int destBitOffset, @ReadonlyValue Slice<int[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceInt(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceInt(@ReadonlyValue Slice<int[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceInt(@ReadonlyValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSliceInt(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -619,7 +619,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue int[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -630,17 +630,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (int)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue int[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue int[] bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceInt(int sourceBitOffset, @WritableValue Slice<int[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceInt(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceInt(@WritableValue Slice<int[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceInt(@WritableValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSliceInt(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -653,7 +653,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue long[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = 64;
 		
@@ -674,17 +674,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue long[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull long[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*64);
 	}
 	
-	public default void putArrayFromSliceLong(int destBitOffset, @ReadonlyValue Slice<long[]> bitfields)
+	public default void putArrayFromSliceLong(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64);
 	}
 	
-	public default void putArrayFromSliceLong(@ReadonlyValue Slice<long[]> bitfields)
+	public default void putArrayFromSliceLong(@ReadonlyValue @Nonnull Slice<long[]> bitfields)
 	{
 		putArrayFromSliceLong(0, bitfields);
 	}
@@ -692,7 +692,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue long[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -704,17 +704,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue long[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull long[] bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceLong(int destBitOffset, @ReadonlyValue Slice<long[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceLong(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceLong(@ReadonlyValue Slice<long[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceLong(@ReadonlyValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSliceLong(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -722,7 +722,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue long[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -730,24 +730,23 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		for (int i = 0; i < elementCount; i++)
-			bitfields[sourceElementOffset+i] = getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
+			bitfields[sourceElementOffset+i] = (long)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue long[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue long[] bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceLong(int sourceBitOffset, @WritableValue Slice<long[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceLong(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceLong(@WritableValue Slice<long[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceLong(@WritableValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSliceLong(0, bitfields, lengthOfEachElementInBits);
 	}
-	
 	
 	
 	
