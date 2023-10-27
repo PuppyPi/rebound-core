@@ -123,6 +123,48 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @ActuallyUnsigned int totalLengthOfDataToReadInBits)
+	{
+		int primlen = _$$primlen$$_;
+		
+		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToReadInBits);
+		if (destLengthCheck != -1 && ceilingDivision(lengthInBitsInt, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		int fullAmount = numberOfFullElementsToUse * primlen;
+		int remainder = lengthInBitsInt - fullAmount;
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
+	
+	public default void getArray(@WritableValue @Nonnull _$$prim$$_[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_);
+	}
+	
+	public default void getArrayFromSlice_$$Prim$$_(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_);
+	}
+	
+	public default void getArrayFromSlice_$$Prim$$_(@WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	{
+		getArrayFromSlice_$$Prim$$_(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
