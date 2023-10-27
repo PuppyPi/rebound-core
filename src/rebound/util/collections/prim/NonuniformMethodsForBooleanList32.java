@@ -89,16 +89,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsInt, primlen) > sourceLengthCheck)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -127,16 +127,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToReadInBits);
-		if (destLengthCheck != -1 && ceilingDivision(lengthInBitsInt, primlen) > destLengthCheck)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToReadInBits);
+		if (destLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > destLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -235,16 +235,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = 8;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -338,16 +338,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = 16;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -441,16 +441,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = 16;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -544,16 +544,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = 32;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -647,16 +647,16 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = 64;
 		
-		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
+		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
 		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsInt - fullAmount;
+		int remainder = lengthInBitsS32 - fullAmount;
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
