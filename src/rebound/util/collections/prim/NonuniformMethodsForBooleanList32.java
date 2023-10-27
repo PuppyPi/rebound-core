@@ -85,11 +85,11 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @ActuallyUnsigned int totalLengthOfDataToWriteInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
+		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToWriteInBits);
 		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
