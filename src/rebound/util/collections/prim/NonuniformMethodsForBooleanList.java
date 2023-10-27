@@ -3,10 +3,16 @@ package rebound.util.collections.prim;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import java.math.BigInteger;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
+import rebound.annotations.semantic.simpledata.BoundedInt;
+import rebound.annotations.semantic.simpledata.Emptyable;
+import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.exceptions.OverflowException;
 import rebound.math.SmallIntegerMathUtilities;
 import rebound.text.StringUtilities;
@@ -20,12 +26,12 @@ import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBoolean
 public interface NonuniformMethodsForBooleanList
 extends DefaultToArraysBooleanCollection
 {
-	public boolean getBoolean(int index);
-	public void setBoolean(int index, boolean value);
+	public boolean getBoolean(@Nonnegative int index);
+	public void setBoolean(@Nonnegative int index, boolean value);
 	
 	
 	
-	public default int getNumberOfOnes()
+	public default @Nonnegative int getNumberOfOnes()
 	{
 		int n = size();
 		int n1 = 0;
@@ -34,7 +40,7 @@ extends DefaultToArraysBooleanCollection
 		return n1;
 	}
 	
-	public default int getNumberOfZeros()
+	public default @Nonnegative int getNumberOfZeros()
 	{
 		return size() - getNumberOfOnes();
 	}
@@ -48,7 +54,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default long getBitfield(int offset, int length)
+	public default long getBitfield(@Nonnegative int offset, @BoundedInt(min=1, max=64) int length)
 	{
 		long r = 0;
 		
@@ -61,7 +67,7 @@ extends DefaultToArraysBooleanCollection
 		return r;
 	}
 	
-	public default void setBitfield(int offset, int length, long bitfield)
+	public default void setBitfield(@Nonnegative int offset, @BoundedInt(min=1, max=64) int length, long bitfield)
 	{
 		for (int i = 0; i < length; i++)
 		{
@@ -90,7 +96,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default BigInteger toBigIntegerLE()
+	public default @Nonnull BigInteger toBigIntegerLE()
 	{
 		BigInteger bigInteger = BigInteger.ZERO;
 		
@@ -131,7 +137,7 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArray(int destBitOffset, @ReadonlyValue _$$prim$$_[] bitfields, int sourceElementOffset, int elementCount, @ActuallyUnsignedValue int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
@@ -152,17 +158,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue _$$prim$$_[] bitfields)
+	public default void putArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields)
 	{
 		putArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_);
 	}
 	
-	public default void putArrayFromSlice_$$Prim$$_(int destBitOffset, @ReadonlyValue Slice<_$$prim$$_[]> bitfields)
+	public default void putArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
 		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_);
 	}
 	
-	public default void putArrayFromSlice_$$Prim$$_(@ReadonlyValue Slice<_$$prim$$_[]> bitfields)
+	public default void putArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
 		putArrayFromSlice_$$Prim$$_(0, bitfields);
 	}
@@ -170,7 +176,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(int destBitOffset, @ReadonlyValue _$$prim$$_[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -182,17 +188,17 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
-	public default void putUnpackedArray(@ReadonlyValue _$$prim$$_[] bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSlice_$$Prim$$_(int destBitOffset, @ReadonlyValue Slice<_$$prim$$_[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSlice_$$Prim$$_(@ReadonlyValue Slice<_$$prim$$_[]> bitfields, int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayFromSlice_$$Prim$$_(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -200,7 +206,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(int sourceBitOffset, @WritableValue _$$prim$$_[] bitfields, int sourceElementOffset, int elementCount, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -211,17 +217,17 @@ extends DefaultToArraysBooleanCollection
 			bitfields[sourceElementOffset+i] = (_$$prim$$_)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArray(@WritableValue _$$prim$$_[] bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnull @WritableValue _$$prim$$_[] bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSlice_$$Prim$$_(int sourceBitOffset, @WritableValue Slice<_$$prim$$_[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSlice_$$Prim$$_(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSlice_$$Prim$$_(@WritableValue Slice<_$$prim$$_[]> bitfields, int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSlice_$$Prim$$_(@WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primbitlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayToSlice_$$Prim$$_(0, bitfields, lengthOfEachElementInBits);
 	}
@@ -791,17 +797,17 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default String toBinaryStringLE(long regionLength, String delimiter)
+	public default String toBinaryStringLE(@Nonnegative long regionLength, @Emptyable @Nonnull String delimiter)
 	{
 		return toBinaryStringLE(regionLength, delimiter, "0", "1");
 	}
 	
-	public default String toBinaryStringLE(long regionLength, String delimiter, String zeroRepr, String oneRepr)
+	public default String toBinaryStringLE(@Nonnegative long regionLength, @Emptyable @Nonnull String delimiter, @Nonempty @Nonnull String zeroRepr, @Nonempty @Nonnull String oneRepr)
 	{
 		return toBinaryStringLE(new long[]{regionLength}, new String[]{delimiter}, zeroRepr, oneRepr);
 	}
 	
-	public default String toBinaryStringLENoDelimiters(String zeroRepr, String oneRepr)
+	public default String toBinaryStringLENoDelimiters(@Nonnull String zeroRepr, @Emptyable @Nonnull String oneRepr)
 	{
 		return toBinaryStringLE(null, null, zeroRepr, oneRepr);
 	}
@@ -811,7 +817,7 @@ extends DefaultToArraysBooleanCollection
 		return toBinaryStringLENoDelimiters("0", "1");
 	}
 	
-	public default String toBinaryStringLE(long[] regionLengths, String[] delimiters, String zeroRepr, String oneRepr)
+	public default String toBinaryStringLE(@Nullable long[] regionLengths, @Nullable String[] delimiters, @Nonempty @Nonnull String zeroRepr, @Nonempty @Nonnull String oneRepr)
 	{
 		StringBuilder rv = new StringBuilder();
 		
@@ -849,7 +855,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void unsignedIntegerToStringBE(int radix, StringBuilder buff)
+	public default void unsignedIntegerToStringBE(@BoundedInt(min=2, max=36) int radix, @WritableValue @Nonnull StringBuilder buff)
 	{
 		if (size() <= 63)
 		{
@@ -867,7 +873,7 @@ extends DefaultToArraysBooleanCollection
 		}
 	}
 	
-	public default String unsignedIntegerToStringBE(int radix)
+	public default String unsignedIntegerToStringBE(@BoundedInt(min=2, max=36) int radix)
 	{
 		if (size() <= 63)
 		{
