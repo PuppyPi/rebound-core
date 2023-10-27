@@ -85,12 +85,12 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
 		int lengthInBitsInt = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsInt, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsInt, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
 		int numberOfFullElementsToUse = lengthInBitsInt/primlen;
@@ -124,7 +124,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -132,7 +132,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -154,14 +154,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > _$$primlen$$_)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (_$$prim$$_)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
