@@ -89,16 +89,15 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsS32 = safeCastS64toS32(totalLengthOfDataToWriteInBits);
-		if (sourceLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > sourceLengthCheck)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -127,16 +126,15 @@ extends DefaultToArraysBooleanCollection
 	{
 		int primlen = _$$primlen$$_;
 		
-		int lengthInBitsS32 = safeCastS64toS32(totalLengthOfDataToReadInBits);
-		if (destLengthCheck != -1 && ceilingDivision(lengthInBitsS32, primlen) > destLengthCheck)
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
