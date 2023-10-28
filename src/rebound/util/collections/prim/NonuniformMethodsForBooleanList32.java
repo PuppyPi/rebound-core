@@ -229,7 +229,7 @@ extends DefaultToArraysBooleanCollection
 	 */
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8) long totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 8;
 		
@@ -246,7 +246,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
+			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
 	public default void putArray(@ReadonlyValue @Nonnull byte[] bitfields)
@@ -266,7 +266,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8) long totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 8;
 		
@@ -275,7 +275,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (byte)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -283,7 +283,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (byte)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1 << remainder) - 1) << (8 - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull byte[] bitfields)
@@ -372,7 +372,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -389,7 +389,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
+			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
 	public default void putArray(@ReadonlyValue @Nonnull char[] bitfields)
@@ -409,7 +409,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 16;
 		
@@ -418,7 +418,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (char)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -426,7 +426,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (char)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1 << remainder) - 1) << (16 - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull char[] bitfields)
@@ -515,7 +515,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -532,7 +532,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
+			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
 	public default void putArray(@ReadonlyValue @Nonnull short[] bitfields)
@@ -552,7 +552,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 16;
 		
@@ -561,7 +561,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (short)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -569,7 +569,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (short)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1 << remainder) - 1) << (16 - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull short[] bitfields)
@@ -658,7 +658,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32) long totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 32;
 		
@@ -675,7 +675,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
+			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
 	public default void putArray(@ReadonlyValue @Nonnull int[] bitfields)
@@ -695,7 +695,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32) long totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 32;
 		
@@ -704,7 +704,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (int)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -712,7 +712,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (int)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1 << remainder) - 1) << (32 - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull int[] bitfields)
@@ -801,7 +801,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64) long totalLengthOfDataToWriteInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 64;
 		
@@ -818,7 +818,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(destBitOffset+fullAmount, remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
+			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
 	public default void putArray(@ReadonlyValue @Nonnull long[] bitfields)
@@ -838,7 +838,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64) long totalLengthOfDataToReadInBits)
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 64;
 		
@@ -847,7 +847,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (long)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -855,7 +855,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (long)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1l << remainder) - 1) << (64 - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull long[] bitfields)
