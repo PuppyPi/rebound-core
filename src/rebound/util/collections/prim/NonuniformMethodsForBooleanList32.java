@@ -131,7 +131,7 @@ extends DefaultToArraysBooleanCollection
 		
 		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
-			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+			bitfields[destElementOffset+i] = (_$$prim$$_)getBitfield(sourceBitOffset+i*primlen, primlen);
 		
 		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
 		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
@@ -139,7 +139,7 @@ extends DefaultToArraysBooleanCollection
 		assert remainder >= 0;
 		assert remainder < primlen;
 		if (remainder != 0)
-			setBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+			bitfields[destElementOffset+numberOfFullElementsToUse] = (_$$prim$$_)((bitfields[destElementOffset+numberOfFullElementsToUse] & (((1_$$promotedsuffix$$_ << remainder) - 1) << (_$$primlen$$_ - remainder))) | getBitfield(safeCastS64toS32(sourceBitOffset+fullAmount), remainder));
 	}
 	
 	public default void getArray(@WritableValue @Nonnull _$$prim$$_[] bitfields)
