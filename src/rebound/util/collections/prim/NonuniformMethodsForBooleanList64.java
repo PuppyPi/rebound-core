@@ -5,7 +5,6 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
-import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.BoundedInt;
