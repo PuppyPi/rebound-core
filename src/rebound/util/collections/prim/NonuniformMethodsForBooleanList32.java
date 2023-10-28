@@ -107,12 +107,12 @@ extends DefaultToArraysBooleanCollection
 	
 	public default void putArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_);
+		putArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
 	}
 	
 	public default void putArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_);
+		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
 	}
 	
 	public default void putArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
@@ -144,12 +144,12 @@ extends DefaultToArraysBooleanCollection
 	
 	public default void getArray(@WritableValue @Nonnull _$$prim$$_[] bitfields)
 	{
-		getArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_);
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
 	}
 	
 	public default void getArrayFromSlice_$$Prim$$_(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
-		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_);
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
 	}
 	
 	public default void getArrayFromSlice_$$Prim$$_(@WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
