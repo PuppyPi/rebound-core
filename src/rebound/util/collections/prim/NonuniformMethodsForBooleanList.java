@@ -1,6 +1,5 @@
 package rebound.util.collections.prim;
 
-import static rebound.bits.BitfieldSafeCasts.*;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
@@ -37,7 +36,11 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	public default boolean getBoolean64(@Nonnegative long index)
 	{
-		return getBoolean(safeCastS64toS32(index));
+		if (index < 0)
+			throw new IndexOutOfBoundsException();
+		if (index > Integer.MAX_VALUE)
+			throw new IndexOutOfBoundsException();
+		return getBoolean((int)index);
 	}
 	
 	
@@ -47,6 +50,10 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	public default void setBoolean64(@Nonnegative long index, boolean value)
 	{
-		setBoolean(safeCastS64toS32(index), value);
+		if (index < 0)
+			throw new IndexOutOfBoundsException();
+		if (index > Integer.MAX_VALUE)
+			throw new IndexOutOfBoundsException();
+		setBoolean((int)index, value);
 	}
 }
