@@ -7,8 +7,8 @@ import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
-import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
+import rebound.annotations.semantic.simpledata.BoundedLong;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBooleanCollection;
 
@@ -229,20 +229,19 @@ extends DefaultToArraysBooleanCollection
 	 */
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 8;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -267,8 +266,49 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8) long totalLengthOfDataToReadInBits)
+	{
+		int primlen = 8;
+		
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void getArray(@WritableValue @Nonnull byte[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*8);
+	}
+	
+	public default void getArrayFromSliceByte(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8);
+	}
+	
+	public default void getArrayFromSliceByte(@WritableValue @Nonnull Slice<byte[]> bitfields)
+	{
+		getArrayFromSliceByte(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -276,7 +316,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -298,14 +338,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > 8)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (byte)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
@@ -332,20 +372,19 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -370,8 +409,49 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToReadInBits)
+	{
+		int primlen = 16;
+		
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getArray(@WritableValue @Nonnull char[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*16);
+	}
+	
+	public default void getArrayFromSliceChar(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16);
+	}
+	
+	public default void getArrayFromSliceChar(@WritableValue @Nonnull Slice<char[]> bitfields)
+	{
+		getArrayFromSliceChar(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -379,7 +459,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -401,14 +481,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > 16)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (char)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
@@ -435,20 +515,19 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -473,8 +552,49 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16) long totalLengthOfDataToReadInBits)
+	{
+		int primlen = 16;
+		
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getArray(@WritableValue @Nonnull short[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*16);
+	}
+	
+	public default void getArrayFromSliceShort(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16);
+	}
+	
+	public default void getArrayFromSliceShort(@WritableValue @Nonnull Slice<short[]> bitfields)
+	{
+		getArrayFromSliceShort(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -482,7 +602,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -504,14 +624,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > 16)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (short)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
@@ -538,20 +658,19 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 32;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -576,8 +695,49 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32) long totalLengthOfDataToReadInBits)
+	{
+		int primlen = 32;
+		
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void getArray(@WritableValue @Nonnull int[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*32);
+	}
+	
+	public default void getArrayFromSliceInt(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32);
+	}
+	
+	public default void getArrayFromSliceInt(@WritableValue @Nonnull Slice<int[]> bitfields)
+	{
+		getArrayFromSliceInt(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -585,7 +745,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -607,14 +767,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > 32)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (int)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
@@ -641,20 +801,19 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @ActuallyUnsigned int totalLengthOfDataToInsertInBits)
+	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 64;
 		
-		int lengthInBitsS32 = safeCastU64toS32(totalLengthOfDataToInsertInBits);
-		if (elementCount != -1 && ceilingDivision(lengthInBitsS32, primlen) > elementCount)
+		if (sourceLengthCheck != -1 && ceilingDivision(totalLengthOfDataToWriteInBits, primlen) > sourceLengthCheck)
 			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
 		
-		int numberOfFullElementsToUse = lengthInBitsS32/primlen;
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToWriteInBits/primlen);
 		for (int i = 0; i < numberOfFullElementsToUse; i++)
 			setBitfield(destBitOffset+i*primlen, primlen, bitfields[sourceElementOffset+i]);
 		
-		int fullAmount = numberOfFullElementsToUse * primlen;
-		int remainder = lengthInBitsS32 - fullAmount;
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToWriteInBits - fullAmount);
 		
 		assert remainder >= 0;
 		assert remainder < primlen;
@@ -679,8 +838,49 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default void getArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64) long totalLengthOfDataToReadInBits)
+	{
+		int primlen = 64;
+		
+		if (destLengthCheck != -1 && ceilingDivision(totalLengthOfDataToReadInBits, primlen) > destLengthCheck)
+			throw new IllegalArgumentException("Array bounds check failed; it would have gone past! :[!");
+		
+		int numberOfFullElementsToUse = safeCastS64toS32(totalLengthOfDataToReadInBits/primlen);
+		for (int i = 0; i < numberOfFullElementsToUse; i++)
+			setBitfield(sourceBitOffset+i*primlen, primlen, bitfields[destElementOffset+i]);
+		
+		long fullAmount = numberOfFullElementsToUse * ((long)primlen);
+		int remainder = safeCastS64toS32(totalLengthOfDataToReadInBits - fullAmount);
+		
+		assert remainder >= 0;
+		assert remainder < primlen;
+		if (remainder != 0)
+			setBitfield(sourceBitOffset+fullAmount, remainder, bitfields[destElementOffset+numberOfFullElementsToUse]);
+	}
 	
-	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void getArray(@WritableValue @Nonnull long[] bitfields)
+	{
+		getArray(0, bitfields, 0, bitfields.length, bitfields.length*64);
+	}
+	
+	public default void getArrayFromSliceLong(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields)
+	{
+		getArray(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64);
+	}
+	
+	public default void getArrayFromSliceLong(@WritableValue @Nonnull Slice<long[]> bitfields)
+	{
+		getArrayFromSliceLong(0, bitfields);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void putUnpackedArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -688,7 +888,7 @@ extends DefaultToArraysBooleanCollection
 			throw new IllegalArgumentException();
 		
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < sourceLengthCheck; i++)
 			setBitfield(destBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits, bitfields[sourceElementOffset+i]);
 	}
 	
@@ -710,14 +910,14 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int elementCount, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void getUnpackedArray(@Nonnegative int sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
 		if (lengthOfEachElementInBits > 64)
 			throw new IllegalArgumentException();
 		
-		for (int i = 0; i < elementCount; i++)
+		for (int i = 0; i < destLengthCheck; i++)
 			bitfields[destElementOffset+i] = (long)getBitfield(sourceBitOffset+i*lengthOfEachElementInBits, lengthOfEachElementInBits);
 	}
 	
