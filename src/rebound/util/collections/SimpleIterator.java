@@ -279,7 +279,7 @@ public interface SimpleIterator<E>
 		else
 		{
 			class InnerIteratorAdapter
-			implements SimpleIterator<E>, SimpleIteratorWithRemove
+			implements SimpleIteratorWithRemove<E>
 			{
 				@Override
 				public E nextrp() throws StopIterationReturnPath
