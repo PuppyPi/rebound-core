@@ -1,7 +1,9 @@
 package rebound.util.collections;
 
+import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 
+@ImplementationTransparency
 public interface ModificationCountManager32
 extends ModificationCountManager
 {
