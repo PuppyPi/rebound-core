@@ -93,7 +93,8 @@ public interface SimpleIterator<E>
 	
 	
 	@SignalType //todo make trait predicate based :P
-	public static interface SimpleIteratorWithRemove
+	public static interface SimpleIteratorWithRemove<E>
+	extends SimpleIterator<E>
 	{
 		public void remove();
 	}
