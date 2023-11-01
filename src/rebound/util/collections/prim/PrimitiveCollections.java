@@ -56,6 +56,7 @@ import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveVal
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.temporal.ImmutableValue;
+import rebound.annotations.semantic.temporal.MutableValue;
 import rebound.concurrency.immutability.JavaImmutability;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.exceptions.ImpossibleException;
@@ -615,7 +616,7 @@ public class PrimitiveCollections
 		Arrays.sort(array, start, length);
 	}
 	//>>>
-		
+	
 	
 	
 	
@@ -2456,16 +2457,33 @@ primxp
 		
 		
 		/**
-		 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
-		 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
-		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
+	 * This should be equivalent to just constructing and returning a new in-memory stock implementation with the same contents  (but can easily be faster, especially for those stock impl.s! XD )
+	 * As for whether it's fixed-length or read-only or duplicateless or etc., that should be the same in the clone as it is in the main impl.
+	 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
 	 	⎋a/
 		public _$$Primitive$$_List clone();
 		
 		
 		/**
-		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
-		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #add_$$Prim$$_(_$$prim$$_)}  :D
+	 * This must always make a new instance which is mutable in contents and length (variable-length!)
+	 	⎋a/
+		@MutableValue
+		public default @Nonnull _$$Primitive$$_List newMutableCopy()
+		{
+			return new _$$Primitive$$_ArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull _$$Primitive$$_List immutableCopy()
+		{
+			return Immutable_$$Primitive$$_ArrayList.newCopying(this);
+		}
+		
+		
+		
+		/**
+	 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
+	 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #add_$$Prim$$_(_$$prim$$_)}  :D
 	 	⎋a/
 		public void setSize_$$Prim$$_(int newSize, _$$prim$$_ elementToAddIfGrowing);
 		
@@ -5965,6 +5983,23 @@ primxp
 		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
 		 */
 		public BooleanList clone();
+		
+		
+		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull BooleanList newMutableCopy()
+		{
+			return new BooleanArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull BooleanList immutableCopy()
+		{
+			return ImmutableBooleanArrayList.newCopying(this);
+		}
+		
 		
 		
 		/**
@@ -9471,6 +9506,23 @@ primxp
 		
 		
 		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull ByteList newMutableCopy()
+		{
+			return new ByteArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull ByteList immutableCopy()
+		{
+			return ImmutableByteArrayList.newCopying(this);
+		}
+		
+		
+		
+		/**
 		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
 		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addByte(byte)}  :D
 		 */
@@ -12971,6 +13023,23 @@ primxp
 		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
 		 */
 		public CharacterList clone();
+		
+		
+		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull CharacterList newMutableCopy()
+		{
+			return new CharacterArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull CharacterList immutableCopy()
+		{
+			return ImmutableCharacterArrayList.newCopying(this);
+		}
+		
 		
 		
 		/**
@@ -16477,6 +16546,23 @@ primxp
 		
 		
 		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull ShortList newMutableCopy()
+		{
+			return new ShortArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull ShortList immutableCopy()
+		{
+			return ImmutableShortArrayList.newCopying(this);
+		}
+		
+		
+		
+		/**
 		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
 		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addShort(short)}  :D
 		 */
@@ -19977,6 +20063,23 @@ primxp
 		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
 		 */
 		public FloatList clone();
+		
+		
+		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull FloatList newMutableCopy()
+		{
+			return new FloatArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull FloatList immutableCopy()
+		{
+			return ImmutableFloatArrayList.newCopying(this);
+		}
+		
 		
 		
 		/**
@@ -23483,6 +23586,23 @@ primxp
 		
 		
 		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull IntegerList newMutableCopy()
+		{
+			return new IntegerArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull IntegerList immutableCopy()
+		{
+			return ImmutableIntegerArrayList.newCopying(this);
+		}
+		
+		
+		
+		/**
 		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
 		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addInt(int)}  :D
 		 */
@@ -26986,6 +27106,23 @@ primxp
 		
 		
 		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull DoubleList newMutableCopy()
+		{
+			return new DoubleArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull DoubleList immutableCopy()
+		{
+			return ImmutableDoubleArrayList.newCopying(this);
+		}
+		
+		
+		
+		/**
 		 * If size is smaller than the current, then this is equivalent to {@link #removeRange(int, int) removeRange}(newSize, this.{@link #size() size()})  :3
 		 * If size is larger, then this appends newSize - this.{@link #size() size()} elementToAddIfGrowing's to the end like that many {@link #addDouble(double)}  :D
 		 */
@@ -30486,6 +30623,23 @@ primxp
 		 * If *and only if* it is immutable, this is allowed to return this same instance!  (ie the body of this method being <code>return this;</code>)
 		 */
 		public LongList clone();
+		
+		
+		/**
+		 * This must always make a new instance which is mutable in contents and length (variable-length!)
+		 */
+		@MutableValue
+		public default @Nonnull LongList newMutableCopy()
+		{
+			return new LongArrayList(this);
+		}
+		
+		@ImmutableValue
+		public default @Nonnull LongList immutableCopy()
+		{
+			return ImmutableLongArrayList.newCopying(this);
+		}
+		
 		
 		
 		/**
