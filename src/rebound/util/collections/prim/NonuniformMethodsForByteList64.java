@@ -164,20 +164,20 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setLittleShort(@ActuallyUnsigned long offsetInBytes, short value)
+	public default void setLittleShortBy64(@ActuallyUnsigned long offsetInBytes, short value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
-	public default void setLittleInt24(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setLittleInt24By64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
 		setByteBy64(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
 	}
 	
-	public default void setLittleInt(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setLittleIntBy64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
@@ -185,7 +185,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
 	}
 	
-	public default void setLittleLong40(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setLittleLong40By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
@@ -194,7 +194,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+4, (byte)((value >>> 32) & 0xFF));
 	}
 	
-	public default void setLittleLong48(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setLittleLong48By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
@@ -204,7 +204,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+5, (byte)((value >>> 40) & 0xFF));
 	}
 	
-	public default void setLittleLong56(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setLittleLong56By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
@@ -215,7 +215,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+6, (byte)((value >>> 48) & 0xFF));
 	}
 	
-	public default void setLittleLong(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setLittleLongBy64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
@@ -229,21 +229,21 @@ extends DefaultToArraysByteCollection
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setLittleChar(@ActuallyUnsigned long offsetInBytes, char value)
+	public default void setLittleCharBy64(@ActuallyUnsigned long offsetInBytes, char value)
 	{
-		setLittleShort(offsetInBytes, (short)value);
+		setLittleShortBy64(offsetInBytes, (short)value);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setLittleFloat(@ActuallyUnsigned long offsetInBytes, float value)
+	public default void setLittleFloatBy64(@ActuallyUnsigned long offsetInBytes, float value)
 	{
-		setLittleInt(offsetInBytes, Float.floatToRawIntBits(value));
+		setLittleIntBy64(offsetInBytes, Float.floatToRawIntBits(value));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setLittleDouble(@ActuallyUnsigned long offsetInBytes, double value)
+	public default void setLittleDoubleBy64(@ActuallyUnsigned long offsetInBytes, double value)
 	{
-		setLittleLong(offsetInBytes, Double.doubleToRawLongBits(value));
+		setLittleLongBy64(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
 	
 	
@@ -551,7 +551,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeShort(@ActuallyUnsigned long offsetInBytes, short value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleShort(offsetInBytes, value);
+			setLittleShortBy64(offsetInBytes, value);
 		else
 			setBigShort(offsetInBytes, value);
 	}
@@ -559,7 +559,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeInt24(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleInt24(offsetInBytes, value);
+			setLittleInt24By64(offsetInBytes, value);
 		else
 			setBigInt24(offsetInBytes, value);
 	}
@@ -567,7 +567,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeInt(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleInt(offsetInBytes, value);
+			setLittleIntBy64(offsetInBytes, value);
 		else
 			setBigInt(offsetInBytes, value);
 	}
@@ -575,7 +575,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeLong40(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleLong40(offsetInBytes, value);
+			setLittleLong40By64(offsetInBytes, value);
 		else
 			setBigLong40(offsetInBytes, value);
 	}
@@ -583,7 +583,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeLong48(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleLong48(offsetInBytes, value);
+			setLittleLong48By64(offsetInBytes, value);
 		else
 			setBigLong48(offsetInBytes, value);
 	}
@@ -591,7 +591,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeLong56(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleLong56(offsetInBytes, value);
+			setLittleLong56By64(offsetInBytes, value);
 		else
 			setBigLong56(offsetInBytes, value);
 	}
@@ -599,7 +599,7 @@ extends DefaultToArraysByteCollection
 	public default void setNativeLong(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
-			setLittleLong(offsetInBytes, value);
+			setLittleLongBy64(offsetInBytes, value);
 		else
 			setBigLong(offsetInBytes, value);
 	}
@@ -686,17 +686,17 @@ extends DefaultToArraysByteCollection
 	primxp
 	_$$primxpconf:multibyteints$$_
 	
-	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setLittleArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = _$$primbytelen$$_;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setLittle_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setLittle_$$Prim$$_By64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
+	public default void setLittleArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
-		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setLittleArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -724,17 +724,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setBigArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = _$$primbytelen$$_;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setBig_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setBig_$$Prim$$_By64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
+	public default void setBigArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
-		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setBigArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -762,17 +762,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setNativeArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull _$$prim$$_[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = _$$primbytelen$$_;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setNative_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setNative_$$Prim$$_By64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
+	public default void setNativeArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
-		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setNativeArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -803,17 +803,17 @@ extends DefaultToArraysByteCollection
 	 */
 	
 	
-	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setLittleArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setLittleChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setLittleCharBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	public default void setLittleArrayFromSliceCharBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
 	{
-		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setLittleArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -841,17 +841,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setBigArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setBigChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setBigCharBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	public default void setBigArrayFromSliceCharBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
 	{
-		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setBigArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -879,17 +879,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setNativeArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setNativeChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setNativeCharBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	public default void setNativeArrayFromSliceCharBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
 	{
-		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setNativeArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -919,17 +919,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setLittleArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setLittleShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setLittleShortBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	public default void setLittleArrayFromSliceShortBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
 	{
-		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setLittleArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -957,17 +957,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setBigArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setBigShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setBigShortBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	public default void setBigArrayFromSliceShortBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
 	{
-		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setBigArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -995,17 +995,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setNativeArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 2;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setNativeShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setNativeShortBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	public default void setNativeArrayFromSliceShortBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
 	{
-		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setNativeArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1035,17 +1035,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setLittleArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 4;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setLittleInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setLittleIntBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	public default void setLittleArrayFromSliceIntBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
 	{
-		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setLittleArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1073,17 +1073,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setBigArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 4;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setBigInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setBigIntBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	public default void setBigArrayFromSliceIntBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
 	{
-		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setBigArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1111,17 +1111,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setNativeArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 4;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setNativeInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setNativeIntBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	public default void setNativeArrayFromSliceIntBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
 	{
-		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setNativeArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1151,17 +1151,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setLittleArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 8;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setLittleLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setLittleLongBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	public default void setLittleArrayFromSliceLongBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
 	{
-		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setLittleArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1189,17 +1189,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setBigArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 8;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setBigLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setBigLongBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	public default void setBigArrayFromSliceLongBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
 	{
-		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setBigArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
@@ -1227,17 +1227,17 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	public default void setNativeArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
 	{
 		int primbytelen = 8;
 		
 		for (int i = 0; i < sourceLength; i++)
-			setNativeLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+			setNativeLongBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	public default void setNativeArrayFromSliceLongBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
 	{
-		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+		setNativeArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
 	}
 	
 	
