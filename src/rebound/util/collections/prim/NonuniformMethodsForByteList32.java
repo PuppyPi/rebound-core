@@ -7,8 +7,7 @@ import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
-import rebound.annotations.semantic.simpledata.BoundedInt;
-import rebound.annotations.semantic.simpledata.BoundedLong;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.bits.Bytes;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
@@ -45,7 +44,7 @@ extends DefaultToArraysByteCollection
 		return Bytes.getLittleShort((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedInt(min=0, max=16777215) int getLittleUInt24(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(24) int getLittleUInt24(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleUInt24((ByteList)this, offsetInBytes);
 	}
@@ -55,17 +54,17 @@ extends DefaultToArraysByteCollection
 		return Bytes.getLittleInt((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=1099511627775l) long getLittleULong40(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(40) long getLittleULong40(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong40((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=281474976710655l) long getLittleULong48(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(48) long getLittleULong48(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong48((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=72057594037927935l) long getLittleULong56(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(56) long getLittleULong56(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong56((ByteList)this, offsetInBytes);
 	}
@@ -125,7 +124,7 @@ extends DefaultToArraysByteCollection
 		Bytes.putLittleShort((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setLittleInt24(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
+	public default void setLittleInt24(@Nonnegative int offsetInBytes, int value)
 	{
 		Bytes.putLittleInt24((ByteList)this, offsetInBytes, value);
 	}
@@ -135,17 +134,17 @@ extends DefaultToArraysByteCollection
 		Bytes.putLittleInt((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setLittleLong40(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
+	public default void setLittleLong40(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putLittleLong40((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setLittleLong48(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
+	public default void setLittleLong48(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putLittleLong48((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setLittleLong56(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
+	public default void setLittleLong56(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putLittleLong56((ByteList)this, offsetInBytes, value);
 	}
@@ -188,7 +187,7 @@ extends DefaultToArraysByteCollection
 		return Bytes.getBigShort((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedInt(min=0, max=16777215) int getBigUInt24(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(24) int getBigUInt24(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getBigUInt24((ByteList)this, offsetInBytes);
 	}
@@ -198,17 +197,17 @@ extends DefaultToArraysByteCollection
 		return Bytes.getBigInt((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=1099511627775l) long getBigULong40(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(40) long getBigULong40(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getBigULong40((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=281474976710655l) long getBigULong48(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(48) long getBigULong48(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getBigULong48((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=72057594037927935l) long getBigULong56(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(56) long getBigULong56(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getBigULong56((ByteList)this, offsetInBytes);
 	}
@@ -268,7 +267,7 @@ extends DefaultToArraysByteCollection
 		Bytes.putBigShort((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setBigInt24(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
+	public default void setBigInt24(@Nonnegative int offsetInBytes, int value)
 	{
 		Bytes.putBigInt24((ByteList)this, offsetInBytes, value);
 	}
@@ -278,17 +277,17 @@ extends DefaultToArraysByteCollection
 		Bytes.putBigInt((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setBigLong40(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
+	public default void setBigLong40(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putBigLong40((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setBigLong48(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
+	public default void setBigLong48(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putBigLong48((ByteList)this, offsetInBytes, value);
 	}
 	
-	public default void setBigLong56(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
+	public default void setBigLong56(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putBigLong56((ByteList)this, offsetInBytes, value);
 	}
@@ -331,7 +330,7 @@ extends DefaultToArraysByteCollection
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleShort(offsetInBytes) : getBigShort(offsetInBytes);
 	}
 	
-	public default @BoundedInt(min=0, max=16777215) int getNativeUInt24(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(24) int getNativeUInt24(@Nonnegative int offsetInBytes)
 	{
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleUInt24(offsetInBytes) : getBigUInt24(offsetInBytes);
 	}
@@ -341,17 +340,17 @@ extends DefaultToArraysByteCollection
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleInt(offsetInBytes) : getBigInt(offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=1099511627775l) long getNativeULong40(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(40) long getNativeULong40(@Nonnegative int offsetInBytes)
 	{
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong40(offsetInBytes) : getBigULong40(offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=281474976710655l) long getNativeULong48(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(48) long getNativeULong48(@Nonnegative int offsetInBytes)
 	{
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong48(offsetInBytes) : getBigULong48(offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=72057594037927935l) long getNativeULong56(@Nonnegative int offsetInBytes)
+	public default @ActuallyUnsigned(56) long getNativeULong56(@Nonnegative int offsetInBytes)
 	{
 		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong56(offsetInBytes) : getBigULong56(offsetInBytes);
 	}
@@ -414,7 +413,7 @@ extends DefaultToArraysByteCollection
 			setBigShort(offsetInBytes, value);
 	}
 	
-	public default void setNativeInt24(@Nonnegative int offsetInBytes, @BoundedInt(min = 0, max = 16777215) int value)
+	public default void setNativeInt24(@Nonnegative int offsetInBytes, int value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleInt24(offsetInBytes, value);
@@ -430,7 +429,7 @@ extends DefaultToArraysByteCollection
 			setBigInt(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong40(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 1099511627775l) long value)
+	public default void setNativeLong40(@Nonnegative int offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong40(offsetInBytes, value);
@@ -438,7 +437,7 @@ extends DefaultToArraysByteCollection
 			setBigLong40(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong48(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 281474976710655l) long value)
+	public default void setNativeLong48(@Nonnegative int offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong48(offsetInBytes, value);
@@ -446,7 +445,7 @@ extends DefaultToArraysByteCollection
 			setBigLong48(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong56(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 72057594037927935l) long value)
+	public default void setNativeLong56(@Nonnegative int offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong56(offsetInBytes, value);
