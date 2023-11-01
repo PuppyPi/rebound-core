@@ -94,25 +94,25 @@ extends DefaultToArraysByteCollection
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(24) int getLittleSInt24(int offsetInBytes)
+	public default @ActuallySigned(24) int getLittleSInt24(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast24(getLittleUInt24(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(40) long getLittleSLong40(int offsetInBytes)
+	public default @ActuallySigned(40) long getLittleSLong40(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast40(getLittleULong40(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(48) long getLittleSLong48(int offsetInBytes)
+	public default @ActuallySigned(48) long getLittleSLong48(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast48(getLittleULong48(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(56) long getLittleSLong56(int offsetInBytes)
+	public default @ActuallySigned(56) long getLittleSLong56(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast56(getLittleULong56(offsetInBytes));
 	}
@@ -237,25 +237,25 @@ extends DefaultToArraysByteCollection
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(24) int getBigSInt24(int offsetInBytes)
+	public default @ActuallySigned(24) int getBigSInt24(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast24(getBigUInt24(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(40) long getBigSLong40(int offsetInBytes)
+	public default @ActuallySigned(40) long getBigSLong40(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast40(getBigULong40(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(48) long getBigSLong48(int offsetInBytes)
+	public default @ActuallySigned(48) long getBigSLong48(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast48(getBigULong48(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(56) long getBigSLong56(int offsetInBytes)
+	public default @ActuallySigned(56) long getBigSLong56(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast56(getBigULong56(offsetInBytes));
 	}
@@ -380,25 +380,25 @@ extends DefaultToArraysByteCollection
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(24) int getNativeSInt24(int offsetInBytes)
+	public default @ActuallySigned(24) int getNativeSInt24(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast24(getNativeUInt24(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(40) long getNativeSLong40(int offsetInBytes)
+	public default @ActuallySigned(40) long getNativeSLong40(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast40(getNativeULong40(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(48) long getNativeSLong48(int offsetInBytes)
+	public default @ActuallySigned(48) long getNativeSLong48(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast48(getNativeULong48(offsetInBytes));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default @ActuallySigned(56) long getNativeSLong56(int offsetInBytes)
+	public default @ActuallySigned(56) long getNativeSLong56(@Nonnegative int offsetInBytes)
 	{
 		return signedUpcast56(getNativeULong56(offsetInBytes));
 	}
