@@ -656,19 +656,9 @@ extends DefaultToArraysByteCollection
 			setByteBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setArrayBy64(@ReadonlyValue @Nonnull byte[] source)
-	{
-		setArrayBy64(0, source, 0, source.length);
-	}
-	
 	public default void setArrayFromSliceByteBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<byte[]> source)
 	{
 		setArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	public default void setArrayFromSliceByteBy64(@ReadonlyValue @Nonnull Slice<byte[]> source)
-	{
-		setArrayFromSliceByteBy64(0, source);
 	}
 	
 	
@@ -681,19 +671,9 @@ extends DefaultToArraysByteCollection
 			dest[destElementOffset+i] = (byte)getByteBy64(sourceByteOffset+i*primbytelen);
 	}
 	
-	public default void getArrayBy64(@WritableValue @Nonnull byte[] dest)
-	{
-		getArrayBy64(0, dest, 0, dest.length);
-	}
-	
 	public default void getArrayFromSliceByteBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<byte[]> dest)
 	{
 		getArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
-	}
-	
-	public default void getArrayFromSliceByteBy64(@WritableValue @Nonnull Slice<byte[]> dest)
-	{
-		getArrayFromSliceByteBy64(0, dest);
 	}
 	
 	
@@ -714,19 +694,9 @@ extends DefaultToArraysByteCollection
 			setLittle_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setLittleArray(@ReadonlyValue @Nonnull _$$prim$$_[] source)
-	{
-		setLittleArray(0, source, 0, source.length);
-	}
-	
 	public default void setLittleArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
 		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	public default void setLittleArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
-	{
-		setLittleArrayFromSlice_$$Prim$$_(0, source);
 	}
 	
 	
@@ -739,19 +709,9 @@ extends DefaultToArraysByteCollection
 			dest[destElementOffset+i] = (_$$prim$$_)getLittle_$$Prim$$_By64(sourceByteOffset+i*primbytelen);
 	}
 	
-	public default void getLittleArrayBy64(@WritableValue @Nonnull _$$prim$$_[] dest)
-	{
-		getLittleArrayBy64(0, dest, 0, dest.length);
-	}
-	
 	public default void getLittleArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
 	{
 		getLittleArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
-	}
-	
-	public default void getLittleArrayFromSlice_$$Prim$$_By64(@WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
-	{
-		getLittleArrayFromSlice_$$Prim$$_By64(0, dest);
 	}
 	
 	
@@ -772,19 +732,9 @@ extends DefaultToArraysByteCollection
 			setBig_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setBigArray(@ReadonlyValue @Nonnull _$$prim$$_[] source)
-	{
-		setBigArray(0, source, 0, source.length);
-	}
-	
 	public default void setBigArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
 		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	public default void setBigArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
-	{
-		setBigArrayFromSlice_$$Prim$$_(0, source);
 	}
 	
 	
@@ -797,19 +747,9 @@ extends DefaultToArraysByteCollection
 			dest[destElementOffset+i] = (_$$prim$$_)getBig_$$Prim$$_By64(sourceByteOffset+i*primbytelen);
 	}
 	
-	public default void getBigArrayBy64(@WritableValue @Nonnull _$$prim$$_[] dest)
-	{
-		getBigArrayBy64(0, dest, 0, dest.length);
-	}
-	
 	public default void getBigArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
 	{
 		getBigArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
-	}
-	
-	public default void getBigArrayFromSlice_$$Prim$$_By64(@WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
-	{
-		getBigArrayFromSlice_$$Prim$$_By64(0, dest);
 	}
 	
 	
@@ -830,19 +770,9 @@ extends DefaultToArraysByteCollection
 			setNative_$$Prim$$_(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
 	}
 	
-	public default void setNativeArray(@ReadonlyValue @Nonnull _$$prim$$_[] source)
-	{
-		setNativeArray(0, source, 0, source.length);
-	}
-	
 	public default void setNativeArrayFromSlice_$$Prim$$_(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
 	{
 		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	public default void setNativeArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> source)
-	{
-		setNativeArrayFromSlice_$$Prim$$_(0, source);
 	}
 	
 	
@@ -855,19 +785,9 @@ extends DefaultToArraysByteCollection
 			dest[destElementOffset+i] = (_$$prim$$_)getNative_$$Prim$$_By64(sourceByteOffset+i*primbytelen);
 	}
 	
-	public default void getNativeArrayBy64(@WritableValue @Nonnull _$$prim$$_[] dest)
-	{
-		getNativeArrayBy64(0, dest, 0, dest.length);
-	}
-	
 	public default void getNativeArrayFromSlice_$$Prim$$_By64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
 	{
 		getNativeArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
-	}
-	
-	public default void getNativeArrayFromSlice_$$Prim$$_By64(@WritableValue @Nonnull Slice<_$$prim$$_[]> dest)
-	{
-		getNativeArrayFromSlice_$$Prim$$_By64(0, dest);
 	}
 	
 	
@@ -881,5 +801,469 @@ extends DefaultToArraysByteCollection
 	
 	
 	 */
+	
+	
+	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setLittleChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setLittleArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	{
+		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getLittleArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull char[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (char)getLittleCharBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getLittleArrayFromSliceCharBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<char[]> dest)
+	{
+		getLittleArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setBigChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setBigArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	{
+		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getBigArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull char[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (char)getBigCharBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getBigArrayFromSliceCharBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<char[]> dest)
+	{
+		getBigArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull char[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setNativeChar(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setNativeArrayFromSliceChar(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<char[]> source)
+	{
+		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getNativeArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull char[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (char)getNativeCharBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getNativeArrayFromSliceCharBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<char[]> dest)
+	{
+		getNativeArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setLittleShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setLittleArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	{
+		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getLittleArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull short[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (short)getLittleShortBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getLittleArrayFromSliceShortBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<short[]> dest)
+	{
+		getLittleArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setBigShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setBigArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	{
+		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getBigArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull short[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (short)getBigShortBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getBigArrayFromSliceShortBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<short[]> dest)
+	{
+		getBigArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull short[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setNativeShort(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setNativeArrayFromSliceShort(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<short[]> source)
+	{
+		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getNativeArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull short[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 2;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (short)getNativeShortBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getNativeArrayFromSliceShortBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<short[]> dest)
+	{
+		getNativeArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setLittleInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setLittleArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	{
+		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getLittleArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull int[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (int)getLittleIntBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getLittleArrayFromSliceIntBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<int[]> dest)
+	{
+		getLittleArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setBigInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setBigArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	{
+		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getBigArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull int[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (int)getBigIntBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getBigArrayFromSliceIntBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<int[]> dest)
+	{
+		getBigArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull int[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setNativeInt(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setNativeArrayFromSliceInt(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<int[]> source)
+	{
+		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getNativeArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull int[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 4;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (int)getNativeIntBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getNativeArrayFromSliceIntBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<int[]> dest)
+	{
+		getNativeArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setLittleArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setLittleLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setLittleArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	{
+		setLittleArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getLittleArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull long[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (long)getLittleLongBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getLittleArrayFromSliceLongBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<long[]> dest)
+	{
+		getLittleArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setBigArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setBigLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setBigArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	{
+		setBigArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getBigArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull long[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (long)getBigLongBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getBigArrayFromSliceLongBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<long[]> dest)
+	{
+		getBigArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default void setNativeArray(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull long[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < sourceLength; i++)
+			setNativeLong(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
+	}
+	
+	public default void setNativeArrayFromSliceLong(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<long[]> source)
+	{
+		setNativeArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
+	}
+	
+	
+	
+	public default void getNativeArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull long[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
+	{
+		int primbytelen = 8;
+		
+		for (int i = 0; i < destLength; i++)
+			dest[destElementOffset+i] = (long)getNativeLongBy64(sourceByteOffset+i*primbytelen);
+	}
+	
+	public default void getNativeArrayFromSliceLongBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<long[]> dest)
+	{
+		getNativeArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	// >>>
 }
