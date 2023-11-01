@@ -32,7 +32,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default boolean getBoolean64(@Nonnegative long index)
+	public default boolean getBooleanBy64(@Nonnegative long index)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
@@ -46,7 +46,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setBoolean64(@Nonnegative long index, boolean value)
+	public default void setBooleanBy64(@Nonnegative long index, boolean value)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
