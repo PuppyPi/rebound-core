@@ -3,6 +3,7 @@ package rebound.util.collections.prim;
 import static rebound.bits.BitUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -20,7 +21,6 @@ import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.util.collections.Slice;
 import rebound.util.collections.TransparentContiguousArrayBackedCollection;
-import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
@@ -650,18 +650,18 @@ extends DefaultToArraysByteCollection
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setAllBytes(int index, byte[] array)
+	public default void setAllBytesBy64(int index, byte[] array)
 	{
-		setAllBytes(index, array, 0, array.length);
+		setAllBytesBy64(index, array, 0, array.length);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setAllBytes(int index, Slice<byte[]> arraySlice)
+	public default void setAllBytesBy64(int index, Slice<byte[]> arraySlice)
 	{
-		setAllBytes(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+		setAllBytesBy64(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public default void setAllBytes(int start, byte[] array, int offset, int length)
+	public default void setAllBytesBy64(int start, byte[] array, int offset, int length)
 	{
 		int size = this.size();
 		
@@ -687,25 +687,29 @@ extends DefaultToArraysByteCollection
 		}
 		
 		
-		defaultSetAllBytes(this, start, array, offset, length);
+		defaultSetAllBytesBy64(this, start, array, offset, length);
 	}
 	
 	
-	public static void defaultSetAllBytes(ByteList list, int start, @WritableValue byte[] array, int offset, int length)
+	public static void defaultSetAllBytesBy64(NonuniformMethodsForByteList64 list, int start, @WritableValue byte[] array, int offset, int length)
 	{
 		for (int i = 0; i < length; i++)
-			list.setByte(start + i, array[offset + i]);
+			list.setByteBy64(start + i, array[offset + i]);
 	}
 	
 	
 	
 	
 	
-	@Override
-	public default void setAll(int destIndex, List sourceU, int sourceIndex, @Nonnegative int amount) throws IndexOutOfBoundsException
+	public default void setAllBy64(int destIndex, List source) throws IndexOutOfBoundsException
+	{
+		setAllBy64(destIndex, source, 0, source.size());
+	}
+	
+	public default void setAllBy64(int destIndex, List sourceU, int sourceIndex, @Nonnegative int amount) throws IndexOutOfBoundsException
 	{
 		List<Byte> source = sourceU;
-		ByteList dest = this;
+		NonuniformMethodsForByteList64 dest = this;
 		
 		int sourceSize = source.size();
 		int destSize = dest.size();
@@ -725,7 +729,7 @@ extends DefaultToArraysByteCollection
 			if (u.getUnderlying() instanceof byte[])
 			{
 				Slice<byte[]> s = (Slice<byte[]>)u;
-				this.setAllBytes(destIndex, s.subslice(sourceIndex, amount));
+				this.setAllBytesBy64(destIndex, s.subslice(sourceIndex, amount));
 				return;
 			}
 		}
@@ -733,19 +737,19 @@ extends DefaultToArraysByteCollection
 		
 		
 		
-		if (source instanceof ByteList)
+		if (source instanceof NonuniformMethodsForByteList64)
 		{
-			ByteList primSource = (ByteList) source;
+			NonuniformMethodsForByteList64 primSource = (NonuniformMethodsForByteList64) source;
 			
 			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
 			{
 				for (int i = 0; i < amount; i++)
-					dest.setByte(destIndex+i, primSource.getByte(sourceIndex+i));
+					dest.setByteBy64(destIndex+i, primSource.getByteBy64(sourceIndex+i));
 			}
 			else
 			{
 				for (int i = amount-1; i >= 0; i--)
-					dest.setByte(destIndex+i, primSource.getByte(sourceIndex+i));
+					dest.setByteBy64(destIndex+i, primSource.getByteBy64(sourceIndex+i));
 			}
 		}
 		else
@@ -753,12 +757,12 @@ extends DefaultToArraysByteCollection
 			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
 			{
 				for (int i = 0; i < amount; i++)
-					dest.set(destIndex+i, source.get(sourceIndex+i));
+					dest.setByteBy64(destIndex+i, source.get(sourceIndex+i));
 			}
 			else
 			{
 				for (int i = amount-1; i >= 0; i--)
-					dest.set(destIndex+i, source.get(sourceIndex+i));
+					dest.setByteBy64(destIndex+i, source.get(sourceIndex+i));
 			}
 		}
 	}
@@ -772,7 +776,7 @@ extends DefaultToArraysByteCollection
 	/**
 	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 	 */
-	public default void getAllBytes(int start, @WritableValue byte[] array, int offset, int length)
+	public default void getAllBytesBy64(int start, @WritableValue byte[] array, int offset, int length)
 	{
 		int size = this.size();
 		
@@ -798,14 +802,14 @@ extends DefaultToArraysByteCollection
 		}
 		
 		
-		defaultGetAllBytes(this, start, array, offset, length);
+		defaultGetAllBytesBy64(this, start, array, offset, length);
 	}
 	
 	
-	public static void defaultGetAllBytes(ByteList list, int start, @WritableValue byte[] array, int offset, int length)
+	public static void defaultGetAllBytesBy64(NonuniformMethodsForByteList64 list, int start, @WritableValue byte[] array, int offset, int length)
 	{
 		for (int i = 0; i < length; i++)
-			array[offset + i] = list.getByte(start + i);
+			array[offset + i] = list.getByteBy64(start + i);
 	}
 	
 	
@@ -814,30 +818,29 @@ extends DefaultToArraysByteCollection
 	
 	
 	@ThrowAwayValue
-	public default byte[] getAllBytes(int start, int end)
+	public default byte[] getAllBytesBy64(int start, int end)
 	{
 		rangeCheckInterval(this.size(), start, end);
 		
 		byte[] buff = new byte[end-start];
-		getAllBytes(start, buff, 0, buff.length);
+		getAllBytesBy64(start, buff, 0, buff.length);
 		return buff;
 	}
 	
 	
 	
 	
-	@Override
-	public default void fillBySetting(int start, int count, Byte value)
+	public default void fillBySettingBy64(int start, int count, Byte value)
 	{
-		fillBySettingByte(start, count, value);
+		fillBySettingByteBy64(start, count, value);
 	}
 	
-	public default void fillBySettingByte(byte value)
+	public default void fillBySettingByteBy64(byte value)
 	{
-		fillBySettingByte(0, this.size(), value);
+		fillBySettingByteBy64(0, this.size(), value);
 	}
 	
-	public default void fillBySettingByte(int start, int count, byte value)
+	public default void fillBySettingByteBy64(int start, int count, byte value)
 	{
 		rangeCheckIntervalByLength(this.size(), start, count);
 		
@@ -856,25 +859,27 @@ extends DefaultToArraysByteCollection
 			
 			while (count > al)
 			{
-				this.setAll(start, l);
+				this.setAllBy64(start, l);
 				start += al;
 				count -= al;
 			}
 			
 			if (count > 0)
 			{
-				this.setAll(start, l.subList(0, count));
+				this.setAllBy64(start, l.subList(0, count));
 			}
 		}
 		else
 		{
 			int e = start + count;
 			for (int i = start; i < e; i++)
-				this.setByte(i, value);
+				this.setByteBy64(i, value);
 		}
 	}
 	
-
+	
+	
+	
 	
 	
 	
