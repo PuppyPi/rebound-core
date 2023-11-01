@@ -637,67 +637,7 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public default void setArray(@Nonnegative int destByteOffset, @ReadonlyValue @Nonnull byte[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
-	{
-		int primbytelen = 1;
-		
-		for (int i = 0; i < sourceLength; i++)
-			setByte(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
-	}
-	
-	public default void setArray(@ReadonlyValue @Nonnull byte[] source)
-	{
-		setArray(0, source, 0, source.length);
-	}
-	
-	public default void setArrayFromSliceByte(@Nonnegative int destByteOffset, @ReadonlyValue @Nonnull Slice<byte[]> source)
-	{
-		setArray(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	public default void setArrayFromSliceByte(@ReadonlyValue @Nonnull Slice<byte[]> source)
-	{
-		setArrayFromSliceByte(0, source);
-	}
-	
-	
-	
-	public default void getArray(@Nonnegative int sourceByteOffset, @WritableValue @Nonnull byte[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
-	{
-		int primbytelen = 1;
-		
-		for (int i = 0; i < destLength; i++)
-			dest[destElementOffset+i] = (byte)getByte(sourceByteOffset+i*primbytelen);
-	}
-	
-	public default void getArray(@WritableValue @Nonnull byte[] dest)
-	{
-		getArray(0, dest, 0, dest.length);
-	}
-	
-	public default void getArrayFromSliceByte(@Nonnegative int sourceByteOffset, @WritableValue @Nonnull Slice<byte[]> dest)
-	{
-		getArray(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
-	}
-	
-	public default void getArrayFromSliceByte(@WritableValue @Nonnull Slice<byte[]> dest)
-	{
-		getArrayFromSliceByte(0, dest);
-	}
-	
-	
-	
-	
+
 	
 	
 	

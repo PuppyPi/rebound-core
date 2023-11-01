@@ -1,8 +1,12 @@
 package rebound.util.collections.prim;
 
 import static rebound.bits.BitUtilities.*;
+import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -10,10 +14,13 @@ import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenBy
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.util.collections.Slice;
+import rebound.util.collections.TransparentContiguousArrayBackedCollection;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
@@ -642,43 +649,232 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	public default void setArrayBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull byte[] source, @Nonnegative int sourceElementOffset, @Nonnegative int sourceLength)
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBytes(int index, byte[] array)
 	{
-		int primbytelen = 1;
+		setAllBytes(index, array, 0, array.length);
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBytes(int index, Slice<byte[]> arraySlice)
+	{
+		setAllBytes(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	public default void setAllBytes(int start, byte[] array, int offset, int length)
+	{
+		int size = this.size();
 		
-		for (int i = 0; i < sourceLength; i++)
-			setByteBy64(destByteOffset+i*primbytelen, source[sourceElementOffset+i]);
-	}
-	
-	public default void setArrayFromSliceByteBy64(@ActuallyUnsigned long destByteOffset, @ReadonlyValue @Nonnull Slice<byte[]> source)
-	{
-		setArrayBy64(destByteOffset, source.getUnderlying(), source.getOffset(), source.getLength());
-	}
-	
-	
-	
-	public default void getArrayBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull byte[] dest, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLength)
-	{
-		int primbytelen = 1;
+		rangeCheckIntervalByLength(size, start, length);
+		rangeCheckIntervalByLength(array.length, offset, length);
 		
-		for (int i = 0; i < destLength; i++)
-			dest[destElementOffset+i] = (byte)getByteBy64(sourceByteOffset+i*primbytelen);
+		if (TransparentContiguousArrayBackedCollection.is(this))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+			
+			//Double-check that the underlying slice matches the exposed length/size!
+			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(size, start, length);
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			if (u.getUnderlying() instanceof byte[])
+			{
+				Slice<byte[]> s = (Slice<byte[]>) u;
+				
+				System.arraycopy(array, offset, s.getUnderlying(), s.getOffset()+start, length);
+				
+				return;
+			}
+		}
+		
+		
+		defaultSetAllBytes(this, start, array, offset, length);
 	}
 	
-	public default void getArrayFromSliceByteBy64(@ActuallyUnsigned long sourceByteOffset, @WritableValue @Nonnull Slice<byte[]> dest)
+	
+	public static void defaultSetAllBytes(ByteList list, int start, @WritableValue byte[] array, int offset, int length)
 	{
-		getArrayBy64(sourceByteOffset, dest.getUnderlying(), dest.getOffset(), dest.getLength());
+		for (int i = 0; i < length; i++)
+			list.setByte(start + i, array[offset + i]);
 	}
 	
 	
 	
 	
+	
+	@Override
+	public default void setAll(int destIndex, List sourceU, int sourceIndex, @Nonnegative int amount) throws IndexOutOfBoundsException
+	{
+		List<Byte> source = sourceU;
+		ByteList dest = this;
+		
+		int sourceSize = source.size();
+		int destSize = dest.size();
+		rangeCheckIntervalByLength(sourceSize, sourceIndex, amount);
+		rangeCheckIntervalByLength(destSize, destIndex, amount);
+		
+		
+		
+		if (TransparentContiguousArrayBackedCollection.is(source))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection<?>)source).getLiveContiguousArrayBackingUNSAFE();
+			
+			//Double-check that the underlying slice matches the exposed length/size!
+			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(sourceSize, sourceIndex, amount);
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(sourceSize, u);
+			
+			if (u.getUnderlying() instanceof byte[])
+			{
+				Slice<byte[]> s = (Slice<byte[]>)u;
+				this.setAllBytes(destIndex, s.subslice(sourceIndex, amount));
+				return;
+			}
+		}
+		
+		
+		
+		
+		if (source instanceof ByteList)
+		{
+			ByteList primSource = (ByteList) source;
+			
+			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
+			{
+				for (int i = 0; i < amount; i++)
+					dest.setByte(destIndex+i, primSource.getByte(sourceIndex+i));
+			}
+			else
+			{
+				for (int i = amount-1; i >= 0; i--)
+					dest.setByte(destIndex+i, primSource.getByte(sourceIndex+i));
+			}
+		}
+		else
+		{
+			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
+			{
+				for (int i = 0; i < amount; i++)
+					dest.set(destIndex+i, source.get(sourceIndex+i));
+			}
+			else
+			{
+				for (int i = amount-1; i >= 0; i--)
+					dest.set(destIndex+i, source.get(sourceIndex+i));
+			}
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 */
+	public default void getAllBytes(int start, @WritableValue byte[] array, int offset, int length)
+	{
+		int size = this.size();
+		
+		rangeCheckIntervalByLength(size, start, length);
+		rangeCheckIntervalByLength(array.length, offset, length);
+		
+		if (TransparentContiguousArrayBackedCollection.is(this))
+		{
+			Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
+			
+			//Double-check that the underlying slice matches the exposed length/size!
+			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(size, start, length);
+			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
+			
+			if (u.getUnderlying() instanceof byte[])
+			{
+				Slice<byte[]> s = (Slice<byte[]>) u;
+				
+				System.arraycopy(s.getUnderlying(), s.getOffset()+start, array, offset, length);
+				
+				return;
+			}
+		}
+		
+		
+		defaultGetAllBytes(this, start, array, offset, length);
+	}
+	
+	
+	public static void defaultGetAllBytes(ByteList list, int start, @WritableValue byte[] array, int offset, int length)
+	{
+		for (int i = 0; i < length; i++)
+			array[offset + i] = list.getByte(start + i);
+	}
+	
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public default byte[] getAllBytes(int start, int end)
+	{
+		rangeCheckInterval(this.size(), start, end);
+		
+		byte[] buff = new byte[end-start];
+		getAllBytes(start, buff, 0, buff.length);
+		return buff;
+	}
+	
+	
+	
+	
+	@Override
+	public default void fillBySetting(int start, int count, Byte value)
+	{
+		fillBySettingByte(start, count, value);
+	}
+	
+	public default void fillBySettingByte(byte value)
+	{
+		fillBySettingByte(0, this.size(), value);
+	}
+	
+	public default void fillBySettingByte(int start, int count, byte value)
+	{
+		rangeCheckIntervalByLength(this.size(), start, count);
+		
+		if (count >= FillWithArrayThreshold)
+		{
+			byte[] array = new byte[least(count, FillWithArraySize)];
+			
+			if (value != ((byte)0))
+			{
+				Arrays.fill(array, value);
+			}
+			
+			int al = array.length;
+			
+			ByteList l = byteArrayAsList(array);
+			
+			while (count > al)
+			{
+				this.setAll(start, l);
+				start += al;
+				count -= al;
+			}
+			
+			if (count > 0)
+			{
+				this.setAll(start, l.subList(0, count));
+			}
+		}
+		else
+		{
+			int e = start + count;
+			for (int i = start; i < e; i++)
+				this.setByte(i, value);
+		}
+	}
+	
+
 	
 	
 	
