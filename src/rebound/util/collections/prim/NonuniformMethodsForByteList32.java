@@ -478,4 +478,22 @@ extends DefaultToArraysByteCollection
 	{
 		setNativeLong(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//TODO arrayyyyyyyyyssssss!!!
 }
