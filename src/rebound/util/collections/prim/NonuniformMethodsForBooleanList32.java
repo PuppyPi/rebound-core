@@ -186,7 +186,7 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
@@ -206,19 +206,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull _$$prim$$_[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
 	}
 	
-	public default void putArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	public default void setArrayFromSlice_$$Prim$$_(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
 	}
 	
-	public default void putArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	public default void setArrayFromSlice_$$Prim$$_(@ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
-		putArrayFromSlice_$$Prim$$_(0, bitfields);
+		setArrayFromSlice_$$Prim$$_(0, bitfields);
 	}
 	
 	
@@ -330,7 +330,7 @@ extends DefaultToArraysBooleanCollection
 	 */
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 8;
 		
@@ -350,19 +350,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull byte[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull byte[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*8l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*8l);
 	}
 	
-	public default void putArrayFromSliceByte(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields)
+	public default void setArrayFromSliceByte(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8l);
 	}
 	
-	public default void putArrayFromSliceByte(@ReadonlyValue @Nonnull Slice<byte[]> bitfields)
+	public default void setArrayFromSliceByte(@ReadonlyValue @Nonnull Slice<byte[]> bitfields)
 	{
-		putArrayFromSliceByte(0, bitfields);
+		setArrayFromSliceByte(0, bitfields);
 	}
 	
 	
@@ -473,7 +473,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -493,19 +493,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull char[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull char[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*16l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void putArrayFromSliceChar(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields)
+	public default void setArrayFromSliceChar(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
 	
-	public default void putArrayFromSliceChar(@ReadonlyValue @Nonnull Slice<char[]> bitfields)
+	public default void setArrayFromSliceChar(@ReadonlyValue @Nonnull Slice<char[]> bitfields)
 	{
-		putArrayFromSliceChar(0, bitfields);
+		setArrayFromSliceChar(0, bitfields);
 	}
 	
 	
@@ -616,7 +616,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -636,19 +636,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull short[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull short[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*16l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void putArrayFromSliceShort(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields)
+	public default void setArrayFromSliceShort(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
 	
-	public default void putArrayFromSliceShort(@ReadonlyValue @Nonnull Slice<short[]> bitfields)
+	public default void setArrayFromSliceShort(@ReadonlyValue @Nonnull Slice<short[]> bitfields)
 	{
-		putArrayFromSliceShort(0, bitfields);
+		setArrayFromSliceShort(0, bitfields);
 	}
 	
 	
@@ -759,7 +759,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 32;
 		
@@ -779,19 +779,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull int[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull int[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*32l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*32l);
 	}
 	
-	public default void putArrayFromSliceInt(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields)
+	public default void setArrayFromSliceInt(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32l);
 	}
 	
-	public default void putArrayFromSliceInt(@ReadonlyValue @Nonnull Slice<int[]> bitfields)
+	public default void setArrayFromSliceInt(@ReadonlyValue @Nonnull Slice<int[]> bitfields)
 	{
-		putArrayFromSliceInt(0, bitfields);
+		setArrayFromSliceInt(0, bitfields);
 	}
 	
 	
@@ -902,7 +902,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToWriteInBits)
+	public default void setArray(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 64;
 		
@@ -922,19 +922,19 @@ extends DefaultToArraysBooleanCollection
 			setBitfield(safeCastS64toS32(destBitOffset+fullAmount), remainder, bitfields[sourceElementOffset+numberOfFullElementsToUse]);
 	}
 	
-	public default void putArray(@ReadonlyValue @Nonnull long[] bitfields)
+	public default void setArray(@ReadonlyValue @Nonnull long[] bitfields)
 	{
-		putArray(0, bitfields, 0, bitfields.length, bitfields.length*64l);
+		setArray(0, bitfields, 0, bitfields.length, bitfields.length*64l);
 	}
 	
-	public default void putArrayFromSliceLong(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields)
+	public default void setArrayFromSliceLong(@Nonnegative int destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields)
 	{
-		putArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64l);
+		setArray(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64l);
 	}
 	
-	public default void putArrayFromSliceLong(@ReadonlyValue @Nonnull Slice<long[]> bitfields)
+	public default void setArrayFromSliceLong(@ReadonlyValue @Nonnull Slice<long[]> bitfields)
 	{
-		putArrayFromSliceLong(0, bitfields);
+		setArrayFromSliceLong(0, bitfields);
 	}
 	
 	
