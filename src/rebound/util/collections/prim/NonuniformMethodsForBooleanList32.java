@@ -15,8 +15,9 @@ import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBoolean
 
 //TODO Elementwise boolean operations between BooleanLists!!  AND, OR, NOT, XOR!  \:D/
 
-//TODO Mention endianness (where it would apply) is entirely Little for both Bits and Bytes in all the boolean list things!
-
+/**
+ * • Note: both bit-endianness and byte-endianness are always Little in this API!  Use functions on bitfields in memory/registers to swap them if you want something different!  (This is because the mask of the i'th bit is simply 2^i)
+ */
 @ImplementationTransparency  //This only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 public interface NonuniformMethodsForBooleanList32
 extends DefaultToArraysBooleanCollection
