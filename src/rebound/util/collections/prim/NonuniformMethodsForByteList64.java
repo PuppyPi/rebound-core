@@ -1,13 +1,13 @@
 package rebound.util.collections.prim;
 
 import static rebound.bits.BitUtilities.*;
+import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -19,8 +19,8 @@ import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
+import rebound.exceptions.OverflowException;
 import rebound.util.collections.Slice;
-import rebound.util.collections.TransparentContiguousArrayBackedCollection;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
@@ -650,120 +650,62 @@ extends DefaultToArraysByteCollection
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setAllBytesBy64(int index, byte[] array)
+	public default void setAllBytesBy64(@ActuallyUnsigned long index, byte[] array)
 	{
 		setAllBytesBy64(index, array, 0, array.length);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setAllBytesBy64(int index, Slice<byte[]> arraySlice)
+	public default void setAllBytesBy64(@ActuallyUnsigned long index, Slice<byte[]> arraySlice)
 	{
 		setAllBytesBy64(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
 	}
 	
-	public default void setAllBytesBy64(int start, byte[] array, int offset, int length)
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBytesBy64(@ActuallyUnsigned long start, byte[] array, @Nonnegative int offset, @Nonnegative int length)
 	{
-		int size = this.size();
+		requireNonNegative(offset);
+		requireNonNegative(length);
 		
-		rangeCheckIntervalByLength(size, start, length);
-		rangeCheckIntervalByLength(array.length, offset, length);
+		long size = this.size64();
 		
-		if (TransparentContiguousArrayBackedCollection.is(this))
-		{
-			Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
-			
-			//Double-check that the underlying slice matches the exposed length/size!
-			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(size, start, length);
-			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
-			
-			if (u.getUnderlying() instanceof byte[])
-			{
-				Slice<byte[]> s = (Slice<byte[]>) u;
-				
-				System.arraycopy(array, offset, s.getUnderlying(), s.getOffset()+start, length);
-				
-				return;
-			}
-		}
+		rangeCheckIntervalByLengthU64(size, start, length);
+		rangeCheckIntervalByLengthU64(array.length, offset, length);
 		
-		
-		defaultSetAllBytesBy64(this, start, array, offset, length);
-	}
-	
-	
-	public static void defaultSetAllBytesBy64(NonuniformMethodsForByteList64 list, int start, @WritableValue byte[] array, int offset, int length)
-	{
 		for (int i = 0; i < length; i++)
-			list.setByteBy64(start + i, array[offset + i]);
+			setByteBy64(start + i, array[offset + i]);
 	}
 	
 	
 	
 	
 	
-	public default void setAllBy64(int destIndex, List source) throws IndexOutOfBoundsException
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBy64(@ActuallyUnsigned long destIndex, NonuniformMethodsForByteList64 source) throws IndexOutOfBoundsException
 	{
-		setAllBy64(destIndex, source, 0, source.size());
+		setAllBy64(destIndex, source, 0, source.size64());
 	}
 	
-	public default void setAllBy64(int destIndex, List sourceU, int sourceIndex, @Nonnegative int amount) throws IndexOutOfBoundsException
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBy64(@ActuallyUnsigned long destIndex, NonuniformMethodsForByteList64 source, @ActuallyUnsigned long sourceIndex, @ActuallyUnsigned long amount) throws IndexOutOfBoundsException
 	{
-		List<Byte> source = sourceU;
 		NonuniformMethodsForByteList64 dest = this;
 		
-		int sourceSize = source.size();
-		int destSize = dest.size();
-		rangeCheckIntervalByLength(sourceSize, sourceIndex, amount);
-		rangeCheckIntervalByLength(destSize, destIndex, amount);
+		@ActuallyUnsigned long sourceSize = source.size64();
+		@ActuallyUnsigned long destSize = dest.size64();
+		rangeCheckIntervalByLengthU64(sourceSize, sourceIndex, amount);
+		rangeCheckIntervalByLengthU64(destSize, destIndex, amount);
 		
-		
-		
-		if (TransparentContiguousArrayBackedCollection.is(source))
+		if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
 		{
-			Slice<?> u = ((TransparentContiguousArrayBackedCollection<?>)source).getLiveContiguousArrayBackingUNSAFE();
-			
-			//Double-check that the underlying slice matches the exposed length/size!
-			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(sourceSize, sourceIndex, amount);
-			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(sourceSize, u);
-			
-			if (u.getUnderlying() instanceof byte[])
-			{
-				Slice<byte[]> s = (Slice<byte[]>)u;
-				this.setAllBytesBy64(destIndex, s.subslice(sourceIndex, amount));
-				return;
-			}
-		}
-		
-		
-		
-		
-		if (source instanceof NonuniformMethodsForByteList64)
-		{
-			NonuniformMethodsForByteList64 primSource = (NonuniformMethodsForByteList64) source;
-			
-			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
-			{
-				for (int i = 0; i < amount; i++)
-					dest.setByteBy64(destIndex+i, primSource.getByteBy64(sourceIndex+i));
-			}
-			else
-			{
-				for (int i = amount-1; i >= 0; i--)
-					dest.setByteBy64(destIndex+i, primSource.getByteBy64(sourceIndex+i));
-			}
+			for (@ActuallyUnsigned long i = 0; Long.compareUnsigned(i, amount) < 0; i++)
+				dest.setByteBy64(destIndex+i, source.getByteBy64(sourceIndex+i));
 		}
 		else
 		{
-			if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
-			{
-				for (int i = 0; i < amount; i++)
-					dest.setByteBy64(destIndex+i, source.get(sourceIndex+i));
-			}
-			else
-			{
-				for (int i = amount-1; i >= 0; i--)
-					dest.setByteBy64(destIndex+i, source.get(sourceIndex+i));
-			}
+			for (@ActuallyUnsigned long i = amount-1; Long.compareUnsigned(i, 0) >= 0; i--)
+				dest.setByteBy64(destIndex+i, source.getByteBy64(sourceIndex+i));
 		}
 	}
 	
@@ -776,40 +718,19 @@ extends DefaultToArraysByteCollection
 	/**
 	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
 	 */
-	public default void getAllBytesBy64(int start, @WritableValue byte[] array, int offset, int length)
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void getAllBytesBy64(@ActuallyUnsigned long start, @WritableValue byte[] array, @Nonnegative int offset, @Nonnegative int length)
 	{
-		int size = this.size();
+		requireNonNegative(offset);
+		requireNonNegative(length);
 		
-		rangeCheckIntervalByLength(size, start, length);
-		rangeCheckIntervalByLength(array.length, offset, length);
+		@ActuallyUnsigned long size = this.size64();
 		
-		if (TransparentContiguousArrayBackedCollection.is(this))
-		{
-			Slice<?> u = ((TransparentContiguousArrayBackedCollection)this).getLiveContiguousArrayBackingUNSAFE();
-			
-			//Double-check that the underlying slice matches the exposed length/size!
-			//  To make sure this we did above was all we needed:  rangeCheckIntervalByLength(size, start, length);
-			TransparentContiguousArrayBackedCollection.checkUnderlyingLengthAndExposedSizeMatch(size, u);
-			
-			if (u.getUnderlying() instanceof byte[])
-			{
-				Slice<byte[]> s = (Slice<byte[]>) u;
-				
-				System.arraycopy(s.getUnderlying(), s.getOffset()+start, array, offset, length);
-				
-				return;
-			}
-		}
+		rangeCheckIntervalByLengthU64(size, start, length);
+		rangeCheckIntervalByLengthU64(array.length, offset, length);
 		
-		
-		defaultGetAllBytesBy64(this, start, array, offset, length);
-	}
-	
-	
-	public static void defaultGetAllBytesBy64(NonuniformMethodsForByteList64 list, int start, @WritableValue byte[] array, int offset, int length)
-	{
 		for (int i = 0; i < length; i++)
-			array[offset + i] = list.getByteBy64(start + i);
+			array[offset + i] = getByteBy64(start + i);
 	}
 	
 	
@@ -818,11 +739,11 @@ extends DefaultToArraysByteCollection
 	
 	
 	@ThrowAwayValue
-	public default byte[] getAllBytesBy64(int start, int end)
+	public default byte[] getAllBytesBy64(@ActuallyUnsigned long start, @ActuallyUnsigned long end) throws OverflowException
 	{
-		rangeCheckInterval(this.size(), start, end);
+		rangeCheckIntervalU64(this.size(), start, end);
 		
-		byte[] buff = new byte[end-start];
+		byte[] buff = new byte[safeCastU64toS32(end-start)];
 		getAllBytesBy64(start, buff, 0, buff.length);
 		return buff;
 	}
@@ -830,18 +751,13 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void fillBySettingBy64(int start, int count, Byte value)
+	public default void fillBySettingByteBy64(@ActuallyUnsigned long start, @ActuallyUnsigned long count, byte value)
 	{
-		fillBySettingByteBy64(start, count, value);
-	}
-	
-	public default void fillBySettingByteBy64(int start, int count, byte value)
-	{
-		rangeCheckIntervalByLength(this.size(), start, count);
+		rangeCheckIntervalByLengthU64(this.size64(), start, count);
 		
 		if (count >= FillWithArrayThreshold)
 		{
-			byte[] array = new byte[least(count, FillWithArraySize)];
+			byte[] array = new byte[(int)least(count, FillWithArraySize)];
 			
 			if (value != ((byte)0))
 			{
@@ -850,25 +766,23 @@ extends DefaultToArraysByteCollection
 			
 			int al = array.length;
 			
-			ByteList l = byteArrayAsList(array);
-			
 			while (count > al)
 			{
-				this.setAllBy64(start, l);
+				setAllBytesBy64(start, array);
 				start += al;
 				count -= al;
 			}
 			
 			if (count > 0)
 			{
-				this.setAllBy64(start, l.subList(0, count));
+				setAllBytesBy64(start, array, 0, safeCastU64toS32(count));
 			}
 		}
 		else
 		{
-			int e = start + count;
-			for (int i = start; i < e; i++)
-				this.setByteBy64(i, value);
+			@ActuallyUnsigned long e = start + count;
+			for (@ActuallyUnsigned long i = start; i != e; i++)
+				setByteBy64(i, value);
 		}
 	}
 	
