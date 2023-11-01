@@ -835,11 +835,6 @@ extends DefaultToArraysByteCollection
 		fillBySettingByteBy64(start, count, value);
 	}
 	
-	public default void fillBySettingByteBy64(byte value)
-	{
-		fillBySettingByteBy64(0, this.size(), value);
-	}
-	
 	public default void fillBySettingByteBy64(int start, int count, byte value)
 	{
 		rangeCheckIntervalByLength(this.size(), start, count);
