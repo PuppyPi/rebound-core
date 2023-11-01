@@ -377,20 +377,20 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setBigShort(@ActuallyUnsigned long offsetInBytes, short value)
+	public default void setBigShortBy64(@ActuallyUnsigned long offsetInBytes, short value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 8) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigInt24(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setBigInt24By64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 16) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
 		setByteBy64(offsetInBytes+2, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigInt(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setBigIntBy64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 24) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 16) & 0xFF));
@@ -398,7 +398,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+3, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigLong40(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setBigLong40By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 32) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 24) & 0xFF));
@@ -407,7 +407,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+4, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigLong48(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setBigLong48By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 40) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 32) & 0xFF));
@@ -417,7 +417,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+5, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigLong56(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setBigLong56By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 48) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 40) & 0xFF));
@@ -428,7 +428,7 @@ extends DefaultToArraysByteCollection
 		setByteBy64(offsetInBytes+6, (byte)((value >>> 0) & 0xFF));
 	}
 	
-	public default void setBigLong(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setBigLongBy64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		setByteBy64(offsetInBytes+0, (byte)((value >>> 56) & 0xFF));
 		setByteBy64(offsetInBytes+1, (byte)((value >>> 48) & 0xFF));
@@ -442,21 +442,21 @@ extends DefaultToArraysByteCollection
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setBigChar(@ActuallyUnsigned long offsetInBytes, char value)
+	public default void setBigCharBy64(@ActuallyUnsigned long offsetInBytes, char value)
 	{
-		setBigShort(offsetInBytes, (short)value);
+		setBigShortBy64(offsetInBytes, (short)value);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setBigFloat(@ActuallyUnsigned long offsetInBytes, float value)
+	public default void setBigFloatBy64(@ActuallyUnsigned long offsetInBytes, float value)
 	{
-		setBigInt(offsetInBytes, Float.floatToRawIntBits(value));
+		setBigIntBy64(offsetInBytes, Float.floatToRawIntBits(value));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setBigDouble(@ActuallyUnsigned long offsetInBytes, double value)
+	public default void setBigDoubleBy64(@ActuallyUnsigned long offsetInBytes, double value)
 	{
-		setBigLong(offsetInBytes, Double.doubleToRawLongBits(value));
+		setBigLongBy64(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
 	
 	
@@ -548,79 +548,79 @@ extends DefaultToArraysByteCollection
 	
 	
 	
-	public default void setNativeShort(@ActuallyUnsigned long offsetInBytes, short value)
+	public default void setNativeShortBy64(@ActuallyUnsigned long offsetInBytes, short value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleShortBy64(offsetInBytes, value);
 		else
-			setBigShort(offsetInBytes, value);
+			setBigShortBy64(offsetInBytes, value);
 	}
 	
-	public default void setNativeInt24(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setNativeInt24By64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleInt24By64(offsetInBytes, value);
 		else
-			setBigInt24(offsetInBytes, value);
+			setBigInt24By64(offsetInBytes, value);
 	}
 	
-	public default void setNativeInt(@ActuallyUnsigned long offsetInBytes, int value)
+	public default void setNativeIntBy64(@ActuallyUnsigned long offsetInBytes, int value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleIntBy64(offsetInBytes, value);
 		else
-			setBigInt(offsetInBytes, value);
+			setBigIntBy64(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong40(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setNativeLong40By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong40By64(offsetInBytes, value);
 		else
-			setBigLong40(offsetInBytes, value);
+			setBigLong40By64(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong48(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setNativeLong48By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong48By64(offsetInBytes, value);
 		else
-			setBigLong48(offsetInBytes, value);
+			setBigLong48By64(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong56(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setNativeLong56By64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLong56By64(offsetInBytes, value);
 		else
-			setBigLong56(offsetInBytes, value);
+			setBigLong56By64(offsetInBytes, value);
 	}
 	
-	public default void setNativeLong(@ActuallyUnsigned long offsetInBytes, long value)
+	public default void setNativeLongBy64(@ActuallyUnsigned long offsetInBytes, long value)
 	{
 		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
 			setLittleLongBy64(offsetInBytes, value);
 		else
-			setBigLong(offsetInBytes, value);
+			setBigLongBy64(offsetInBytes, value);
 	}
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setNativeChar(@ActuallyUnsigned long offsetInBytes, char value)
+	public default void setNativeCharBy64(@ActuallyUnsigned long offsetInBytes, char value)
 	{
-		setNativeShort(offsetInBytes, (short)value);
+		setNativeShortBy64(offsetInBytes, (short)value);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setNativeFloat(@ActuallyUnsigned long offsetInBytes, float value)
+	public default void setNativeFloatBy64(@ActuallyUnsigned long offsetInBytes, float value)
 	{
-		setNativeInt(offsetInBytes, Float.floatToRawIntBits(value));
+		setNativeIntBy64(offsetInBytes, Float.floatToRawIntBits(value));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setNativeDouble(@ActuallyUnsigned long offsetInBytes, double value)
+	public default void setNativeDoubleBy64(@ActuallyUnsigned long offsetInBytes, double value)
 	{
-		setNativeLong(offsetInBytes, Double.doubleToRawLongBits(value));
+		setNativeLongBy64(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
 	
 	
