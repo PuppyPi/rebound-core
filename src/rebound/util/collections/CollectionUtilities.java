@@ -72,6 +72,7 @@ import rebound.annotations.semantic.reachability.LiveValue;
 import rebound.annotations.semantic.reachability.PossiblySnapshotPossiblyLiveValue;
 import rebound.annotations.semantic.reachability.SnapshotValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.Nonempty;
 import rebound.annotations.semantic.simpledata.NonnullElements;
 import rebound.annotations.semantic.simpledata.NonnullKeys;
@@ -12474,8 +12475,6 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
-	//Todo ones for U64's ^^'
-	
 	public static void rangeCheckMemberS64(long collectionSize, long index)
 	{
 		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
@@ -12506,6 +12505,36 @@ _$$primxpconf:byte,char,short,int$$_
 		if (collectionSize < 0)  throw new ImpossibleException("negative contextualizing collection length!!:  "+collectionSize);
 		if (length < 0)  throw new IndexOutOfBoundsException("negative length!!  "+length);
 		rangeCheckIntervalS64(collectionSize, fromIndex, fromIndex+length);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static void rangeCheckMemberU64(@ActuallyUnsigned long collectionSize, @ActuallyUnsigned long index)
+	{
+		if (Long.compareUnsigned(index, collectionSize) >= 0)  throw new IndexOutOfBoundsException("index "+Long.toUnsignedString(index)+" >= size "+Long.toUnsignedString(collectionSize));   // >= not > !!
+	}
+	
+	public static void rangeCheckCursorPointU64(@ActuallyUnsigned long collectionSize, @ActuallyUnsigned long index)
+	{
+		if (Long.compareUnsigned(index, collectionSize) > 0)  throw new IndexOutOfBoundsException("index "+Long.toUnsignedString(index)+" > size "+Long.toUnsignedString(collectionSize));   // > not >= !!
+	}
+	
+	
+	public static void rangeCheckIntervalU64(@ActuallyUnsigned long collectionSize, @ActuallyUnsigned long start, @ActuallyUnsigned long endExcl)
+	{
+		if (Long.compareUnsigned(start, collectionSize) > 0)  throw new IndexOutOfBoundsException("index "+Long.toUnsignedString(start)+" > size "+Long.toUnsignedString(collectionSize));
+		if (Long.compareUnsigned(endExcl, collectionSize) > 0)  throw new IndexOutOfBoundsException("index bound "+Long.toUnsignedString(endExcl)+" > size "+Long.toUnsignedString(collectionSize));
+		if (Long.compareUnsigned(endExcl, start) < 0)  throw new IndexOutOfBoundsException("index bounds reversed!  ("+Long.toUnsignedString(start)+" to "+Long.toUnsignedString(endExcl)+")");
+	}
+	
+	public static void rangeCheckIntervalByLengthU64(@ActuallyUnsigned long collectionSize, @ActuallyUnsigned long fromIndex, @ActuallyUnsigned long length)
+	{
+		rangeCheckIntervalU64(collectionSize, fromIndex, fromIndex+length);
 	}
 	
 	
