@@ -35,7 +35,7 @@ extends DefaultToArraysByteCollection
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	public default SpanningOperationImplementationType getMultibyteOperationsImplementationGuaranteesFor64bitOffsetsBy64()
 	{
-		return SpanningOperationImplementationType.OneByOne;
+		return SpanningOperationImplementationType.Piecemeal;
 	}
 	
 	

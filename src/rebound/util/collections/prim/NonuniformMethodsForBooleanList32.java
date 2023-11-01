@@ -56,7 +56,7 @@ extends DefaultToArraysBooleanCollection
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	public default SpanningOperationImplementationType getMultibitOperationsImplementationGuaranteesFor32bitOffsets()
 	{
-		return SpanningOperationImplementationType.OneByOne;
+		return SpanningOperationImplementationType.Piecemeal;
 	}
 	
 	
