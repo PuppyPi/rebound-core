@@ -35,7 +35,19 @@ extends DefaultToArraysByteCollection
 	}
 	
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default boolean isMultibyteOperationsAtomicFor32bitOffsets()
+	public default boolean is2ByteOperationsAtomicFor32bitOffsets()
+	{
+		return false;
+	}
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default boolean is4ByteOperationsAtomicFor32bitOffsets()
+	{
+		return false;
+	}
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default boolean is8ByteOperationsAtomicFor32bitOffsets()
 	{
 		return false;
 	}
