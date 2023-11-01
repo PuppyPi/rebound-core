@@ -1,7 +1,9 @@
 package rebound.util.collections.prim;
 
+import java.nio.ByteOrder;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
+import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
@@ -19,7 +21,24 @@ extends DefaultToArraysByteCollection
 	public void setByte(@Nonnegative int offsetInBytes, byte value);
 	
 	
-	public default long getByteFieldLE(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count)
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default boolean isMultibyteOperationsOverriddenFor32bitOffsets()
+	{
+		return false;
+	}
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default boolean isMultibyteOperationsAtomicFor32bitOffsets()
+	{
+		return false;
+	}
+	
+	
+	
+	
+	
+	public default long getLittleByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count)
 	{
 		long v = 0;
 		int i = offsetInBytes + count;
@@ -32,7 +51,7 @@ extends DefaultToArraysByteCollection
 		return v;
 	}
 	
-	public default long getByteFieldBE(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count)
+	public default long getBigByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count)
 	{
 		long v = 0;
 		int stop = offsetInBytes + count;
@@ -45,9 +64,14 @@ extends DefaultToArraysByteCollection
 		return v;
 	}
 	
+	public default long getNativeByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleByteField(offsetInBytes, count) : getBigByteField(offsetInBytes, count);
+	}
 	
 	
-	public default void setByteFieldLE(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count, long field)
+	
+	public default void setLittleByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count, long field)
 	{
 		int stop = offsetInBytes + count;
 		while (offsetInBytes < stop)
@@ -58,7 +82,7 @@ extends DefaultToArraysByteCollection
 		}
 	}
 	
-	public default void setByteFieldBE(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count, long field)
+	public default void setBigByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count, long field)
 	{
 		int i = offsetInBytes + count;
 		while (i >= offsetInBytes)
@@ -70,254 +94,394 @@ extends DefaultToArraysByteCollection
 		}
 	}
 	
+	public default void setNativeByteField(@Nonnegative int offsetInBytes, @BoundedInt(min=1, max=8) int count, long field)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleByteField(offsetInBytes, count, field);
+		else
+			setBigByteField(offsetInBytes, count, field);
+	}
 	
 	
 	
 	
 	
 	
-	public default short getShortLE(@Nonnegative int offsetInBytes)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default short getLittleShort(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleShort((ByteList)this, offsetInBytes);
 	}
 	
-	public default short getShortBE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigShort((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default @BoundedInt(min=0, max=16777215) int getUInt24LE(@Nonnegative int offsetInBytes)
+	public default @BoundedInt(min=0, max=16777215) int getLittleUInt24(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleUInt24((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedInt(min=0, max=16777215) int getUInt24BE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigUInt24((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default int getIntLE(@Nonnegative int offsetInBytes)
+	public default int getLittleInt(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleInt((ByteList)this, offsetInBytes);
 	}
 	
-	public default int getIntBE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigInt((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default @BoundedLong(min=0, max=1099511627775l) long getULong40LE(@Nonnegative int offsetInBytes)
+	public default @BoundedLong(min=0, max=1099511627775l) long getLittleULong40(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong40((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=1099511627775l) long getULong40BE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigULong40((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default @BoundedLong(min=0, max=281474976710655l) long getULong48LE(@Nonnegative int offsetInBytes)
+	public default @BoundedLong(min=0, max=281474976710655l) long getLittleULong48(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong48((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=281474976710655l) long getULong48BE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigULong48((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default @BoundedLong(min=0, max=72057594037927935l) long getULong56LE(@Nonnegative int offsetInBytes)
+	public default @BoundedLong(min=0, max=72057594037927935l) long getLittleULong56(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleULong56((ByteList)this, offsetInBytes);
 	}
 	
-	public default @BoundedLong(min=0, max=72057594037927935l) long getULong56BE(@Nonnegative int offsetInBytes)
-	{
-		return Bytes.getBigULong56((ByteList)this, offsetInBytes);
-	}
-	
-	
-	public default long getLongLE(@Nonnegative int offsetInBytes)
+	public default long getLittleLong(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getLittleLong((ByteList)this, offsetInBytes);
 	}
 	
-	public default long getLongBE(@Nonnegative int offsetInBytes)
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default char getLittleChar(@Nonnegative int offsetInBytes)
+	{
+		return (char)getLittleShort(offsetInBytes);
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default float getLittleFloat(@Nonnegative int offsetInBytes)
+	{
+		return Float.intBitsToFloat(getLittleInt(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default double getLittleDouble(@Nonnegative int offsetInBytes)
+	{
+		return Double.longBitsToDouble(getLittleLong(offsetInBytes));
+	}
+	
+	
+	
+	public default void setLittleShort(@Nonnegative int offsetInBytes, short value)
+	{
+		Bytes.putLittleShort((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleInt24(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
+	{
+		Bytes.putLittleInt24((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleInt(@Nonnegative int offsetInBytes, int value)
+	{
+		Bytes.putLittleInt((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleLong40(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
+	{
+		Bytes.putLittleLong40((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleLong48(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
+	{
+		Bytes.putLittleLong48((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleLong56(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
+	{
+		Bytes.putLittleLong56((ByteList)this, offsetInBytes, value);
+	}
+	
+	public default void setLittleLong(@Nonnegative int offsetInBytes, long value)
+	{
+		Bytes.putLittleLong((ByteList)this, offsetInBytes, value);
+	}
+	
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setLittleChar(@Nonnegative int offsetInBytes, char value)
+	{
+		setLittleShort(offsetInBytes, (short)value);
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setLittleFloat(@Nonnegative int offsetInBytes, float value)
+	{
+		setLittleInt(offsetInBytes, Float.floatToRawIntBits(value));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setLittleDouble(@Nonnegative int offsetInBytes, double value)
+	{
+		setLittleLong(offsetInBytes, Double.doubleToRawLongBits(value));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public default short getBigShort(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigShort((ByteList)this, offsetInBytes);
+	}
+	
+	public default @BoundedInt(min=0, max=16777215) int getBigUInt24(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigUInt24((ByteList)this, offsetInBytes);
+	}
+	
+	public default int getBigInt(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigInt((ByteList)this, offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=1099511627775l) long getBigULong40(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigULong40((ByteList)this, offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=281474976710655l) long getBigULong48(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigULong48((ByteList)this, offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=72057594037927935l) long getBigULong56(@Nonnegative int offsetInBytes)
+	{
+		return Bytes.getBigULong56((ByteList)this, offsetInBytes);
+	}
+	
+	public default long getBigLong(@Nonnegative int offsetInBytes)
 	{
 		return Bytes.getBigLong((ByteList)this, offsetInBytes);
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	public default void setShortLE(@Nonnegative int offsetInBytes, short value)
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default char getBigChar(@Nonnegative int offsetInBytes)
 	{
-		Bytes.putLittleShort((ByteList)this, offsetInBytes, value);
+		return (char)getBigShort(offsetInBytes);
 	}
 	
-	public default void setShortBE(@Nonnegative int offsetInBytes, short value)
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default float getBigFloat(@Nonnegative int offsetInBytes)
+	{
+		return Float.intBitsToFloat(getBigInt(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default double getBigDouble(@Nonnegative int offsetInBytes)
+	{
+		return Double.longBitsToDouble(getBigLong(offsetInBytes));
+	}
+	
+	
+	
+	public default void setBigShort(@Nonnegative int offsetInBytes, short value)
 	{
 		Bytes.putBigShort((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setUInt24LE(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
-	{
-		Bytes.putLittleInt24((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setUInt24BE(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
+	public default void setBigInt24(@Nonnegative int offsetInBytes, @BoundedInt(min=0, max=16777215) int value)
 	{
 		Bytes.putBigInt24((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setIntLE(@Nonnegative int offsetInBytes, int value)
-	{
-		Bytes.putLittleInt((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setIntBE(@Nonnegative int offsetInBytes, int value)
+	public default void setBigInt(@Nonnegative int offsetInBytes, int value)
 	{
 		Bytes.putBigInt((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setULong40LE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
-	{
-		Bytes.putLittleLong40((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setULong40BE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
+	public default void setBigLong40(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=1099511627775l) long value)
 	{
 		Bytes.putBigLong40((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setULong48LE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
-	{
-		Bytes.putLittleLong48((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setULong48BE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
+	public default void setBigLong48(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=281474976710655l) long value)
 	{
 		Bytes.putBigLong48((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setULong56LE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
-	{
-		Bytes.putLittleLong56((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setULong56BE(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
+	public default void setBigLong56(@Nonnegative int offsetInBytes, @BoundedLong(min=0, max=72057594037927935l) long value)
 	{
 		Bytes.putBigLong56((ByteList)this, offsetInBytes, value);
 	}
 	
-	
-	public default void setLongLE(@Nonnegative int offsetInBytes, long value)
-	{
-		Bytes.putLittleLong((ByteList)this, offsetInBytes, value);
-	}
-	
-	public default void setLongBE(@Nonnegative int offsetInBytes, long value)
+	public default void setBigLong(@Nonnegative int offsetInBytes, long value)
 	{
 		Bytes.putBigLong((ByteList)this, offsetInBytes, value);
 	}
 	
 	
-	
-	
-	
-	
-	
-	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default char getCharLE(@Nonnegative int offsetInBytes)
+	public default void setBigChar(@Nonnegative int offsetInBytes, char value)
 	{
-		return (char)getShortLE(offsetInBytes);
+		setBigShort(offsetInBytes, (short)value);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default char getCharBE(@Nonnegative int offsetInBytes)
+	public default void setBigFloat(@Nonnegative int offsetInBytes, float value)
 	{
-		return (char)getShortBE(offsetInBytes);
-	}
-	
-	
-	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default float getFloatLE(@Nonnegative int offsetInBytes)
-	{
-		return Float.intBitsToFloat(getIntLE(offsetInBytes));
+		setBigInt(offsetInBytes, Float.floatToRawIntBits(value));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default float getFloatBE(@Nonnegative int offsetInBytes)
+	public default void setBigDouble(@Nonnegative int offsetInBytes, double value)
 	{
-		return Float.intBitsToFloat(getIntBE(offsetInBytes));
-	}
-	
-	
-	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default double getDoubleLE(@Nonnegative int offsetInBytes)
-	{
-		return Double.longBitsToDouble(getLongLE(offsetInBytes));
-	}
-	
-	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default double getDoubleBE(@Nonnegative int offsetInBytes)
-	{
-		return Double.longBitsToDouble(getLongBE(offsetInBytes));
+		setBigLong(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
 	
 	
 	
 	
-	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setCharLE(@Nonnegative int offsetInBytes, char value)
+	
+	
+	
+	
+	
+	
+	public default short getNativeShort(@Nonnegative int offsetInBytes)
 	{
-		setShortLE(offsetInBytes, (short)value);
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleShort(offsetInBytes) : getBigShort(offsetInBytes);
+	}
+	
+	public default @BoundedInt(min=0, max=16777215) int getNativeUInt24(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleUInt24(offsetInBytes) : getBigUInt24(offsetInBytes);
+	}
+	
+	public default int getNativeInt(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleInt(offsetInBytes) : getBigInt(offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=1099511627775l) long getNativeULong40(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong40(offsetInBytes) : getBigULong40(offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=281474976710655l) long getNativeULong48(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong48(offsetInBytes) : getBigULong48(offsetInBytes);
+	}
+	
+	public default @BoundedLong(min=0, max=72057594037927935l) long getNativeULong56(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleULong56(offsetInBytes) : getBigULong56(offsetInBytes);
+	}
+	
+	public default long getNativeLong(@Nonnegative int offsetInBytes)
+	{
+		return ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN ? getLittleLong(offsetInBytes) : getBigLong(offsetInBytes);
+	}
+	
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default char getNativeChar(@Nonnegative int offsetInBytes)
+	{
+		return (char)getNativeShort(offsetInBytes);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setCharBE(@Nonnegative int offsetInBytes, char value)
+	public default float getNativeFloat(@Nonnegative int offsetInBytes)
 	{
-		setShortBE(offsetInBytes, (short)value);
+		return Float.intBitsToFloat(getNativeInt(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default double getNativeDouble(@Nonnegative int offsetInBytes)
+	{
+		return Double.longBitsToDouble(getNativeLong(offsetInBytes));
+	}
+	
+	
+	
+	public default void setNativeShort(@Nonnegative int offsetInBytes, short value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleShort(offsetInBytes, value);
+		else
+			setBigShort(offsetInBytes, value);
+	}
+	
+	public default void setNativeInt24(@Nonnegative int offsetInBytes, @BoundedInt(min = 0, max = 16777215) int value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleInt24(offsetInBytes, value);
+		else
+			setBigInt24(offsetInBytes, value);
+	}
+	
+	public default void setNativeInt(@Nonnegative int offsetInBytes, int value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleInt(offsetInBytes, value);
+		else
+			setBigInt(offsetInBytes, value);
+	}
+	
+	public default void setNativeLong40(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 1099511627775l) long value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleLong40(offsetInBytes, value);
+		else
+			setBigLong40(offsetInBytes, value);
+	}
+	
+	public default void setNativeLong48(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 281474976710655l) long value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleLong48(offsetInBytes, value);
+		else
+			setBigLong48(offsetInBytes, value);
+	}
+	
+	public default void setNativeLong56(@Nonnegative int offsetInBytes, @BoundedLong(min = 0, max = 72057594037927935l) long value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleLong56(offsetInBytes, value);
+		else
+			setBigLong56(offsetInBytes, value);
+	}
+	
+	public default void setNativeLong(@Nonnegative int offsetInBytes, long value)
+	{
+		if (ByteOrder.nativeOrder() == ByteOrder.LITTLE_ENDIAN)
+			setLittleLong(offsetInBytes, value);
+		else
+			setBigLong(offsetInBytes, value);
 	}
 	
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setFloatLE(@Nonnegative int offsetInBytes, float value)
+	public default void setNativeChar(@Nonnegative int offsetInBytes, char value)
 	{
-		setIntLE(offsetInBytes, Float.floatToRawIntBits(value));
+		setNativeShort(offsetInBytes, (short)value);
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setFloatBE(@Nonnegative int offsetInBytes, float value)
+	public default void setNativeFloat(@Nonnegative int offsetInBytes, float value)
 	{
-		setIntBE(offsetInBytes, Float.floatToRawIntBits(value));
-	}
-	
-	
-	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setDoubleLE(@Nonnegative int offsetInBytes, double value)
-	{
-		setLongLE(offsetInBytes, Double.doubleToRawLongBits(value));
+		setNativeInt(offsetInBytes, Float.floatToRawIntBits(value));
 	}
 	
 	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setDoubleBE(@Nonnegative int offsetInBytes, double value)
+	public default void setNativeDouble(@Nonnegative int offsetInBytes, double value)
 	{
-		setLongBE(offsetInBytes, Double.doubleToRawLongBits(value));
+		setNativeLong(offsetInBytes, Double.doubleToRawLongBits(value));
 	}
 }
