@@ -2,15 +2,21 @@ package rebound.util.collections.prim;
 
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.util.collections.CollectionUtilities.*;
+import static rebound.util.collections.prim.PrimitiveCollections.*;
+import java.util.Arrays;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
+import rebound.exceptions.OverflowException;
 import rebound.util.Primitives;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
@@ -189,6 +195,160 @@ extends DefaultToArraysBooleanCollection
 	{
 		setBitfieldBy64(offsetAlignedInElements * 64, 64, value);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBooleansBy64(@ActuallyUnsigned long index, boolean[] array)
+	{
+		setAllBooleansBy64(index, array, 0, array.length);
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBooleansBy64(@ActuallyUnsigned long index, Slice<boolean[]> arraySlice)
+	{
+		setAllBooleansBy64(index, arraySlice.getUnderlying(), arraySlice.getOffset(), arraySlice.getLength());
+	}
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBooleansBy64(@ActuallyUnsigned long start, boolean[] array, @Nonnegative int offset, @Nonnegative int length)
+	{
+		requireNonNegative(offset);
+		requireNonNegative(length);
+		
+		long size = this.size64();
+		
+		rangeCheckIntervalByLengthU64(size, start, length);
+		rangeCheckIntervalByLengthU64(array.length, offset, length);
+		
+		for (int i = 0; i < length; i++)
+			setBooleanBy64(start + i, array[offset + i]);
+	}
+	
+	
+	
+	
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBy64(@ActuallyUnsigned long destIndex, NonuniformMethodsForBooleanList64 source) throws IndexOutOfBoundsException
+	{
+		setAllBy64(destIndex, source, 0, source.size64());
+	}
+	
+	
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void setAllBy64(@ActuallyUnsigned long destIndex, NonuniformMethodsForBooleanList64 source, @ActuallyUnsigned long sourceIndex, @ActuallyUnsigned long amount) throws IndexOutOfBoundsException
+	{
+		NonuniformMethodsForBooleanList64 dest = this;
+		
+		@ActuallyUnsigned long sourceSize = source.size64();
+		@ActuallyUnsigned long destSize = dest.size64();
+		rangeCheckIntervalByLengthU64(sourceSize, sourceIndex, amount);
+		rangeCheckIntervalByLengthU64(destSize, destIndex, amount);
+		
+		if (destIndex < sourceIndex)  //do it safely always (even if source != dest) just in case, say, the source and dest are actually views of the same array or something!  (even though this isn't proper even doing it this way since they could be using different offsets ^^''')
+		{
+			for (@ActuallyUnsigned long i = 0; Long.compareUnsigned(i, amount) < 0; i++)
+				dest.setBooleanBy64(destIndex+i, source.getBooleanBy64(sourceIndex+i));
+		}
+		else
+		{
+			for (@ActuallyUnsigned long i = amount-1; Long.compareUnsigned(i, 0) >= 0; i--)
+				dest.setBooleanBy64(destIndex+i, source.getBooleanBy64(sourceIndex+i));
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * Copies <code>array.length</code> elements into <code>array</code> starting with the <code>start</code>th element.<br>
+	 */
+	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
+	public default void getAllBooleansBy64(@ActuallyUnsigned long start, @WritableValue boolean[] array, @Nonnegative int offset, @Nonnegative int length)
+	{
+		requireNonNegative(offset);
+		requireNonNegative(length);
+		
+		@ActuallyUnsigned long size = this.size64();
+		
+		rangeCheckIntervalByLengthU64(size, start, length);
+		rangeCheckIntervalByLengthU64(array.length, offset, length);
+		
+		for (int i = 0; i < length; i++)
+			array[offset + i] = getBooleanBy64(start + i);
+	}
+	
+	
+	
+	
+	
+	
+	@ThrowAwayValue
+	public default boolean[] getAllBooleansBy64(@ActuallyUnsigned long start, @ActuallyUnsigned long end) throws OverflowException
+	{
+		rangeCheckIntervalU64(this.size(), start, end);
+		
+		boolean[] buff = new boolean[safeCastU64toS32(end-start)];
+		getAllBooleansBy64(start, buff, 0, buff.length);
+		return buff;
+	}
+	
+	
+	
+	
+	public default void fillBySettingBooleanBy64(@ActuallyUnsigned long start, @ActuallyUnsigned long count, boolean value)
+	{
+		rangeCheckIntervalByLengthU64(this.size64(), start, count);
+		
+		if (count >= FillWithArrayThreshold)
+		{
+			boolean[] array = new boolean[(int)least(count, FillWithArraySize)];
+			
+			if (value != false)
+			{
+				Arrays.fill(array, value);
+			}
+			
+			int al = array.length;
+			
+			while (count > al)
+			{
+				setAllBooleansBy64(start, array);
+				start += al;
+				count -= al;
+			}
+			
+			if (count > 0)
+			{
+				setAllBooleansBy64(start, array, 0, safeCastU64toS32(count));
+			}
+		}
+		else
+		{
+			@ActuallyUnsigned long e = start + count;
+			for (@ActuallyUnsigned long i = start; i != e; i++)
+				setBooleanBy64(i, value);
+		}
+	}
+	
+	
+	
 	
 	
 	
