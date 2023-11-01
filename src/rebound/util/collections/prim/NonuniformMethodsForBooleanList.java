@@ -3,6 +3,7 @@ package rebound.util.collections.prim;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBooleanCollection;
 
@@ -11,7 +12,7 @@ public interface NonuniformMethodsForBooleanList
 extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, NonuniformMethodsForBooleanList64, NonuniformMethodsForBooleanListMiscellaneous
 {
 	@Override
-	public default long getBitfield(int offset, int length)
+	public default long getBitfield(@Nonnegative int offset, @Nonnegative int length)
 	{
 		return NonuniformMethodsForBooleanList32.super.getBitfield(offset, length);
 	}
@@ -23,7 +24,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default @Nonnegative long size64()
+	public default @ActuallyUnsigned long size64()
 	{
 		return size();
 	}
@@ -33,7 +34,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default boolean getBooleanBy64(@Nonnegative long index)
+	public default boolean getBooleanBy64(@ActuallyUnsigned long index)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
@@ -47,7 +48,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setBooleanBy64(@Nonnegative long index, boolean value)
+	public default void setBooleanBy64(@ActuallyUnsigned long index, boolean value)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
@@ -62,7 +63,7 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	@Override
-	public default BooleanList subListBy64i(long fromIndex, long toIndexInclusive)
+	public default BooleanList subListBy64i(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndexInclusive)
 	{
 		if (fromIndex < 0)
 			throw new IndexOutOfBoundsException();

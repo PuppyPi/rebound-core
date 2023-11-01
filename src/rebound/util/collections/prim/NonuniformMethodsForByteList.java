@@ -1,8 +1,8 @@
 package rebound.util.collections.prim;
 
-import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
@@ -14,7 +14,7 @@ extends DefaultToArraysByteCollection, NonuniformMethodsForByteList32, Nonunifor
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default @Nonnegative long size64()
+	public default @ActuallyUnsigned long size64()
 	{
 		return size();
 	}
@@ -24,7 +24,7 @@ extends DefaultToArraysByteCollection, NonuniformMethodsForByteList32, Nonunifor
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default byte getByteBy64(@Nonnegative long index)
+	public default byte getByteBy64(@ActuallyUnsigned long index)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
@@ -38,7 +38,7 @@ extends DefaultToArraysByteCollection, NonuniformMethodsForByteList32, Nonunifor
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
-	public default void setByteBy64(@Nonnegative long index, byte value)
+	public default void setByteBy64(@ActuallyUnsigned long index, byte value)
 	{
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
@@ -53,7 +53,7 @@ extends DefaultToArraysByteCollection, NonuniformMethodsForByteList32, Nonunifor
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	@Override
-	public default ByteList subListBy64i(long fromIndex, long toIndexInclusive)
+	public default ByteList subListBy64i(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndexInclusive)
 	{
 		if (fromIndex < 0)
 			throw new IndexOutOfBoundsException();
