@@ -8,6 +8,7 @@ import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
 import rebound.util.collections.Slice;
@@ -19,14 +20,14 @@ import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBoolean
 public interface NonuniformMethodsForBooleanList64
 extends DefaultToArraysBooleanCollection
 {
-	public @Nonnegative long size64();
-	public boolean getBooleanBy64(@Nonnegative long index);
-	public void setBooleanBy64(@Nonnegative long index, boolean value);
+	public @ActuallyUnsigned long size64();
+	public boolean getBooleanBy64(@ActuallyUnsigned long index);
+	public void setBooleanBy64(@ActuallyUnsigned long index, boolean value);
 	
 	
 	
 	
-	public default @Nonnegative long getNumberOfOnesBy64()
+	public default @ActuallyUnsigned long getNumberOfOnesBy64()
 	{
 		long n = size64();
 		long n1 = 0;
@@ -35,7 +36,7 @@ extends DefaultToArraysBooleanCollection
 		return n1;
 	}
 	
-	public default @Nonnegative long getNumberOfZerosBy64()
+	public default @ActuallyUnsigned long getNumberOfZerosBy64()
 	{
 		return size64() - getNumberOfOnesBy64();
 	}
@@ -60,7 +61,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default long getBitfieldBy64(@Nonnegative long offset, @BoundedInt(min=1, max=64) int length)
+	public default long getBitfieldBy64(@ActuallyUnsigned long offset, @BoundedInt(min=1, max=64) int length)
 	{
 		long r = 0;
 		
@@ -73,7 +74,7 @@ extends DefaultToArraysBooleanCollection
 		return r;
 	}
 	
-	public default void setBitfieldBy64(@Nonnegative long offset, @BoundedInt(min=1, max=64) int length, long bitfield)
+	public default void setBitfieldBy64(@ActuallyUnsigned long offset, @BoundedInt(min=1, max=64) int length, long bitfield)
 	{
 		for (int i = 0; i < length; i++)
 		{
@@ -85,43 +86,43 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default byte getByteBy64(@Nonnegative long offsetInBits)
+	public default byte getByteBy64(@ActuallyUnsigned long offsetInBits)
 	{
 		return (byte)getBitfieldBy64(offsetInBits, 8);
 	}
 	
-	public default short getShortBy64(@Nonnegative long offsetInBits)
+	public default short getShortBy64(@ActuallyUnsigned long offsetInBits)
 	{
 		return (short)getBitfieldBy64(offsetInBits, 16);
 	}
 	
-	public default int getIntBy64(@Nonnegative long offsetInBits)
+	public default int getIntBy64(@ActuallyUnsigned long offsetInBits)
 	{
 		return (int)getBitfieldBy64(offsetInBits, 32);
 	}
 	
-	public default long getLongBy64(@Nonnegative long offsetInBits)
+	public default long getLongBy64(@ActuallyUnsigned long offsetInBits)
 	{
 		return getBitfieldBy64(offsetInBits, 64);
 	}
 	
 	
-	public default void setByteBy64(@Nonnegative long offsetInBits, byte value)
+	public default void setByteBy64(@ActuallyUnsigned long offsetInBits, byte value)
 	{
 		setBitfieldBy64(offsetInBits, 8, value);
 	}
 	
-	public default void setShortBy64(@Nonnegative long offsetInBits, short value)
+	public default void setShortBy64(@ActuallyUnsigned long offsetInBits, short value)
 	{
 		setBitfieldBy64(offsetInBits, 16, value);
 	}
 	
-	public default void setIntBy64(@Nonnegative long offsetInBits, int value)
+	public default void setIntBy64(@ActuallyUnsigned long offsetInBits, int value)
 	{
 		setBitfieldBy64(offsetInBits, 32, value);
 	}
 	
-	public default void setLongBy64(@Nonnegative long offsetInBits, long value)
+	public default void setLongBy64(@ActuallyUnsigned long offsetInBits, long value)
 	{
 		setBitfieldBy64(offsetInBits, 64, value);
 	}
@@ -129,43 +130,43 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default byte getAlignedByteBy64(@Nonnegative long offsetAlignedInElements)
+	public default byte getAlignedByteBy64(@ActuallyUnsigned long offsetAlignedInElements)
 	{
 		return (byte)getBitfieldBy64(offsetAlignedInElements * 8, 8);
 	}
 	
-	public default short getAlignedShortBy64(@Nonnegative long offsetAlignedInElements)
+	public default short getAlignedShortBy64(@ActuallyUnsigned long offsetAlignedInElements)
 	{
 		return (short)getBitfieldBy64(offsetAlignedInElements * 16, 16);
 	}
 	
-	public default int getAlignedIntBy64(@Nonnegative long offsetAlignedInElements)
+	public default int getAlignedIntBy64(@ActuallyUnsigned long offsetAlignedInElements)
 	{
 		return (int)getBitfieldBy64(offsetAlignedInElements * 32, 32);
 	}
 	
-	public default long getAlignedLongBy64(@Nonnegative long offsetAlignedInElements)
+	public default long getAlignedLongBy64(@ActuallyUnsigned long offsetAlignedInElements)
 	{
 		return getBitfieldBy64(offsetAlignedInElements * 64, 64);
 	}
 	
 	
-	public default void setAlignedByteBy64(@Nonnegative long offsetAlignedInElements, byte value)
+	public default void setAlignedByteBy64(@ActuallyUnsigned long offsetAlignedInElements, byte value)
 	{
 		setBitfieldBy64(offsetAlignedInElements * 8, 8, value);
 	}
 	
-	public default void setAlignedShortBy64(@Nonnegative long offsetAlignedInElements, short value)
+	public default void setAlignedShortBy64(@ActuallyUnsigned long offsetAlignedInElements, short value)
 	{
 		setBitfieldBy64(offsetAlignedInElements * 16, 16, value);
 	}
 	
-	public default void setAlignedIntBy64(@Nonnegative long offsetAlignedInElements, int value)
+	public default void setAlignedIntBy64(@ActuallyUnsigned long offsetAlignedInElements, int value)
 	{
 		setBitfieldBy64(offsetAlignedInElements * 32, 32, value);
 	}
 	
-	public default void setAlignedLongByBy64(@Nonnegative long offsetAlignedInElements, long value)
+	public default void setAlignedLongByBy64(@ActuallyUnsigned long offsetAlignedInElements, long value)
 	{
 		setBitfieldBy64(offsetAlignedInElements * 64, 64, value);
 	}
@@ -186,7 +187,7 @@ extends DefaultToArraysBooleanCollection
 	primxp
 	_$$primxpconf:intsonly$$_
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
@@ -211,7 +212,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
 	}
 	
-	public default void putArrayFromSlice_$$Prim$$_64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	public default void putArrayFromSlice_$$Prim$$_64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
 	}
@@ -223,7 +224,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*_$$primlen$$_l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = _$$primlen$$_;
 		
@@ -248,7 +249,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*_$$primlen$$_l);
 	}
 	
-	public default void getArrayFromSlice_$$Prim$$_64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
+	public default void getArrayFromSlice_$$Prim$$_64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*_$$primlen$$_l);
 	}
@@ -265,7 +266,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -282,7 +283,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSlice_$$Prim$$_64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSlice_$$Prim$$_64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -295,7 +296,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull _$$prim$$_[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -311,7 +312,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSlice_$$Prim$$_64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSlice_$$Prim$$_64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<_$$prim$$_[]> bitfields, @BoundedInt(min=0, max=_$$primlen$$_) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -330,7 +331,7 @@ extends DefaultToArraysBooleanCollection
 	 */
 	
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 8;
 		
@@ -355,7 +356,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*8l);
 	}
 	
-	public default void putArrayFromSliceByteBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields)
+	public default void putArrayFromSliceByteBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8l);
 	}
@@ -367,7 +368,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*8l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 8;
 		
@@ -392,7 +393,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*8l);
 	}
 	
-	public default void getArrayFromSliceByteBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields)
+	public default void getArrayFromSliceByteBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*8l);
 	}
@@ -409,7 +410,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull byte[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -426,7 +427,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceByteBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceByteBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -439,7 +440,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull byte[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -455,7 +456,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceByteBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceByteBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<byte[]> bitfields, @BoundedInt(min=0, max=8) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -473,7 +474,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -498,7 +499,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void putArrayFromSliceCharBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields)
+	public default void putArrayFromSliceCharBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
@@ -510,7 +511,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 16;
 		
@@ -535,7 +536,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void getArrayFromSliceCharBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields)
+	public default void getArrayFromSliceCharBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
@@ -552,7 +553,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull char[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -569,7 +570,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceCharBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceCharBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -582,7 +583,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull char[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -598,7 +599,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceCharBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceCharBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<char[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -616,7 +617,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 16;
 		
@@ -641,7 +642,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void putArrayFromSliceShortBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields)
+	public default void putArrayFromSliceShortBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
@@ -653,7 +654,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*16l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 16;
 		
@@ -678,7 +679,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*16l);
 	}
 	
-	public default void getArrayFromSliceShortBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields)
+	public default void getArrayFromSliceShortBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*16l);
 	}
@@ -695,7 +696,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull short[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -712,7 +713,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceShortBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceShortBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -725,7 +726,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull short[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -741,7 +742,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceShortBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceShortBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<short[]> bitfields, @BoundedInt(min=0, max=16) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -759,7 +760,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 32;
 		
@@ -784,7 +785,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*32l);
 	}
 	
-	public default void putArrayFromSliceIntBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields)
+	public default void putArrayFromSliceIntBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32l);
 	}
@@ -796,7 +797,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*32l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 32;
 		
@@ -821,7 +822,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*32l);
 	}
 	
-	public default void getArrayFromSliceIntBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields)
+	public default void getArrayFromSliceIntBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*32l);
 	}
@@ -838,7 +839,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull int[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -855,7 +856,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceIntBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceIntBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -868,7 +869,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull int[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -884,7 +885,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceIntBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceIntBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<int[]> bitfields, @BoundedInt(min=0, max=32) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -902,7 +903,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToWriteInBits)
+	public default void putArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToWriteInBits)
 	{
 		int primlen = 64;
 		
@@ -927,7 +928,7 @@ extends DefaultToArraysBooleanCollection
 		putArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*64l);
 	}
 	
-	public default void putArrayFromSliceLongBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields)
+	public default void putArrayFromSliceLongBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields)
 	{
 		putArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64l);
 	}
@@ -939,7 +940,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToReadInBits)
+	public default void getArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int destLengthCheck, @BoundedLong(min=0, max=Integer.MAX_VALUE*64l) long totalLengthOfDataToReadInBits)
 	{
 		int primlen = 64;
 		
@@ -964,7 +965,7 @@ extends DefaultToArraysBooleanCollection
 		getArrayBy64(0, bitfields, 0, bitfields.length, bitfields.length*64l);
 	}
 	
-	public default void getArrayFromSliceLongBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields)
+	public default void getArrayFromSliceLongBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields)
 	{
 		getArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), bitfields.getLength()*64l);
 	}
@@ -981,7 +982,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void putUnpackedArrayBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull long[] bitfields, @Nonnegative int sourceElementOffset, @BoundedInt(min=-1, max=Integer.MAX_VALUE) int sourceLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -998,7 +999,7 @@ extends DefaultToArraysBooleanCollection
 		putUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void putUnpackedArrayFromSliceLongBy64(@Nonnegative long destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void putUnpackedArrayFromSliceLongBy64(@ActuallyUnsigned long destBitOffset, @ReadonlyValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		putUnpackedArrayBy64(destBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
@@ -1011,7 +1012,7 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
-	public default void getUnpackedArrayBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull long[] bitfields, @Nonnegative int destElementOffset, @Nonnegative int destLengthCheck, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		if (lengthOfEachElementInBits < 0)
 			throw new IllegalArgumentException();
@@ -1027,7 +1028,7 @@ extends DefaultToArraysBooleanCollection
 		getUnpackedArrayBy64(0, bitfields, 0, bitfields.length, lengthOfEachElementInBits);
 	}
 	
-	public default void getUnpackedArrayToSliceLongBy64(@Nonnegative long sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
+	public default void getUnpackedArrayToSliceLongBy64(@ActuallyUnsigned long sourceBitOffset, @WritableValue @Nonnull Slice<long[]> bitfields, @BoundedInt(min=0, max=64) int lengthOfEachElementInBits)
 	{
 		getUnpackedArrayBy64(sourceBitOffset, bitfields.getUnderlying(), bitfields.getOffset(), bitfields.getLength(), lengthOfEachElementInBits);
 	}
