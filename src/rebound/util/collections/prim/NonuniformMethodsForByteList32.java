@@ -1,6 +1,7 @@
 package rebound.util.collections.prim;
 
 import static rebound.bits.BitUtilities.*;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -14,6 +15,10 @@ import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCol
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
 
+/**
+ * This is crucial for contexts where access to a multibyte field *must* take place in a single actual memory access operation, like device-mapped memory!
+ * (Because {@link ByteBuffer} very much does not do that in DirectByteBuffer, which is bad for performance as well as making it incapable of being used to write userspace device drivers >_> )
+ */
 @ImplementationTransparency  //This class only exists to keep the bulk functions exactly uniform and correspondent :3     This might be removed soon XD''
 public interface NonuniformMethodsForByteList32
 extends DefaultToArraysByteCollection
