@@ -13,9 +13,7 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
-import rebound.bits.Bytes;
 import rebound.util.collections.Slice;
-import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
@@ -45,37 +43,79 @@ extends DefaultToArraysByteCollection
 	
 	public default short getLittleShort(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleShort((ByteList)this, offsetInBytes);
+		short rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 8;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(24) int getLittleUInt24(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleUInt24((ByteList)this, offsetInBytes);
+		int rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFF) << 16;
+		return rv;
 	}
 	
 	public default int getLittleInt(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleInt((ByteList)this, offsetInBytes);
+		int rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFF) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFF) << 24;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(40) long getLittleULong40(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleULong40((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 32;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(48) long getLittleULong48(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleULong48((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 40;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(56) long getLittleULong56(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleULong56((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 40;
+		rv |= (getByte(offsetInBytes+6) & 0xFFl) << 48;
+		return rv;
 	}
 	
 	public default long getLittleLong(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getLittleLong((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 0;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 40;
+		rv |= (getByte(offsetInBytes+6) & 0xFFl) << 48;
+		rv |= (getByte(offsetInBytes+7) & 0xFFl) << 56;
+		return rv;
 	}
 	
 	
@@ -125,37 +165,65 @@ extends DefaultToArraysByteCollection
 	
 	public default void setLittleShort(@Nonnegative int offsetInBytes, short value)
 	{
-		Bytes.putLittleShort((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
 	}
 	
 	public default void setLittleInt24(@Nonnegative int offsetInBytes, int value)
 	{
-		Bytes.putLittleInt24((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
 	}
 	
 	public default void setLittleInt(@Nonnegative int offsetInBytes, int value)
 	{
-		Bytes.putLittleInt((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
 	}
 	
 	public default void setLittleLong40(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putLittleLong40((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 32) & 0xFF));
 	}
 	
 	public default void setLittleLong48(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putLittleLong48((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 40) & 0xFF));
 	}
 	
 	public default void setLittleLong56(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putLittleLong56((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 40) & 0xFF));
+		setByte(offsetInBytes+6, (byte)((value >>> 48) & 0xFF));
 	}
 	
 	public default void setLittleLong(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putLittleLong((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 0) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 40) & 0xFF));
+		setByte(offsetInBytes+6, (byte)((value >>> 48) & 0xFF));
+		setByte(offsetInBytes+7, (byte)((value >>> 56) & 0xFF));
 	}
 	
 	
@@ -188,37 +256,79 @@ extends DefaultToArraysByteCollection
 	
 	public default short getBigShort(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigShort((ByteList)this, offsetInBytes);
+		short rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 8;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 0;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(24) int getBigUInt24(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigUInt24((ByteList)this, offsetInBytes);
+		int rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 16;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 8;
+		rv |= (getByte(offsetInBytes+2) & 0xFF) << 0;
+		return rv;
 	}
 	
 	public default int getBigInt(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigInt((ByteList)this, offsetInBytes);
+		int rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFF) << 24;
+		rv |= (getByte(offsetInBytes+1) & 0xFF) << 16;
+		rv |= (getByte(offsetInBytes+2) & 0xFF) << 8;
+		rv |= (getByte(offsetInBytes+3) & 0xFF) << 0;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(40) long getBigULong40(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigULong40((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 0;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(48) long getBigULong48(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigULong48((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 40;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 0;
+		return rv;
 	}
 	
 	public default @ActuallyUnsigned(56) long getBigULong56(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigULong56((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 48;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 40;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+6) & 0xFFl) << 0;
+		return rv;
 	}
 	
 	public default long getBigLong(@Nonnegative int offsetInBytes)
 	{
-		return Bytes.getBigLong((ByteList)this, offsetInBytes);
+		long rv = 0;
+		rv |= (getByte(offsetInBytes+0) & 0xFFl) << 56;
+		rv |= (getByte(offsetInBytes+1) & 0xFFl) << 48;
+		rv |= (getByte(offsetInBytes+2) & 0xFFl) << 40;
+		rv |= (getByte(offsetInBytes+3) & 0xFFl) << 32;
+		rv |= (getByte(offsetInBytes+4) & 0xFFl) << 24;
+		rv |= (getByte(offsetInBytes+5) & 0xFFl) << 16;
+		rv |= (getByte(offsetInBytes+6) & 0xFFl) << 8;
+		rv |= (getByte(offsetInBytes+7) & 0xFFl) << 0;
+		return rv;
 	}
 	
 	
@@ -268,37 +378,65 @@ extends DefaultToArraysByteCollection
 	
 	public default void setBigShort(@Nonnegative int offsetInBytes, short value)
 	{
-		Bytes.putBigShort((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigInt24(@Nonnegative int offsetInBytes, int value)
 	{
-		Bytes.putBigInt24((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigInt(@Nonnegative int offsetInBytes, int value)
 	{
-		Bytes.putBigInt((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigLong40(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putBigLong40((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigLong48(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putBigLong48((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 40) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigLong56(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putBigLong56((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 48) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 40) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+6, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	public default void setBigLong(@Nonnegative int offsetInBytes, long value)
 	{
-		Bytes.putBigLong((ByteList)this, offsetInBytes, value);
+		setByte(offsetInBytes+0, (byte)((value >>> 56) & 0xFF));
+		setByte(offsetInBytes+1, (byte)((value >>> 48) & 0xFF));
+		setByte(offsetInBytes+2, (byte)((value >>> 40) & 0xFF));
+		setByte(offsetInBytes+3, (byte)((value >>> 32) & 0xFF));
+		setByte(offsetInBytes+4, (byte)((value >>> 24) & 0xFF));
+		setByte(offsetInBytes+5, (byte)((value >>> 16) & 0xFF));
+		setByte(offsetInBytes+6, (byte)((value >>> 8) & 0xFF));
+		setByte(offsetInBytes+7, (byte)((value >>> 0) & 0xFF));
 	}
 	
 	

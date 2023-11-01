@@ -23,7 +23,7 @@ import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.objectutil.JavaNamespace;
 
-//TODO!!  Test NonuniformMethodsForByteList32.getMultibyteOperationsImplementationGuaranteesFor32bitOffsets() != SpanningOperationImplementationType.OneByOne!! XDD'''
+//TODO!!  Just always delegate to ByteList's own multibyte accessor methods, which might be more efficient!!! :DDD   (Honestly these should probably be deprecated now XD' but it could be useful for code generators, idk X3 )
 //TODO Are these named right?  putLittleLong56Buffermodifying(.., int offset, ..), etc.   It modifies the ByteOrder but not the position().  Make sure we're consistent with naming!
 
 //TODO Test the non-power-of-two accessors (esp. the ByteBuffer ones!!)  X'D     (and perhaps use the same test for DirectByteList and any ByteListWithMultibyteAccess? :>     That would be way easier if this used instanceof to support things properly X'D )
