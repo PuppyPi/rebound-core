@@ -15,7 +15,7 @@ public interface ListWithBlockSizePreference
 	/**
 	 * @return the preferred block size, or 0 if there is none!
 	 */
-	public @Nonnegative long getBlockSize();
+	public @Nonnegative long getPerformantBlockSize();
 	
 	
 	
