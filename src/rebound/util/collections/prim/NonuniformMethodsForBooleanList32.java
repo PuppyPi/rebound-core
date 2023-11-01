@@ -8,6 +8,7 @@ import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
 import rebound.util.collections.Slice;
@@ -78,6 +79,94 @@ extends DefaultToArraysBooleanCollection
 			boolean bit = ((1l << i) & bitfield) != 0;
 			setBoolean(offset+i, bit);
 		}
+	}
+	
+	
+	
+	
+	public default byte getByte(@Nonnegative int offsetInBits)
+	{
+		return (byte)getBitfield(offsetInBits, 8);
+	}
+	
+	public default short getShort(@Nonnegative int offsetInBits)
+	{
+		return (short)getBitfield(offsetInBits, 16);
+	}
+	
+	public default int getInt(@Nonnegative int offsetInBits)
+	{
+		return (int)getBitfield(offsetInBits, 32);
+	}
+	
+	public default long getLong(@Nonnegative int offsetInBits)
+	{
+		return getBitfield(offsetInBits, 64);
+	}
+	
+	
+	public default void setByte(@Nonnegative int offsetInBits, byte value)
+	{
+		setBitfield(offsetInBits, 8, value);
+	}
+	
+	public default void setShort(@Nonnegative int offsetInBits, short value)
+	{
+		setBitfield(offsetInBits, 16, value);
+	}
+	
+	public default void setInt(@Nonnegative int offsetInBits, int value)
+	{
+		setBitfield(offsetInBits, 32, value);
+	}
+	
+	public default void setLong(@Nonnegative int offsetInBits, long value)
+	{
+		setBitfield(offsetInBits, 64, value);
+	}
+	
+	
+	
+	
+	public default byte getAlignedByte(@Nonnegative int offsetAlignedInElements)
+	{
+		return (byte)getBitfield(offsetAlignedInElements * 8, 8);
+	}
+	
+	public default short getAlignedShort(@Nonnegative int offsetAlignedInElements)
+	{
+		return (short)getBitfield(offsetAlignedInElements * 16, 16);
+	}
+	
+	public default int getAlignedInt(@Nonnegative int offsetAlignedInElements)
+	{
+		return (int)getBitfield(offsetAlignedInElements * 32, 32);
+	}
+	
+	public default long getAlignedLong(@Nonnegative int offsetAlignedInElements)
+	{
+		return getBitfield(offsetAlignedInElements * 64, 64);
+	}
+	
+	
+	public default void setAlignedByte(@Nonnegative int offsetAlignedInElements, byte value)
+	{
+		setBitfield(offsetAlignedInElements * 8, 8, value);
+	}
+	
+	public default void setAlignedShort(@Nonnegative int offsetAlignedInElements, short value)
+	{
+		setBitfield(offsetAlignedInElements * 16, 16, value);
+	}
+	
+	public default void setAlignedInt(@Nonnegative int offsetAlignedInElements, int value)
+	{
+		setBitfield(offsetAlignedInElements * 32, 32, value);
+	}
+	
+	public default void setAlignedLong(@Nonnegative int offsetAlignedInElements, long value)
+	{
+		setBitfield(offsetAlignedInElements * 64, 64, value);
 	}
 	
 	

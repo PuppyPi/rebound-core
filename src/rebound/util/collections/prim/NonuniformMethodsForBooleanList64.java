@@ -85,6 +85,94 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	public default byte getByte(@Nonnegative long offsetInBits)
+	{
+		return (byte)getBitfield64(offsetInBits, 8);
+	}
+	
+	public default short getShort(@Nonnegative long offsetInBits)
+	{
+		return (short)getBitfield64(offsetInBits, 16);
+	}
+	
+	public default int getInt(@Nonnegative long offsetInBits)
+	{
+		return (int)getBitfield64(offsetInBits, 32);
+	}
+	
+	public default long getLong(@Nonnegative long offsetInBits)
+	{
+		return getBitfield64(offsetInBits, 64);
+	}
+	
+	
+	public default void setByte(@Nonnegative long offsetInBits, byte value)
+	{
+		setBitfield64(offsetInBits, 8, value);
+	}
+	
+	public default void setShort(@Nonnegative long offsetInBits, short value)
+	{
+		setBitfield64(offsetInBits, 16, value);
+	}
+	
+	public default void setInt(@Nonnegative long offsetInBits, int value)
+	{
+		setBitfield64(offsetInBits, 32, value);
+	}
+	
+	public default void setLong(@Nonnegative long offsetInBits, long value)
+	{
+		setBitfield64(offsetInBits, 64, value);
+	}
+	
+	
+	
+	
+	public default byte getAlignedByte(@Nonnegative long offsetAlignedInElements)
+	{
+		return (byte)getBitfield64(offsetAlignedInElements * 8, 8);
+	}
+	
+	public default short getAlignedShort(@Nonnegative long offsetAlignedInElements)
+	{
+		return (short)getBitfield64(offsetAlignedInElements * 16, 16);
+	}
+	
+	public default int getAlignedInt(@Nonnegative long offsetAlignedInElements)
+	{
+		return (int)getBitfield64(offsetAlignedInElements * 32, 32);
+	}
+	
+	public default long getAlignedLong(@Nonnegative long offsetAlignedInElements)
+	{
+		return getBitfield64(offsetAlignedInElements * 64, 64);
+	}
+	
+	
+	public default void setAlignedByte(@Nonnegative long offsetAlignedInElements, byte value)
+	{
+		setBitfield64(offsetAlignedInElements * 8, 8, value);
+	}
+	
+	public default void setAlignedShort(@Nonnegative long offsetAlignedInElements, short value)
+	{
+		setBitfield64(offsetAlignedInElements * 16, 16, value);
+	}
+	
+	public default void setAlignedInt(@Nonnegative long offsetAlignedInElements, int value)
+	{
+		setBitfield64(offsetAlignedInElements * 32, 32, value);
+	}
+	
+	public default void setAlignedLong(@Nonnegative long offsetAlignedInElements, long value)
+	{
+		setBitfield64(offsetAlignedInElements * 64, 64, value);
+	}
+	
+	
+	
+	
 	
 	
 	
