@@ -8,6 +8,7 @@ import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -20,6 +21,7 @@ import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.exceptions.OverflowException;
+import rebound.util.Primitives;
 import rebound.util.collections.Slice;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
@@ -36,6 +38,21 @@ extends DefaultToArraysByteCollection
 	public @ActuallyUnsigned long size64();
 	public byte getByteBy64(@ActuallyUnsigned long offsetInBytes);
 	public void setByteBy64(@ActuallyUnsigned long offsetInBytes, byte value);
+	
+	
+    public default ByteList subListBy64(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndex)
+    {
+    	if (toIndex == 0)
+    		return subListBy64i(fromIndex, toIndex);
+    	else
+    		return subListBy64i(fromIndex, toIndex-1);
+    }
+    
+    /**
+     * @param toIndexInclusive  This being inclusive means you can use {@link Primitives#U64_MAX_VALUE} for it if the list covers the entire address space!!
+     */
+    public ByteList subListBy64i(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndexInclusive);
+	
 	
 	
 	
