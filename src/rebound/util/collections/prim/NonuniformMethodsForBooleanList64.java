@@ -11,7 +11,9 @@ import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
+import rebound.util.Primitives;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.BooleanList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysBooleanCollection;
 
 //TODO Elementwise boolean operations between BooleanLists!!  AND, OR, NOT, XOR!  \:D/
@@ -26,6 +28,20 @@ extends DefaultToArraysBooleanCollection
 	public @ActuallyUnsigned long size64();
 	public boolean getBooleanBy64(@ActuallyUnsigned long index);
 	public void setBooleanBy64(@ActuallyUnsigned long index, boolean value);
+	
+	
+    public default BooleanList subListBy64(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndex)
+    {
+    	if (toIndex == 0)
+    		return subListBy64i(fromIndex, toIndex);
+    	else
+    		return subListBy64i(fromIndex, toIndex-1);
+    }
+    
+    /**
+     * @param toIndexInclusive  This being inclusive means you can use {@link Primitives#U64_MAX_VALUE} for it if the list covers the entire address space!!
+     */
+    public BooleanList subListBy64i(@ActuallyUnsigned long fromIndex, @ActuallyUnsigned long toIndexInclusive);
 	
 	
 	
