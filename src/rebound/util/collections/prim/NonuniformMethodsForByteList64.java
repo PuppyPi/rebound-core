@@ -8,7 +8,6 @@ import static rebound.util.collections.prim.PrimitiveCollections.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
-import java.util.List;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import rebound.annotations.hints.ImplementationTransparency;
@@ -23,6 +22,7 @@ import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.exceptions.OverflowException;
 import rebound.util.Primitives;
 import rebound.util.collections.Slice;
+import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.DefaultToArraysByteCollection;
 
 //Todo Elementwise boolean operations between ByteLists!!  AND, OR, NOT, XOR!  \:D/
