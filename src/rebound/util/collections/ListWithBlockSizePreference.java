@@ -4,7 +4,6 @@ import javax.annotation.Nonnegative;
 import rebound.annotations.semantic.FunctionalityType;
 import rebound.annotations.semantic.StaticTraitPredicate;
 import rebound.annotations.semantic.TraitPredicate;
-import rebound.util.collections.prim.PrimitiveCollections;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 
 /**

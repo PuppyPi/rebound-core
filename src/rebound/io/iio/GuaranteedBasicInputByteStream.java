@@ -1,6 +1,7 @@
 package rebound.io.iio;
 
 import java.io.IOException;
+import rebound.io.TransparentByteArrayInputStream;
 import rebound.util.collections.Slice;
 
 /**
