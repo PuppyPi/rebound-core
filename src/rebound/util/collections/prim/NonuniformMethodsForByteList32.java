@@ -1,10 +1,12 @@
 package rebound.util.collections.prim;
 
+import static rebound.bits.BitUtilities.*;
 import java.nio.ByteOrder;
 import javax.annotation.Nonnegative;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.hints.IntendedToBeSubclassedImplementedOrOverriddenByApiUser;
 import rebound.annotations.hints.IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser;
+import rebound.annotations.semantic.simpledata.ActuallySigned;
 import rebound.annotations.semantic.simpledata.BoundedInt;
 import rebound.annotations.semantic.simpledata.BoundedLong;
 import rebound.bits.Bytes;
@@ -90,6 +92,30 @@ extends DefaultToArraysByteCollection
 	public default double getLittleDouble(@Nonnegative int offsetInBytes)
 	{
 		return Double.longBitsToDouble(getLittleLong(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(24) int getLittleSInt24(int offsetInBytes)
+	{
+		return signedUpcast24(getLittleUInt24(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(40) long getLittleSLong40(int offsetInBytes)
+	{
+		return signedUpcast40(getLittleULong40(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(48) long getLittleSLong48(int offsetInBytes)
+	{
+		return signedUpcast48(getLittleULong48(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(56) long getLittleSLong56(int offsetInBytes)
+	{
+		return signedUpcast56(getLittleULong56(offsetInBytes));
 	}
 	
 	
@@ -211,6 +237,30 @@ extends DefaultToArraysByteCollection
 		return Double.longBitsToDouble(getBigLong(offsetInBytes));
 	}
 	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(24) int getBigSInt24(int offsetInBytes)
+	{
+		return signedUpcast24(getBigUInt24(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(40) long getBigSLong40(int offsetInBytes)
+	{
+		return signedUpcast40(getBigULong40(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(48) long getBigSLong48(int offsetInBytes)
+	{
+		return signedUpcast48(getBigULong48(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(56) long getBigSLong56(int offsetInBytes)
+	{
+		return signedUpcast56(getBigULong56(offsetInBytes));
+	}
+	
 	
 	
 	public default void setBigShort(@Nonnegative int offsetInBytes, short value)
@@ -328,6 +378,30 @@ extends DefaultToArraysByteCollection
 	public default double getNativeDouble(@Nonnegative int offsetInBytes)
 	{
 		return Double.longBitsToDouble(getNativeLong(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(24) int getNativeSInt24(int offsetInBytes)
+	{
+		return signedUpcast24(getNativeUInt24(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(40) long getNativeSLong40(int offsetInBytes)
+	{
+		return signedUpcast40(getNativeULong40(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(48) long getNativeSLong48(int offsetInBytes)
+	{
+		return signedUpcast48(getNativeULong48(offsetInBytes));
+	}
+	
+	@IntendedToNOTBeSubclassedImplementedOrOverriddenByApiUser
+	public default @ActuallySigned(56) long getNativeSLong56(int offsetInBytes)
+	{
+		return signedUpcast56(getNativeULong56(offsetInBytes));
 	}
 	
 	
