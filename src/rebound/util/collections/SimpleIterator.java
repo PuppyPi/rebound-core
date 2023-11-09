@@ -162,6 +162,25 @@ public interface SimpleIterator<E>
 			}
 		}
 		
+		public static <E> SimpleIterable<E> simpleIterable(E[] array, int offset, int length)
+		{
+			if (offset < 0) throw new IllegalArgumentException();
+			if (length < 0) throw new IllegalArgumentException();
+			if (offset+length > array.length) throw new IndexOutOfBoundsException();
+			
+			return () -> SimpleIterator.simpleIterator(array, offset, length);
+		}
+		
+		public static <E> SimpleIterable<E> simpleIterable(E[] array)
+		{
+			return simpleIterable(array, 0, array.length);
+		}
+		
+		public static <E> SimpleIterable<E> simpleIterableV(E... array)
+		{
+			return simpleIterable(array);
+		}
+		
 		public static <D> SimpleIterator<D> simpleIteratorOf(Iterable<D> iterable)
 		{
 			if (iterable instanceof SimpleIterable)
