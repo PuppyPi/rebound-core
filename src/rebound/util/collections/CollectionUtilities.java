@@ -10866,7 +10866,7 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	
-	public static boolean eqvMany(Iterable<Object> xs)
+	public static boolean eqvMany(Iterable<?> xs)
 	{
 		return transitiveReduce(xs, (a, b) -> eqv(a, b));
 	}
