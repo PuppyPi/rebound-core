@@ -832,6 +832,16 @@ public class SmallIntegerMathUtilities
 		return Unsigned.greaterThanU64(a, 0xFFFF_FFFF_FFFF_FFFFl - b);
 	}
 	
+	public static boolean isOverflow_inc_u64(@ActuallyUnsigned long a)
+	{
+		return a == 0xFFFF_FFFF_FFFF_FFFFl;
+	}
+	
+	public static boolean isOverflow_dec_u64(@ActuallyUnsigned long a)
+	{
+		return a == 0;
+	}
+	
 	
 	
 	
@@ -1132,9 +1142,25 @@ public class SmallIntegerMathUtilities
 		return a + 1;
 	}
 	
+	public static @ActuallyUnsigned long safe_inc_u64(@ActuallyUnsigned long a) throws OverflowException
+	{
+		if (isOverflow_inc_s64(a))
+			throw new OverflowException();
+		
+		return a + 1;
+	}
+	
 	public static long safe_dec_s64(long a) throws OverflowException
 	{
 		if (isOverflow_dec_s64(a))
+			throw new OverflowException();
+		
+		return a - 1;
+	}
+	
+	public static @ActuallyUnsigned long safe_dec_u64(@ActuallyUnsigned long a) throws OverflowException
+	{
+		if (isOverflow_dec_u64(a))
 			throw new OverflowException();
 		
 		return a - 1;
@@ -1148,7 +1174,7 @@ public class SmallIntegerMathUtilities
 		return a + b;
 	}
 	
-	public static long safe_add_u64(long a, long b) throws OverflowException
+	public static @ActuallyUnsigned long safe_add_u64(@ActuallyUnsigned long a, @ActuallyUnsigned long b) throws OverflowException
 	{
 		if (isOverflow_add_u64(a, b))
 			throw new OverflowException();
