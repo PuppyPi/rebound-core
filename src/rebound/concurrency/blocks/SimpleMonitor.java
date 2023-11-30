@@ -7,6 +7,7 @@ package rebound.concurrency.blocks;
 import javax.annotation.concurrent.GuardedBy;
 import rebound.annotations.semantic.temporal.IdempotentOperation;
 import rebound.annotations.semantic.temporal.concurrencyprimitives.threadspecification.AnyThreads;
+import rebound.annotations.semantic.temporal.monotonicity.MonotonicValueBooleanSequence;
 
 /**
  * This is the simple pattern of {@link #wait()} and {@link #notify()} as given in the Java docs.
@@ -19,6 +20,7 @@ import rebound.annotations.semantic.temporal.concurrencyprimitives.threadspecifi
 public class SimpleMonitor
 {
 	@GuardedBy("this")
+	@MonotonicValueBooleanSequence({false, true})
 	protected boolean done = false;
 	
 	
