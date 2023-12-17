@@ -2544,6 +2544,17 @@ implements JavaNamespace
 	}
 	
 	
+	public static boolean containsElement(String longer, String shorter, String delimiter)
+	{
+		return startsWith(longer, shorter+delimiter) || endsWith(longer, delimiter+shorter) || longer.contains(delimiter+shorter+delimiter);
+	}
+	
+	public static boolean containsElementCaseInsensitively(String longer, String shorter, String delimiter)
+	{
+		return startsWithCaseInsensitively(longer, shorter+delimiter) || endsWithCaseInsensitively(longer, delimiter+shorter) || containsCaseInsensitive(longer, delimiter+shorter+delimiter);
+	}
+	
+	
 	
 	
 	
