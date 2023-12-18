@@ -35,6 +35,10 @@ import rebound.annotations.semantic.simpledata.Positive;
  * block, and then buffer any extra data so that future calls will just use that up directly.
  * 
  * Ie, a read() call to this class only makes 0 or 1 read() calls to the underlying stream, never more than 1! (possibly of different parameters, but still)
+ * 
+ * 
+ * The only time your can safely use a buffer-filling buffering decorator like {@link BufferedInputStream} is when you know the data is just going to be flushed right
+ * through like a download from a file on a hard drive, and never pause or wait on a cycle of data flow!  (Then it is (slightly??) more efficient to use that kind!)
  */
 public class ShortReadingBufferedInputStream
 extends InputStream
