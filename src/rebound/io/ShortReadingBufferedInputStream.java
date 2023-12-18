@@ -102,7 +102,7 @@ extends InputStream
 				return underlying.read();
 			else
 			{
-				int r = underlying.read();
+				int r = underlying.read(buffer, 0, buffer.length);
 				if (r == -1)
 					return r;
 				else
