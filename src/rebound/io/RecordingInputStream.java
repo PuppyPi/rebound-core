@@ -10,7 +10,7 @@ public class RecordingInputStream
 extends InputStream
 {
 	protected final InputStream underlying;
-	protected boolean recording;
+	protected boolean recording = true;
 	protected ByteArrayOutputStream buff = new ByteArrayOutputStream();
 	
 	public RecordingInputStream(InputStream in)
