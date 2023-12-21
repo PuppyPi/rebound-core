@@ -616,7 +616,7 @@ public class PrimitiveCollections
 		Arrays.sort(array, start, length);
 	}
 	//>>>
-	
+		
 	
 	
 	
@@ -38031,7 +38031,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflow_$$Prim$$_WithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -38120,7 +38120,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflow_$$Prim$$_WithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -38458,7 +38458,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowByteWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -38547,7 +38547,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowByteWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -38884,7 +38884,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowCharWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -38973,7 +38973,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowCharWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -39310,7 +39310,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowShortWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -39399,7 +39399,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowShortWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -39736,7 +39736,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowIntWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -39825,7 +39825,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowIntWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -40162,7 +40162,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowLongWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
@@ -40251,7 +40251,7 @@ _$$primxpconf:intsonly$$_
 			if (doesIntegerIntervalOverflowLongWithIntSize(lowerBoundInclusive, size))  throw new OverflowException();
 			
 			this.lowerBoundInclusive = lowerBoundInclusive;
-			this.size = size;
+			this.size = requireNonNegative(size);
 		}
 		
 		
