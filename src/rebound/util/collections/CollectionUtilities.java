@@ -3583,6 +3583,12 @@ _$$primxpconf:intsonly$$_
 		return new Immutable_$$Primitive$$_IntervalSet(first, count);
 	}
 	
+	
+	public static Simple_$$Primitive$$_Iterator intervalSimple_$$Primitive$$_IterableByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
+	{
+		return () -> intervalSimple_$$Primitive$$_IteratorByEnd(inclusiveLowBound, inclusiveHighBound);
+	}
+	
 	public static Simple_$$Primitive$$_Iterator intervalSimple_$$Primitive$$_IteratorByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
 	{
 		return new Simple_$$Primitive$$_Iterator()
