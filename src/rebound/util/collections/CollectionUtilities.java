@@ -3580,8 +3580,6 @@ _$$primxpconf:intsonly$$_
 	
 	public static Simple_$$Primitive$$_Iterator intervalSimple_$$Primitive$$_IteratorByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
 	{
-		requireNonNegative(count);
-		
 		return new Simple_$$Primitive$$_Iterator()
 		{
 			_$$prim$$_ i = inclusiveLowBound;
