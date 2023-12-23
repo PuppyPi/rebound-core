@@ -155,10 +155,15 @@ import rebound.util.collections.prim.PrimitiveCollections.ShortCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleByteIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleByteIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleCharacterIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleCharacterIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleIntegerIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleIntegerIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleLongIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleLongIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleShortIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleShortIterator;
 import rebound.util.collections.prim.PrimitiveCollections.SortedByteSetBackedByList;
 import rebound.util.collections.prim.PrimitiveCollections.SortedCharacterSetBackedByList;
@@ -3641,6 +3646,12 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableByteIntervalSet(first, count);
 	}
 	
+	
+	public static SimpleByteIterable intervalSimpleByteIterableByEnd(byte inclusiveLowBound, byte inclusiveHighBound)
+	{
+		return () -> intervalSimpleByteIteratorByEnd(inclusiveLowBound, inclusiveHighBound);
+	}
+	
 	public static SimpleByteIterator intervalSimpleByteIteratorByEnd(byte inclusiveLowBound, byte inclusiveHighBound)
 	{
 		return new SimpleByteIterator()
@@ -3690,6 +3701,12 @@ _$$primxpconf:intsonly$$_
 	public static ImmutableCharacterIntervalSet intervalCharactersSet(char first, int count)
 	{
 		return new ImmutableCharacterIntervalSet(first, count);
+	}
+	
+	
+	public static SimpleCharacterIterable intervalSimpleCharacterIterableByEnd(char inclusiveLowBound, char inclusiveHighBound)
+	{
+		return () -> intervalSimpleCharacterIteratorByEnd(inclusiveLowBound, inclusiveHighBound);
 	}
 	
 	public static SimpleCharacterIterator intervalSimpleCharacterIteratorByEnd(char inclusiveLowBound, char inclusiveHighBound)
@@ -3743,6 +3760,12 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableShortIntervalSet(first, count);
 	}
 	
+	
+	public static SimpleShortIterable intervalSimpleShortIterableByEnd(short inclusiveLowBound, short inclusiveHighBound)
+	{
+		return () -> intervalSimpleShortIteratorByEnd(inclusiveLowBound, inclusiveHighBound);
+	}
+	
 	public static SimpleShortIterator intervalSimpleShortIteratorByEnd(short inclusiveLowBound, short inclusiveHighBound)
 	{
 		return new SimpleShortIterator()
@@ -3794,6 +3817,12 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableIntegerIntervalSet(first, count);
 	}
 	
+	
+	public static SimpleIntegerIterable intervalSimpleIntegerIterableByEnd(int inclusiveLowBound, int inclusiveHighBound)
+	{
+		return () -> intervalSimpleIntegerIteratorByEnd(inclusiveLowBound, inclusiveHighBound);
+	}
+	
 	public static SimpleIntegerIterator intervalSimpleIntegerIteratorByEnd(int inclusiveLowBound, int inclusiveHighBound)
 	{
 		return new SimpleIntegerIterator()
@@ -3843,6 +3872,12 @@ _$$primxpconf:intsonly$$_
 	public static ImmutableLongIntervalSet intervalLongsSet(long first, int count)
 	{
 		return new ImmutableLongIntervalSet(first, count);
+	}
+	
+	
+	public static SimpleLongIterable intervalSimpleLongIterableByEnd(long inclusiveLowBound, long inclusiveHighBound)
+	{
+		return () -> intervalSimpleLongIteratorByEnd(inclusiveLowBound, inclusiveHighBound);
 	}
 	
 	public static SimpleLongIterator intervalSimpleLongIteratorByEnd(long inclusiveLowBound, long inclusiveHighBound)
