@@ -155,6 +155,11 @@ import rebound.util.collections.prim.PrimitiveCollections.ShortCollection;
 import rebound.util.collections.prim.PrimitiveCollections.ShortList;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterable;
 import rebound.util.collections.prim.PrimitiveCollections.SimpleBooleanIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleByteIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleCharacterIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleIntegerIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleLongIterator;
+import rebound.util.collections.prim.PrimitiveCollections.SimpleShortIterator;
 import rebound.util.collections.prim.PrimitiveCollections.SortedByteSetBackedByList;
 import rebound.util.collections.prim.PrimitiveCollections.SortedCharacterSetBackedByList;
 import rebound.util.collections.prim.PrimitiveCollections.SortedDoubleSetBackedByList;
@@ -3630,6 +3635,34 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableByteIntervalSet(first, count);
 	}
 	
+	public static SimpleByteIterator intervalSimpleByteIteratorByEnd(byte inclusiveLowBound, byte inclusiveHighBound)
+	{
+		return new SimpleByteIterator()
+		{
+			byte i = inclusiveLowBound;
+			boolean done = false;
+			
+			public byte nextrpByte() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					byte prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (byte)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
+	}
+	
 	
 	
 	
@@ -3651,6 +3684,34 @@ _$$primxpconf:intsonly$$_
 	public static ImmutableCharacterIntervalSet intervalCharactersSet(char first, int count)
 	{
 		return new ImmutableCharacterIntervalSet(first, count);
+	}
+	
+	public static SimpleCharacterIterator intervalSimpleCharacterIteratorByEnd(char inclusiveLowBound, char inclusiveHighBound)
+	{
+		return new SimpleCharacterIterator()
+		{
+			char i = inclusiveLowBound;
+			boolean done = false;
+			
+			public char nextrpChar() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					char prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (char)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
 	}
 	
 	
@@ -3676,6 +3737,34 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableShortIntervalSet(first, count);
 	}
 	
+	public static SimpleShortIterator intervalSimpleShortIteratorByEnd(short inclusiveLowBound, short inclusiveHighBound)
+	{
+		return new SimpleShortIterator()
+		{
+			short i = inclusiveLowBound;
+			boolean done = false;
+			
+			public short nextrpShort() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					short prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (short)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
+	}
+	
 	
 	
 	
@@ -3699,6 +3788,34 @@ _$$primxpconf:intsonly$$_
 		return new ImmutableIntegerIntervalSet(first, count);
 	}
 	
+	public static SimpleIntegerIterator intervalSimpleIntegerIteratorByEnd(int inclusiveLowBound, int inclusiveHighBound)
+	{
+		return new SimpleIntegerIterator()
+		{
+			int i = inclusiveLowBound;
+			boolean done = false;
+			
+			public int nextrpInt() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					int prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (int)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
+	}
+	
 	
 	
 	
@@ -3720,6 +3837,34 @@ _$$primxpconf:intsonly$$_
 	public static ImmutableLongIntervalSet intervalLongsSet(long first, int count)
 	{
 		return new ImmutableLongIntervalSet(first, count);
+	}
+	
+	public static SimpleLongIterator intervalSimpleLongIteratorByEnd(long inclusiveLowBound, long inclusiveHighBound)
+	{
+		return new SimpleLongIterator()
+		{
+			long i = inclusiveLowBound;
+			boolean done = false;
+			
+			public long nextrpLong() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					long prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (long)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
 	}
 	
 	
