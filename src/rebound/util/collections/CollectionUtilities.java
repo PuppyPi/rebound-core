@@ -3584,7 +3584,7 @@ _$$primxpconf:intsonly$$_
 	}
 	
 	
-	public static Simple_$$Primitive$$_Iterator intervalSimple_$$Primitive$$_IterableByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
+	public static Simple_$$Primitive$$_Iterable intervalSimple_$$Primitive$$_IterableByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
 	{
 		return () -> intervalSimple_$$Primitive$$_IteratorByEnd(inclusiveLowBound, inclusiveHighBound);
 	}
