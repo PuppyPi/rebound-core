@@ -2789,7 +2789,7 @@ primxp
 			{
 				int index = 0;
 				
-						public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
+				public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
 				{
 					int i = index;
 					
