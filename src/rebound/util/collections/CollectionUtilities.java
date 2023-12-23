@@ -3578,6 +3578,36 @@ _$$primxpconf:intsonly$$_
 		return new Immutable_$$Primitive$$_IntervalSet(first, count);
 	}
 	
+	public static Simple_$$Primitive$$_Iterator intervalSimple_$$Primitive$$_IteratorByEnd(_$$prim$$_ inclusiveLowBound, _$$prim$$_ inclusiveHighBound)
+	{
+		requireNonNegative(count);
+		
+		return new Simple_$$Primitive$$_Iterator()
+		{
+			_$$prim$$_ i = inclusiveLowBound;
+			boolean done = false;
+			
+			public _$$prim$$_ nextrp_$$Prim$$_() throws StopIterationReturnPath
+			{
+				if (done)
+				{
+					throw StopIterationReturnPath.I;
+				}
+				else
+				{
+					_$$prim$$_ prev = i;
+					
+					if (i == inclusiveHighBound)
+						done = true;
+					else
+						i = (_$$prim$$_)(prev + 1);
+					
+					return prev;
+				}
+			}
+		};
+	}
+	
 	
 	 */
 	
