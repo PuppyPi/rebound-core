@@ -11512,6 +11512,23 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	/**
+	 * @throws NotFoundException if there is At Least One value in aToB that is not a key in bToC! (there can be more in bToC than in aToB though and those extras will be silently ignored)
+	 */
+	public static <A, B, C> Map<A, C> composeMaps(Map<A, B> aToB, Map<B, C> bToC) throws NotFoundException
+	{
+		Map<A, C> aToC = new HashMap<>();
+		for (Entry<A, B> e : aToB.entrySet())
+			putNewMandatory(aToC, e.getKey(), getMandatory(bToC, e.getValue()));
+		return aToC;
+	}
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static <E> boolean hasDuplicates(Iterable<E> input)
