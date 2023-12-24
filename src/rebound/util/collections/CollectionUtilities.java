@@ -10062,6 +10062,20 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	
 	
+	@ReadonlyValue
+	public static <I, O> O[] mapToArray(Mapper<I, O> mapper, Class<? super O> outputComponentType, Iterable<I> input)
+	{
+		return (O[])PolymorphicCollectionUtilities.anyToNewArray(mapped(mapper, input), outputComponentType);
+	}
+	
+	@ReadonlyValue
+	public static <I, O> Object[] mapToObjectArray(Mapper<I, O> mapper, Iterable<I> input)
+	{
+		return mapToArray(mapper, Object.class, input);
+	}
+	
+	
+	
 	
 	@ReadonlyValue
 	public static <I, O> List<O> mapToListConcatenating(Mapper<I, List<O>> mapper, Iterable<? extends I> input)
