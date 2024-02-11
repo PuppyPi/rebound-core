@@ -86,7 +86,8 @@ implements DefaultReadonlySet<E>, InfiniteIterable<E>
 		//Breadth-first enumeration ensures a complete span of all the sets :3
 		//Todo a version that supports an infinite number of sets we're unioning!  (Using triangle/diagonal enumeration :3 )     (but then contains() would never terminate if false, so is that even a valid kind of set?! XD )
 		
-		List<SimpleIterator<? extends E>> iterators = mapToList(set -> InfiniteIterable.infiniteSimpleIteratorOf(set), sets);
+		List l = mapToList(set -> InfiniteIterable.infiniteSimpleIteratorOf(set), sets);
+		List<SimpleIterator<? extends E>> iterators = l;
 		
 		return new SimpleIterator<E>()
 		{
