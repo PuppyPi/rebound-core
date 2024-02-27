@@ -6246,6 +6246,9 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 	}
 	
+	
+	
+	
 	public static <E> Set<E> union(Iterable<E> a, Iterable<E> b) //OR (14)
 	{
 		return unionV(a, b);
@@ -6292,6 +6295,57 @@ _$$primxpconf:byte,char,short,int$$_
 		
 		return output;
 	}
+	
+	
+	
+	
+	
+	public static <E> Set<E> unionDisjoints(Iterable<E> a, Iterable<E> b) //OR (14)
+	{
+		return unionDisjointsV(a, b);
+	}
+	
+	public static <E> Set<E> unionDisjointsV(Iterable<E>... sets) //OR (14)
+	{
+		return unionManyDisjoints(asList(sets));
+	}
+	
+	public static <E> Set<E> unionManyDisjoints(Iterable<? extends Iterable<E>> sets) //OR (14)
+	{
+		Set<E> output = new HashSet<>();
+		
+		for (Iterable<E> c : sets)
+			addAllNewMandatory(output, c);
+		
+		return output;
+	}
+	
+	public static <I, O> Set<O> unionManyDisjointsMapping(Mapper<I, Iterable<O>> mapper, Iterable<I> input) //OR (14)
+	{
+		Set<O> output = new HashSet<>();
+		
+		for (I i : input)
+		{
+			Iterable<O> o;
+			try
+			{
+				o = mapper.f(i);
+			}
+			catch (FilterAwayReturnPath exc)
+			{
+				continue;
+			}
+			
+			addAllNewMandatory(output, o);
+		}
+		
+		return output;
+	}
+	
+	
+	
+	
+	
 	
 	
 	public static <E> Set<E> setdiff(Iterable<E> minuend, Collection<E> subtrahendToTakeAway) //umm gate number 2 whatever we call that! XD      ¬(a ⇒ b)  XD
