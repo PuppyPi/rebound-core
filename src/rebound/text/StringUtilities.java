@@ -1191,14 +1191,14 @@ implements JavaNamespace
 		
 	}
 	
-	public static List<String> splitLeavingDelimitersInterleaved(String original, UnaryFunctionCharToBoolean delimiterCharPattern)
+	public static List<String> splitLeavingDelimitersInterleaved(String input, UnaryFunctionCharToBoolean delimiterCharPattern)
 	{
         List<String> tokens = new ArrayList<>();
         StringBuilder tokenBuilder = new StringBuilder();
         boolean inDelimiterRun = false;
         
         for (char c : input.toCharArray()) {
-            if (delimiterPredicate.test(c)) {
+            if (delimiterCharPattern.f(c)) {
                 if (!inDelimiterRun) {
                     if (tokenBuilder.length() > 0) {
                         tokens.add(tokenBuilder.toString());
