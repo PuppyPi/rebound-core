@@ -1225,9 +1225,7 @@ implements JavaNamespace
 		}
 		
 		if (tokenBuilder.length() > 0)
-		{
 			tokens.add(tokenBuilder.toString());
-		}
 		
 		return tokens;
 	}
