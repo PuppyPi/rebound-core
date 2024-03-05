@@ -1193,35 +1193,43 @@ implements JavaNamespace
 	
 	public static List<String> splitLeavingDelimitersInterleaved(String input, UnaryFunctionCharToBoolean delimiterCharPattern)
 	{
-        List<String> tokens = new ArrayList<>();
-        StringBuilder tokenBuilder = new StringBuilder();
-        boolean inDelimiterRun = false;
-        
-        for (char c : input.toCharArray()) {
-            if (delimiterCharPattern.f(c)) {
-                if (!inDelimiterRun) {
-                    if (tokenBuilder.length() > 0) {
-                        tokens.add(tokenBuilder.toString());
-                        tokenBuilder.setLength(0);
-                    }
-                    inDelimiterRun = true;
-                }
-                tokenBuilder.append(c);
-            } else {
-                if (inDelimiterRun) {
-                    tokens.add(tokenBuilder.toString());
-                    tokenBuilder.setLength(0);
-                    inDelimiterRun = false;
-                }
-                tokenBuilder.append(c);
-            }
-        }
-        
-        if (tokenBuilder.length() > 0) {
-            tokens.add(tokenBuilder.toString());
-        }
-        
-        return tokens;
+		List<String> tokens = new ArrayList<>();
+		StringBuilder tokenBuilder = new StringBuilder();
+		boolean inDelimiterRun = false;
+		
+		for (char c : input.toCharArray())
+		{
+			if (delimiterCharPattern.f(c))
+			{
+				if (!inDelimiterRun)
+				{
+					if (tokenBuilder.length() > 0)
+					{
+						tokens.add(tokenBuilder.toString());
+						tokenBuilder.setLength(0);
+					}
+					inDelimiterRun = true;
+				}
+				tokenBuilder.append(c);
+			}
+			else
+			{
+				if (inDelimiterRun)
+				{
+					tokens.add(tokenBuilder.toString());
+					tokenBuilder.setLength(0);
+					inDelimiterRun = false;
+				}
+				tokenBuilder.append(c);
+			}
+		}
+		
+		if (tokenBuilder.length() > 0)
+		{
+			tokens.add(tokenBuilder.toString());
+		}
+		
+		return tokens;
 	}
 	
 	
