@@ -1186,9 +1186,9 @@ implements JavaNamespace
 	
 	
 	
-	public static List<String> splitwhitespaceLeavingDelimitersInterleaved(String original)
+	public static List<String> splitwhitespaceLeavingDelimitersInterleaved(String input)
 	{
-		
+		return splitLeavingDelimitersInterleaved(input, ALL_WHITESPACE_PATTERN);
 	}
 	
 	public static List<String> splitLeavingDelimitersInterleaved(String input, UnaryFunctionCharToBoolean delimiterCharPattern)
