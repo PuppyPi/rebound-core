@@ -1184,6 +1184,22 @@ implements JavaNamespace
 			return splitlines(removeTrailingLineBreak(s));
 	}
 	
+	
+	
+	public static List<String> splitwhitespaceLeavingDelimitersInterleaved(String original)
+	{
+		
+	}
+	
+	public static List<String> splitLeavingDelimitersInterleaved(String original, UnaryFunctionCharToBoolean delimiterCharPattern)
+	{
+		
+	}
+	
+	
+	
+	
+	
 	public static String removeTrailingLineBreak(String s)
 	{
 		return rtrimstr(rtrimstr(rtrimstr(s, "\r\n"), "\n"), "\r");
