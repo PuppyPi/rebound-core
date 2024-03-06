@@ -1191,15 +1191,32 @@ implements JavaNamespace
 	
 	
 	
-	public static List<String> splitwhitespaceLeavingDelimitersInterleaved(String input)
+	
+	
+	
+	public static class DelimiterLeavingSplitResult
+	{
+		public final boolean firstElementIsDelimiter;
+		public final List<String> results;
+		
+		public DelimiterLeavingSplitResult(boolean firstElementIsDelimiter, List<String> results)
+		{
+			this.firstElementIsDelimiter = firstElementIsDelimiter;
+			this.results = results;
+		}
+	}
+	
+	
+	public static DelimiterLeavingSplitResult splitwhitespaceLeavingDelimitersInterleaved(String input)
 	{
 		return splitLeavingDelimitersInterleaved(input, ALL_WHITESPACE_PATTERN);
 	}
 	
-	public static List<String> splitLeavingDelimitersInterleaved(String input, UnaryFunctionCharToBoolean delimiterCharPattern)
+	public static DelimiterLeavingSplitResult splitLeavingDelimitersInterleaved(String input, UnaryFunctionCharToBoolean delimiterCharPattern)
 	{
 		List<String> tokens = new ArrayList<>();
 		StringBuilder tokenBuilder = new StringBuilder();
+		boolean firstElementIsDelimiter = false;
 		boolean inDelimiterRun = false;
 		
 		for (char c : input.toCharArray())
@@ -1210,6 +1227,8 @@ implements JavaNamespace
 				{
 					if (tokenBuilder.length() > 0)
 					{
+						if (tokens.isEmpty())
+							firstElementIsDelimiter = inDelimiterRun;
 						tokens.add(tokenBuilder.toString());
 						tokenBuilder.setLength(0);
 					}
@@ -1221,6 +1240,8 @@ implements JavaNamespace
 			{
 				if (inDelimiterRun)
 				{
+					if (tokens.isEmpty())
+						firstElementIsDelimiter = inDelimiterRun;
 					tokens.add(tokenBuilder.toString());
 					tokenBuilder.setLength(0);
 					inDelimiterRun = false;
@@ -1232,7 +1253,7 @@ implements JavaNamespace
 		if (tokenBuilder.length() > 0)
 			tokens.add(tokenBuilder.toString());
 		
-		return tokens;
+		return new DelimiterLeavingSplitResult(firstElementIsDelimiter, tokens);
 	}
 	
 	
