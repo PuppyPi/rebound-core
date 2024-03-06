@@ -11,14 +11,17 @@ import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
+import static rebound.math.SmallIntegerMathUtilities.least;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import static rebound.util.collections.CollectionUtilities.sorted;
 import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
+
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,10 +53,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
+
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
+
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
@@ -3591,12 +3596,12 @@ implements JavaNamespace
 	public static boolean isTextthing(Object thing)
 	{
 		return
-		thing == null ||
-		thing instanceof CharSequence ||
-		thing instanceof char[] ||
-		thing instanceof Character
-		//		(Softlinked_Class_Jython_PyString != null && Softlinked_Class_Jython_PyString.isInstance(thing))
-		;
+				thing == null ||
+				thing instanceof CharSequence ||
+				thing instanceof char[] ||
+				thing instanceof Character
+				//		(Softlinked_Class_Jython_PyString != null && Softlinked_Class_Jython_PyString.isInstance(thing))
+				;
 	}
 	
 	public static void checkValidTextthing(Object thing) throws ClassCastException
@@ -4187,19 +4192,19 @@ implements JavaNamespace
 	public static Writer encodingReporting(OutputStream in, Charset encoding)
 	{
 		return new OutputStreamWriter(in,
-		encoding.newEncoder()
-		.onMalformedInput(CodingErrorAction.REPORT)
-		.onUnmappableCharacter(CodingErrorAction.REPORT)
-		);
+				encoding.newEncoder()
+				.onMalformedInput(CodingErrorAction.REPORT)
+				.onUnmappableCharacter(CodingErrorAction.REPORT)
+				);
 	}
 	
 	public static Reader decodingReporting(InputStream in, Charset encoding)
 	{
 		return new InputStreamReader(in,
-		encoding.newDecoder()
-		.onMalformedInput(CodingErrorAction.REPORT)
-		.onUnmappableCharacter(CodingErrorAction.REPORT)
-		);
+				encoding.newDecoder()
+				.onMalformedInput(CodingErrorAction.REPORT)
+				.onUnmappableCharacter(CodingErrorAction.REPORT)
+				);
 	}
 	
 	
@@ -4747,23 +4752,23 @@ implements JavaNamespace
 			return def;
 		
 		if (
-		data.equalsIgnoreCase("true") ||
-		data.equalsIgnoreCase("t") ||
-		data.equalsIgnoreCase("yes") ||
-		data.equalsIgnoreCase("y") ||
-		data.equalsIgnoreCase("on") ||
-		data.equalsIgnoreCase("1")
-		)
+				data.equalsIgnoreCase("true") ||
+				data.equalsIgnoreCase("t") ||
+				data.equalsIgnoreCase("yes") ||
+				data.equalsIgnoreCase("y") ||
+				data.equalsIgnoreCase("on") ||
+				data.equalsIgnoreCase("1")
+				)
 			return true;
 		
 		else if (
-		data.equalsIgnoreCase("false") ||
-		data.equalsIgnoreCase("f") ||
-		data.equalsIgnoreCase("no") ||
-		data.equalsIgnoreCase("n") ||
-		data.equalsIgnoreCase("off") ||
-		data.equalsIgnoreCase("0")
-		)
+				data.equalsIgnoreCase("false") ||
+				data.equalsIgnoreCase("f") ||
+				data.equalsIgnoreCase("no") ||
+				data.equalsIgnoreCase("n") ||
+				data.equalsIgnoreCase("off") ||
+				data.equalsIgnoreCase("0")
+				)
 			return false;
 		
 		else
@@ -5093,29 +5098,29 @@ implements JavaNamespace
 	public static String descapeRPStandard(Object escaped, char escapeChar, char whichSurroundingQuotelikeCharIsUsed)
 	{
 		return descapev(escaped, escapeChar, 'u', true, true,
-		//Variable escapes :>
-		'e', escapeChar,
-		'z', whichSurroundingQuotelikeCharIsUsed,
-		
-		//Things necessary for quotation delimiters :>
-		'q', '\'', //Quote
-		'd', '"',  //Double-quote
-		'b', '`',  //Backtick :>
-		'g', '«',  //opening Guillemet :>
-		'G', '»',  //closing Guillemet :>
-		'a', '<',  //opening Angle bracket :>
-		'A', '>',  //closing Angle bracket :>
-		
-		//Things for some [programming language] comment syntaxes ;>
-		'S', '*',
-		'H', '#',
-		
-		//Things sometimes necessary for lexical restrictions on quoted strings :>
-		'n', '\n', //Newline aka line feed
-		'r', '\r', //carriage Return
-		't', '\t', //Tab
-		's', ' '   //Space
-		);
+				//Variable escapes :>
+				'e', escapeChar,
+				'z', whichSurroundingQuotelikeCharIsUsed,
+				
+				//Things necessary for quotation delimiters :>
+				'q', '\'', //Quote
+				'd', '"',  //Double-quote
+				'b', '`',  //Backtick :>
+				'g', '«',  //opening Guillemet :>
+				'G', '»',  //closing Guillemet :>
+				'a', '<',  //opening Angle bracket :>
+				'A', '>',  //closing Angle bracket :>
+				
+				//Things for some [programming language] comment syntaxes ;>
+				'S', '*',
+				'H', '#',
+				
+				//Things sometimes necessary for lexical restrictions on quoted strings :>
+				'n', '\n', //Newline aka line feed
+				'r', '\r', //carriage Return
+				't', '\t', //Tab
+				's', ' '   //Space
+				);
 	}
 	
 	/**
@@ -5135,10 +5140,10 @@ implements JavaNamespace
 	public static String descapeJavaStandard(Object escaped)
 	{
 		return descapev(escaped, '\\', 'u', true, true,
-		'n', '\n',
-		'r', '\r',
-		't', '\t'
-		);
+				'n', '\n',
+				'r', '\r',
+				't', '\t'
+				);
 	}
 	
 	
@@ -6875,10 +6880,10 @@ implements JavaNamespace
 			return ((Reprable)o).reprThis();
 		
 		boolean scalar = Primitives.isPrimitiveWrapperClass(o.getClass()) ||
-		o instanceof String || o instanceof StringBuffer || o instanceof StringBuilder ||
-		o instanceof ImmutableByteArrayList ||
-		o instanceof Class || //Todo more reflect things ._.
-		o instanceof Enum || o instanceof UUID;
+				o instanceof String || o instanceof StringBuffer || o instanceof StringBuilder ||
+				o instanceof ImmutableByteArrayList ||
+				o instanceof Class || //Todo more reflect things ._.
+				o instanceof Enum || o instanceof UUID;
 		
 		if (scalar)
 		{
@@ -8617,8 +8622,8 @@ primxp
 		
 		if (v < 10)
 			return negative ? ("-0" + -v) : ("0" + v);
-			else
-				return Long.toString(v);
+		else
+			return Long.toString(v);
 	}
 	
 	public static String toThreeDigitStringWithLeadingZeroPad(long v)
@@ -8627,10 +8632,10 @@ primxp
 		
 		if (v < 10)
 			return negative ? ("-00" + -v) : ("00" + v);
-			else if (v < 100)
-				return negative ? ("-0" + -v) : ("0" + v);
-				else
-					return Long.toString(v);
+		else if (v < 100)
+			return negative ? ("-0" + -v) : ("0" + v);
+		else
+			return Long.toString(v);
 	}
 	
 	
@@ -9281,8 +9286,8 @@ primxp
 		
 		//Todo does Gregorian require both, or does toLowerCase() work with it?  (And if so, is there some other alphabet that it doesn't work for? X'3 )
 		return
-		Character.toLowerCase(a) == Character.toLowerCase(b) &&
-		Character.toUpperCase(a) == Character.toUpperCase(b);
+				Character.toLowerCase(a) == Character.toLowerCase(b) &&
+				Character.toUpperCase(a) == Character.toUpperCase(b);
 	}
 	
 	
