@@ -3795,9 +3795,6 @@ implements JavaNamespace
 	
 	
 	
-	
-	
-	
 	@MayNormalizePrimitives
 	public static <I> long sumMapping64(Mapper<I, Long> mapper, Iterable<I> inputs)
 	{
@@ -3861,6 +3858,77 @@ implements JavaNamespace
 	{
 		return safeCastS64toS32(productMapping64(i -> upcastNT(mapper.f(i)), inputs));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	@MayNormalizePrimitives
+	public static Object sumMany(Iterable<Object> inputs)
+	{
+		return sumMapping(x -> x, inputs);
+	}
+	
+	
+	@MayNormalizePrimitives
+	public static Object productMany(Iterable<Object> inputs)
+	{
+		return productMapping(x -> x, inputs);
+	}
+	
+	
+	
+	
+	
+	@MayNormalizePrimitives
+	public static long sumMany64(Iterable<Long> inputs)
+	{
+		return sumMapping64(x -> x, inputs);
+	}
+	
+	
+	@MayNormalizePrimitives
+	public static long productMany64(Iterable<Long> inputs)
+	{
+		return productMapping64(x -> x, inputs);
+	}
+	
+	
+	
+	
+	
+	@MayNormalizePrimitives
+	public static int sumMany32(Iterable<Integer> inputs)
+	{
+		return sumMapping32(x -> x, inputs);
+	}
+	
+	
+	@MayNormalizePrimitives
+	public static int productMany32(Iterable<Integer> inputs)
+	{
+		return productMapping32(x -> x, inputs);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	public static Integer upcastNT(Byte b)
