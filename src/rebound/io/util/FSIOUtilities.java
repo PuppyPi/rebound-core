@@ -640,6 +640,11 @@ public class FSIOUtilities
 	 */
 	public static int filecmp(File a, File b) throws IOException
 	{
+		if (!a.isFile())
+			throw new IOException("Not a file: "+repr(a.getAbsolutePath()));
+		if (!b.isFile())
+			throw new IOException("Not a file: "+repr(b.getAbsolutePath()));
+		
 		int c = cmp(a.length(), b.length());
 		if (c != 0)
 			return c;
