@@ -16635,7 +16635,7 @@ _$$primxpconf:byte,char,short,int$$_
 			List<A> precedingSublist = possiblePreceding.subList(possiblePrecedingSize - overlapCandidateSize, possiblePrecedingSize);
 			List<B> succeedingSublist = possibleSucceeding.subList(0, overlapCandidateSize);
 			asrt(precedingSublist.size() == overlapCandidateSize);
-			asrt(precedingSublist.size() == overlapCandidateSize);
+			asrt(succeedingSublist.size() == overlapCandidateSize);
 			if (eq == DefaultAsymmetricalEqualityComparator.I ? eqv(precedingSublist, succeedingSublist) : forAll(j -> eq.equals(precedingSublist.get(j), succeedingSublist.get(j)), intervalIntegersList(0, overlapCandidateSize)))
 				return overlapCandidateSize;
 		}
