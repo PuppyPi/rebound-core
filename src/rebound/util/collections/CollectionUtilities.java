@@ -16746,8 +16746,11 @@ _$$primxpconf:byte,char,short,int$$_
 				if (precedingFilteredSublistSize == succeedingFilteredSublistSize)
 				{
 					int nonskippablesSize = arbitrary(precedingFilteredSublistSize, succeedingFilteredSublistSize);
-					if (eq == DefaultAsymmetricalEqualityComparator.I ? eqv(precedingFilteredSublist, succeedingFilteredSublist) : forAll(j -> eq.equals(precedingFilteredSublist.get(j), succeedingFilteredSublist.get(j)), intervalIntegersList(0, nonskippablesSize)))
-						return new SkippingOverlapCalculationResults(preSublistSize, postSublistSize, nonskippablesSize);
+					if (nonskippablesSize != 0)
+					{
+						if (eq == DefaultAsymmetricalEqualityComparator.I ? eqv(precedingFilteredSublist, succeedingFilteredSublist) : forAll(j -> eq.equals(precedingFilteredSublist.get(j), succeedingFilteredSublist.get(j)), intervalIntegersList(0, nonskippablesSize)))
+							return new SkippingOverlapCalculationResults(preSublistSize, postSublistSize, nonskippablesSize);
+					}
 				}
 			}
 		}
