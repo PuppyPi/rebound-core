@@ -324,6 +324,22 @@ public class CollectionUtilities
 	}
 	
 	
+	/**
+	 * @return (value which may be actually null or if absent always null,     was value present?)
+	 */
+	public static <K, V> Maybe<V> getMaybe(Map<K, V> map, K key)
+	{
+		try
+		{
+			return just(getrp(map, key));
+		}
+		catch (NoSuchMappingReturnPath exc)
+		{
+			return null;
+		}
+	}
+	
+	
 	public static <K, V> V getMandatory(Map<K, V> map, K key) throws NoSuchMappingException
 	{
 		try
@@ -358,6 +374,18 @@ public class CollectionUtilities
 		catch (NoSuchMappingReturnPath exc)
 		{
 			throw new NoSuchMappingException("Key "+repr(key)+" not found in "+repr(map));
+		}
+	}
+	
+	public static <K, V> Maybe<V> removeMaybe(Map<K, V> map, K key) throws NoSuchMappingException
+	{
+		try
+		{
+			return just(removerp(map, key));
+		}
+		catch (NoSuchMappingReturnPath exc)
+		{
+			return null;
 		}
 	}
 	
