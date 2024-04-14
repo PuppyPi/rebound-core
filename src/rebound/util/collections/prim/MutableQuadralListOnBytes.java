@@ -15,6 +15,7 @@ import rebound.util.collections.prim.PrimitiveCollections.IntegerList;
 
 //TODO TESTTTTTTTT ITTTTTTTTT XDD''
 //Todo immutable version of this!!  And an efficient converter to it! :33
+//Todo moreeeeeee super-efficient bulk operationssssssss :D   (this is where using java.util.List's shiiiines! :DD like NumPy for Java! XD :333 )
 
 /**
  * A list of quadral digits in an efficient format :3
