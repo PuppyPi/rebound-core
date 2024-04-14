@@ -88,6 +88,84 @@ implements JavaNamespace
 	
 	
 	
+	/* <<<
+	primxp
+	
+	public static _$$prim$$_[] requireNonEmpty(_$$prim$$_[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	 */
+	
+	public static boolean[] requireNonEmpty(boolean[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static byte[] requireNonEmpty(byte[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static char[] requireNonEmpty(char[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static short[] requireNonEmpty(short[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static float[] requireNonEmpty(float[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static int[] requireNonEmpty(int[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static double[] requireNonEmpty(double[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	public static long[] requireNonEmpty(long[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	//>>>
+	
+	public static <E> E[] requireNonEmpty(E[] a)
+	{
+		if (a.length <= 0)
+			throw new IllegalArgumentException();
+		return a;
+	}
+	
+	
+	
+	
 	public static Object emptyArrayByArrayType(Class arrayType)
 	{
 		if (arrayType == Object[].class)
