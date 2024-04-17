@@ -4758,7 +4758,7 @@ implements JavaNamespace
 	
 	public static void performSafeFileSystemWriteTwoStageAndCopy(File dest, WriterProcedure write) throws IOException
 	{
-		File p = dest.getParentFile();
+		File p = dest.getAbsoluteFile().getParentFile();
 		
 		if (!p.isDirectory())
 		{
