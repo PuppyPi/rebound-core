@@ -5,6 +5,7 @@
 package rebound.io.util;
 
 import static java.util.Objects.*;
+import static rebound.GlobalCodeMetastuffContext.*;
 import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
@@ -356,6 +357,83 @@ implements JavaNamespace
 	public static @ActuallyUnsigned long pumpFixed(InputStream in, OutputStream out, @ActuallyUnsigned long length) throws IOException
 	{
 		return pumpFixed(in, out, length, 4096);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @return the number of bytes we actually pumped! \o/
+	 */
+	public static @ActuallySigned long pumpPropagatingApparentFlushes(InputStream in, OutputStream out, int bufferSize) throws IOException
+	{
+		return pumpPropagatingApparentFlushes(in, out, bufferSize, null);
+	}
+	
+	/**
+	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 */
+	public static long pumpPropagatingApparentFlushes(InputStream in, OutputStream out) throws IOException
+	{
+		return pumpPropagatingApparentFlushes(in, out, null);
+	}
+	
+	
+	/**
+	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 */
+	public static @ActuallySigned long pumpPropagatingApparentFlushes(InputStream in, OutputStream out, int bufferSize, @Nullable UnaryProcedureLong progressObserver) throws IOException
+	{
+		@ActuallySigned long total = 0;
+		byte[] buffer = new byte[bufferSize];
+		
+		while (true)
+		{
+			int available = in.available();
+			
+			if (available < 0)
+			{
+				logBug();
+				available = 0;
+			}
+			
+			int toRead = available == 0 ? bufferSize : least(available, bufferSize);
+			
+			int amt = in.read(buffer, 0, toRead);
+			if (amt < 0)
+				break;
+			
+			out.write(buffer, 0, amt);
+			
+			if (available != 0)
+				out.flush();
+			
+			total = safe_add_s64(total, amt);
+			
+			if (progressObserver != null)
+				progressObserver.f(total);
+		}
+		
+		return total;
+	}
+	
+	/**
+	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 */
+	public static long pumpPropagatingApparentFlushes(InputStream in, OutputStream out, @Nullable UnaryProcedureLong progressObserver) throws IOException
+	{
+		return pumpPropagatingApparentFlushes(in, out, 4096);
 	}
 	
 	
