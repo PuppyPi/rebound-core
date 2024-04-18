@@ -108,6 +108,21 @@ implements JavaNamespace
 	
 	
 	
+	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
+	public static BufferedInputStream ensureBufferedInputStream(InputStream in, int bufferSize)
+	{
+		return in.getClass() == BufferedInputStream.class ? (BufferedInputStream)in : new BufferedInputStream(in, bufferSize);
+	}
+	
+	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
+	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream in, int bufferSize)
+	{
+		return in.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)in : new BufferedOutputStream(in, bufferSize);
+	}
+	
+	
+	
+	
 	
 	
 	
