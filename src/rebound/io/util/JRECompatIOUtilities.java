@@ -100,9 +100,9 @@ implements JavaNamespace
 	}
 	
 	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
-	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream in)
+	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream out)
 	{
-		return in.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)in : new BufferedOutputStream(in);
+		return out.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)out : new BufferedOutputStream(out);
 	}
 	
 	
@@ -115,9 +115,9 @@ implements JavaNamespace
 	}
 	
 	@Inline  //inlining is necessary for the immediate optimization of We-Know-The-Runtime-Type-And-So-We-Don't-Need-To-Do-Virtual-Method-Invocation-and-Now-We-Can-Inline-Object-Method-Calls!  :>>
-	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream in, int bufferSize)
+	public static BufferedOutputStream ensureBufferedOutputStream(OutputStream out, int bufferSize)
 	{
-		return in.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)in : new BufferedOutputStream(in, bufferSize);
+		return out.getClass() == BufferedOutputStream.class ? (BufferedOutputStream)out : new BufferedOutputStream(out, bufferSize);
 	}
 	
 	
