@@ -382,7 +382,7 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 * @return the number of bytes we actually pumped! \o/
 	 */
 	public static long pumpPropagatingApparentFlushes(InputStream in, OutputStream out) throws IOException
 	{
@@ -391,7 +391,7 @@ implements JavaNamespace
 	
 	
 	/**
-	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 * @return the number of bytes we actually pumped! \o/
 	 */
 	public static @ActuallySigned long pumpPropagatingApparentFlushes(InputStream in, OutputStream out, int bufferSize, @Nullable UnaryProcedureLong progressObserver) throws IOException
 	{
@@ -429,7 +429,7 @@ implements JavaNamespace
 	}
 	
 	/**
-	 * @return the number of bytes we actually pumpPropagatingApparentFlushesed! \o/
+	 * @return the number of bytes we actually pumped! \o/
 	 */
 	public static long pumpPropagatingApparentFlushes(InputStream in, OutputStream out, @Nullable UnaryProcedureLong progressObserver) throws IOException
 	{
