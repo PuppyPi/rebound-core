@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import rebound.exceptions.OverflowException;
 
+//TODO Do all empty ones count as the same or different?!?
+
 @Immutable
 public class ArithmeticIntegerInterval
 {
