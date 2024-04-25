@@ -8,6 +8,17 @@ import rebound.math.PolyInteger;
 @Immutable
 public class NonemptyArithmeticInfinitableIntegerInterval
 {
+	public static final NonemptyArithmeticInfinitableIntegerInterval
+	Universe = new NonemptyArithmeticInfinitableIntegerInterval(null, null),
+	Zero = new NonemptyArithmeticInfinitableIntegerInterval(0, 0),
+	Positive = new NonemptyArithmeticInfinitableIntegerInterval(1, null),
+	Negative = new NonemptyArithmeticInfinitableIntegerInterval(null, -1),
+	Nonnegative = new NonemptyArithmeticInfinitableIntegerInterval(0, null),
+	Nonpositive = new NonemptyArithmeticInfinitableIntegerInterval(null, 0);
+	
+	
+	
+	
 	protected final @PolyInteger @Nullable Object start;
 	protected final @PolyInteger @Nullable Object end;
 	

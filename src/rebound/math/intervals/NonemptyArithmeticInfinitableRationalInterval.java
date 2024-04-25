@@ -10,6 +10,17 @@ import rebound.math.RationalOrInteger;
 @Immutable
 public class NonemptyArithmeticInfinitableRationalInterval
 {
+	public static final NonemptyArithmeticInfinitableRationalInterval
+	Universe = new NonemptyArithmeticInfinitableRationalInterval(null, false, null, false),
+	Zero = new NonemptyArithmeticInfinitableRationalInterval(0, true, 0, true),
+	Positive = new NonemptyArithmeticInfinitableRationalInterval(0, false, null, false),
+	Negative = new NonemptyArithmeticInfinitableRationalInterval(null, false, 0, false),
+	Nonnegative = new NonemptyArithmeticInfinitableRationalInterval(0, true, null, false),
+	Nonpositive = new NonemptyArithmeticInfinitableRationalInterval(null, false, 0, true);
+	
+	
+	
+	
 	protected final @RationalOrInteger @Nullable Object start;
 	protected final boolean startInclusive;
 	protected final @RationalOrInteger @Nullable Object end;

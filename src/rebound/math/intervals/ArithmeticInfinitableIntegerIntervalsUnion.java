@@ -1,14 +1,28 @@
 package rebound.math.intervals;
 
+import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
 
 public class ArithmeticInfinitableIntegerIntervalsUnion
 {
+	public static final ArithmeticInfinitableIntegerIntervalsUnion
+	Empty = new ArithmeticInfinitableIntegerIntervalsUnion(emptyList()),
+	Universe = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Universe)),
+	Zero = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Zero)),
+	Positive = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Positive)),
+	Negative = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Negative)),
+	Nonpositive = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Nonpositive)),
+	Nonnegative = new ArithmeticInfinitableIntegerIntervalsUnion(singletonList(NonemptyArithmeticInfinitableIntegerInterval.Nonnegative)),
+	Nonzero = new ArithmeticInfinitableIntegerIntervalsUnion(Arrays.asList(NonemptyArithmeticInfinitableIntegerInterval.Negative, NonemptyArithmeticInfinitableIntegerInterval.Positive));
+	
+	
+	
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
 	 * + This means only the first one can have -∞ and the last one can have +∞ !

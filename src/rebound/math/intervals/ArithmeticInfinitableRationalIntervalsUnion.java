@@ -1,14 +1,28 @@
 package rebound.math.intervals;
 
+import static java.util.Collections.*;
 import static java.util.Objects.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
 
 public class ArithmeticInfinitableRationalIntervalsUnion
 {
+	public static final ArithmeticInfinitableRationalIntervalsUnion
+	Empty = new ArithmeticInfinitableRationalIntervalsUnion(emptyList()),
+	Universe = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Universe)),
+	Zero = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Zero)),
+	Positive = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Positive)),
+	Negative = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Negative)),
+	Nonpositive = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Nonpositive)),
+	Nonnegative = new ArithmeticInfinitableRationalIntervalsUnion(singletonList(NonemptyArithmeticInfinitableRationalInterval.Nonnegative)),
+	Nonzero = new ArithmeticInfinitableRationalIntervalsUnion(Arrays.asList(NonemptyArithmeticInfinitableRationalInterval.Negative, NonemptyArithmeticInfinitableRationalInterval.Positive));
+	
+	
+	
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
 	 * + This means only the first one can have -∞ and the last one can have +∞ !
