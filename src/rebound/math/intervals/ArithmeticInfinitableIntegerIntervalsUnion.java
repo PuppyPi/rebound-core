@@ -12,7 +12,7 @@ public class ArithmeticInfinitableIntegerIntervalsUnion
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
 	 * + This means only the first one can have -∞ and the last one can have +∞ !
-	 * + None of the internal intervals may be empty!
+	 * + This list being empty is the unique way to encode the Empty Set! :D
 	 */
 	protected final @Emptyable @Nonnull List<NonemptyArithmeticInfinitableIntegerInterval> intervals;
 	
