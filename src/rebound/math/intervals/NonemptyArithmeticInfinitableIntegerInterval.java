@@ -13,6 +13,11 @@ public class NonemptyArithmeticInfinitableIntegerInterval
 	
 	
 	/**
+	 * Note how it's fundamentally impossible to even encode an empty interval with two inclusive bounds ;3
+	 * Making them be the same is the specific and correct way to encode a singleton set though! :D
+	 * 
+	 * And note how it's impossible to encode the wrong kind of infinity here ;3
+	 * 
 	 * @param start  inclusive lower bound; null = -∞
 	 * @param end  inclusive upper bound; null = +∞
 	 */

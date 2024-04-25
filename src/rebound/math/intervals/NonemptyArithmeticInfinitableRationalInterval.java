@@ -17,6 +17,14 @@ public class NonemptyArithmeticInfinitableRationalInterval
 	
 	
 	/**
+	 * Note how it's fundamentally impossible to even encode an empty interval with two inclusive bounds ;3
+	 * Making them be the same and both inclusive is the specific and correct way to encode a singleton set though! :D
+	 * If the bounds are the same value, they *must both be inclusive!*
+	 * If one was inclusive and the other wasn't, then it would be a Set (a Subset of the Rationals) which both included that element as a member of the set and didn't!  A logical contradiction!
+	 * And if they're both exclusive, then it's an empty interval and this is simply defined as a nonempty type, so that's not allowed either X3
+	 * 
+	 * And note how it's impossible to encode the wrong kind of infinity here ;3
+	 * 
 	 * @param start  inclusive lower bound; null = -∞
 	 * @param startInclusive  must be false if start is -∞!
 	 * @param end  inclusive upper bound; null = +∞
