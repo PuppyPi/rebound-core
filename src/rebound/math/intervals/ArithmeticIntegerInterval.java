@@ -1,4 +1,4 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static java.util.Objects.*;
 import static rebound.math.MathUtilities.*;
@@ -6,6 +6,8 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import rebound.exceptions.OverflowException;
+import rebound.math.Direction1D;
+import rebound.math.PolyInteger;
 
 //TODO Do all empty ones count as the same or different?!?
 

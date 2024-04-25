@@ -1,7 +1,9 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import javax.annotation.concurrent.Immutable;
 import rebound.annotations.semantic.operationspecification.UnhashableType;
+import rebound.math.MathUtilities;
+import rebound.math.RealNumeric;
 
 /**
  * This is meant to be a *very* general datatype!

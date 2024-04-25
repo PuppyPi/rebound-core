@@ -1,7 +1,8 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
+import rebound.math.MathUtilities;
 import rebound.util.collections.DefaultList;
 import rebound.util.collections.prim.BitSetBackedBooleanList;
 import rebound.util.collections.prim.PrimitiveCollections;

@@ -1,4 +1,4 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static java.util.Objects.*;
 

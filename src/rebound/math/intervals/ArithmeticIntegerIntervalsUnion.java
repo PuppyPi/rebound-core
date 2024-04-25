@@ -1,25 +1,25 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static java.util.Objects.*;
 import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
 
-public class ArithmeticGenericIntervalsUnion<N>
+public class ArithmeticIntegerIntervalsUnion
 {
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
 	 * + This means only the first one can have -∞ and the last one can have +∞ !
 	 * + None of the internal intervals may be empty!
 	 */
-	protected final @Emptyable @Nonnull List<ArithmeticGenericInterval<N>> intervals;
+	protected final @Emptyable @Nonnull List<ArithmeticIntegerInterval> intervals;
 	
-	public ArithmeticGenericIntervalsUnion(List<ArithmeticGenericInterval<N>> intervals)
+	public ArithmeticIntegerIntervalsUnion(List<ArithmeticIntegerInterval> intervals)
 	{
 		this.intervals = requireNonNull(intervals);
 	}
 	
-	public List<ArithmeticGenericInterval<N>> getIntervals()
+	public List<ArithmeticIntegerInterval> getIntervals()
 	{
 		return intervals;
 	}
@@ -42,7 +42,7 @@ public class ArithmeticGenericIntervalsUnion<N>
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ArithmeticGenericIntervalsUnion other = (ArithmeticGenericIntervalsUnion) obj;
+		ArithmeticIntegerIntervalsUnion other = (ArithmeticIntegerIntervalsUnion) obj;
 		if (intervals == null)
 		{
 			if (other.intervals != null)
@@ -60,7 +60,7 @@ public class ArithmeticGenericIntervalsUnion<N>
 		StringBuilder b = new StringBuilder();
 		boolean first = true;
 		
-		for (ArithmeticGenericInterval<N> i : intervals)
+		for (ArithmeticIntegerInterval i : intervals)
 		{
 			if (first)
 				first = false;
@@ -72,7 +72,7 @@ public class ArithmeticGenericIntervalsUnion<N>
 		
 		if (first)
 			return "∅";
-			
+		
 		return b.toString();
 	}
 }

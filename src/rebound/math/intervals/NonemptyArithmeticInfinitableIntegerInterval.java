@@ -1,8 +1,9 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static rebound.math.MathUtilities.*;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import rebound.math.PolyInteger;
 
 @Immutable
 public class NonemptyArithmeticInfinitableIntegerInterval

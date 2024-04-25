@@ -52,6 +52,8 @@ import rebound.exceptions.OverflowException;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.exceptions.TruncationException;
 import rebound.math.MathUtilities.CastableToIntegerTrait.CastableToSmallIntegerTrait;
+import rebound.math.intervals.ArithmeticGenericInterval;
+import rebound.math.intervals.ArithmeticSmallIntegerInterval;
 import rebound.text.StringUtilities;
 import rebound.util.BasicExceptionUtilities;
 import rebound.util.collections.ArrayUtilities;

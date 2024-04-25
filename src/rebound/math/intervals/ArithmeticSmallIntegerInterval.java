@@ -1,9 +1,10 @@
-package rebound.math;
+package rebound.math.intervals;
 
 import static rebound.math.SmallIntegerMathUtilities.*;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 import rebound.exceptions.OverflowException;
+import rebound.math.Direction1D;
 
 @Immutable
 public class ArithmeticSmallIntegerInterval
