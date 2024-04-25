@@ -22,7 +22,7 @@ public class NonemptyArithmeticInfinitableIntegerInterval
 		this.end = end == null ? null : requireInteger(end);
 		
 		if (start != null && end != null && mathcmp(start, end) > 0)
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("Lower bound ("+start+") is > Upper bound! ("+end+")");
 	}
 	
 	
