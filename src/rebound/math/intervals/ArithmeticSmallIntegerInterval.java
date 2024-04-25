@@ -113,8 +113,8 @@ public class ArithmeticSmallIntegerInterval
 	{
 		return subinterval(0, sizeOrExclusiveEndingBound);
 	}
-
-
+	
+	
 	@Override
 	public int hashCode()
 	{
@@ -124,8 +124,8 @@ public class ArithmeticSmallIntegerInterval
 		result = prime * result + (int) (start ^ (start >>> 32));
 		return result;
 	}
-
-
+	
+	
 	//Note: empty intervals are not equivalent to each other nor interchangeable!  Many times code will use an empty interval on a point (ie, [x, x]) to represent a single point without needing to use a whole other format than interval-typed values :3
 	@Override
 	public boolean equals(Object obj)
@@ -150,8 +150,8 @@ public class ArithmeticSmallIntegerInterval
 		
 		return true;
 	}
-
-
+	
+	
 	@Override
 	public String toString()
 	{
