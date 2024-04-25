@@ -18,8 +18,8 @@ public class NonemptyArithmeticInfinitableIntegerInterval
 	 */
 	public NonemptyArithmeticInfinitableIntegerInterval(@PolyInteger @Nullable Object start, @PolyInteger @Nullable Object end)
 	{
-		this.start = start;
-		this.end = end;
+		this.start = start == null ? null : requireInteger(start);
+		this.end = end == null ? null : requireInteger(end);
 		
 		if (start != null && end != null && mathcmp(start, end) > 0)
 			throw new IllegalArgumentException();

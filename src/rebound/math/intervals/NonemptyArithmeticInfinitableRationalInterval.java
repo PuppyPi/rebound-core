@@ -30,9 +30,9 @@ public class NonemptyArithmeticInfinitableRationalInterval
 		if (end == null && endInclusive)
 			throw new IllegalArgumentException("Cannot include +∞!!");
 		
-		this.start = start;
+		this.start = start == null ? null : requireRationalOrInteger(start);
 		this.startInclusive = startInclusive;
-		this.end = end;
+		this.end = end == null ? null : requireRationalOrInteger(end);
 		this.endInclusive = endInclusive;
 		
 		if (start != null && end != null)
