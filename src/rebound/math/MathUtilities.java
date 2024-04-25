@@ -32,6 +32,10 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import jx.lang.UnsignedByte;
+import jx.lang.UnsignedInteger;
+import jx.lang.UnsignedLong;
+import jx.lang.UnsignedShort;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
@@ -73,7 +77,6 @@ import rebound.util.functional.FunctionInterfaces.UnaryFunctionLongToObject;
 import rebound.util.functional.FunctionInterfaces.UnaryProcedureLong;
 import rebound.util.functional.functions.DefaultComparisonNumericallyAbstract;
 import rebound.util.objectutil.JavaNamespace;
-import com.google.common.primitives.UnsignedLong;
 
 //Todo more optimizing-support for UnsignedLong!
 
@@ -667,8 +670,17 @@ implements JavaNamespace
 		else if (value instanceof Long)
 			return toBigInteger((long)(Long)value);
 		
+		else if (value instanceof UnsignedByte)
+			return toBigInteger(upcast(((UnsignedByte)value).byteValue()));
+		
+		else if (value instanceof UnsignedShort)
+			return toBigInteger(upcast(((UnsignedShort)value).shortValue()));
+		
+		else if (value instanceof UnsignedInteger)
+			return toBigInteger(upcast(((UnsignedInteger)value).intValue()));
+		
 		else if (value instanceof UnsignedLong)
-			return ((UnsignedLong)value).bigIntegerValue();
+			return toBigIntegerFromUnsignedLong(((UnsignedLong)value).longValue());
 		
 		
 		else if (value instanceof BigInteger)
@@ -684,6 +696,9 @@ implements JavaNamespace
 	
 	public static BigInteger toBigIntegerFromUnsignedLong(@ActuallyUnsigned long value)
 	{
+		//	BigInteger b = BigInteger.valueOf(value & Long.MAX_VALUE);
+		//	return value < 0 ? b.setBit(63) : b;
+		
 		if (value >= 0)
 		{
 			return toBigInteger(value);
@@ -1784,6 +1799,15 @@ implements JavaNamespace
 		else if (input instanceof Long)
 			return (Long)input;
 		
+		else if (input instanceof UnsignedByte)
+			return upcast(((UnsignedByte)input).byteValue());
+		
+		else if (input instanceof UnsignedShort)
+			return upcast(((UnsignedShort)input).shortValue());
+		
+		else if (input instanceof UnsignedInteger)
+			return upcast(((UnsignedInteger)input).intValue());
+		
 		else if (input instanceof UnsignedLong)
 			return safeCastU64toS64(((UnsignedLong)input).longValue());
 		
@@ -2074,6 +2098,7 @@ implements JavaNamespace
 			
 			if (input instanceof Long)
 				return BigDecimal.valueOf((Long)input);
+			//Todo one for UnsignedLong!
 			else
 				return new BigDecimal(toBigInteger(input));
 		}
@@ -2517,7 +2542,7 @@ implements JavaNamespace
 			if (!isOverflowsCastBigIntegerToS64((BigInteger)a))
 				return ((BigInteger)a).longValue();
 			else if (!isOverflowsCastBigIntegerToU64((BigInteger)a))
-				return UnsignedLong.valueOf((BigInteger)a);
+				return new UnsignedLong(((BigInteger)a).longValue());
 			else
 				return a;
 		}
@@ -2615,6 +2640,10 @@ implements JavaNamespace
 		if (a instanceof Long)
 		{
 			return SmallIntegerMathUtilities.signum((Long)a);
+		}
+		else if (a instanceof UnsignedLong)
+		{
+			return ((UnsignedLong)a).longValue() == 0 ? 0 : 1;
 		}
 		else if (a instanceof BigInteger)
 		{
@@ -2789,7 +2818,8 @@ implements JavaNamespace
 		if (eq(a, b))
 			return 0;
 		
-		
+		a = normalizePrimitive(a);
+		b = normalizePrimitive(b);
 		
 		//Handle infinities :3
 		{
@@ -2836,13 +2866,13 @@ implements JavaNamespace
 			return ((BigInteger)a).compareTo(BigInteger.valueOf((Long)b));
 		
 		if (a instanceof BigInteger && b instanceof UnsignedLong)
-			return ((BigInteger)a).compareTo(((UnsignedLong)b).bigIntegerValue());
+			return ((BigInteger)a).compareTo(toBigIntegerFromUnsignedLong(((UnsignedLong)b).longValue()));
 		
 		if (a instanceof Long && b instanceof BigInteger)
 			return BigInteger.valueOf((Long)a).compareTo((BigInteger)b);
 		
 		if (a instanceof UnsignedLong && b instanceof BigInteger)
-			return ((UnsignedLong)a).bigIntegerValue().compareTo((BigInteger)b);
+			return toBigIntegerFromUnsignedLong(((UnsignedLong)a).longValue()).compareTo((BigInteger)b);
 		
 		
 		
@@ -2874,7 +2904,7 @@ implements JavaNamespace
 	 */
 	public static boolean isInteger(Object x)
 	{
-		return x instanceof Long || x instanceof Integer || x instanceof Short || x instanceof Character || x instanceof Byte || x instanceof UnsignedLong || x instanceof BigInteger;
+		return x instanceof Long || x instanceof Integer || x instanceof Short || x instanceof Character || x instanceof Byte || x instanceof UnsignedLong || x instanceof UnsignedInteger || x instanceof UnsignedShort || x instanceof UnsignedByte || x instanceof BigInteger;
 	}
 	
 	/**
@@ -3664,7 +3694,7 @@ implements JavaNamespace
 				if (n instanceof Long)
 					nn = BigInteger.valueOf((Long)n);
 				else if (n instanceof UnsignedLong)
-					nn = ((UnsignedLong)n).bigIntegerValue();
+					nn = toBigIntegerFromUnsignedLong(((UnsignedLong)n).longValue());
 				else if (n instanceof BigInteger)
 					nn = (BigInteger)n;
 				else
@@ -3677,7 +3707,7 @@ implements JavaNamespace
 				if (d instanceof Long)
 					dd = BigInteger.valueOf((Long)d);
 				else if (d instanceof UnsignedLong)
-					dd = ((UnsignedLong)d).bigIntegerValue();
+					dd = toBigIntegerFromUnsignedLong(((UnsignedLong)d).longValue());
 				else if (d instanceof BigInteger)
 					dd = (BigInteger)d;
 				else
@@ -3731,6 +3761,8 @@ implements JavaNamespace
 		{
 			return SmallIntegerMathUtilities.gcd((Long)a, (Long)b);
 		}
+		
+		//Todo one for UnsignedLong!
 		
 		else
 		{
@@ -3989,9 +4021,9 @@ implements JavaNamespace
 		
 		//Todo faster operation here!
 		if (numerator instanceof UnsignedLong)
-			numerator = ((UnsignedLong)numerator).bigIntegerValue();
+			numerator = toBigIntegerFromUnsignedLong(((UnsignedLong)numerator).longValue());
 		if (denominator instanceof UnsignedLong)
-			denominator = ((UnsignedLong)denominator).bigIntegerValue();
+			denominator = toBigIntegerFromUnsignedLong(((UnsignedLong)denominator).longValue());
 		
 		if (numerator instanceof BigInteger || denominator instanceof BigInteger)
 		{
@@ -4025,6 +4057,7 @@ implements JavaNamespace
 			long d = (Long)denominator;
 			return n / d;  //XDD
 		}
+		//Todo one for UnsignedLong!
 		else
 		{
 			BigInteger n = toBigInteger(numerator);
@@ -4095,6 +4128,7 @@ implements JavaNamespace
 		n = normalizeIfIntegerPrimitive(n);
 		if (n instanceof Long)
 			return primeFactorization((long)(Long)n);
+		//Todo one for UnsignedLong!
 		else
 			return primeFactorization((BigInteger)n);
 	}
@@ -4229,6 +4263,7 @@ implements JavaNamespace
 			else
 				return floorRoot(b, safeCastAnythingToS32(degree));
 		}
+		//Todo one for UnsignedLong!
 		else
 		{
 			BigInteger b = (BigInteger) base;
@@ -5147,6 +5182,8 @@ implements JavaNamespace
 			else
 				return convertFloatToRationalOrInteger(Math.sqrt(floatingApproximationDouble(value)));
 		}
+		
+		//Todo one for UnsignedLong!
 		
 		else if (value instanceof BigInteger)
 		{

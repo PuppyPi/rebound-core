@@ -6,11 +6,16 @@ package rebound.util;
 
 import static rebound.bits.BitUtilities.*;
 import static rebound.bits.BitfieldSafeCasts.*;
+import static rebound.bits.Unsigned.*;
 import static rebound.util.BasicExceptionUtilities.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nonnull;
+import jx.lang.UnsignedByte;
+import jx.lang.UnsignedInteger;
+import jx.lang.UnsignedLong;
+import jx.lang.UnsignedShort;
 import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.objectutil.BasicObjectUtilities;
@@ -640,6 +645,11 @@ implements JavaNamespace
 				long bb = (Long)b;
 				return aa == bb;
 			}
+			else if (b instanceof UnsignedLong)
+			{
+				@ActuallyUnsigned long bb = ((UnsignedLong)b).longValue();
+				return aa == bb && aa >= 0 && bb >= 0;
+			}
 			else if (b instanceof Double)
 			{
 				double bb = (Double)b;
@@ -655,6 +665,35 @@ implements JavaNamespace
 				throw newClassCastExceptionOrNullPointerException(b);
 			}
 		}
+		else if (a instanceof UnsignedLong)
+		{
+			@ActuallyUnsigned long aa = ((UnsignedLong)a).longValue();
+			
+			if (b instanceof Long)
+			{
+				long bb = (Long)b;
+				return aa == bb && aa >= 0 && bb >= 0;
+			}
+			else if (b instanceof UnsignedLong)
+			{
+				@ActuallyUnsigned long bb = ((UnsignedLong)b).longValue();
+				return aa == bb;
+			}
+			else if (b instanceof Double)
+			{
+				double bb = (Double)b;
+				return safeCastU64toF64(aa) == bb;
+			}
+			else if (b instanceof Float)
+			{
+				float bb = (Float)b;
+				return safeCastU64toF32(aa) == bb;
+			}
+			else
+			{
+				throw newClassCastExceptionOrNullPointerException(b);
+			}
+		}
 		else if (a instanceof Double)
 		{
 			double aa = (Double)a;
@@ -662,6 +701,11 @@ implements JavaNamespace
 			if (b instanceof Long)
 			{
 				long bb = (Long)b;
+				return aa == bb;
+			}
+			else if (b instanceof UnsignedLong)
+			{
+				double bb = safeCastU64toF64(((UnsignedLong)b).longValue());
 				return aa == bb;
 			}
 			else if (b instanceof Double)
@@ -686,6 +730,11 @@ implements JavaNamespace
 			if (b instanceof Long)
 			{
 				long bb = (Long)b;
+				return aa == bb;
+			}
+			else if (b instanceof UnsignedLong)
+			{
+				float bb = safeCastU64toF32(((UnsignedLong)b).longValue());
 				return aa == bb;
 			}
 			else if (b instanceof Double)
@@ -2298,6 +2347,39 @@ implements JavaNamespace
 			return (Integer)x;
 		else if (x instanceof Long)
 			return (Long)x;
+		else if (x instanceof UnsignedByte)
+			return ((UnsignedByte)x).longValue();
+		else if (x instanceof UnsignedShort)
+			return ((UnsignedShort)x).longValue();
+		else if (x instanceof UnsignedInteger)
+			return ((UnsignedInteger)x).longValue();
+		else if (x instanceof UnsignedLong)
+			return safeCastU64toS64(((UnsignedLong)x).longValue());
+		else
+			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(x);
+	}
+	
+	
+	public static @ActuallyUnsigned long castIntegerPrimitiveWrapperToUnsignedLong(Object x)
+	{
+		if (x instanceof Byte)
+			return (Byte)x;
+		else if (x instanceof Character)
+			return (Character)x;
+		else if (x instanceof Short)
+			return (Short)x;
+		else if (x instanceof Integer)
+			return (Integer)x;
+		else if (x instanceof Long)
+			return safeCastS64toU64((Long)x);
+		else if (x instanceof UnsignedByte)
+			return ((UnsignedByte)x).longValue();
+		else if (x instanceof UnsignedShort)
+			return ((UnsignedShort)x).longValue();
+		else if (x instanceof UnsignedInteger)
+			return ((UnsignedInteger)x).longValue();
+		else if (x instanceof UnsignedLong)
+			return ((UnsignedLong)x).longValue();
 		else
 			throw BasicExceptionUtilities.newClassCastExceptionOrNullPointerException(x);
 	}
@@ -2322,6 +2404,10 @@ implements JavaNamespace
 		else if (c == char.class || c == Character.class) return 16;
 		else if (c == int.class || c == Integer.class) return 32;
 		else if (c == long.class || c == Long.class) return 64;
+		if (c == UnsignedByte.class) return 8;
+		else if (c == UnsignedShort.class) return 16;
+		else if (c == UnsignedInteger.class) return 32;
+		else if (c == UnsignedLong.class) return 64;
 		else throw new IllegalArgumentException();
 	}
 	
@@ -2849,6 +2935,273 @@ implements JavaNamespace
 	
 	
 	
+	
+	//<Class/type things including unsigneds! :D
+	
+	public static Class getWrapperClassFromPrimitiveStrictIncludingUnsigneds(Class c, boolean actuallyUnsigned)
+	{
+		if (c == boolean.class)
+			return Boolean.class;
+		else if (c == char.class)
+			return Character.class;
+		else if (c == byte.class)
+			return actuallyUnsigned ? UnsignedByte.class : Byte.class;
+		else if (c == short.class)
+			return actuallyUnsigned ? UnsignedShort.class : Short.class;
+		else if (c == int.class)
+			return actuallyUnsigned ? UnsignedInteger.class : Integer.class;
+		else if (c == long.class)
+			return actuallyUnsigned ? UnsignedLong.class : Long.class;
+		else if (c == float.class)
+			return Float.class;
+		else if (c == double.class)
+			return Double.class;
+		else
+			return c;
+	}
+	
+	public static Class getPrimitiveClassFromWrapperStrictIncludingUnsigneds(Class c) throws IllegalArgumentException
+	{
+		if (c == Boolean.class)
+			return boolean.class;
+		else if (c == Character.class)
+			return char.class;
+		else if (c == Byte.class)
+			return byte.class;
+		else if (c == Short.class)
+			return short.class;
+		else if (c == Integer.class)
+			return int.class;
+		else if (c == Long.class)
+			return long.class;
+		else if (c == UnsignedByte.class)
+			return byte.class;
+		else if (c == UnsignedShort.class)
+			return short.class;
+		else if (c == UnsignedInteger.class)
+			return int.class;
+		else if (c == UnsignedLong.class)
+			return long.class;
+		else if (c == Float.class)
+			return float.class;
+		else if (c == Double.class)
+			return double.class;
+		else
+			throw new IllegalArgumentException();
+	}
+	
+	
+	
+	public static Class getPrimitiveClassFromWrapperOrPassThroughPrimitiveIncludingUnsigneds(Class c)
+	{
+		if (c == null)
+			throw new NullPointerException();
+		
+		else if (c == Boolean.class)
+			return boolean.class;
+		else if (c == Character.class)
+			return char.class;
+		else if (c == Byte.class)
+			return byte.class;
+		else if (c == Short.class)
+			return short.class;
+		else if (c == Integer.class)
+			return int.class;
+		else if (c == Long.class)
+			return long.class;
+		else if (c == UnsignedByte.class)
+			return byte.class;
+		else if (c == UnsignedShort.class)
+			return short.class;
+		else if (c == UnsignedInteger.class)
+			return int.class;
+		else if (c == UnsignedLong.class)
+			return long.class;
+		else if (c == Float.class)
+			return float.class;
+		else if (c == Double.class)
+			return double.class;
+		
+		
+		/*
+		 * c == _$$prim$$_.class ||
+		 */
+		
+		else if (c == boolean.class || c == byte.class || c == short.class || c == char.class || c == int.class || c == float.class || c == long.class || c == double.class)
+			return c;
+		
+		
+		else
+			throw new StructuredClassCastException("Not a primitive or wrapper class >,>", c);
+	}
+	
+	
+	public static Class getWrapperClassFromPrimitiveOrPassThroughWrapperIncludingUnsigneds(Class c, boolean actuallyUnsigned)
+	{
+		if (c == null)
+			throw new NullPointerException();
+		
+		else if (c == boolean.class)
+			return Boolean.class;
+		else if (c == char.class)
+			return Character.class;
+		else if (c == byte.class)
+			return actuallyUnsigned ? UnsignedByte.class : Byte.class;
+		else if (c == short.class)
+			return actuallyUnsigned ? UnsignedShort.class : Short.class;
+		else if (c == int.class)
+			return actuallyUnsigned ? UnsignedInteger.class : Integer.class;
+		else if (c == long.class)
+			return actuallyUnsigned ? UnsignedLong.class : Long.class;
+		else if (c == float.class)
+			return Float.class;
+		else if (c == double.class)
+			return Double.class;
+		
+		
+		/*
+		 * c == _$$Primitive$$_.class ||
+		 */
+		
+		else if (c == Boolean.class || c == Byte.class || c == Short.class || c == Character.class || c == Integer.class || c == Float.class || c == Long.class || c == Double.class)
+			return c;
+		
+		
+		else
+			throw new StructuredClassCastException("Not a primitive or wrapper class >,> : ", c);
+	}
+	
+	
+	
+	
+	
+	
+	public static boolean isPrimitiveWrapperClassIncludingUnsigneds(Class c)
+	{
+		return
+		c == Boolean.class ||
+		c == Character.class ||
+		c == Byte.class ||
+		c == Short.class ||
+		c == Integer.class ||
+		c == Long.class ||
+		c == UnsignedByte.class ||
+		c == UnsignedShort.class ||
+		c == UnsignedInteger.class ||
+		c == UnsignedLong.class ||
+		c == Float.class ||
+		c == Double.class;
+	}
+	
+	public static boolean isNumericPrimitiveWrapperClassIncludingUnsigneds(Class c)
+	{
+		return
+		c == Byte.class ||
+		c == Short.class ||
+		c == Integer.class ||
+		c == Long.class ||
+		c == UnsignedByte.class ||
+		c == UnsignedShort.class ||
+		c == UnsignedInteger.class ||
+		c == UnsignedLong.class ||
+		c == Float.class ||
+		c == Double.class;
+	}
+	
+	public static boolean isIntegerPrimitiveWrapperClassIncludingUnsigneds(Class c)
+	{
+		return
+		c == Byte.class ||
+		c == Short.class ||
+		c == Character.class || //Note: not "numeric"!
+		c == Integer.class ||
+		c == Long.class ||
+		c == UnsignedByte.class ||
+		c == UnsignedShort.class ||
+		c == UnsignedInteger.class ||
+		c == UnsignedLong.class;
+	}
+	
+	
+	
+	
+	
+	public static boolean isPrimitiveOrWrapperClassIncludingUnsigneds(Class c)
+	{
+		return isPrimitiveClass(c) || isPrimitiveWrapperClassIncludingUnsigneds(c);
+	}
+	
+	public static boolean isNumericPrimitiveOrWrapperClassIncludingUnsigneds(Class c)
+	{
+		return isNumericPrimitiveClass(c) || isNumericPrimitiveWrapperClassIncludingUnsigneds(c);
+	}
+	
+	public static boolean isIntegerPrimitiveOrWrapperClassIncludingUnsigneds(Class c)
+	{
+		return isIntegerPrimitiveClass(c) || isIntegerPrimitiveWrapperClassIncludingUnsigneds(c);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static boolean isPrimitiveWrapperInstanceIncludingUnsigneds(Object o)
+	{
+		return
+		o instanceof Boolean ||
+		o instanceof Character ||
+		o instanceof Byte ||
+		o instanceof Short ||
+		o instanceof Integer ||
+		o instanceof Long ||
+		o instanceof UnsignedByte ||
+		o instanceof UnsignedShort ||
+		o instanceof UnsignedInteger ||
+		o instanceof UnsignedLong ||
+		o instanceof Float ||
+		o instanceof Double;
+	}
+	
+	public static boolean isNumericPrimitiveWrapperInstanceIncludingUnsigneds(Object o)
+	{
+		return
+		o instanceof Byte ||
+		o instanceof Short ||
+		o instanceof Integer ||
+		o instanceof Long ||
+		o instanceof UnsignedByte ||
+		o instanceof UnsignedShort ||
+		o instanceof UnsignedInteger ||
+		o instanceof UnsignedLong ||
+		o instanceof Float ||
+		o instanceof Double;
+	}
+	
+	public static boolean isIntegerPrimitiveWrapperInstanceIncludingUnsigneds(Object o)
+	{
+		return
+		o instanceof Byte ||
+		o instanceof Short ||
+		o instanceof Character || //Note: not "numeric"!
+		o instanceof Integer ||
+		o instanceof Long ||
+		o instanceof UnsignedByte ||
+		o instanceof UnsignedShort ||
+		o instanceof UnsignedInteger ||
+		o instanceof UnsignedLong;
+	}
+	//Class/type things including Unsigneds!>
+	
+	
+	
+	
+	
+	
+	
 	//<Primitive hashings—Equivalent to the Wrapper classes! :D
 	
 	public static int hashprim(boolean x)
@@ -2926,6 +3279,8 @@ implements JavaNamespace
 			throw new NullPointerException();
 		if (input instanceof Integer || input instanceof Short || input instanceof Character || input instanceof Byte)
 			return ((Number)input).longValue();
+		if (input instanceof UnsignedInteger || input instanceof UnsignedShort || input instanceof UnsignedByte)
+			return ((Number)input).longValue();
 		if (input instanceof Float)
 			return ((Float)input).doubleValue();
 		return input;
@@ -2937,6 +3292,8 @@ implements JavaNamespace
 		if (input == null)
 			throw new NullPointerException();
 		if (input instanceof Integer || input instanceof Short || input instanceof Character || input instanceof Byte)
+			return ((Number)input).longValue();
+		if (input instanceof UnsignedInteger || input instanceof UnsignedShort || input instanceof UnsignedByte)
 			return ((Number)input).longValue();
 		return input;
 	}
@@ -2951,21 +3308,31 @@ implements JavaNamespace
 		if (!isIntegerPrimitiveWrapperInstance(input))
 			throw new IllegalArgumentException("Not an integer primitive type!!: "+input.getClass());
 		
-		long value64 = (Long) normalizePrimitive(input);
+		Object n = normalizePrimitive(input);
 		
-		return typeMassageAmongstIntegerPrimitives(value64, destType, actuallyUnsigned);
+		if (n instanceof Long)
+		{
+			long valueS64 = (Long)n;
+			return typeMassageAmongstIntegerPrimitives(valueS64, destType, actuallyUnsigned);
+		}
+		else
+		{
+			@ActuallyUnsigned long valueU64 = ((UnsignedLong)n).longValue();
+			return typeMassageAmongstIntegerPrimitivesFromUnsigned(valueU64, destType, actuallyUnsigned);
+		}
 	}
 	
+	
 	@Nonnull
-	public static Object typeMassageAmongstIntegerPrimitives(@Nonnull long value64, @Nonnull Class destType, boolean actuallyUnsigned)
+	public static Object typeMassageAmongstIntegerPrimitives(long value64, @Nonnull Class destType, boolean destIsActuallyUnsigned)
 	{
 		if (destType == byte.class || destType == Byte.class)
 		{
-			return actuallyUnsigned ? safeCastS64toU8(value64) : safeCastS64toS8(value64);
+			return destIsActuallyUnsigned ? safeCastS64toU8(value64) : safeCastS64toS8(value64);
 		}
 		else if (destType == short.class || destType == Short.class)
 		{
-			return actuallyUnsigned ? safeCastS64toU16(value64) : safeCastS64toS16(value64);
+			return destIsActuallyUnsigned ? safeCastS64toU16(value64) : safeCastS64toS16(value64);
 		}
 		else if (destType == char.class || destType == Character.class)
 		{
@@ -2973,12 +3340,78 @@ implements JavaNamespace
 		}
 		else if (destType == int.class || destType == Integer.class)
 		{
-			return actuallyUnsigned ? safeCastS64toU32(value64) : safeCastS64toS32(value64);
+			return destIsActuallyUnsigned ? safeCastS64toU32(value64) : safeCastS64toS32(value64);
 		}
 		else if (destType == long.class || destType == Long.class)
 		{
-			return actuallyUnsigned ? safeCastS64toU64(value64) : value64;
+			return destIsActuallyUnsigned ? safeCastS64toU64(value64) : value64;
 		}
+		
+		else if (destType == UnsignedByte.class)
+		{
+			return new UnsignedByte(safeCastS64toU8(value64));
+		}
+		else if (destType == UnsignedShort.class)
+		{
+			return new UnsignedShort(safeCastS64toU16(value64));
+		}
+		else if (destType == UnsignedInteger.class)
+		{
+			return new UnsignedInteger(safeCastS64toU32(value64));
+		}
+		else if (destType == UnsignedLong.class)
+		{
+			return new UnsignedLong(safeCastS64toU64(value64));
+		}
+		
+		else
+		{
+			throw new IllegalArgumentException("Not an integer primitive type!!: "+destType);
+		}
+	}
+	
+	
+	@Nonnull
+	public static Object typeMassageAmongstIntegerPrimitivesFromUnsigned(@ActuallyUnsigned long value64, @Nonnull Class destType, boolean destIsActuallyUnsigned)
+	{
+		if (destType == byte.class || destType == Byte.class)
+		{
+			return destIsActuallyUnsigned ? safeCastU64toU8(value64) : safeCastU64toS8(value64);
+		}
+		else if (destType == short.class || destType == Short.class)
+		{
+			return destIsActuallyUnsigned ? safeCastU64toU16(value64) : safeCastU64toS16(value64);
+		}
+		else if (destType == char.class || destType == Character.class)
+		{
+			return safeCastU64toU16(value64);  //always unsigned XDD
+		}
+		else if (destType == int.class || destType == Integer.class)
+		{
+			return destIsActuallyUnsigned ? safeCastU64toU32(value64) : safeCastU64toS32(value64);
+		}
+		else if (destType == long.class || destType == Long.class)
+		{
+			return destIsActuallyUnsigned ? value64 : safeCastU64toS64(value64);
+		}
+		
+		else if (destType == UnsignedByte.class)
+		{
+			return new UnsignedByte(safeCastU64toU8(value64));
+		}
+		else if (destType == UnsignedShort.class)
+		{
+			return new UnsignedShort(safeCastU64toU16(value64));
+		}
+		else if (destType == UnsignedInteger.class)
+		{
+			return new UnsignedInteger(safeCastU64toU32(value64));
+		}
+		else if (destType == UnsignedLong.class)
+		{
+			return new UnsignedLong(value64);
+		}
+		
 		else
 		{
 			throw new IllegalArgumentException("Not an integer primitive type!!: "+destType);
