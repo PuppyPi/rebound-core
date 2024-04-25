@@ -1,6 +1,7 @@
 package rebound.math.intervals;
 
 import static java.util.Objects.*;
+import static rebound.util.collections.CollectionUtilities.*;
 import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
@@ -16,7 +17,7 @@ public class ArithmeticGenericIntervalsUnion<N>
 	
 	public ArithmeticGenericIntervalsUnion(List<ArithmeticGenericInterval<N>> intervals)
 	{
-		this.intervals = requireNonNull(intervals);
+		this.intervals = requireNonNullElements(requireNonNull(intervals));
 	}
 	
 	public List<ArithmeticGenericInterval<N>> getIntervals()
