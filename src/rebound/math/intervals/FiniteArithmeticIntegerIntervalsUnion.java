@@ -5,21 +5,21 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import rebound.annotations.semantic.simpledata.Emptyable;
 
-public class ArithmeticIntegerIntervalsUnion
+public class FiniteArithmeticIntegerIntervalsUnion
 {
 	/**
 	 * These must be in order with no overlaps or touching-that-could-be-combined-to-one-bigger-interval!!
 	 * + This means only the first one can have -∞ and the last one can have +∞ !
 	 * + None of the internal intervals may be empty!
 	 */
-	protected final @Emptyable @Nonnull List<ArithmeticIntegerInterval> intervals;
+	protected final @Emptyable @Nonnull List<FiniteArithmeticIntegerInterval> intervals;
 	
-	public ArithmeticIntegerIntervalsUnion(List<ArithmeticIntegerInterval> intervals)
+	public FiniteArithmeticIntegerIntervalsUnion(List<FiniteArithmeticIntegerInterval> intervals)
 	{
 		this.intervals = requireNonNull(intervals);
 	}
 	
-	public List<ArithmeticIntegerInterval> getIntervals()
+	public List<FiniteArithmeticIntegerInterval> getIntervals()
 	{
 		return intervals;
 	}
@@ -42,7 +42,7 @@ public class ArithmeticIntegerIntervalsUnion
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ArithmeticIntegerIntervalsUnion other = (ArithmeticIntegerIntervalsUnion) obj;
+		FiniteArithmeticIntegerIntervalsUnion other = (FiniteArithmeticIntegerIntervalsUnion) obj;
 		if (intervals == null)
 		{
 			if (other.intervals != null)
@@ -60,7 +60,7 @@ public class ArithmeticIntegerIntervalsUnion
 		StringBuilder b = new StringBuilder();
 		boolean first = true;
 		
-		for (ArithmeticIntegerInterval i : intervals)
+		for (FiniteArithmeticIntegerInterval i : intervals)
 		{
 			if (first)
 				first = false;

@@ -12,13 +12,13 @@ import rebound.math.PolyInteger;
 //TODO Do all empty ones count as the same or different?!?
 
 @Immutable
-public class ArithmeticIntegerInterval
+public class FiniteArithmeticIntegerInterval
 {
 	protected final @PolyInteger @Nonnull Object start;
 	protected final @Nonnegative @PolyInteger @Nonnull Object size;
 	
 	
-	public ArithmeticIntegerInterval(@PolyInteger Object start, @PolyInteger Object size)
+	public FiniteArithmeticIntegerInterval(@PolyInteger Object start, @PolyInteger Object size)
 	{
 		requireNonNull(start);
 		requireNonNull(size);
@@ -86,7 +86,7 @@ public class ArithmeticIntegerInterval
 	
 	
 	
-	public ArithmeticIntegerInterval subinterval(@PolyInteger Object start, @PolyInteger Object size)
+	public FiniteArithmeticIntegerInterval subinterval(@PolyInteger Object start, @PolyInteger Object size)
 	{
 		if (mathcmp(size, 0) < 0)
 			throw new IllegalArgumentException();
@@ -98,7 +98,7 @@ public class ArithmeticIntegerInterval
 		if (matheq(start, 0l) && matheq(size, this.getSize()))
 			return this;
 		else
-			return new ArithmeticIntegerInterval(add(this.start, start), size);
+			return new FiniteArithmeticIntegerInterval(add(this.start, start), size);
 	}
 	
 	
@@ -108,17 +108,17 @@ public class ArithmeticIntegerInterval
 	
 	
 	
-	public ArithmeticIntegerInterval subintervalByExclusiveBound(@PolyInteger Object start, @PolyInteger Object end)
+	public FiniteArithmeticIntegerInterval subintervalByExclusiveBound(@PolyInteger Object start, @PolyInteger Object end)
 	{
 		return subinterval(start, subtract(end, start));
 	}
 	
-	public ArithmeticIntegerInterval subintervalToEnd(@PolyInteger Object start)
+	public FiniteArithmeticIntegerInterval subintervalToEnd(@PolyInteger Object start)
 	{
 		return subinterval(start, subtract(this.size, start));
 	}
 	
-	public ArithmeticIntegerInterval subintervalFromBeginning(@PolyInteger Object sizeOrExclusiveEndingBound)
+	public FiniteArithmeticIntegerInterval subintervalFromBeginning(@PolyInteger Object sizeOrExclusiveEndingBound)
 	{
 		return subinterval(0, sizeOrExclusiveEndingBound);
 	}
@@ -136,7 +136,7 @@ public class ArithmeticIntegerInterval
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ArithmeticIntegerInterval other = (ArithmeticIntegerInterval) obj;
+		FiniteArithmeticIntegerInterval other = (FiniteArithmeticIntegerInterval) obj;
 		if (!matheq(size, other.size))
 			return false;
 		if (!matheq(start, other.start))
