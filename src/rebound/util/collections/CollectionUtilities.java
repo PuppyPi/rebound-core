@@ -16892,4 +16892,130 @@ _$$primxpconf:byte,char,short,int$$_
 				lastKeeper = i;
 		return lastKeeper == len - 1 ? l : l.subList(0, lastKeeper+1);
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static <E> BasicReferenceIterator<E> basicIteratorFromSimple(SimpleIterator<E> i)
+	{
+		return new BasicReferenceIterator<E>()
+		{
+			boolean has = false;
+			E prev;
+			
+			@Override
+			public boolean next()
+			{
+				try
+				{
+					prev = i.nextrp();
+					has = true;  //only AFTER the above!!
+				}
+				catch (StopIterationReturnPath exc)
+				{
+					return false;
+				}
+				return true;
+			}
+			
+			@Override
+			public E get()
+			{
+				if (!has)
+					throw new IllegalStateException("next() hasn't been called and returned true yet!");
+				else
+					return prev;
+			}
+		};
+	}
+	
+	
+	public static <E> BasicReferenceIterator<E> basicIteratorFromJRE(Iterator<E> i)
+	{
+		return new BasicReferenceIterator<E>()
+		{
+			boolean has = false;
+			E prev;
+			
+			@Override
+			public boolean next()
+			{
+				if (i.hasNext())
+				{
+					prev = i.next();
+					has = true;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			
+			@Override
+			public E get()
+			{
+				if (!has)
+					throw new IllegalStateException("next() hasn't been called and returned true yet!");
+				else
+					return prev;
+			}
+		};
+	}
+	
+	
+	public static <E> BasicReferenceIterator<E> basicIteratorFromOldJRE(Enumeration<E> i)
+	{
+		return new BasicReferenceIterator<E>()
+		{
+			boolean has = false;
+			E prev;
+			
+			@Override
+			public boolean next()
+			{
+				if (i.hasMoreElements())
+				{
+					prev = i.nextElement();
+					has = true;
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			
+			@Override
+			public E get()
+			{
+				if (!has)
+					throw new IllegalStateException("next() hasn't been called and returned true yet!");
+				else
+					return prev;
+			}
+		};
+	}
+	
+	
+	
+	
+	
+	
+	public static <E> SimpleIterator<E> simpleIteratorFromBasic(BasicReferenceIterator<E> i)
+	{
+		return () ->
+		{
+			if (i.next())
+				return i.get();
+			else
+				throw StopIterationReturnPath.I;
+		};
+	}
 }
