@@ -8,6 +8,7 @@ import static rebound.math.SmallIntegerMathUtilities.*;
 import java.awt.Color;
 import java.awt.Paint;
 import javax.annotation.Nullable;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.NotANumberException;
 import rebound.exceptions.NotYetImplementedException;
@@ -352,7 +353,7 @@ implements JavaNamespace
 	
 	public static SimpleRGBAColor parseHexColorWithOUTPoundSignToSC(String withoutPound)
 	{
-		int rgbvalue = Integer.parseInt(withoutPound, 16);
+		@ActuallyUnsigned int rgbvalue = (int)Long.parseLong(withoutPound, 16);
 		boolean hasAlpha = withoutPound.length() > 6;
 		return new SimpleRGBAColor(rgbvalue, hasAlpha ? SimpleImageColorStorageType.TYPE_ARGB32 : SimpleImageColorStorageType.TYPE_RGB32);
 	}
