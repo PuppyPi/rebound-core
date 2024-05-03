@@ -65,7 +65,7 @@ import rebound.exceptions.ReadonlyUnsupportedOperationException;
 import rebound.exceptions.StopIterationReturnPath;
 import rebound.exceptions.StructuredClassCastException;
 import rebound.util.NIOBufferUtilities;
-import rebound.util.ValueType;
+import rebound.util.ValuelikeType;
 import rebound.util.collections.AbstractReadonlyList;
 import rebound.util.collections.AbstractReadonlySet;
 import rebound.util.collections.ArrayUtilities;
@@ -7400,7 +7400,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableBooleanArrayList
-	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableBooleanArrayList>, BooleanList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -10920,7 +10920,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableByteArrayList
-	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableByteArrayList>, ByteList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -14440,7 +14440,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableCharacterArrayList
-	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableCharacterArrayList>, CharacterList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -17960,7 +17960,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableShortArrayList
-	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableShortArrayList>, ShortList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -21480,7 +21480,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableFloatArrayList
-	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableFloatArrayList>, FloatList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -25000,7 +25000,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableIntegerArrayList
-	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableIntegerArrayList>, IntegerList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -28520,7 +28520,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableDoubleArrayList
-	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableDoubleArrayList>, DoubleList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -32040,7 +32040,7 @@ primxp
 	
 	@Immutable
 	public static class ImmutableLongArrayList
-	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableLongArrayList>, LongList, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the underlying data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -34055,7 +34055,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedByteSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedByteSetBackedByArray>, ByteSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedByteSetBackedByArray>, ByteSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -34595,7 +34595,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedCharacterSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedCharacterSetBackedByArray>, CharacterSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedCharacterSetBackedByArray>, CharacterSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -35135,7 +35135,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedShortSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedShortSetBackedByArray>, ShortSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedShortSetBackedByArray>, ShortSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -35675,7 +35675,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedFloatSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedFloatSetBackedByArray>, FloatSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedFloatSetBackedByArray>, FloatSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -36215,7 +36215,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedIntegerSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedIntegerSetBackedByArray>, IntegerSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedIntegerSetBackedByArray>, IntegerSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -36755,7 +36755,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedDoubleSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedDoubleSetBackedByArray>, DoubleSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedDoubleSetBackedByArray>, DoubleSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		
@@ -37295,7 +37295,7 @@ _$$primxpconf:noboolean$$_
 	 */
 	@HashableType
 	public static class ImmutableSortedLongSetBackedByArray
-	implements Serializable, Comparable<ImmutableSortedLongSetBackedByArray>, LongSet, KnowsLengthFixedness, RandomAccess, ValueType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
+	implements Serializable, Comparable<ImmutableSortedLongSetBackedByArray>, LongSet, KnowsLengthFixedness, RandomAccess, ValuelikeType, RuntimeImmutability     //Let's not implement the general interfaces for accessing the data data jussssst to help make sure anyone who accesses it *knows* it's meant to be VERY MUCH READONLY!  XD'''
 	{
 		private static final long serialVersionUID = 1L;
 		

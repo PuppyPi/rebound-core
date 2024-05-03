@@ -1,7 +1,7 @@
 package rebound.util;
 
 public enum Undefined
-implements ValueType
+implements ValuelikeType
 {
 	I;
 	

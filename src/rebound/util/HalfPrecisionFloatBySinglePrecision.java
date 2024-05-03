@@ -4,7 +4,7 @@ import static rebound.math.MathUtilities.*;
 
 public class HalfPrecisionFloatBySinglePrecision
 extends Number
-implements Comparable<Number>, ValueType
+implements Comparable<Number>, ValuelikeType
 {
 	private static final long serialVersionUID = 1l;
 	

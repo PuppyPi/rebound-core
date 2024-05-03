@@ -65,7 +65,7 @@ import rebound.util.AngryReflectionUtility;
 import rebound.util.AngryReflectionUtility.JavaVisibility;
 import rebound.util.ExceptionUtilities;
 import rebound.util.Primitives;
-import rebound.util.ValueType;
+import rebound.util.ValuelikeType;
 import rebound.util.classhacking.jre.BetterJREGlassbox;
 import rebound.util.classhacking.jre.JREGlassBox.ArraysGlassBox;
 import rebound.util.collections.ArrayUtilities;
@@ -1569,12 +1569,12 @@ implements JavaNamespace
 	 */
 	public static boolean isDefinitelyValueType(@Nullable Object object)
 	{
-		return isTrueAndNotNull(isValueType(object));
+		return isTrueAndNotNull(isValuelikeType(object));
 	}
 	
-	public static @Nullable Boolean isValueType(@Nullable Object object)
+	public static @Nullable Boolean isValuelikeType(@Nullable Object object)
 	{
-		return object instanceof ValueType ? ((ValueType)object).isValueType() : isDefinitelyValueTypeGrandfathering(object);
+		return object instanceof ValuelikeType ? ((ValuelikeType)object).isValuelikeType() : isDefinitelyValueTypeGrandfathering(object);
 	}
 	
 	public static Boolean isDefinitelyValueTypeGrandfathering(@Nullable Object object)

@@ -13,13 +13,13 @@ import rebound.util.objectutil.ObjectUtilities;
  * Things whose hashCode()/equals() is immutable and value/contents-defined not reference-defined :)
  */
 @FunctionalityType
-public interface ValueType
+public interface ValuelikeType
 {
 	/**
-	 * @return null if unknown (namely if it depends on a field's value and {@link ObjectUtilities#isValueType(Object)} returns null for it)
+	 * @return null if unknown (namely if it depends on a field's value and {@link ObjectUtilities#isValuelikeType(Object)} returns null for it)
 	 */
 	@TraitPredicate
-	public default @Nullable Boolean isValueType()
+	public default @Nullable Boolean isValuelikeType()
 	{
 		return true;
 	}
