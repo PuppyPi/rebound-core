@@ -16,7 +16,7 @@ import rebound.util.objectutil.ObjectUtilities;
 public interface ValueType
 {
 	/**
-	 * @return null if unknown (namely if it depends on a field's value and {@link ObjectUtilities#isValueType(Object)} return null
+	 * @return null if unknown (namely if it depends on a field's value and {@link ObjectUtilities#isValueType(Object)} returns null for it)
 	 */
 	@TraitPredicate
 	public default @Nullable Boolean isValueType()
