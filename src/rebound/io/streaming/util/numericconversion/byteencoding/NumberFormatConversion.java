@@ -431,27 +431,105 @@ public class NumberFormatConversion
 		 * The data is represented as standard two's-complement signed data and is directly what you expect ^_^
 		 * https://en.wikipedia.org/wiki/Two%27s_complement  ^_^
 		 * 
+		 * This has the issue that the absolute value / negation of the smallest negative value (eg, -32768 for 16-bit integers) is not possible because the positive version of it isn't encodeable!
+		 * On the other hand, it doesn't suffer from the negative-zero problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
 		 * + 0xFFFF --> Logical -1
+		 * + 0xFFFE --> Logical -2
+		 * + 0x8001 --> Logical -32767
 		 * + 0x8000 --> Logical -32768
 		 * + 0x7FFF --> Logical 32767
+		 * + 0x0001 --> Logical 0
 		 * + 0x0000 --> Logical 0
 		 * 
-		 * In audio jargon this is commonly (but confusingly) called "signed" format.
+		 * In audio jargon this is commonly (but confusingly) just called "signed" format.
+		 * 
+		 * + Note that addition and subtraction are the same operation in terms of binary bits as {@link #Unsigned} and {@link #Offset Offset-Binary}!
 		 */
 		TwosComplement,
+		
+		
+		/**
+		 * The data is represented as standard one's-complement signed data!  This is a format rarely seen these days (though it's still used in a few things, like the Internet Protocol packet checksums, μ-law/a-law companding, etc.)
+		 * https://en.wikipedia.org/wiki/Ones%27_complement  ^_^
+		 * 
+		 * This has the significant issue that there is such a thing as positive and negative zero!  So just because two binary bit patterns are equal doesn't mean their logical values are equal!
+		 * On the other hand, it doesn't suffer from the absolute-magnitude-of-the-smallest-value problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
+		 * + 0xFFFF --> Logical -0
+		 * + 0xFFFE --> Logical -1
+		 * + 0x8001 --> Logical -32766
+		 * + 0x8000 --> Logical -32767
+		 * + 0x7FFF --> Logical +32767
+		 * + 0x0001 --> Logical +1
+		 * + 0x0000 --> Logical +0
+		 */
+		OnesComplement,
+		
+		
+		/**
+		 * The data is represented as sign-magnitude signed data!  This is a format rarely seen these days (though it's still used in a few things, like internally inside floating-point values!)
+		 * https://en.wikipedia.org/wiki/Signed_number_representations#Sign%E2%80%93magnitude  ^_^
+		 * 
+		 * This has the significant issue that there is such a thing as positive and negative zero!  So just because two binary bit patterns are equal doesn't mean their logical values are equal!
+		 * On the other hand, it doesn't suffer from the absolute-magnitude-of-the-smallest-value problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
+		 * + 0xFFFF --> Logical -32767
+		 * + 0xFFFE --> Logical -32766
+		 * + 0x8001 --> Logical -1
+		 * + 0x8000 --> Logical -0
+		 * + 0x7FFF --> Logical +32767
+		 * + 0x0001 --> Logical +1
+		 * + 0x0000 --> Logical +0
+		 */
+		SignMagnitude,
+		
 		
 		/**
 		 * The signed data can be thought of as being unsigned integers which are conceptually subtracted from to produce the signed value :3
 		 * https://en.wikipedia.org/wiki/Offset_binary  ^_^
 		 * 
+		 * This has the issue that the absolute value / negation of the smallest negative value (eg, -32768 for 16-bit integers) is not possible because the positive version of it isn't encodeable!
+		 * On the other hand, it doesn't suffer from the negative-zero problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
 		 * + 0xFFFF --> Logical 32767
+		 * + 0xFFFE --> Logical 32766
+		 * + 0x8001 --> Logical 1
 		 * + 0x8000 --> Logical 0
 		 * + 0x7FFF --> Logical -1
+		 * + 0x0001 --> Logical -32767
 		 * + 0x0000 --> Logical -32768
 		 * 
 		 * In audio jargon this is commonly (but confusingly) called "unsigned" format.
+		 * 
+		 * + Note that addition and subtraction are the same operation in terms of binary bits as {@link #TwosComplement} and {@link #Offset Offset-Binary}!
 		 */
 		Offset,
+		
+		
+		/**
+		 * This is just *actual* unsigned data!  It can't represent negative numbers!!
+		 * https://en.wikipedia.org/wiki/Integer_(computer_science)  ^_^
+		 * 
+		 * This has the issue that the absolute value / negation of the smallest negative value (eg, -32768 for 16-bit integers) is not possible because the positive version of it isn't encodeable!
+		 * On the other hand, it doesn't suffer from the negative-zero problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
+		 * + 0xFFFF --> Logical 65535
+		 * + 0xFFFE --> Logical 65534
+		 * + 0x8001 --> Logical 32769
+		 * + 0x8000 --> Logical 32768
+		 * + 0x7FFF --> Logical 32767
+		 * + 0x0001 --> Logical 1
+		 * + 0x0000 --> Logical 0
+		 * 
+		 * + Note that addition and subtraction are the same operation in terms of binary bits as {@link #TwosComplement} and {@link #Offset Offset-Binary}!
+		 */
+		Unsigned,
 	}
 	
 	
@@ -465,9 +543,120 @@ public class NumberFormatConversion
 	}
 	
 	
+	/**
+	 * Companding is a function applied to *each sample individually on its own* to simply redistribute the dynamic range!
+	 * 
+	 * Usually so that most of the possible bit-patterns in an n-bit sample refer to small numbers close to zero, since there is often more information carried in the difference between a (perhaps air/sound pressure value) of 0.01 and 0.02 than between 1000.01 and 1000.02  XD
+	 * Ie, it preserves more detail in quiet sounds at the expense of the detail in louder sounds.
+	 * Note however, that if the original *analog* sensor data is using a uncompanded/linear response curve..then companding it does nothing to help and in fact destroys information unless you're simultaneously converting it to samples of a smaller bitsize!
+	 */
+	public static enum PopularCompandingFunction
+	{
+		ContinuousMuLaw,
+		
+		ContinuousALaw,
+		
+		G711DiscreteMuLaw,
+		
+		G711DiscreteALaw,
+		
+		IEEE754FloatingPoint,
+	}
 	
 	
 	
+	
+	
+	public static class NumberFormat
+	{
+		public static class NumberFormatInteger
+		extends NumberFormat
+		{
+			protected final SignednessFormat contents;
+
+			public NumberFormatInteger(SignednessFormat contents)
+			{
+				this.contents = contents;
+			}
+			
+			public SignednessFormat getContents()
+			{
+				return contents;
+			}
+
+			@Override
+			public int hashCode()
+			{
+				return contents.hashCode();
+			}
+
+			@Override
+			public boolean equals(Object obj)
+			{
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				NumberFormatInteger other = (NumberFormatInteger)obj;
+				if (contents != other.contents)
+					return false;
+				return true;
+			}
+			
+			@Override
+			public String toString()
+			{
+				return contents.toString();
+			}
+		}
+		
+		
+		
+		public static class NumberFormatCompanding
+		extends NumberFormat
+		{
+			protected final PopularCompandingFunction contents;
+			
+			public NumberFormatCompanding(PopularCompandingFunction contents)
+			{
+				this.contents = contents;
+			}
+			
+			public PopularCompandingFunction getContents()
+			{
+				return contents;
+			}
+			
+			@Override
+			public int hashCode()
+			{
+				return contents.hashCode();
+			}
+			
+			@Override
+			public boolean equals(Object obj)
+			{
+				if (this == obj)
+					return true;
+				if (obj == null)
+					return false;
+				if (getClass() != obj.getClass())
+					return false;
+				NumberFormatCompanding other = (NumberFormatCompanding)obj;
+				if (contents != other.contents)
+					return false;
+				return true;
+			}
+			
+			@Override
+			public String toString()
+			{
+				return contents.toString();
+			}
+		}
+	}
 	
 	
 	
