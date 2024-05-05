@@ -362,6 +362,41 @@ implements JavaNamespace
 	
 	
 	
+	public static @ActuallyUnsigned long pumpFixed(InputStream in, OutputStream out, @ActuallyUnsigned long length, int bufferSize, @ActuallyUnsigned @Nullable UnaryProcedureLong progressObserver) throws IOException
+	{
+		requirePositive(bufferSize);
+		
+		if (length > 0)
+		{
+			byte[] buffer = new byte[bufferSize];
+			@ActuallyUnsigned long curr = 0;
+			while (Long.compareUnsigned(curr, length) < 0)
+			{
+				int amt = in.read(buffer, 0, Math.min(bufferSize, (int)(length - curr)));
+				if (amt < 0)
+					return curr;
+				curr = safe_add_u64(curr, amt);
+				out.write(buffer, 0, amt);
+				
+				if (progressObserver != null)
+					progressObserver.f(curr);
+			}
+			return curr;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	
+	public static @ActuallyUnsigned long pumpFixed(InputStream in, OutputStream out, @ActuallyUnsigned long length, @ActuallyUnsigned @Nullable UnaryProcedureLong progressObserver) throws IOException
+	{
+		return pumpFixed(in, out, length, 4096, progressObserver);
+	}
+	
+	
+	
+	
 	
 	
 	
