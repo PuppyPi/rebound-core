@@ -489,6 +489,64 @@ public class NumberFormatConversion
 		
 		
 		/**
+		 * The data is represented as reverse sign-magnitude signed data!  This is a format afaik created by us for use with Variable-Length Integers.  It's just the {@link #SignMagnitude} format but using the lowest bit for the sign bit instead of the highest, with the magnitude shifted by 1 bit!
+		 * + The usefulness of this comes from interpreting the bitpattern as an unsigned integer and then encoding that through variable-length encoding! :D
+		 * 
+		 * + Note that variable-length integers can't represent any kind of complement, because that would make it infinitely long!
+		 * 
+		 * This has the significant issue that there is such a thing as positive and negative zero!  So just because two binary bit patterns are equal doesn't mean their logical values are equal!
+		 * On the other hand, it doesn't suffer from the absolute-magnitude-of-the-smallest-value problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
+		 * + 0xFFFF --> Logical -32767
+		 * + 0xFFFE --> Logical +32767
+		 * + 0x8001 --> Logical -16384
+		 * + 0x8000 --> Logical +16384
+		 * + 0x7FFF --> Logical -16383
+		 * + 0x7FFE --> Logical +16383
+		 * + 0x0007 --> Logical -3
+		 * + 0x0006 --> Logical +3
+		 * + 0x0005 --> Logical -2
+		 * + 0x0004 --> Logical +2
+		 * + 0x0003 --> Logical -1
+		 * + 0x0002 --> Logical +1
+		 * + 0x0001 --> Logical -0
+		 * + 0x0000 --> Logical +0
+		 */
+		ReverseSignMagnitude,
+		
+		
+		/**
+		 * The data is represented as bijective reverse sign-magnitude signed data!  This is a format afaik created by us for use with Variable-Length Integers.  It's just the {@link #SignMagnitude} format but using the lowest bit for the sign bit instead of the highest, with the magnitude shifted by 1 bit!
+		 * + The usefulness of this comes from interpreting the bitpattern as an unsigned integer and then encoding that through variable-length encoding! :D
+		 * 
+		 * + Note that variable-length integers can't represent any kind of complement, because that would make it infinitely long!
+		 * 
+		 * This has the issue that the absolute value / negation of the smallest negative value (eg, -32768 for 16-bit integers) is not possible because the positive version of it isn't encodeable!
+		 * On the other hand, it doesn't suffer from the negative-zero problem!
+		 * (This is an intrinsic tradeoff because there is always an even number of binary bit-patterns for an n-bit value, but an odd number of mathematical integers in a symmetric interval around zero, since zero is logically the same whether positive or negative!)
+		 * 
+		 * + It's called bijective because there is no negative zero, so the set of logical/numerical integers as meanings of the bitpatterns and the set of bitpatterns are in bijection :>
+		 * 
+		 * + 0xFFFF --> Logical -32768
+		 * + 0xFFFE --> Logical +32767
+		 * + 0x8001 --> Logical -16385
+		 * + 0x8000 --> Logical +16384
+		 * + 0x7FFF --> Logical -16384
+		 * + 0x7FFE --> Logical +16383
+		 * + 0x0007 --> Logical -4
+		 * + 0x0006 --> Logical +3
+		 * + 0x0005 --> Logical -3
+		 * + 0x0004 --> Logical +2
+		 * + 0x0003 --> Logical -2
+		 * + 0x0002 --> Logical +1
+		 * + 0x0001 --> Logical -1
+		 * + 0x0000 --> Logical 0
+		 */
+		BijectiveReverseSignMagnitude,
+		
+		
+		/**
 		 * The signed data can be thought of as being unsigned integers which are conceptually subtracted from to produce the signed value :3
 		 * https://en.wikipedia.org/wiki/Offset_binary  ^_^
 		 * 
