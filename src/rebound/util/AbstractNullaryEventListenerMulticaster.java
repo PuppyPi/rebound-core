@@ -7,7 +7,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import rebound.annotations.semantic.simpledata.Nonempty;
 
 @NotThreadSafe
-public abstract class AbstractEventListenerMulticaster<Listener>
+public abstract class AbstractNullaryEventListenerMulticaster<Listener>
 implements EventListenerMulticaster<Listener>
 {
 	protected @Nullable Listener a;

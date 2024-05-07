@@ -5,7 +5,7 @@ import rebound.util.container.ContainerInterfaces.ObjectContainer;
 
 @NotThreadSafe
 public class SimpleNullaryEventListenerMulticaster
-extends AbstractEventListenerMulticaster<Runnable>
+extends AbstractNullaryEventListenerMulticaster<Runnable>
 implements Runnable
 {
 	public static void addToTarget(ObjectContainer<Runnable> targetListenable, Runnable listener)
