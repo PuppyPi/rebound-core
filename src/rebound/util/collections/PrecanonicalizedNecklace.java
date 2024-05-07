@@ -15,6 +15,12 @@ implements Necklace<E>
 	
 	
 	@Override
+	public int size()
+	{
+		return underlyingCanonicalRotation.size();
+	}
+	
+	@Override
 	public List<E> asListFromCanonicalStartingPoint() throws UnsupportedOperationException
 	{
 		return this.underlyingCanonicalRotation;

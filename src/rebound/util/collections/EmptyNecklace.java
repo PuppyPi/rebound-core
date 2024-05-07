@@ -9,6 +9,12 @@ implements Necklace
 	I;
 	
 	@Override
+	public int size()
+	{
+		return 0;
+	}
+	
+	@Override
 	public List asListFromCanonicalStartingPoint() throws UnsupportedOperationException
 	{
 		return Collections.EMPTY_LIST;

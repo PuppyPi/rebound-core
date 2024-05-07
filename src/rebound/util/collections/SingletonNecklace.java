@@ -19,6 +19,12 @@ implements Necklace<E>
 	}
 	
 	@Override
+	public int size()
+	{
+		return 1;
+	}
+	
+	@Override
 	public List<E> asListFromCanonicalStartingPoint() throws UnsupportedOperationException
 	{
 		return singletonList(e);

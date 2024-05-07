@@ -19,6 +19,12 @@ implements Bracelet<E>
 	}
 	
 	@Override
+	public int size()
+	{
+		return 1;
+	}
+	
+	@Override
 	public List<E> asListFromCanonicalStartingPointAndReflection() throws UnsupportedOperationException
 	{
 		return singletonList(e);

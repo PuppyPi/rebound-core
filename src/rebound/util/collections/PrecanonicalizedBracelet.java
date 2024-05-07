@@ -15,6 +15,12 @@ implements Bracelet<E>
 	
 	
 	@Override
+	public int size()
+	{
+		return underlyingCanonicalRotationAndReflection.size();
+	}
+	
+	@Override
 	public List<E> asListFromCanonicalStartingPointAndReflection() throws UnsupportedOperationException
 	{
 		return this.underlyingCanonicalRotationAndReflection;

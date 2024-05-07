@@ -11,6 +11,8 @@ import java.util.List;
  */
 public interface Bracelet<E>
 {
+	public int size();
+	
 	public List<E> asListFromCanonicalStartingPointAndReflection();
 	
 	

@@ -11,9 +11,9 @@ import java.util.List;
  */
 public interface Necklace<E>
 {
+	public int size();
+	
 	public List<E> asListFromCanonicalStartingPoint();
-	
-	
 	
 	
 	
