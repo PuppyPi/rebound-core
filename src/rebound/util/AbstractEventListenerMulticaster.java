@@ -1,6 +1,7 @@
 package rebound.util;
 
 import static java.util.Objects.*;
+import static rebound.util.BasicExceptionUtilities.*;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import rebound.annotations.semantic.simpledata.Nonempty;
@@ -237,14 +238,139 @@ implements EventListenerMulticaster<Listener>
 	
 	protected void fire()
 	{
-		if (a != null)  fireListener(a);
-		if (b != null)  fireListener(b);
-		if (c != null)  fireListener(c);
-		if (d != null)  fireListener(d);
-		if (e != null)  fireListener(e);
-		if (f != null)  fireListener(f);
-		if (g != null)  fireListener(g);
-		if (h != null)  fireListener(h);
+		Throwable caught = null;
+		
+		if (a != null)
+		{
+			try
+			{
+				fireListener(a);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				caught = t;
+			}
+		}
+		
+		if (b != null)
+		{
+			try
+			{
+				fireListener(b);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (c != null)
+		{
+			try
+			{
+				fireListener(c);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (d != null)
+		{
+			try
+			{
+				fireListener(d);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (e != null)
+		{
+			try
+			{
+				fireListener(e);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (f != null)
+		{
+			try
+			{
+				fireListener(f);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (g != null)
+		{
+			try
+			{
+				fireListener(g);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
+		
+		if (h != null)
+		{
+			try
+			{
+				fireListener(h);
+			}
+			catch (Throwable t)
+			{
+				rethrowIfFatalError(t);
+				
+				if (caught != null)
+					caught.addSuppressed(t);
+				else
+					caught = t;
+			}
+		}
 		
 		if (others != null)
 		{
@@ -253,10 +379,31 @@ implements EventListenerMulticaster<Listener>
 			{
 				Listener l = others[i];
 				if (l != null)
-					fireListener(l);
+				{
+					try
+					{
+						fireListener(l);
+					}
+					catch (Throwable t)
+					{
+						rethrowIfFatalError(t);
+						
+						if (caught != null)
+							caught.addSuppressed(t);
+						else
+							caught = t;
+					}
+				}
 			}		
 		}
+		
+		
+		if (caught != null)
+		{
+			rethrowSafe(caught);
+		}
 	}
+	
 	
 	
 	protected abstract void fireListener(Listener l);
