@@ -8,14 +8,14 @@ public class SimpleNullaryEventListenerMulticaster
 extends AbstractNullaryEventListenerMulticaster<Runnable>
 implements Runnable
 {
-	public static void addToTarget(ObjectContainer<Runnable> targetListenable, Runnable listener)
+	public static void addToTarget(Runnable listener, ObjectContainer<Runnable> targetListenable)
 	{
-		EventListenerMulticaster.addToTarget(targetListenable, listener, () -> new SimpleNullaryEventListenerMulticaster());
+		EventListenerMulticaster.addToTarget(listener, () -> new SimpleNullaryEventListenerMulticaster(), targetListenable);
 	}
 	
-	public static void removeFromTarget(ObjectContainer<Runnable> targetListenable, Runnable listener)
+	public static void removeFromTarget(Runnable listener, ObjectContainer<Runnable> targetListenable)
 	{
-		EventListenerMulticaster.removeFromTarget(targetListenable, listener);
+		EventListenerMulticaster.removeFromTarget(listener, targetListenable);
 	}
 	
 	

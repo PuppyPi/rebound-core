@@ -12,7 +12,7 @@ import rebound.util.functional.FunctionInterfaces.NullaryFunction;
 
 /**
  * This is a system for turning an object that only supports a single listener field (ie, set()/get() not add()/remove()) into one that supports add()/remove() by
- * virtue of using the {@link #addToTarget(ObjectContainer, Object, NullaryFunction)} / {@link #removeFromTarget(ObjectContainer, Object)} methods given here instead
+ * virtue of using the {@link #addToTarget(Object, NullaryFunction, ObjectContainer)} / {@link #removeFromTarget(Object, ObjectContainer)} methods given here instead
  * of the actual ones on the listenable object!  (which, in turn, call {@link #add(Object)} / {@link #remove(Object)} but only if necessary)
  * 
  * This may seem like expensive in terms of memory, but if you use an {@link ArrayList} or {@link HashSet} or anything similar, you're actually using the same number
@@ -78,11 +78,11 @@ public interface EventListenerMulticaster<Listener>
 	 * @param <Multicaster> This should extend both <code>{@link EventListenerMulticaster}&lt;Listener&gt;</code> and <code>Listener</code> but Java doesn't support that at the time of writing this (Java 8)
 	 */
 	@NotThreadSafe2
-	public static <Listener, Multicaster extends EventListenerMulticaster<Listener>> void addToTarget(ObjectContainer<Listener> targetListenable, Listener listener, NullaryFunction<Multicaster> newMulticaster)
+	public static <Listener, Multicaster extends EventListenerMulticaster<Listener>> void addToTarget(Listener listener, NullaryFunction<Multicaster> newMulticaster, ObjectContainer<Listener> targetListenable)
 	{
-		requireNonNull(targetListenable);
 		requireNonNull(listener);
 		requireNonNull(newMulticaster);
+		requireNonNull(targetListenable);
 		
 		if (listener instanceof EventListenerMulticaster)
 			throw new IllegalArgumentException("This would cause ambiguous functionality!!");
@@ -121,7 +121,7 @@ public interface EventListenerMulticaster<Listener>
 	 * @param <Multicaster> This should extend both <code>{@link EventListenerMulticaster}&lt;Listener&gt;</code> and <code>Listener</code> but Java doesn't support that at the time of writing this (Java 8)
 	 */
 	@NotThreadSafe2
-	public static <Listener, Multicaster extends EventListenerMulticaster<Listener>> void removeFromTarget(ObjectContainer<Listener> targetListenable, Listener listener)
+	public static <Listener, Multicaster extends EventListenerMulticaster<Listener>> void removeFromTarget(Listener listener, ObjectContainer<Listener> targetListenable)
 	{
 		requireNonNull(targetListenable);
 		requireNonNull(listener);
