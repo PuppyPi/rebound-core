@@ -11,6 +11,10 @@ import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
+import jx.lang.UnsignedByte;
+import jx.lang.UnsignedInteger;
+import jx.lang.UnsignedLong;
+import jx.lang.UnsignedShort;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.annotations.semantic.reachability.ThrowAwayValue;
@@ -328,45 +332,35 @@ public class SmallIntegerMathUtilities
 	{
 		if (a == null) return b == null ? 0 : -1;
 		if (b == null) return 1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.longValue(), b.longValue());
 	}
 	
 	public static int cmpNullAsNinf(@Nullable Integer a, @Nullable Integer b)
 	{
 		if (a == null) return b == null ? 0 : -1;
 		if (b == null) return 1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.intValue(), b.intValue());
 	}
 	
 	public static int cmpNullAsNinf(@Nullable Short a, @Nullable Short b)
 	{
 		if (a == null) return b == null ? 0 : -1;
 		if (b == null) return 1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.shortValue(), b.shortValue());
 	}
 	
 	public static int cmpNullAsNinf(@Nullable Byte a, @Nullable Byte b)
 	{
 		if (a == null) return b == null ? 0 : -1;
 		if (b == null) return 1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.byteValue(), b.byteValue());
 	}
 	
 	public static int cmpNullAsNinf(@Nullable Character a, @Nullable Character b)
 	{
 		if (a == null) return b == null ? 0 : -1;
 		if (b == null) return 1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.charValue(), b.charValue());
 	}
 	
 	
@@ -405,59 +399,39 @@ public class SmallIntegerMathUtilities
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	public static int cmpNullAsPinf(@Nullable Long a, @Nullable Long b)
 	{
 		if (a == null) return b == null ? 0 : 1;
 		if (b == null) return -1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.longValue(), b.longValue());
 	}
 	
 	public static int cmpNullAsPinf(@Nullable Integer a, @Nullable Integer b)
 	{
 		if (a == null) return b == null ? 0 : 1;
 		if (b == null) return -1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.intValue(), b.intValue());
 	}
 	
 	public static int cmpNullAsPinf(@Nullable Short a, @Nullable Short b)
 	{
 		if (a == null) return b == null ? 0 : 1;
 		if (b == null) return -1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.shortValue(), b.shortValue());
 	}
 	
 	public static int cmpNullAsPinf(@Nullable Byte a, @Nullable Byte b)
 	{
 		if (a == null) return b == null ? 0 : 1;
 		if (b == null) return -1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.byteValue(), b.byteValue());
 	}
 	
 	public static int cmpNullAsPinf(@Nullable Character a, @Nullable Character b)
 	{
 		if (a == null) return b == null ? 0 : 1;
 		if (b == null) return -1;
-		if (a < b) return -1;
-		if (a > b) return 1;
-		return 0; //if (a == b)
+		return cmp(a.charValue(), b.charValue());
 	}
 	
 	
@@ -486,6 +460,205 @@ public class SmallIntegerMathUtilities
 	public static int cmpChainableNullAsPinf(int prev, @Nullable Character a, @Nullable Character b)
 	{
 		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static Comparator<Byte> UnsignedByteComparison = (a, b) -> cmpUnsigned((byte)a, (byte)b);
+	public static Comparator<Short> UnsignedShortComparison = (a, b) -> cmpUnsigned((short)a, (short)b);
+	public static Comparator<Integer> UnsignedIntComparison = (a, b) -> cmpUnsigned((int)a, (int)b);
+	public static Comparator<Long> UnsignedLongComparison = (a, b) -> cmpUnsigned((long)a, (long)b);
+	
+	public static Comparator<UnsignedByte> ProperUnsignedByteComparison = (a, b) -> cmpUnsigned(a.byteValue(), b.byteValue());
+	public static Comparator<UnsignedShort> ProperUnsignedShortComparison = (a, b) -> cmpUnsigned(a.shortValue(), b.shortValue());
+	public static Comparator<UnsignedInteger> ProperUnsignedIntComparison = (a, b) -> cmpUnsigned(a.intValue(), b.intValue());
+	public static Comparator<UnsignedLong> ProperUnsignedLongComparison = (a, b) -> cmpUnsigned(a.longValue(), b.longValue());
+	
+	
+	public static int cmpUnsigned(long a, long b)
+	{
+		return UnsignedLong.compare(a, b);
+	}
+	
+	public static int cmpUnsigned(int a, int b)
+	{
+		return UnsignedInteger.compare(a, b);
+	}
+	
+	public static int cmpUnsigned(short a, short b)
+	{
+		return UnsignedShort.compare(a, b);
+	}
+	
+	public static int cmpUnsigned(byte a, byte b)
+	{
+		return UnsignedByte.compare(a, b);
+	}
+	
+	
+	
+	
+	public static int cmpUnsignedChainable(int prev, @ActuallyUnsigned long a, @ActuallyUnsigned long b)
+	{
+		return prev != 0 ? prev : cmpUnsigned(a, b);
+	}
+	
+	public static int cmpUnsignedChainable(int prev, @ActuallyUnsigned int a, @ActuallyUnsigned int b)
+	{
+		return prev != 0 ? prev : cmpUnsigned(a, b);
+	}
+	
+	public static int cmpUnsignedChainable(int prev, @ActuallyUnsigned short a, @ActuallyUnsigned short b)
+	{
+		return prev != 0 ? prev : cmpUnsigned(a, b);
+	}
+	
+	public static int cmpUnsignedChainable(int prev, @ActuallyUnsigned byte a, @ActuallyUnsigned byte b)
+	{
+		return prev != 0 ? prev : cmpUnsigned(a, b);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int cmpUnsignedNullAsNinf(@ActuallyUnsigned @Nullable Long a, @ActuallyUnsigned @Nullable Long b)
+	{
+		if (a == null) return b == null ? 0 : -1;
+		if (b == null) return 1;
+		return cmpUnsigned(a.longValue(), b.longValue());
+	}
+	
+	public static int cmpUnsignedNullAsNinf(@ActuallyUnsigned @Nullable Integer a, @ActuallyUnsigned @Nullable Integer b)
+	{
+		if (a == null) return b == null ? 0 : -1;
+		if (b == null) return 1;
+		return cmpUnsigned(a.intValue(), b.intValue());
+	}
+	
+	public static int cmpUnsignedNullAsNinf(@ActuallyUnsigned @Nullable Short a, @ActuallyUnsigned @Nullable Short b)
+	{
+		if (a == null) return b == null ? 0 : -1;
+		if (b == null) return 1;
+		return cmpUnsigned(a.shortValue(), b.shortValue());
+	}
+	
+	public static int cmpUnsignedNullAsNinf(@ActuallyUnsigned @Nullable Byte a, @ActuallyUnsigned @Nullable Byte b)
+	{
+		if (a == null) return b == null ? 0 : -1;
+		if (b == null) return 1;
+		return cmpUnsigned(a.byteValue(), b.byteValue());
+	}
+	
+	
+	
+	
+	public static int cmpUnsignedChainableNullAsNinf(int prev, @ActuallyUnsigned @Nullable Long a, @ActuallyUnsigned @Nullable Long b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsNinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsNinf(int prev, @ActuallyUnsigned @Nullable Integer a, @ActuallyUnsigned @Nullable Integer b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsNinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsNinf(int prev, @ActuallyUnsigned @Nullable Short a, @ActuallyUnsigned @Nullable Short b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsNinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsNinf(int prev, @ActuallyUnsigned @Nullable Byte a, @ActuallyUnsigned @Nullable Byte b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsNinf(a, b);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int cmpUnsignedNullAsPinf(@ActuallyUnsigned @Nullable Long a, @ActuallyUnsigned @Nullable Long b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		return cmpUnsigned(a.longValue(), b.longValue());
+	}
+	
+	public static int cmpUnsignedNullAsPinf(@ActuallyUnsigned @Nullable Integer a, @ActuallyUnsigned @Nullable Integer b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		return cmpUnsigned(a.intValue(), b.intValue());
+	}
+	
+	public static int cmpUnsignedNullAsPinf(@ActuallyUnsigned @Nullable Short a, @ActuallyUnsigned @Nullable Short b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		return cmpUnsigned(a.shortValue(), b.shortValue());
+	}
+	
+	public static int cmpUnsignedNullAsPinf(@ActuallyUnsigned @Nullable Byte a, @ActuallyUnsigned @Nullable Byte b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return cmpUnsigned(a.byteValue(), b.byteValue());
+	}
+	
+	
+	
+	
+	public static int cmpUnsignedChainableNullAsPinf(int prev, @ActuallyUnsigned @Nullable Long a, @ActuallyUnsigned @Nullable Long b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsPinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsPinf(int prev, @ActuallyUnsigned @Nullable Integer a, @ActuallyUnsigned @Nullable Integer b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsPinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsPinf(int prev, @ActuallyUnsigned @Nullable Short a, @ActuallyUnsigned @Nullable Short b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsPinf(a, b);
+	}
+	
+	public static int cmpUnsignedChainableNullAsPinf(int prev, @ActuallyUnsigned @Nullable Byte a, @ActuallyUnsigned @Nullable Byte b)
+	{
+		return prev != 0 ? prev : cmpUnsignedNullAsPinf(a, b);
 	}
 	
 	
