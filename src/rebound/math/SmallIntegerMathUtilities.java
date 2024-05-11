@@ -2940,6 +2940,7 @@ _$$primxpconf:intsonly$$_
 		if (value < 0) //takes care of two's-complement thingies :3
 			throw new ComplexNumberArithmeticException();
 		
+		//TODO 32 - Integer.countLeadingZeros() ?????
 		return dcd32(getHighestOneBit(value));
 	}
 	
