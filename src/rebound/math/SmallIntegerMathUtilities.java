@@ -403,6 +403,112 @@ public class SmallIntegerMathUtilities
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int cmpNullAsPinf(@Nullable Long a, @Nullable Long b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0; //if (a == b)
+	}
+	
+	public static int cmpNullAsPinf(@Nullable Integer a, @Nullable Integer b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0; //if (a == b)
+	}
+	
+	public static int cmpNullAsPinf(@Nullable Short a, @Nullable Short b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0; //if (a == b)
+	}
+	
+	public static int cmpNullAsPinf(@Nullable Byte a, @Nullable Byte b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0; //if (a == b)
+	}
+	
+	public static int cmpNullAsPinf(@Nullable Character a, @Nullable Character b)
+	{
+		if (a == null) return b == null ? 0 : 1;
+		if (b == null) return -1;
+		if (a < b) return -1;
+		if (a > b) return 1;
+		return 0; //if (a == b)
+	}
+	
+	
+	
+	
+	public static int cmpChainableNullAsPinf(int prev, @Nullable Long a, @Nullable Long b)
+	{
+		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	public static int cmpChainableNullAsPinf(int prev, @Nullable Integer a, @Nullable Integer b)
+	{
+		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	public static int cmpChainableNullAsPinf(int prev, @Nullable Short a, @Nullable Short b)
+	{
+		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	public static int cmpChainableNullAsPinf(int prev, @Nullable Byte a, @Nullable Byte b)
+	{
+		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	public static int cmpChainableNullAsPinf(int prev, @Nullable Character a, @Nullable Character b)
+	{
+		return prev != 0 ? prev : cmpNullAsPinf(a, b);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	/**
 	 * The GCD of any amount of numbers.<br>
 	 * Note: The provided array will be horribly mangled.<br>
@@ -2718,7 +2824,6 @@ _$$primxpconf:intsonly$$_
 		return dcd64(h) + (value != h ? 1 : 0);
 	}
 	
-
 	
 	
 	
@@ -2726,7 +2831,8 @@ _$$primxpconf:intsonly$$_
 	
 	
 	
-
+	
+	
 	
 	
 	
