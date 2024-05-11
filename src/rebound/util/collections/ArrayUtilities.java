@@ -16413,7 +16413,6 @@ primxp
 	
 	
 	
-	
 	/* <<<
 	primxp
 	
@@ -17489,6 +17488,625 @@ primxp
 	
 	
 	//>>>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/* <<<
+	primxp
+	_$$primxpconf:numintsonly$$_
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsLast(_$$prim$$_[] a, _$$prim$$_[] b)
+	{
+		return compareUnsignedBigEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsLast(_$$prim$$_[] arrayA, int offsetA, int lengthA, _$$prim$$_[] arrayB, int offsetB, int lengthB)
+	{
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			_$$prim$$_ elementA = arrayA[offsetA+i];
+			_$$prim$$_ elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsFirst(_$$prim$$_[] a, _$$prim$$_[] b)
+	{
+		return compareUnsignedBigEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsFirst(_$$prim$$_[] arrayA, int offsetA, int lengthA, _$$prim$$_[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			_$$prim$$_ elementA = arrayA[offsetA+i];
+			_$$prim$$_ elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsLast(_$$prim$$_[] a, _$$prim$$_[] b)
+	{
+		return compareUnsignedLittleEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsLast(_$$prim$$_[] arrayA, int offsetA, int lengthA, _$$prim$$_[] arrayB, int offsetB, int lengthB)
+	{
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			_$$prim$$_ elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			_$$prim$$_ elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(_$$prim$$_[] a, _$$prim$$_[] b)
+	{
+		return compareUnsignedLittleEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(_$$prim$$_[] arrayA, int offsetA, int lengthA, _$$prim$$_[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			_$$prim$$_ elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			_$$prim$$_ elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	 */
+	
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsLast(byte[] a, byte[] b)
+	{
+		return compareUnsignedBigEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsLast(byte[] arrayA, int offsetA, int lengthA, byte[] arrayB, int offsetB, int lengthB)
+	{
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			byte elementA = arrayA[offsetA+i];
+			byte elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsFirst(byte[] a, byte[] b)
+	{
+		return compareUnsignedBigEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsFirst(byte[] arrayA, int offsetA, int lengthA, byte[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			byte elementA = arrayA[offsetA+i];
+			byte elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsLast(byte[] a, byte[] b)
+	{
+		return compareUnsignedLittleEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsLast(byte[] arrayA, int offsetA, int lengthA, byte[] arrayB, int offsetB, int lengthB)
+	{
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			byte elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			byte elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(byte[] a, byte[] b)
+	{
+		return compareUnsignedLittleEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(byte[] arrayA, int offsetA, int lengthA, byte[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			byte elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			byte elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsLast(short[] a, short[] b)
+	{
+		return compareUnsignedBigEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsLast(short[] arrayA, int offsetA, int lengthA, short[] arrayB, int offsetB, int lengthB)
+	{
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			short elementA = arrayA[offsetA+i];
+			short elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsFirst(short[] a, short[] b)
+	{
+		return compareUnsignedBigEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsFirst(short[] arrayA, int offsetA, int lengthA, short[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			short elementA = arrayA[offsetA+i];
+			short elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsLast(short[] a, short[] b)
+	{
+		return compareUnsignedLittleEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsLast(short[] arrayA, int offsetA, int lengthA, short[] arrayB, int offsetB, int lengthB)
+	{
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			short elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			short elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(short[] a, short[] b)
+	{
+		return compareUnsignedLittleEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(short[] arrayA, int offsetA, int lengthA, short[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			short elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			short elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsLast(int[] a, int[] b)
+	{
+		return compareUnsignedBigEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsLast(int[] arrayA, int offsetA, int lengthA, int[] arrayB, int offsetB, int lengthB)
+	{
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			int elementA = arrayA[offsetA+i];
+			int elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsFirst(int[] a, int[] b)
+	{
+		return compareUnsignedBigEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsFirst(int[] arrayA, int offsetA, int lengthA, int[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			int elementA = arrayA[offsetA+i];
+			int elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsLast(int[] a, int[] b)
+	{
+		return compareUnsignedLittleEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsLast(int[] arrayA, int offsetA, int lengthA, int[] arrayB, int offsetB, int lengthB)
+	{
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			int elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			int elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(int[] a, int[] b)
+	{
+		return compareUnsignedLittleEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(int[] arrayA, int offsetA, int lengthA, int[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			int elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			int elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsLast(long[] a, long[] b)
+	{
+		return compareUnsignedBigEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsLast(long[] arrayA, int offsetA, int lengthA, long[] arrayB, int offsetB, int lengthB)
+	{
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			long elementA = arrayA[offsetA+i];
+			long elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedBigEndianLengthsFirst(long[] a, long[] b)
+	{
+		return compareUnsignedBigEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedBigEndianLengthsFirst(long[] arrayA, int offsetA, int lengthA, long[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			long elementA = arrayA[offsetA+i];
+			long elementB = arrayB[offsetB+i];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsLast(long[] a, long[] b)
+	{
+		return compareUnsignedLittleEndianLengthsLast(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsLast(long[] arrayA, int offsetA, int lengthA, long[] arrayB, int offsetB, int lengthB)
+	{
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int min = least(lengthA, lengthB);
+		
+		for (int i = 0; i < min; i++)
+		{
+			long elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			long elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return cmp(lengthA, lengthB);
+	}
+	
+	
+	
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(long[] a, long[] b)
+	{
+		return compareUnsignedLittleEndianLengthsFirst(a, 0, a.length, b, 0, b.length);
+	}
+	
+	public static int compareUnsignedLittleEndianLengthsFirst(long[] arrayA, int offsetA, int lengthA, long[] arrayB, int offsetB, int lengthB)
+	{
+		if (lengthA != lengthB)
+			return cmp(lengthA, lengthB);
+		
+		int kA = offsetA+lengthA-1;
+		int kB = offsetB+lengthB-1;
+		int length = lengthA;  //= lengthB
+		
+		for (int i = 0; i < length; i++)
+		{
+			long elementA = arrayA[kA - i];  //= arrayA[offsetA+(lengthA-i-1)];
+			long elementB = arrayB[kB - i];  //= arrayB[offsetB+(lengthB-i-1)];
+			
+			if (elementA != elementB)
+				return cmpUnsigned(elementA, elementB);
+		}
+		
+		return 0;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	// >>>
 	
 	
 	
