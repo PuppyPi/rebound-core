@@ -5,7 +5,7 @@ import static rebound.text.StringUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
 import java.lang.reflect.Array;
 import java.nio.Buffer;
-import java.util.AbstractMap.SimpleEntry;
+import java.util.AbstractMap.SimpleImmutableEntry;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -733,7 +733,7 @@ implements JavaNamespace
 	
 	public static <A, B> Entry<A, B> entry(A a, B b)
 	{
-		return new SimpleEntry<>(a, b);
+		return new SimpleImmutableEntry<>(a, b);
 	}
 	
 	
