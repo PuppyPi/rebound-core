@@ -27,6 +27,13 @@ extends DefaultToArraysBooleanCollection
 	
 	
 	
+	@ReadonlyValue
+	public default Slice<byte[]> getUnderlyingByteArrayWithUndefinedPaddingBitsIfPresentOrNullIfNone()
+	{
+		return null;
+	}
+	
+	
 	
 	public default @Nonnegative int getNumberOfOnes()
 	{
