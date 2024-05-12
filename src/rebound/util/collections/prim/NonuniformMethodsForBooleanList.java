@@ -22,6 +22,8 @@ extends DefaultToArraysBooleanCollection, NonuniformMethodsForBooleanList32, Non
 	
 	/**
 	 * The default implementation is just for legacy implementations that only support 32-bit (really 31-bit) indexes.
+	 * Note that if this can return more than {@link Integer#MAX_VALUE}, then {@link #size()} must *throw an exception not truncate it to MAX_VALUE* otherwise silent
+	 * errors will ensue!  And that can cause data corruption and be worse than loud errors!
 	 */
 	@IntendedToBeSubclassedImplementedOrOverriddenByApiUser
 	public default @ActuallyUnsigned long size64()
