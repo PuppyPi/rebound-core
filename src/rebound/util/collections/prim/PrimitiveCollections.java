@@ -432,6 +432,61 @@ public class PrimitiveCollections
 	
 	
 	
+	//Todo more of these!!
+	
+	public static int compareLittleEndianLengthsFirst(BooleanList a, BooleanList b)
+	{
+		int s;
+		int c = cmp(a.size(), s = b.size());
+		
+		if (c != 0)
+			return c;
+		
+		int wholeWords = s >>> 6;
+		int remainderBits = s & 0b111111;
+		
+		if (remainderBits != 0)
+		{
+			//It ends in a remainder!
+			long rA = a.getBitfield(wholeWords << 6, remainderBits);
+			long rB = a.getBitfield(wholeWords << 6, remainderBits);
+			c = Long.compareUnsigned(rA, rB);
+			if (c != 0)
+				return c;
+		}
+		
+		while (wholeWords > 0)
+		{
+			wholeWords--;
+			long wA = a.getBitfield(wholeWords << 6, remainderBits);
+			long wB = a.getBitfield(wholeWords << 6, remainderBits);
+			c = Long.compareUnsigned(wA, wB);
+			if (c != 0)
+				return c;
+		}
+		
+		return 0;
+	}
+	
+//	public static int compareLittleEndianLengthsLast(BooleanList a, BooleanList b)
+//	{
+//		
+//	}
+//	
+//	
+//	public static int compareBigEndianLengthsFirst(BooleanList a, BooleanList b)
+//	{
+//		
+//	}
+//	
+//	public static int compareBigEndianLengthsLast(BooleanList a, BooleanList b)
+//	{
+//		
+//	}
+	
+	
+	
+	
 	
 	
 	
