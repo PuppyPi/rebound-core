@@ -13,14 +13,14 @@ public interface ArithmeticInfinitableRationalInterval
 	public static final class Nonempty
 	implements ArithmeticInfinitableRationalInterval
 	{
-		protected final NonemptyArithmeticInfinitableIntegerInterval contents;
+		protected final NonemptyArithmeticInfinitableRationalInterval contents;
 		
-		public Nonempty(NonemptyArithmeticInfinitableIntegerInterval contents)
+		public Nonempty(NonemptyArithmeticInfinitableRationalInterval contents)
 		{
 			this.contents = requireNonNull(contents);
 		}
 		
-		public NonemptyArithmeticInfinitableIntegerInterval getContents()
+		public NonemptyArithmeticInfinitableRationalInterval getContents()
 		{
 			return contents;
 		}
