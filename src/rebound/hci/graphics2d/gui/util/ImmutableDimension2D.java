@@ -4,7 +4,7 @@ import java.awt.geom.Dimension2D;
 import rebound.concurrency.immutability.StaticallyConcurrentlyImmutable;
 import rebound.exceptions.ReadonlyUnsupportedOperationException;
 
-public class ImmutableDimension2D
+public final class ImmutableDimension2D
 extends Dimension2D
 implements StaticallyConcurrentlyImmutable
 {
