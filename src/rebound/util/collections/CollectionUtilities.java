@@ -455,10 +455,21 @@ public class CollectionUtilities
 		map.put(key, value);
 	}
 	
+	public static <K, V> void putNewMandatory(Map<K, V> map, Entry<K, V> e) throws AlreadyExistsException
+	{
+		putNewMandatory(map, e.getKey(), e.getValue());
+	}
+	
 	public static <K, V> void putAllNewMandatory(Map<K, V> dest, Map<K, V> source) throws AlreadyExistsException
 	{
 		for (Entry<K, V> e : source.entrySet())
-			putNewMandatory(dest, e.getKey(), e.getValue());
+			putNewMandatory(dest, e);
+	}
+	
+	public static <K, V> void putAllNewMandatory(Map<K, V> dest, Iterable<Entry<K, V>> source) throws AlreadyExistsException
+	{
+		for (Entry<K, V> e : source)
+			putNewMandatory(dest, e);
 	}
 	
 	
@@ -480,10 +491,21 @@ public class CollectionUtilities
 		map.put(key, newValue);
 	}
 	
+	public static <K, V> void putNewUniqueMandatory(Map<K, V> map, Entry<K, V> e) throws AlreadyExistsException
+	{
+		putNewUniqueMandatory(map, e.getKey(), e.getValue());
+	}
+	
 	public static <K, V> void putAllNewUniqueMandatory(Map<K, V> dest, Map<K, V> source) throws AlreadyExistsException
 	{
 		for (Entry<K, V> e : source.entrySet())
-			putNewUniqueMandatory(dest, e.getKey(), e.getValue());
+			putNewUniqueMandatory(dest, e);
+	}
+	
+	public static <K, V> void putAllNewUniqueMandatory(Map<K, V> dest, Iterable<Entry<K, V>> source) throws AlreadyExistsException
+	{
+		for (Entry<K, V> e : source)
+			putNewUniqueMandatory(dest, e);
 	}
 	
 	
@@ -8590,6 +8612,31 @@ _$$primxpconf:byte,char,short,int$$_
 	
 	@ReadonlyValue
 	@HashableValue
+	public static <K, V> Map<K, V> mapofEntries()
+	{
+		return emptyMap();
+	}
+	
+	@ReadonlyValue
+	@HashableValue
+	public static <K, V> Map<K, V> mapofEntries(Entry<K, V> e)
+	{
+		return singletonMap(e);
+	}
+	
+	@ReadonlyValue
+	@HashableValue
+	public static <K, V> Map<K, V> mapofEntries(Entry<K, V>... entries)
+	{
+		return mapofEntriesArray(entries);
+	}
+	
+	
+	
+	
+	
+	@ReadonlyValue
+	@HashableValue
 	public static Map mapofInverted(Object... valuesAndKeys)
 	{
 		return mapofInvertedArray(valuesAndKeys);
@@ -8858,6 +8905,71 @@ _$$primxpconf:byte,char,short,int$$_
 		}
 	}
 	
+	
+	
+	@ReadonlyValue
+	@HashableValue
+	public static <K, V> Map<K, V> mapofEntriesArray(Entry<K, V>[] entries)
+	{
+		if (entries.length == 0)
+			return emptyMap();
+		else if (entries.length == 1)
+			return singletonMap(entries[0]);
+		else
+		{
+			Class keysEnumClass;
+			{
+				keysEnumClass = null;
+				
+				for (int i = 0; i < entries.length; i += 2)
+				{
+					K key = entries[i].getKey();
+					
+					Class<K> c = key == null ? null : (Class<K>)key.getClass();
+					
+					if (c == null)
+					{
+						//Abort!
+						keysEnumClass = null;
+						break;
+					}
+					else
+					{
+						if (keysEnumClass == null)
+						{
+							if (c.isEnum())
+							{
+								keysEnumClass = c;
+							}
+							else
+							{
+								//Abort!
+								keysEnumClass = null;
+								break;
+							}
+						}
+						else
+						{
+							if (keysEnumClass != c)
+							{
+								//Abort!
+								keysEnumClass = null;
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			if (keysEnumClass == null)
+				return newMapEntriesArray(entries);
+			else
+				return (Map)newEnumMapEntriesArray((Class)keysEnumClass, (Entry[])entries);
+		}
+	}
+	
+	
+	
 	@ReadonlyValue
 	@HashableValue
 	public static Map mapofInvertedArray(Object[] valuesAndKeys)
@@ -8952,6 +9064,15 @@ _$$primxpconf:byte,char,short,int$$_
 	}
 	
 	@ThrowAwayValue
+	public static <K, V> Map<K, V> newMapEntriesArray(Entry<K, V>[] entries)
+	{
+		Map m = new HashMap();
+		for (Entry<K, V> e : entries)
+			putNewMandatory(m, e);
+		return m;
+	}
+	
+	@ThrowAwayValue
 	public static EnumMap newEnumMapArray(Class keyClass, Object[] keysAndValues)
 	{
 		if ((keysAndValues.length % 2) != 0)
@@ -8970,6 +9091,15 @@ _$$primxpconf:byte,char,short,int$$_
 			m.put((Enum)key, keysAndValues[i+1]);
 		}
 		
+		return m;
+	}
+	
+	@ThrowAwayValue
+	public static <K extends Enum<K>, V> EnumMap<K, V> newEnumMapEntriesArray(Class<K> keyClass, Entry<K, V>[] entries)
+	{
+		EnumMap m = new EnumMap(keyClass);
+		for (Entry<K, V> e : entries)
+			putNewMandatory(m, e);
 		return m;
 	}
 	
