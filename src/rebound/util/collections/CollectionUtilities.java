@@ -1049,6 +1049,11 @@ public class CollectionUtilities
 		return singleton(e);
 	}
 	
+	public static <K, V> Map<K, V> singletonMap(Entry<K, V> e)
+	{
+		return Collections.singletonMap(e.getKey(), e.getValue());
+	}
+	
 	
 	
 	
@@ -8568,7 +8573,7 @@ _$$primxpconf:byte,char,short,int$$_
 	@HashableValue
 	public static Map mapof(Object key, Object value)
 	{
-		return singletonMap(key, value);
+		return Collections.singletonMap(key, value);
 	}
 	
 	/**
@@ -8622,7 +8627,7 @@ _$$primxpconf:byte,char,short,int$$_
 		if (value == null)
 			return emptyMap();
 		else
-			return singletonMap(key, value.getJust());
+			return Collections.singletonMap(key, value.getJust());
 	}
 	
 	/**
@@ -8636,10 +8641,10 @@ _$$primxpconf:byte,char,short,int$$_
 			if (value1 == null)
 				return emptyMap();
 			else
-				return singletonMap(key1, value1.getJust());
+				return Collections.singletonMap(key1, value1.getJust());
 		else
 			if (value1 == null)
-				return singletonMap(key0, value0.getJust());
+				return Collections.singletonMap(key0, value0.getJust());
 			else
 				return mapof(key0, value0.getJust(), key1, value1.getJust());
 	}
@@ -8656,16 +8661,16 @@ _$$primxpconf:byte,char,short,int$$_
 				if (value2 == null)
 					return emptyMap();
 				else
-					return singletonMap(key2, value2.getJust());
+					return Collections.singletonMap(key2, value2.getJust());
 			else
 				if (value2 == null)
-					return singletonMap(key1, value1.getJust());
+					return Collections.singletonMap(key1, value1.getJust());
 				else
 					return mapof(key1, value1.getJust(), key2, value2.getJust());
 		else
 			if (value1 == null)
 				if (value2 == null)
-					return singletonMap(key0, value0.getJust());
+					return Collections.singletonMap(key0, value0.getJust());
 				else
 					return mapof(key0, value0.getJust(), key2, value2.getJust());
 			else
@@ -8717,7 +8722,7 @@ _$$primxpconf:byte,char,short,int$$_
 		if (value == null)
 			return emptyMap();
 		else
-			return singletonMap(key, value);
+			return Collections.singletonMap(key, value);
 	}
 	
 	/**
@@ -8731,10 +8736,10 @@ _$$primxpconf:byte,char,short,int$$_
 			if (value1 == null)
 				return emptyMap();
 			else
-				return singletonMap(key1, value1);
+				return Collections.singletonMap(key1, value1);
 		else
 			if (value1 == null)
-				return singletonMap(key0, value0);
+				return Collections.singletonMap(key0, value0);
 			else
 				return mapof(key0, value0, key1, value1);
 	}
@@ -8751,16 +8756,16 @@ _$$primxpconf:byte,char,short,int$$_
 				if (value2 == null)
 					return emptyMap();
 				else
-					return singletonMap(key2, value2);
+					return Collections.singletonMap(key2, value2);
 			else
 				if (value2 == null)
-					return singletonMap(key1, value1);
+					return Collections.singletonMap(key1, value1);
 				else
 					return mapof(key1, value1, key2, value2);
 		else
 			if (value1 == null)
 				if (value2 == null)
-					return singletonMap(key0, value0);
+					return Collections.singletonMap(key0, value0);
 				else
 					return mapof(key0, value0, key2, value2);
 			else
@@ -8799,7 +8804,7 @@ _$$primxpconf:byte,char,short,int$$_
 		if (keysAndValues.length == 0)
 			return emptyMap();
 		else if (keysAndValues.length == 2)
-			return singletonMap(keysAndValues[0], keysAndValues[1]);
+			return Collections.singletonMap(keysAndValues[0], keysAndValues[1]);
 		else
 		{
 			Class keysEnumClass;
@@ -8860,7 +8865,7 @@ _$$primxpconf:byte,char,short,int$$_
 		if (valuesAndKeys.length == 0)
 			return emptyMap();
 		else if (valuesAndKeys.length == 2)
-			return singletonMap(valuesAndKeys[1], valuesAndKeys[0]);
+			return Collections.singletonMap(valuesAndKeys[1], valuesAndKeys[0]);
 		else
 			return newMapInvertedArray(valuesAndKeys);
 	}
