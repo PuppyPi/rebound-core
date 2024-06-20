@@ -6500,7 +6500,7 @@ _$$primxpconf:byte,char,short,int$$_
 		Map<K, V> o = new HashMap<>(a);
 		
 		for (Entry<K, V> e : b.entrySet())
-			putNewMandatory(o, e.getKey(), e.getValue());
+			putNewMandatory(o, e);
 		
 		return o;
 	}
