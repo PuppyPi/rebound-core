@@ -11,17 +11,14 @@ import static rebound.bits.BitfieldSafeCasts.*;
 import static rebound.bits.Unsigned.*;
 import static rebound.math.SmallFloatMathUtilities.*;
 import static rebound.math.SmallIntegerMathUtilities.*;
-import static rebound.math.SmallIntegerMathUtilities.least;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.CharacterPredicates.*;
 import static rebound.util.collections.ArrayUtilities.*;
 import static rebound.util.collections.BasicCollectionUtilities.*;
 import static rebound.util.collections.CollectionUtilities.*;
-import static rebound.util.collections.CollectionUtilities.sorted;
 import static rebound.util.collections.SimpleIterator.*;
 import static rebound.util.collections.prim.PrimitiveCollections.*;
 import static rebound.util.objectutil.BasicObjectUtilities.*;
-
 import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,12 +50,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
-
 import javax.annotation.Nonnegative;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.Signed;
-
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.semantic.SignalType;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
