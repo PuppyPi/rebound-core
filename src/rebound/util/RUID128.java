@@ -1,5 +1,7 @@
 package rebound.util;
 
+import rebound.util.uid.UIDUtilities;
+
 public class RUID128
 {
 	protected final long lowBits, highBits;
@@ -45,5 +47,11 @@ public class RUID128
 		if (lowBits != other.lowBits)
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return UIDUtilities.formatRUID128(this);
 	}
 }
