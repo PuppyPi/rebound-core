@@ -15,6 +15,7 @@ import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.purelyforhumans.DeprecatedInFavorOf;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
 import rebound.annotations.semantic.allowedoperations.WritableValue;
+import rebound.annotations.semantic.simpledata.ActuallyUnsigned;
 import rebound.bits.Bytes;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
@@ -159,6 +160,47 @@ public class UIDUtilities
 	{
 		return new RUID128(Bytes.getBigLong(bytes, 0), Bytes.getBigLong(bytes, 8));
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static @ActuallyUnsigned int parseRUID32(String s) throws TextSyntaxException
+	{
+		if (s.length() != 10)
+			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
+		
+		return Integer.parseUnsignedInt(s);
+	}
+	
+	/**
+	 * @return the lowercase version
+	 */
+	public static String formatRUID32(@ActuallyUnsigned int id)
+	{
+		String r = zeroPad(Integer.toUnsignedString(id), 10);
+		asrt(r.length() == 10);
+		return r;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
