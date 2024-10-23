@@ -1,8 +1,11 @@
 package rebound.util.uid;
 
 import static java.util.Objects.*;
+import static rebound.math.MathUtilities.*;
+import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
 import java.io.EOFException;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -11,10 +14,12 @@ import javax.annotation.Nullable;
 import rebound.annotations.hints.ImplementationTransparency;
 import rebound.annotations.purelyforhumans.DeprecatedInFavorOf;
 import rebound.annotations.semantic.allowedoperations.ReadonlyValue;
+import rebound.annotations.semantic.allowedoperations.WritableValue;
 import rebound.bits.Bytes;
 import rebound.bits.DataEncodingUtilities;
 import rebound.bits.InvalidInputCharacterException;
 import rebound.exceptions.ImpossibleException;
+import rebound.exceptions.OverflowException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.util.RUID128;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
@@ -28,22 +33,11 @@ public class UIDUtilities
 	
 	public static RUID128 parseRUID128(String s) throws TextSyntaxException
 	{
-		if (s.length() != 32)
+		if (s.length() != 39)
 			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
 		
-		long highBits;
-		long lowBits;
-		try
-		{
-			highBits = Long.parseUnsignedLong(s.substring(0, 16), 16);
-			lowBits = Long.parseUnsignedLong(s.substring(16, 32), 16);
-		}
-		catch (NumberFormatException exc)
-		{
-			throw TextSyntaxException.inst(exc);
-		}
-		
-		return new RUID128(lowBits, highBits);
+		//Todo more efficient implementation? :3
+		return bigIntegerToRUID128(new BigInteger(s));
 	}
 	
 	/**
@@ -51,7 +45,119 @@ public class UIDUtilities
 	 */
 	public static String formatRUID128(RUID128 id)
 	{
-		return zeroPad(Long.toUnsignedString(id.getHighBits(), 16), 16) + zeroPad(Long.toUnsignedString(id.getLowBits(), 16), 16);
+		//Todo more efficient implementation? :3
+		String r = zeroPad(ruid128ToBigInteger(id).toString(), 39);
+		asrt(r.length() == 39);
+		return r;
+	}
+	
+	
+	
+	
+	public static BigInteger ruid128ToBigInteger(RUID128 id)
+	{
+		BigInteger low = toBigIntegerFromUnsignedLong(id.getLowBits());
+		BigInteger high = toBigIntegerFromUnsignedLong(id.getHighBits());
+		
+		BigInteger r = high.shiftLeft(64).or(low);
+		asrt(r.signum() >= 0);
+		return r;
+	}
+	
+	
+	protected static final BigInteger MASK64 = toBigIntegerFromUnsignedLong(0xFFFFFFFFFFFFFFFFl);
+	protected static final BigInteger MASK128 = MASK64.shiftLeft(64).or(MASK64);
+	
+	public static RUID128 bigIntegerToRUID128(BigInteger i) throws OverflowException
+	{
+		if (i.signum() < 0)
+			throw new OverflowException();
+		
+		BigInteger low = i.and(MASK64);
+		i = i.shiftRight(64);
+		BigInteger high = i.and(MASK64);
+		i = i.shiftRight(64);
+		if (i.signum() != 0)
+			throw new OverflowException();
+		
+		return new RUID128(low.longValue(), high.longValue());
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static byte[] packLittleRUID128(RUID128 id)
+	{
+		byte[] bytes = new byte[16];
+		putLittleRUID128(bytes, id);
+		return bytes;
+	}
+	
+	public static void putLittleRUID128(@WritableValue byte[] bytes, RUID128 id)
+	{
+		if (bytes.length != 16)
+			throw new IllegalArgumentException("128 bits is 16 bytes, not "+bytes.length+" bytes!");
+		putLittleRUID128(bytes, 0, id);
+	}
+	
+	public static void putLittleRUID128(@WritableValue byte[] bytes, int offset, RUID128 id)
+	{
+		Bytes.putLittleLong(bytes, offset, id.getLowBits());
+		Bytes.putLittleLong(bytes, offset+8, id.getHighBits());
+	}
+	
+	public static RUID128 getLittleRUID128(byte[] bytes)
+	{
+		if (bytes.length != 16)
+			throw new IllegalArgumentException("128 bits is 16 bytes, not "+bytes.length+" bytes!");
+		return getLittleRUID128(bytes, 0);
+	}
+	
+	public static RUID128 getLittleRUID128(byte[] bytes, int offset)
+	{
+		return new RUID128(Bytes.getLittleLong(bytes, 0), Bytes.getLittleLong(bytes, 8));
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	public static byte[] packBigRUID128(RUID128 id)
+	{
+		byte[] bytes = new byte[16];
+		putBigRUID128(bytes, id);
+		return bytes;
+	}
+	
+	public static void putBigRUID128(@WritableValue byte[] bytes, RUID128 id)
+	{
+		if (bytes.length != 16)
+			throw new IllegalArgumentException("128 bits is 16 bytes, not "+bytes.length+" bytes!");
+		putBigRUID128(bytes, 0, id);
+	}
+	
+	public static void putBigRUID128(@WritableValue byte[] bytes, int offset, RUID128 id)
+	{
+		Bytes.putBigLong(bytes, offset, id.getLowBits());
+		Bytes.putBigLong(bytes, offset+8, id.getHighBits());
+	}
+	
+	public static RUID128 getBigRUID128(byte[] bytes)
+	{
+		if (bytes.length != 16)
+			throw new IllegalArgumentException("128 bits is 16 bytes, not "+bytes.length+" bytes!");
+		return getBigRUID128(bytes, 0);
+	}
+	
+	public static RUID128 getBigRUID128(byte[] bytes, int offset)
+	{
+		return new RUID128(Bytes.getBigLong(bytes, 0), Bytes.getBigLong(bytes, 8));
 	}
 	
 	
