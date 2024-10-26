@@ -32,6 +32,53 @@ public class UIDUtilities
 	public static final UnaryFunctionCharToBoolean DelimiterPattern = c -> c == '-' || c == ' ' || c == ':' || c == '/' || c == ',';
 	
 	
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static String parseOptionallyDescriptiveID(String s) throws TextSyntaxException
+	{
+		s = s.trim();
+		int open = s.lastIndexOf('(');
+		
+		int close = s.lastIndexOf(')');
+		if (close != -1 && close != s.length() - 1)
+			throw TextSyntaxException.inst("Closing parenthesis found other than at the end!");
+		
+		if (open == -1)
+		{
+			if (close != -1)
+				return s.substring(0, close).trim();
+			else
+				return s;
+		}
+		else
+		{
+			return s.substring(open + 1, close).trim();
+		}
+	}
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static RUID128 parseOptionallyDescriptiveRUID128(String s) throws TextSyntaxException
+	{
+		return parseRUID128(parseOptionallyDescriptiveID(s));
+	}
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static @ActuallyUnsigned int parseOptionallyDescriptiveRUID32(String s) throws TextSyntaxException
+	{
+		return parseRUID32(parseOptionallyDescriptiveID(s));
+	}
+	
+	
+	
+	
+	
+	
 	public static RUID128 parseRUID128(String s) throws TextSyntaxException
 	{
 		if (s.length() != 39)
