@@ -217,10 +217,13 @@ public class UIDUtilities
 	
 	public static @ActuallyUnsigned int parseRUID32(String s) throws TextSyntaxException
 	{
-		if (s.length() != 10)
+		int n = s.length();
+		if (n == 10)
+			return Integer.parseUnsignedInt(s);
+		else if (n == 8)
+			return Integer.parseUnsignedInt(s, 16);  //Support widespread legacy Rebound usages X3
+		else
 			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
-		
-		return Integer.parseUnsignedInt(s);
 	}
 	
 	/**
