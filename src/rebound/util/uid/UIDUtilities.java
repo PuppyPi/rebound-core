@@ -4,6 +4,7 @@ import static java.util.Objects.*;
 import static rebound.math.MathUtilities.*;
 import static rebound.testing.WidespreadTestingUtilities.*;
 import static rebound.text.StringUtilities.*;
+import static rebound.util.collections.BasicCollectionUtilities.*;
 import java.io.EOFException;
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ import rebound.exceptions.ImpossibleException;
 import rebound.exceptions.OverflowException;
 import rebound.exceptions.TextSyntaxException;
 import rebound.util.RUID128;
+import rebound.util.collections.PairOrdered;
 import rebound.util.collections.prim.PrimitiveCollections.ByteList;
 import rebound.util.collections.prim.PrimitiveCollections.ImmutableByteArrayList;
 import rebound.util.functional.FunctionInterfaces.UnaryFunctionCharToBoolean;
@@ -54,7 +56,7 @@ public class UIDUtilities
 		}
 		else
 		{
-			return s.substring(open + 1, close).trim();
+			return s.substring(open + 1, close == -1 ? s.length() : close).trim();
 		}
 	}
 	
@@ -73,6 +75,82 @@ public class UIDUtilities
 	{
 		return parseRUID32(parseOptionallyDescriptiveID(s));
 	}
+	
+	
+	
+	
+	
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static PairOrdered<String, String> parseOptionallyDescriptiveIDFully(String s) throws TextSyntaxException
+	{
+		s = s.trim();
+		int open = s.lastIndexOf('(');
+		
+		int close = s.lastIndexOf(')');
+		if (close != -1 && close != s.length() - 1)
+			throw TextSyntaxException.inst("Closing parenthesis found other than at the end!");
+		
+		if (open == -1)
+		{
+			if (close != -1)
+				return pair(null, s.substring(0, close).trim());
+			else
+				return pair(null, s);
+		}
+		else
+		{
+			String name = s.substring(0, open).trim();
+			String id = s.substring(open + 1, close == -1 ? s.length() : close).trim();
+			return pair(name, id);
+		}
+	}
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static PairOrdered<String, RUID128> parseOptionallyDescriptiveRUID128Fully(String s) throws TextSyntaxException
+	{
+		PairOrdered<String, String> r = parseOptionallyDescriptiveIDFully(s);
+		return pair(r.getA(), parseRUID128(r.getB()));
+	}
+	
+	/**
+	 * Eg, the format of "Name (ID)" or "(ID)" or just "ID" :3
+	 */
+	public static PairOrdered<String, Integer> parseOptionallyDescriptiveRUID32Fully(String s) throws TextSyntaxException
+	{
+		PairOrdered<String, String> r = parseOptionallyDescriptiveIDFully(s);
+		return pair(r.getA(), parseRUID32(r.getB()));
+	}
+	
+	
+	
+	
+	
+	
+	
+	public static String formatOptionallyDescriptiveID(@Nullable String name, @Nonnull String id)
+	{
+		if (name == null || name.isEmpty())
+			return id;
+		else
+			return name+" ("+id+")";
+	}
+	
+	public static String formatOptionallyDescriptiveRUID128(@Nullable String name, @Nonnull RUID128 id)
+	{
+		return formatOptionallyDescriptiveID(name, formatRUID128(id));
+	}
+	
+	public static String formatOptionallyDescriptiveRUID32(@Nullable String name, @ActuallyUnsigned int id)
+	{
+		return formatOptionallyDescriptiveID(name, formatRUID32(id));
+	}
+	
+	
 	
 	
 	
