@@ -163,7 +163,18 @@ public class UIDUtilities
 			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
 		
 		//Todo more efficient implementation? :3
-		return bigIntegerToRUID128(new BigInteger(s));
+		try
+		{
+			return bigIntegerToRUID128(new BigInteger(s));
+		}
+		catch (NumberFormatException exc)
+		{
+			throw TextSyntaxException.inst(exc);
+		}
+		catch (OverflowException exc)
+		{
+			throw TextSyntaxException.inst(exc);
+		}
 	}
 	
 	/**
@@ -295,13 +306,20 @@ public class UIDUtilities
 	
 	public static @ActuallyUnsigned int parseRUID32(String s) throws TextSyntaxException
 	{
-		int n = s.length();
-		if (n == 10)
-			return Integer.parseUnsignedInt(s);
-		else if (n == 8)
-			return Integer.parseUnsignedInt(s, 16);  //Support widespread legacy Rebound usages X3
-		else
-			throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
+		try
+		{
+			int n = s.length();
+			if (n == 10)
+				return Integer.parseUnsignedInt(s);
+			else if (n == 8)
+				return Integer.parseUnsignedInt(s, 16);  //Support widespread legacy Rebound usages X3
+			else
+				throw TextSyntaxException.inst("Not even the right length!!: "+repr(s));
+		}
+		catch (NumberFormatException exc)
+		{
+			throw TextSyntaxException.inst(exc);
+		}
 	}
 	
 	/**
